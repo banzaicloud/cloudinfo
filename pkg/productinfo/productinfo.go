@@ -391,7 +391,7 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 
 	var pr Price
 	for i, vm := range vms {
-		pd := cpi.newProductDetails(vm, cloud)
+		pd := cpi.newProductDetails(cloud, vm)
 		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(cloud, region, vm.Type)); ok {
 			pr = cachedVal.(Price)
 			// fill the on demand price if appropriate
@@ -410,6 +410,16 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 	}
 
 	return details, nil
+}
+
+// newProductDetails creates a new ProductDetails struct and returns a pointer to it
+func (cpi *CachingProductInfo) newProductDetails(provider string, vm VmInfo) *ProductDetails {
+	pd := ProductDetails{}
+	pd.VmInfo = vm
+	pd.Burst = vm.IsBurst()
+	ntwMapper, _ := cpi.GetNetworkPerfMapper(provider)
+	pd.NtwPerfCat = vm.NetworkPerformance(ntwMapper)
+	return &pd
 }
 
 // Contains is a helper function to check if a slice contains a string
