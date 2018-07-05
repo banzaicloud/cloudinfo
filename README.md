@@ -7,7 +7,7 @@
 
 # Product Info
 
-The Banzai Cloud 'productinfo' application is a standalone project in the [Pipeline](https://github.com/banzaicloud/pipeline) ecosystem.
+The Banzai Cloud `productinfo` application is a standalone project in the [Pipeline](https://github.com/banzaicloud/pipeline) ecosystem.
 It's main purpose is to gather product information from the supported cloud providers and make them available to clients in a unified format
 
 ## Quick start
@@ -37,7 +37,7 @@ Usage of ./productinfo:
  
 ## API calls
 
-*For a complete OpenAPI 3.0 documentation, check out this [URL](https://editor.swagger.io/?url=https://raw.githubusercontent.com/banzaicloud/productinfo/master/docs/openapi/recommender.yaml).*
+*For a complete OpenAPI 3.0 documentation, check out this [URL](https://editor.swagger.io/?url=https://raw.githubusercontent.com/banzaicloud/productinfo/master/docs/openapi/productinfo.yaml).*
 
 
 ## FAQ
@@ -47,22 +47,21 @@ Usage of ./productinfo:
 The project is using the standard [AWS SDK for Go](https://aws.amazon.com/sdk-for-go/), so credentials can be configured via
 environment variables, shared credential files and via AWS instance profiles. To learn more about that read the [Specifying Credentials](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html) section of the SDK docs.
 
-**2. Why do I see messages like `DEBU[0001] Getting available instance types from AWS API. [region=ap-northeast-2, memory=0.5]` when starting the 'productinfo' app?**
+**2. Why do I see messages like `DEBU[0001] Getting available instance types from AWS API. [region=ap-northeast-2, memory=0.5]` when starting the `productinfo` app?**
 
-After the 'productinfo' app is started, it takes ~2-3 minutes to cache all the product information (like instance types) from AWS (in memory).
+After the `productinfo` app is started, it takes ~2-3 minutes to cache all the product information (like instance types) from AWS (in memory).
 AWS is releasing new instance types and regions quite frequently and also changes on-demand pricing from time to time.
 So it is necessary to keep this info up-to-date without needing to modify it manually every time something changes on the AWS side.
-After the initial query, the 'productinfo' app will parse this info from the AWS Pricing API once per day.
+After the initial query, the `productinfo` app will parse this info from the AWS Pricing API once per day.
 The frequency of this querying and caching is configurable with the `-product-info-renewal-interval` switch and is set to `24h` by default.
 
-**3. What happens if the 'productinfo' app cannot cache the AWS product info?**
+**3. What happens if the `productinfo` app cannot cache the AWS product info?**
 
-If caching fails, the 'productinfo' app will try to reach the AWS Pricing List API on the fly when a request is sent (and it will also cache the resulting information).
-If that fails as well, the recommendation will return with an error.
+If caching fails, the `productinfo` app will try to reach the AWS Pricing List API on the fly when a request is sent (and it will also cache the resulting information).
 
 **4. What kind of AWS permissions do I need to use the project?**
 
-The 'productinfo' app is querying the AWS [Pricing API](https://aws.amazon.com/blogs/aws/aws-price-list-api-update-new-query-and-metadata-functions/) to keep up-to-date info
+The `productinfo` app is querying the AWS [Pricing API](https://aws.amazon.com/blogs/aws/aws-price-list-api-update-new-query-and-metadata-functions/) to keep up-to-date info
 about instance types, regions and on-demand pricing.
 You'll need IAM access as described here in [example 11](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-permissions-ref.html#example-policy-pe-api) of the AWS IAM docs.
 
@@ -80,4 +79,4 @@ By default the spot price averages of the last week are queried and instance typ
 
 **7. What happens if my Prometheus server cannot be reached or if it doesn't have the necessary spot price metrics?**
 
-If the 'productinfo' app fails to reach the Prometheus query API, or it couldn't find proper metrics, it will fall back to querying the current spot prices from the AWS API.
+If the `productinfo` app fails to reach the Prometheus query API, or it couldn't find proper metrics, it will fall back to querying the current spot prices from the AWS API.
