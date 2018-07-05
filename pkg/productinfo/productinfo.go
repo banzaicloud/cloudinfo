@@ -38,6 +38,7 @@ type VmInfo struct {
 	Mem           float64       `json:"memPerVm"`
 	Gpus          float64       `json:"gpusPerVm"`
 	NtwPerf       string        `json:"ntwPerf"`
+	NtwPerfCat    string        `json:"ntwPerfCategory"`
 }
 
 // IsBurst returns true if the EC2 instance vCPU is burst type
@@ -390,7 +391,7 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 
 	var pr Price
 	for i, vm := range vms {
-		pd := newProductDetails(vm)
+		pd := cpi.newProductDetails(vm, cloud)
 		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(cloud, region, vm.Type)); ok {
 			pr = cachedVal.(Price)
 			// fill the on demand price if appropriate

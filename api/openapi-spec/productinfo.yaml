@@ -235,6 +235,9 @@ components:
         ntwPerf:
           type: string
           x-go-name: NtwPerf
+        ntwPerfCategory:
+          type: string
+          x-go-name: NtwPerfCat
         onDemandPrice:
           type: number
           format: double

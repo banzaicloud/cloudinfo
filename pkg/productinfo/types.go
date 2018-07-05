@@ -166,9 +166,11 @@ type ProductDetailSource interface {
 }
 
 // newProductDetails creates a new ProductDetails struct and returns a pointer to it
-func newProductDetails(vm VmInfo) *ProductDetails {
+func (cpi *CachingProductInfo) newProductDetails(vm VmInfo, provider string) *ProductDetails {
 	pd := ProductDetails{}
 	pd.VmInfo = vm
 	pd.Burst = vm.IsBurst()
+	ntwMapper, _ := cpi.GetNetworkPerfMapper(provider)
+	pd.NtwPerfCat = vm.NetworkPerformance(ntwMapper)
 	return &pd
 }

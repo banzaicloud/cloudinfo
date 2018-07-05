@@ -33,6 +33,9 @@ type ProductDetails struct {
 	// ntw perf
 	NtwPerf string `json:"ntwPerf,omitempty"`
 
+	// ntw perf cat
+	NtwPerfCat string `json:"ntwPerfCategory,omitempty"`
+
 	// on demand price
 	OnDemandPrice float64 `json:"onDemandPrice,omitempty"`
 
