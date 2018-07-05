@@ -1,6 +1,6 @@
 
 [![CircleCI](https://circleci.com/gh/banzaicloud/productinfo/tree/master.svg?style=shield)](https://circleci.com/gh/banzaicloud/productinfo/tree/master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/telescopes)](https://goreportcard.com/report/github.com/banzaicloud/telescopes)
+[![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/productinfo)](https://goreportcard.com/report/github.com/banzaicloud/productinfo)
 ![license](http://img.shields.io/badge/license-Apache%20v2-orange.svg)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1651/badge)](https://bestpractices.coreinfrastructure.org/projects/1651)
 

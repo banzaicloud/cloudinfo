@@ -57,7 +57,7 @@ const (
 // defineFlags defines supported flags and makes them available for viper
 func defineFlags() {
 	flag.String(logLevelFlag, "info", "log level")
-	flag.String(listenAddressFlag, ":9090", "the address the telescope listens to HTTP requests.")
+	flag.String(listenAddressFlag, ":9090", "the address the productinfo app listens to HTTP requests.")
 	flag.Duration(prodInfRenewalIntervalFlag, 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
 	flag.String(prometheusAddressFlag, "", "http address of a Prometheus instance that has AWS spot "+
 		"price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.")
