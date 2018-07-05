@@ -47,15 +47,6 @@ func (vm VmInfo) IsBurst() bool {
 	return strings.HasPrefix(strings.ToUpper(vm.Type), "T")
 }
 
-//NetworkPerformance returns the network performance category for the vm
-func (vm VmInfo) NetworkPerformance(nm NetworkPerfMapper) string {
-	nc, err := nm.MapNetworkPerf(vm)
-	if err != nil {
-		log.Warnf("could not get network performance for vm [%s], error: [%s]", vm.Type, err.Error())
-	}
-	return nc
-}
-
 // NewCachingProductInfo creates a new CachingProductInfo instance
 func NewCachingProductInfo(ri time.Duration, cache *cache.Cache, infoers map[string]ProductInfoer) (*CachingProductInfo, error) {
 	if infoers == nil || cache == nil {
@@ -389,32 +380,35 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 	vms := cachedVms.([]VmInfo)
 	details := make([]ProductDetails, len(vms))
 
-	ntwMapper, err := cpi.GetNetworkPerfMapper(cloud)
-	if err != nil {
-		return nil, err
-	}
-
 	var pr Price
 	for i, vm := range vms {
-		pd := newProductDetails(ntwMapper, vm)
+		pd := newProductDetails(vm)
+		pdWithNtwPerfCat := cpi.decorateNtwPerfCat(cloud, pd)
 		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(cloud, region, vm.Type)); ok {
 			pr = cachedVal.(Price)
 			// fill the on demand price if appropriate
 			if pr.OnDemandPrice > 0 {
-				pd.OnDemandPrice = pr.OnDemandPrice
+				pdWithNtwPerfCat.OnDemandPrice = pr.OnDemandPrice
 			}
 		} else {
 			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(cloud, region, vm.Type))
 		}
 
 		for zone, price := range pr.SpotPrice {
-			pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
+			pdWithNtwPerfCat.SpotInfo = append(pdWithNtwPerfCat.SpotInfo, *newZonePrice(zone, price))
 		}
 
-		details[i] = *pd
+		details[i] = *pdWithNtwPerfCat
 	}
 
 	return details, nil
+}
+
+// decorateNtwPerfCat returns ProductDetails with network performance category
+func (cpi *CachingProductInfo) decorateNtwPerfCat(provider string, pd *ProductDetails) *ProductDetails {
+	ntwMapper, _ := cpi.GetNetworkPerfMapper(provider)
+	pd.NtwPerfCat, _ = ntwMapper.MapNetworkPerf(pd.VmInfo)
+	return pd
 }
 
 // Contains is a helper function to check if a slice contains a string
