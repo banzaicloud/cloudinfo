@@ -1,0 +1,8 @@
+.idea*
+.DS_Store
+bin/*
+.idea/
+/productinfo
+conf/config.toml
+*.swp
+test.txt

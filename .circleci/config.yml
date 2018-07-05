@@ -1,0 +1,55 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.10
+
+    working_directory: /go/src/github.com/banzaicloud/productinfo
+    steps:
+      - checkout
+      - run:
+          name: Build
+          command:
+              make build
+      - run:
+          name: Run go vet
+          command:
+              make vet
+      - run:
+          name: Run fmt
+          command:
+              make check-fmt
+      - run:
+          name: Run golint
+          command:
+              make lint
+      - run:
+          name: Run misspell
+          command:
+              make check-misspell
+      - run:
+          name: Run ineffassign
+          command:
+              make ineffassign
+      - run:
+          name: Run gocyclo
+          command:
+              make gocyclo
+      - run:
+          name: Run tests
+          command:
+              make test
+      - run:
+          name: Generate test reports
+          command:
+              make go-junit-report
+          when: always
+
+      - store_test_results:
+          path: test-results/
+      - store_artifacts:
+          path: test-results/
+
