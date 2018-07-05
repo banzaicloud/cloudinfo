@@ -164,3 +164,12 @@ type ProductDetailSource interface {
 	// GetProductDetails gathers the product details information known by telescope
 	GetProductDetails(cloud string, region string) ([]ProductDetails, error)
 }
+
+// newProductDetails creates a new ProductDetails struct and returns a pointer to it
+func newProductDetails(ntwMapper NetworkPerfMapper, vm VmInfo) *ProductDetails {
+	pd := ProductDetails{}
+	pd.VmInfo = vm
+	pd.Burst = vm.IsBurst()
+	pd.NtwPerfCat = vm.NetworkPerformance(ntwMapper)
+	return &pd
+}
