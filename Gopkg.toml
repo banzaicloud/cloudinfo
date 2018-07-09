@@ -1,0 +1,65 @@
+[prune]
+  go-tests = true
+  unused-packages = true
+  non-go = true
+
+[[constraint]]
+  name = "github.com/aws/aws-sdk-go"
+  version = "1.13.35"
+
+[[constraint]]
+  name = "github.com/gin-gonic/gin"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.4"
+
+[[constraint]]
+  name = "github.com/patrickmn/go-cache"
+  version = "2.1.0"
+
+[[constraint]]
+  name = "github.com/prometheus/client_golang"
+  version = "0.9.0-pre1"
+
+[[constraint]]
+  name = "github.com/prometheus/common"
+  revision = "e5b036cc37a466a0af27d604d1ee500211d16d6a"
+
+
+[[constraint]]
+  name = "github.com/gin-contrib/cors"
+  version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"
+
+[[constraint]]
+  branch = "master"
+  name = "google.golang.org/api"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+
+[[constraint]]
+  name = "github.com/banzaicloud/bank-vaults"
+  version = "0.2.1"
+
+[[constraint]]
+  name = "github.com/spf13/viper"
+  version = "1.0.2"
+
+[[constraint]]
+  name = "github.com/spf13/pflag"
+  version = "1.0.1"
+
+[[constraint]]
+  name = "github.com/Azure/azure-sdk-for-go"
+  version = "17.1.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gin-contrib/static"

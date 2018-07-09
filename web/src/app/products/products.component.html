@@ -1,0 +1,77 @@
+<div class="row">
+  <div class="col-1">
+  </div>
+  <div class="col-6 mt-5">
+    <mat-form-field class="mr-5">
+      <mat-select [(value)]="provider" placeholder="Cloud Provider" (selectionChange)="updateProducts()">
+        <mat-option value="ec2">Amazon EC2</mat-option>
+        <mat-option value="gce">Google Cloud</mat-option>
+        <mat-option value="azure">Microsoft Azure</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select [(value)]="region" placeholder="Region" (selectionChange)="getProducts()">
+        <mat-option *ngFor="let region of regions" value="{{region.id}}">{{region.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="col-4 mt-5">
+    <mat-form-field class="float-right">
+      <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Search">
+    </mat-form-field>
+  </div>
+  <div class="col-1">
+  </div>
+</div>
+<div class="row">
+  <div class="col-1">
+  </div>
+  <div class="col-10">
+    <span class="mr-3">Get the same result with cURL:</span><code>curl -kL -X GET
+    'https://banzaicloud.com/productinfo/api/v1/products/{{provider}}/{{region}}'</code>
+  </div>
+  <div class="col-1">
+  </div>
+</div>
+<div class="row">
+  <div class="col-1">
+  </div>
+  <div class="col-10">
+    <mat-table [dataSource]="products" matSort matSortActive="type" matSortDirection="asc" matSortDisableClear="true">
+      <ng-container matColumnDef="type">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Machine Type</mat-header-cell>
+        <mat-cell *matCellDef="let machine"> {{machine.type}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="cpu">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> CPUs</mat-header-cell>
+        <mat-cell *matCellDef="let machine"> {{ machine.cpu }} vCPUs</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="mem">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Memory</mat-header-cell>
+        <mat-cell *matCellDef="let machine"> {{ machine.mem | toFixedNumber }}  <span *ngIf="machine.mem !== 'unavailable'">&nbsp;GB</span></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="ntwPerf">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Network Performance</mat-header-cell>
+        <mat-cell *matCellDef="let machine"> {{machine.ntwPerf}}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="regularPrice">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> On Demand Price (Linux)</mat-header-cell>
+        <mat-cell *matCellDef="let machine"> ${{machine.regularPrice | toFixedNumber : 5 }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="spotPrice">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Average Spot Price</mat-header-cell>
+        <mat-cell *matCellDef="let machine"> ${{machine.spotPrice | toFixedNumber : 5 }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="columnsToDisplay"></mat-header-row>
+      <mat-row *matRowDef="let machineHeader; columns: columnsToDisplay"></mat-row>
+    </mat-table>
+  </div>
+  <div class="col-1">
+  </div>
+</div>
