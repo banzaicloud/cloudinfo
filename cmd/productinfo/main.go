@@ -42,7 +42,6 @@ const (
 	helpFlag                   = "help"
 
 	//temporary flags
-	gceProjectIdFlag    = "gce-project-id"
 	gceApiKeyFlag       = "gce-api-key"
 	azureSubscriptionId = "azure-subscription-id"
 
@@ -63,7 +62,6 @@ func defineFlags() {
 		"price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.")
 	flag.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
 		"advanced configuration: change the query used to query spot price info from Prometheus.")
-	flag.String(gceProjectIdFlag, "", "GCE project ID to use")
 	flag.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
 	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure}, "Providers that will be used with the productinfo application.")
 	flag.String(azureSubscriptionId, "", "Azure subscription ID to use with the APIs")
@@ -141,7 +139,7 @@ func infoers() map[string]productinfo.ProductInfoer {
 		case Ec2:
 			infoer, err = ec2.NewEc2Infoer(viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
 		case Gce:
-			infoer, err = gce.NewGceInfoer(viper.GetString(gceApiKeyFlag), viper.GetString(gceProjectIdFlag))
+			infoer, err = gce.NewGceInfoer(viper.GetString(gceApiKeyFlag))
 		case Azure:
 			infoer, err = azure.NewAzureInfoer(viper.GetString(azureSubscriptionId))
 		default:
