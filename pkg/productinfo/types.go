@@ -3,8 +3,6 @@ package productinfo
 import (
 	"context"
 	"time"
-
-	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -102,7 +100,7 @@ type ProductInfo interface {
 type CachingProductInfo struct {
 	productInfoers  map[string]ProductInfoer
 	renewalInterval time.Duration
-	vmAttrStore     *cache.Cache
+	vmAttrStore     Cache
 }
 
 // AttrValue represents an attribute value
@@ -131,6 +129,12 @@ var (
 type NetworkPerfMapper interface {
 	// MapNetworkPerf gets the network performance category for the given
 	MapNetworkPerf(vm VmInfo) (string, error)
+}
+
+// Cache interface collects cache operations
+type Cache interface {
+	Get(k string) (interface{}, bool)
+	Set(k string, x interface{}, d time.Duration)
 }
 
 // ZonePrice struct for displaying proce information per zone

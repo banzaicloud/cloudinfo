@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,7 +47,7 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingProductInfo creates a new CachingProductInfo instance
-func NewCachingProductInfo(ri time.Duration, cache *cache.Cache, infoers map[string]ProductInfoer) (*CachingProductInfo, error) {
+func NewCachingProductInfo(ri time.Duration, cache Cache, infoers map[string]ProductInfoer) (*CachingProductInfo, error) {
 	if infoers == nil || cache == nil {
 		return nil, errors.New("could not create product infoer")
 	}
