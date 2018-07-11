@@ -50,7 +50,11 @@ type GceInfoer struct {
 }
 
 // NewGceInfoer creates a new instance of the infoer
-func NewGceInfoer(apiKey string, pi string) (*GceInfoer, error) {
+func NewGceInfoer(apiKey string) (*GceInfoer, error) {
+	defaultCredential, err := google.FindDefaultCredentials(context.Background(), compute.ComputeScope, billing.CloudPlatformScope)
+	if err != nil {
+		return nil, err
+	}
 	client, err := google.DefaultClient(context.Background(), compute.ComputeScope, billing.CloudPlatformScope)
 	if err != nil {
 		return nil, err
@@ -73,7 +77,7 @@ func NewGceInfoer(apiKey string, pi string) (*GceInfoer, error) {
 	return &GceInfoer{
 		cbSvc:              billingSvc,
 		computeSvc:         computeSvc,
-		projectId:          pi,
+		projectId:          defaultCredential.ProjectID,
 		cpuRegex:           cpuReg,
 		resourceGroupRegex: rgReg,
 	}, nil

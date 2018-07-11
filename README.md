@@ -27,7 +27,6 @@ The following options can be configured when starting the exporter (with default
 Usage of ./productinfo:
       --azure-subscription-id string             Azure subscription ID to use with the APIs
       --gce-api-key string                       GCE API key to use for getting SKUs
-      --gce-project-id string                    GCE project ID to use
       --help                                     print usage
       --listen-address string                    the address the productinfo app listens to HTTP requests. (default ":9090")
       --log-level string                         log level (default "info")
@@ -66,7 +65,7 @@ Once you have a service account, download the JSON credentials file from the Goo
 
 ```
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
-./productinfo --provider gce --gce-project-id "<gce-project-id>" --gce-api-key "<gce-api-key>"
+./productinfo --provider gce --gce-api-key "<gce-api-key>"
 
 ```
 
@@ -94,7 +93,7 @@ export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 export AWS_ACCESS_KEY_ID=<your-access-key-id>
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
-./productinfo --provider ec2 --provider gce --gce-project-id "<gce-project-id>" --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb"
+./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb"
 
 ```
 
