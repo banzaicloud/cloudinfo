@@ -13,11 +13,24 @@ import (
 // DummyProductInfoer type implements the ProductInfoer interface for mockig of external calls
 // the struct is to be extended according to the needs of test cases
 type DummyProductInfoer struct {
-	AttrValues AttrValues
-	Vms        []VmInfo
-	TcId       string
+	AttrValues         AttrValues
+	Vms                []VmInfo
+	TcId               string
+	dummyNetworkMapper NetworkPerfMapper
 	// implement the interface
 	ProductInfoer
+	Cache
+}
+
+func newDummyNetworkMapper() dummyNetworkMapper {
+	return dummyNetworkMapper{}
+}
+
+type dummyNetworkMapper struct {
+}
+
+func (nm *dummyNetworkMapper) MapNetworkPerf(vm VmInfo) (string, error) {
+	return "high", nil
 }
 
 const (
@@ -27,6 +40,8 @@ const (
 	GetProductsError        = "could not get products"
 	InitializeError         = "initialization failed"
 	GetZonesError           = "could not get zones"
+	ProductDetailsOK        = "successfully get product details"
+	GetProductDetail        = "returns a product detail"
 )
 
 func (dpi *DummyProductInfoer) Initialize() (map[string]map[string]Price, error) {
@@ -109,6 +124,83 @@ func (dpi *DummyProductInfoer) GetMemoryAttrName() string {
 
 func (dpi *DummyProductInfoer) GetCpuAttrName() string {
 	return "vcpu"
+}
+
+func (dpi *DummyProductInfoer) Get(k string) (interface{}, bool) {
+	switch dpi.TcId {
+	case ProductDetailsOK:
+		switch k {
+		case "/banzaicloud.com/recommender/dummy/dummyRegion/vms":
+			return []VmInfo{
+				{
+					Type:          "type-1",
+					OnDemandPrice: 0.021,
+					Cpus:          1,
+					Mem:           2,
+					NtwPerfCat:    "high",
+					SpotPrice:     SpotPriceInfo{"dummy": 0.006},
+				},
+				{
+					Type:       "type-2",
+					Cpus:       2,
+					Mem:        4,
+					NtwPerfCat: "high",
+				},
+				{
+					Type:       "type-3",
+					Cpus:       2,
+					Mem:        4,
+					NtwPerfCat: "high",
+				},
+			}, true
+		case "/banzaicloud.com/recommender/dummy/dummyRegion/prices/type-1":
+			return Price{
+				OnDemandPrice: 0.023,
+				SpotPrice:     SpotPriceInfo{"dummyZone": 0.0069},
+			}, true
+		case "/banzaicloud.com/recommender/dummy/dummyRegion/prices/type-2":
+			return Price{
+				OnDemandPrice: 0.043,
+				SpotPrice:     SpotPriceInfo{"dummyZone": 0.0087},
+			}, true
+		default:
+			return nil, false
+		}
+	case GetProductDetail:
+		switch k {
+		case "/banzaicloud.com/recommender/dummy/dummyRegion/vms":
+			return []VmInfo{
+				{
+					Type:          "type-1",
+					OnDemandPrice: 0.021,
+					Cpus:          1,
+					Mem:           2,
+					NtwPerfCat:    "high",
+				},
+			}, true
+		case "/banzaicloud.com/recommender/dummy/dummyRegion/prices/type-1":
+			return Price{
+				OnDemandPrice: 0.023,
+				SpotPrice:     SpotPriceInfo{"dummyZone": 0.0069},
+			}, true
+		default:
+			return nil, false
+		}
+	default:
+		return nil, false
+	}
+}
+
+func (dpi *DummyProductInfoer) Set(k string, x interface{}, d time.Duration) {
+}
+
+func (dpi *DummyProductInfoer) GetNetworkPerformanceMapper() (NetworkPerfMapper, error) {
+	nm := newDummyNetworkMapper()
+	return &nm, nil
+}
+
+func (dpi *DummyProductInfoer) MapNetworkPerf(vm VmInfo) (string, error) {
+	return "high", nil
 }
 
 func TestNewCachingProductInfo(t *testing.T) {
@@ -470,6 +562,58 @@ func TestCachingProductInfo_GetRegions(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
 			test.checker(productInfo.GetRegions("dummy"))
+		})
+	}
+}
+
+func TestCachingProductInfo_GetProductDetails(t *testing.T) {
+	tests := []struct {
+		name          string
+		ProductInfoer map[string]ProductInfoer
+		cache         Cache
+		checker       func(details []ProductDetails, err error)
+	}{
+		{
+			name: "successfully retrieved product details",
+			ProductInfoer: map[string]ProductInfoer{
+				"dummy": &DummyProductInfoer{},
+			},
+			cache: &DummyProductInfoer{TcId: ProductDetailsOK},
+			checker: func(details []ProductDetails, err error) {
+				assert.Nil(t, err, "the error should be nil")
+				assert.Equal(t, 3, len(details))
+			},
+		},
+		{
+			name: "successfully retrieved one product detail",
+			ProductInfoer: map[string]ProductInfoer{
+				"dummy": &DummyProductInfoer{},
+			},
+			cache: &DummyProductInfoer{TcId: GetProductDetail},
+			checker: func(details []ProductDetails, err error) {
+				assert.Nil(t, err, "the error should be nil")
+				assert.Equal(t, 1, len(details))
+				assert.Equal(t, []ProductDetails{{VmInfo: VmInfo{Type: "type-1", OnDemandPrice: 0.023,
+					SpotPrice: SpotPriceInfo(nil), Cpus: 1, Mem: 2, Gpus: 0, NtwPerf: "", NtwPerfCat: "high"}, Burst: true,
+					SpotInfo: []ZonePrice{{Zone: "dummyZone", Price: 0.0069}}}}, details)
+			},
+		},
+		{
+			name: "vms not yet cached, we need to get an error",
+			ProductInfoer: map[string]ProductInfoer{
+				"dummy": &DummyProductInfoer{},
+			},
+			cache: &DummyProductInfoer{},
+			checker: func(details []ProductDetails, err error) {
+				assert.Nil(t, details, "the details should be nil")
+				assert.EqualError(t, err, "vms not yet cached for the key: /banzaicloud.com/recommender/dummy/dummyRegion/vms")
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			productInfo, _ := NewCachingProductInfo(10*time.Second, test.cache, test.ProductInfoer)
+			test.checker(productInfo.GetProductDetails("dummy", "dummyRegion"))
 		})
 	}
 }
