@@ -19,7 +19,7 @@ type DummyProductInfoer struct {
 	dummyNetworkMapper NetworkPerfMapper
 	// implement the interface
 	ProductInfoer
-	Cache
+	ProductStorer
 }
 
 func newDummyNetworkMapper() dummyNetworkMapper {
@@ -570,7 +570,7 @@ func TestCachingProductInfo_GetProductDetails(t *testing.T) {
 	tests := []struct {
 		name          string
 		ProductInfoer map[string]ProductInfoer
-		cache         Cache
+		cache         ProductStorer
 		checker       func(details []ProductDetails, err error)
 	}{
 		{
@@ -593,9 +593,12 @@ func TestCachingProductInfo_GetProductDetails(t *testing.T) {
 			checker: func(details []ProductDetails, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				assert.Equal(t, 1, len(details))
-				assert.Equal(t, []ProductDetails{{VmInfo: VmInfo{Type: "type-1", OnDemandPrice: 0.023,
-					SpotPrice: SpotPriceInfo(nil), Cpus: 1, Mem: 2, Gpus: 0, NtwPerf: "", NtwPerfCat: "high"}, Burst: true,
-					SpotInfo: []ZonePrice{{Zone: "dummyZone", Price: 0.0069}}}}, details)
+				for _, info := range details {
+					assert.Equal(t, "type-1", info.Type)
+					assert.Equal(t, float64(1), info.Cpus)
+					assert.Equal(t, 0.023, info.OnDemandPrice)
+					assert.Equal(t, float64(2), info.Mem)
+				}
 			},
 		},
 		{

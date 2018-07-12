@@ -100,7 +100,7 @@ type ProductInfo interface {
 type CachingProductInfo struct {
 	productInfoers  map[string]ProductInfoer
 	renewalInterval time.Duration
-	vmAttrStore     Cache
+	vmAttrStore     ProductStorer
 }
 
 // AttrValue represents an attribute value
@@ -131,8 +131,8 @@ type NetworkPerfMapper interface {
 	MapNetworkPerf(vm VmInfo) (string, error)
 }
 
-// Cache interface collects cache operations
-type Cache interface {
+// ProductStorer interface collects the necessary cache operations
+type ProductStorer interface {
 	Get(k string) (interface{}, bool)
 	Set(k string, x interface{}, d time.Duration)
 }
