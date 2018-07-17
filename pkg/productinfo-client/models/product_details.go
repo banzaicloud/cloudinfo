@@ -24,6 +24,9 @@ type ProductDetails struct {
 	// cpus
 	Cpus float64 `json:"cpusPerVm,omitempty"`
 
+	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
+	CurrentGen bool `json:"currentGen,omitempty"`
+
 	// gpus
 	Gpus float64 `json:"gpusPerVm,omitempty"`
 
