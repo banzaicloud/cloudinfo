@@ -168,10 +168,10 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 			continue
 		}
 
-		var currGen bool
+		var currGen bool = true
 		if currentGenStr, err := pd.GetDataForKey("currentGeneration"); err == nil {
-			if strings.ToLower(currentGenStr) == "yes" {
-				currGen = true
+			if strings.ToLower(currentGenStr) == "no" {
+				currGen = false
 			}
 		}
 
@@ -186,7 +186,7 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 			Mem:           mem,
 			Gpus:          gpus,
 			NtwPerf:       ntwPerf,
-			CurrentGen:    &currGen,
+			CurrentGen:    currGen,
 		}
 		vms = append(vms, vm)
 	}

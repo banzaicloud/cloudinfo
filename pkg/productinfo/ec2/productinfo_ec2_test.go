@@ -206,10 +206,6 @@ func TestNewEc2Infoer(t *testing.T) {
 	}
 }
 
-func boolPointer(c bool) *bool {
-	return &c
-}
-
 func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -295,7 +291,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 			pricingService: &testStruct{TcId: 4},
 			check: func(vm []productinfo.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
-				assert.Equal(t, []productinfo.VmInfo{{Type: "t2.small", OnDemandPrice: 5, SpotPrice: productinfo.SpotPriceInfo(nil), Cpus: 1, Mem: 2, Gpus: 0, NtwPerf: "Low to Moderate", NtwPerfCat: "", CurrentGen: boolPointer(false)}}, vm)
+				assert.Equal(t, []productinfo.VmInfo{{Type: "t2.small", OnDemandPrice: 5, SpotPrice: productinfo.SpotPriceInfo(nil), Cpus: 1, Mem: 2, Gpus: 0, NtwPerf: "Low to Moderate", NtwPerfCat: "", CurrentGen: true}}, vm)
 			},
 		},
 		{
