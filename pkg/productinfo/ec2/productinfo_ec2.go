@@ -168,6 +168,13 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 			continue
 		}
 
+		var currGen bool
+		if currentGenStr, err := pd.GetDataForKey("currentGeneration"); err == nil {
+			if strings.ToLower(currentGenStr) == "yes" {
+				currGen = true
+			}
+		}
+
 		onDemandPrice, _ := strconv.ParseFloat(odPriceStr, 64)
 		cpus, _ := strconv.ParseFloat(cpusStr, 64)
 		mem, _ := strconv.ParseFloat(strings.Split(memStr, " ")[0], 64)
@@ -179,12 +186,14 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 			Mem:           mem,
 			Gpus:          gpus,
 			NtwPerf:       ntwPerf,
+			CurrentGen:    &currGen,
 		}
 		vms = append(vms, vm)
 	}
 	if vms == nil {
 		log.Debugf("couldn't find any virtual machines to recommend")
 	}
+
 	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }

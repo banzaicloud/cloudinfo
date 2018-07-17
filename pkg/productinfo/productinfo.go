@@ -38,6 +38,8 @@ type VmInfo struct {
 	Gpus          float64       `json:"gpusPerVm"`
 	NtwPerf       string        `json:"ntwPerf"`
 	NtwPerfCat    string        `json:"ntwPerfCategory"`
+	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
+	CurrentGen *bool `json:"currentGen"`
 }
 
 // IsBurst returns true if the EC2 instance vCPU is burst type

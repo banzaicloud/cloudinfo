@@ -224,6 +224,12 @@ components:
           type: number
           format: double
           x-go-name: Cpus
+        currentGen:
+          description: >-
+            CurrentGen signals whether the instance type generation is the
+            current one. Only applies for amazon
+          type: boolean
+          x-go-name: CurrentGen
         gpusPerVm:
           type: number
           format: double
