@@ -21,6 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/productinfo/internal/app/productinfo/api"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
@@ -40,6 +41,8 @@ const (
 	prometheusQueryFlag        = "prometheus-query"
 	providerFlag               = "provider"
 	helpFlag                   = "help"
+	metricsEnabledFlag         = "metrics-enabled"
+	metricsPortFlag            = "metrics-port"
 
 	//temporary flags
 	gceApiKeyFlag       = "gce-api-key"
@@ -66,6 +69,8 @@ func defineFlags() {
 	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure}, "Providers that will be used with the productinfo application.")
 	flag.String(azureSubscriptionId, "", "Azure subscription ID to use with the APIs")
 	flag.Bool(helpFlag, false, "print usage")
+	flag.Bool(metricsEnabledFlag, false, "if true get prometheus metrics, false by default")
+	flag.String(metricsPortFlag, ":9900", "prometheus metrics port")
 }
 
 // bindFlags binds parsed flags into viper
@@ -120,6 +125,13 @@ func main() {
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()
+
+	// add prometheus metric endpoint
+	if viper.GetBool(metricsEnabledFlag) {
+		p := ginprometheus.NewPrometheus("gin", []string{"provider", "region"})
+		p.SetListenAddress(viper.GetString(metricsPortFlag))
+		p.Use(router)
+	}
 
 	log.Info("Initialized gin router")
 	routeHandler.ConfigureRoutes(router)

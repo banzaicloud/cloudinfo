@@ -88,6 +88,18 @@
   version = "v1.13.35"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/banzaicloud/go-gin-prometheus"
+  packages = ["."]
+  revision = "9d3e5dc55c9e9c846035b317168e9705d6fbffb3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/beorn7/perks"
+  packages = ["quantile"]
+  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -216,10 +228,10 @@
   revision = "b0a3ed684d0fdd3e1eda00433382188ce8aa7169"
 
 [[projects]]
-  branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -272,6 +284,12 @@
   version = "v0.0.3"
 
 [[projects]]
+  name = "github.com/matttproud/golang_protobuf_extensions"
+  packages = ["pbutil"]
+  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+  version = "v1.0.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
@@ -311,15 +329,38 @@
   name = "github.com/prometheus/client_golang"
   packages = [
     "api",
-    "api/prometheus/v1"
+    "api/prometheus/v1",
+    "prometheus",
+    "prometheus/promhttp"
   ]
   revision = "967789050ba94deca04a5e84cce8ad472ce313c1"
   version = "v0.9.0-pre1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/prometheus/client_model"
+  packages = ["go"]
+  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
+
+[[projects]]
   name = "github.com/prometheus/common"
-  packages = ["model"]
+  packages = [
+    "expfmt",
+    "internal/bitbucket.org/ww/goautoneg",
+    "model"
+  ]
   revision = "e5b036cc37a466a0af27d604d1ee500211d16d6a"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/procfs"
+  packages = [
+    ".",
+    "internal/util",
+    "nfs",
+    "xfs"
+  ]
+  revision = "ae68e2d4c00fed4943b5f6698d504a5fe083da8a"
 
 [[projects]]
   name = "github.com/satori/go.uuid"
@@ -336,8 +377,8 @@
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -501,6 +542,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2cdd0f044e9d60ef92957d26f383df7f57dcb66b3c8963da8ce4f0c078075252"
+  inputs-digest = "617b96ee672fa928a239e20f7416f830ec619b478b9d5996410579b408c8c592"
   solver-name = "gps-cdcl"
   solver-version = 1
