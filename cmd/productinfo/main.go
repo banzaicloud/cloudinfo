@@ -42,7 +42,7 @@ const (
 	providerFlag               = "provider"
 	helpFlag                   = "help"
 	metricsEnabledFlag         = "metrics-enabled"
-	metricsPortFlag            = "metrics-port"
+	metricsAddressFlag         = "metrics-address"
 
 	//temporary flags
 	gceApiKeyFlag       = "gce-api-key"
@@ -69,8 +69,8 @@ func defineFlags() {
 	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure}, "Providers that will be used with the productinfo application.")
 	flag.String(azureSubscriptionId, "", "Azure subscription ID to use with the APIs")
 	flag.Bool(helpFlag, false, "print usage")
-	flag.Bool(metricsEnabledFlag, false, "if true get prometheus metrics, false by default")
-	flag.String(metricsPortFlag, ":9900", "prometheus metrics port")
+	flag.Bool(metricsEnabledFlag, false, "internal metrics are exposed if enabled")
+	flag.String(metricsAddressFlag, ":9900", "the address where internal metrics are exposed")
 }
 
 // bindFlags binds parsed flags into viper
@@ -129,7 +129,7 @@ func main() {
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
 		p := ginprometheus.NewPrometheus("gin", []string{"provider", "region"})
-		p.SetListenAddress(viper.GetString(metricsPortFlag))
+		p.SetListenAddress(viper.GetString(metricsAddressFlag))
 		p.Use(router)
 	}
 
