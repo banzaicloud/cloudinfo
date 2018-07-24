@@ -10,8 +10,11 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
+	"strconv"
+	"time"
 )
 
 const (
@@ -31,6 +34,22 @@ func NewRouteHandler(p *productinfo.CachingProductInfo) *RouteHandler {
 		prod: p,
 	}
 }
+
+var ScrapeTimeGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "gin",
+	Name:      "last_scrape_time",
+	Help:      "returns the last scrape time in a specified region",
+},
+	[]string{"status", "provider", "region"},
+)
+
+var ScrapeTimeSummary = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	Namespace: "gin",
+	Name:      "provider_scrape_times",
+	Help:      "returns the cloud provider scrape times",
+},
+	[]string{"status", "provider"},
+)
 
 func getCorsConfig() cors.Config {
 	config := cors.DefaultConfig()
@@ -113,11 +132,20 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 	log.Infof("getting product details for provider: %s, region: %s", prov, region)
 
 	var err error
+	start := time.Now().UnixNano()
 	if details, err := r.prod.GetProductDetails(prov, region); err == nil {
+		elapsed := time.Now().UnixNano()
+		ScrapeTimeGauge.WithLabelValues(strconv.Itoa(http.StatusOK), prov, region).Set(float64((elapsed - start) / 1000))
+		ScrapeTimeSummary.WithLabelValues(strconv.Itoa(http.StatusOK), prov).Observe(float64((elapsed - start) / 1000))
+
 		log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
 		c.JSON(http.StatusOK, ProductDetailsResponse{details})
+
 		return
 	}
+	elapsed := time.Now().UnixNano()
+	ScrapeTimeGauge.WithLabelValues(strconv.Itoa(http.StatusInternalServerError), prov, region).Set(float64(elapsed-start) / 1000)
+	ScrapeTimeSummary.WithLabelValues(strconv.Itoa(http.StatusInternalServerError), prov).Observe(float64((elapsed - start) / 1000))
 
 	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 }

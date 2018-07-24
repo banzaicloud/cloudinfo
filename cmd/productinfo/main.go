@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo/ec2"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/gce"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
 	flag "github.com/spf13/pflag"
 )
 
@@ -101,6 +102,9 @@ func init() {
 	// handle log level
 	setLogLevel()
 
+	// register prometheus custom metrics
+	prometheus.MustRegister(api.ScrapeTimeGauge)
+	prometheus.MustRegister(api.ScrapeTimeSummary)
 }
 
 func main() {
