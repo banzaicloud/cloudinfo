@@ -103,8 +103,9 @@ func init() {
 	setLogLevel()
 
 	// register prometheus custom metrics
-	prometheus.MustRegister(api.ScrapeTimeGauge)
+	prometheus.MustRegister(api.ScrapeDurationGauge)
 	prometheus.MustRegister(api.ScrapeTimeSummary)
+	prometheus.MustRegister(api.ScrapeFailuresTotalCounter)
 }
 
 func main() {
@@ -132,7 +133,7 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
-		p := ginprometheus.NewPrometheus("gin", []string{"provider", "region"})
+		p := ginprometheus.NewPrometheus("http", []string{"provider", "region"})
 		p.SetListenAddress(viper.GetString(metricsAddressFlag))
 		p.Use(router)
 	}

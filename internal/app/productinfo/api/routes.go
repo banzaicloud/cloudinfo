@@ -13,7 +13,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
-	"strconv"
 	"time"
 )
 
@@ -35,20 +34,31 @@ func NewRouteHandler(p *productinfo.CachingProductInfo) *RouteHandler {
 	}
 }
 
-var ScrapeTimeGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Namespace: "gin",
-	Name:      "last_scrape_time",
-	Help:      "returns the last scrape time in a specified region",
+// ScrapeDurationGauge collects metrics for the prometheus
+var ScrapeDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "http",
+	Name:      "scrape_duration_seconds",
+	Help:      "Scrape duration, partitioned by provider and region",
 },
-	[]string{"status", "provider", "region"},
+	[]string{"provider", "region"},
 )
 
+// ScrapeTimeSummary collects metrics for the prometheus
 var ScrapeTimeSummary = prometheus.NewSummaryVec(prometheus.SummaryOpts{
-	Namespace: "gin",
-	Name:      "provider_scrape_times",
-	Help:      "returns the cloud provider scrape times",
+	Namespace: "http",
+	Name:      "scrape_time_seconds",
+	Help:      "A summary of the scrape durations in seconds",
 },
-	[]string{"status", "provider"},
+	[]string{"provider"},
+)
+
+// ScrapeFailuresTotalCounter collects metrics for the prometheus
+var ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+	Namespace: "http",
+	Name:      "scrape_failures_total",
+	Help:      "Total number of scrape failures, partitioned by provider and region",
+},
+	[]string{"provider", "region"},
 )
 
 func getCorsConfig() cors.Config {
@@ -134,18 +144,17 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 	var err error
 	start := time.Now().UnixNano()
 	if details, err := r.prod.GetProductDetails(prov, region); err == nil {
-		elapsed := time.Now().UnixNano()
-		ScrapeTimeGauge.WithLabelValues(strconv.Itoa(http.StatusOK), prov, region).Set(float64((elapsed - start) / 1000))
-		ScrapeTimeSummary.WithLabelValues(strconv.Itoa(http.StatusOK), prov).Observe(float64((elapsed - start) / 1000))
+		elapsed := float64(time.Now().UnixNano()-start) * 1e-9
+
+		ScrapeDurationGauge.WithLabelValues(prov, region).Set(elapsed)
+		ScrapeTimeSummary.WithLabelValues(prov).Observe(elapsed)
 
 		log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
 		c.JSON(http.StatusOK, ProductDetailsResponse{details})
 
 		return
 	}
-	elapsed := time.Now().UnixNano()
-	ScrapeTimeGauge.WithLabelValues(strconv.Itoa(http.StatusInternalServerError), prov, region).Set(float64(elapsed-start) / 1000)
-	ScrapeTimeSummary.WithLabelValues(strconv.Itoa(http.StatusInternalServerError), prov).Observe(float64((elapsed - start) / 1000))
+	ScrapeFailuresTotalCounter.WithLabelValues(prov, region).Inc()
 
 	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 }
