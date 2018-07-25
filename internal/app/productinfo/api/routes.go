@@ -10,8 +10,10 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
+	"time"
 )
 
 const (
@@ -31,6 +33,33 @@ func NewRouteHandler(p *productinfo.CachingProductInfo) *RouteHandler {
 		prod: p,
 	}
 }
+
+// ScrapeDurationGauge collects metrics for the prometheus
+var ScrapeDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "http",
+	Name:      "scrape_duration_seconds",
+	Help:      "Scrape duration, partitioned by provider and region",
+},
+	[]string{"provider", "region"},
+)
+
+// ScrapeTimeSummary collects metrics for the prometheus
+var ScrapeTimeSummary = prometheus.NewSummaryVec(prometheus.SummaryOpts{
+	Namespace: "http",
+	Name:      "scrape_time_seconds",
+	Help:      "A summary of the scrape durations in seconds",
+},
+	[]string{"provider"},
+)
+
+// ScrapeFailuresTotalCounter collects metrics for the prometheus
+var ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+	Namespace: "http",
+	Name:      "scrape_failures_total",
+	Help:      "Total number of scrape failures, partitioned by provider and region",
+},
+	[]string{"provider", "region"},
+)
 
 func getCorsConfig() cors.Config {
 	config := cors.DefaultConfig()
@@ -113,11 +142,19 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 	log.Infof("getting product details for provider: %s, region: %s", prov, region)
 
 	var err error
+	start := time.Now().UnixNano()
 	if details, err := r.prod.GetProductDetails(prov, region); err == nil {
+		elapsed := float64(time.Now().UnixNano()-start) * 1e-9
+
+		ScrapeDurationGauge.WithLabelValues(prov, region).Set(elapsed)
+		ScrapeTimeSummary.WithLabelValues(prov).Observe(elapsed)
+
 		log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
 		c.JSON(http.StatusOK, ProductDetailsResponse{details})
+
 		return
 	}
+	ScrapeFailuresTotalCounter.WithLabelValues(prov, region).Inc()
 
 	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 }
