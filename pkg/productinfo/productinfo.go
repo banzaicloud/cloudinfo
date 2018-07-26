@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -41,6 +42,33 @@ type VmInfo struct {
 	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
 	CurrentGen bool `json:"currentGen"`
 }
+
+var (
+	// ScrapeDurationGauge collects metrics for the prometheus
+	ScrapeDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "http",
+		Name:      "scrape_duration_seconds",
+		Help:      "Cloud provider scrape duration in seconds",
+	},
+		[]string{"provider"},
+	)
+	// RegionFailuresTotalCounter collects metrics for the prometheus
+	RegionFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "http",
+		Name:      "region_failures_total",
+		Help:      "Total number of region failures, partitioned by provider and region",
+	},
+		[]string{"provider", "region"},
+	)
+	// ScrapeFailuresTotalCounter collects metrics for the prometheus
+	ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "http",
+		Name:      "scrape_failures_total",
+		Help:      "Total number of scrape failures, partitioned by provider",
+	},
+		[]string{"provider"},
+	)
+)
 
 // IsBurst returns true if the EC2 instance vCPU is burst type
 // the decision is made based on the instance type
@@ -77,17 +105,20 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	if wg != nil {
 		defer wg.Done()
 	}
+	start := time.Now().Unix()
 	// get the provider specific infoer
 	pi := cpi.productInfoers[provider]
 
 	log.Infof("renewing product info for provider [%s]", provider)
 	if _, err := cpi.Initialize(provider); err != nil {
+		ScrapeFailuresTotalCounter.WithLabelValues(provider).Inc()
 		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 		return
 	}
 	attributes := []string{Cpu, Memory}
 	for _, attr := range attributes {
 		if _, err := cpi.renewAttrValues(provider, attr); err != nil {
+			ScrapeFailuresTotalCounter.WithLabelValues(provider).Inc()
 			log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 			return
 		}
@@ -95,13 +126,17 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	if regions, err := pi.GetRegions(); err == nil {
 		for regionId := range regions {
 			if _, err := cpi.renewVms(provider, regionId); err != nil {
+				RegionFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
 				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 			}
 		}
 	} else {
+		ScrapeFailuresTotalCounter.WithLabelValues(provider).Inc()
 		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 		return
 	}
+	elapsed := float64(time.Now().Unix() - start)
+	ScrapeDurationGauge.WithLabelValues(provider).Set(elapsed)
 }
 
 // renewAll sequentially renews information for all provider
