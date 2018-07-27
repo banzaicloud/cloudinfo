@@ -104,7 +104,7 @@ ineffassign: install-ineffassign
 	ineffassign ${GOFILES_NOVENDOR}
 
 gocyclo: install-gocyclo
-	gocyclo -over 18 ${GOFILES_NOVENDOR}
+	gocyclo -over 19 ${GOFILES_NOVENDOR}
 
 install-go-junit-report:
 	GOLINT_CMD=$(shell command -v go-junit-report 2> /dev/null)

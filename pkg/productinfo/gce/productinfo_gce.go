@@ -123,14 +123,19 @@ func (g *GceInfoer) Initialize() (map[string]map[string]productinfo.Price, error
 			if sku.Category.ResourceFamily != "Compute" {
 				continue
 			} else {
-				// TODO: f1-micro?
-				if strings.Contains(sku.Description, "VCPU") {
+				if strings.Contains(sku.Description, "CPU") {
 
 					vcpus := strings.Split(g.cpuRegex.FindString(sku.Description), " ")[0]
 					resourceGroup := strings.ToLower(sku.Category.ResourceGroup)
 					prefix := g.resourceGroupRegex.FindString(resourceGroup)
 					instanceType := fmt.Sprintf("%s-%s", strings.Join(strings.SplitAfter(resourceGroup, prefix), "-"), vcpus)
 
+					switch instanceType {
+					case "f1-micro-":
+						instanceType = "f1-micro"
+					case "g1-small-1":
+						instanceType = "g1-small"
+					}
 					if len(sku.PricingInfo) != 1 {
 						return fmt.Errorf("pricing info not parsable, %d pricing info entries are returned", len(sku.PricingInfo))
 					}
