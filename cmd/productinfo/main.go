@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/ec2"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/gce"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/oci"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	flag "github.com/spf13/pflag"
@@ -55,6 +56,8 @@ const (
 	Ec2 = "ec2"
 	// Azure is the identifier of the MS Azure provider
 	Azure = "azure"
+	// Oracle is the identifier of the Oracle Cloud Infrastructure provider
+	Oracle = "oracle"
 )
 
 // defineFlags defines supported flags and makes them available for viper
@@ -67,7 +70,7 @@ func defineFlags() {
 	flag.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
 		"advanced configuration: change the query used to query spot price info from Prometheus.")
 	flag.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
-	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure}, "Providers that will be used with the productinfo application.")
+	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure, Oracle}, "Providers that will be used with the productinfo application.")
 	flag.String(azureSubscriptionId, "", "Azure subscription ID to use with the APIs")
 	flag.Bool(helpFlag, false, "print usage")
 	flag.Bool(metricsEnabledFlag, false, "internal metrics are exposed if enabled")
@@ -159,6 +162,8 @@ func infoers() map[string]productinfo.ProductInfoer {
 			infoer, err = gce.NewGceInfoer(viper.GetString(gceApiKeyFlag))
 		case Azure:
 			infoer, err = azure.NewAzureInfoer(viper.GetString(azureSubscriptionId))
+		case Oracle:
+			infoer, err = oci.NewInfoer()
 		default:
 			log.Fatalf("provider %s is not supported", p)
 		}

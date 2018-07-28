@@ -204,6 +204,7 @@ func (r *RouteHandler) getRegion(c *gin.Context) {
 	zones, err := r.prod.GetZones(provider, region)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+		return
 	}
 	c.JSON(http.StatusOK, GetRegionResp{region, regions[region], zones})
 }

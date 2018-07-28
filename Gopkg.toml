@@ -66,3 +66,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/go-gin-prometheus"
+
+[[constraint]]
+  name = "github.com/oracle/oci-go-sdk"
+  version = "2.1.0"
