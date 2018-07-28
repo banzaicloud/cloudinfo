@@ -28,20 +28,30 @@ func (oci *OCI) GetSupportedShapes() (shapes map[string][]string, err error) {
 // GetSupportedShapesInARegion gives back supported node shapes in the given region
 func (oci *OCI) GetSupportedShapesInARegion(region string) (shapes []string, err error) {
 
+	uniquemap := make(map[string]bool)
+
 	err = oci.ChangeRegion(region)
 	if err != nil {
 		return shapes, err
 	}
 
-	ce, err := oci.NewContainerEngineClient()
+	c, err := oci.NewComputeClient()
 	if err != nil {
 		return nil, err
 	}
 
-	options, err := ce.GetDefaultNodePoolOptions()
+	_shapes, err := c.GetShapes()
 	if err != nil {
 		return nil, err
 	}
 
-	return options.Shapes.Get(), nil
+	shapes = make([]string, 0)
+	for _, shape := range _shapes {
+		if _, ok := uniquemap[*shape.Shape]; !ok {
+			shapes = append(shapes, *shape.Shape)
+			uniquemap[*shape.Shape] = true
+		}
+	}
+
+	return shapes, nil
 }

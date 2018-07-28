@@ -386,11 +386,11 @@
   version = "1.0.0"
 
 [[projects]]
-  digest = "1:4cd5cfce999d9a1191ff401704ca673f58a8b96aa4f56f17a6e4885b7cf64b0e"
+  digest = "1:0d390a546f17133ff8442a4ed4e1b5c66a1e4d65bb310417d97ccee70e01125f"
   name = "github.com/oracle/oci-go-sdk"
   packages = [
     "common",
-    "containerengine",
+    "core",
     "identity",
   ]
   pruneopts = "NUT"
@@ -708,11 +708,12 @@
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
     "github.com/oracle/oci-go-sdk/common",
-    "github.com/oracle/oci-go-sdk/containerengine",
+    "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
     "github.com/patrickmn/go-cache",
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
+    "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/common/model",
     "github.com/sirupsen/logrus",
     "github.com/spf13/pflag",
