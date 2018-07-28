@@ -33,7 +33,7 @@ Usage of ./productinfo:
       --product-info-renewal-interval duration   duration (in go syntax) between renewing the product information. Example: 2h30m (default 24h0m0s)
       --prometheus-address string                http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.
       --prometheus-query string                  advanced configuration: change the query used to query spot price info from Prometheus. (default "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
-      --provider strings                         Providers that will be used with the productinfo application. (default [ec2,gce,azure])
+      --provider strings                         Providers that will be used with the productinfo application. (default [ec2,gce,azure,oracle])
 ```
 
 ## Cloud credentials
@@ -84,6 +84,15 @@ export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
 ./productinfo --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb"
 ```
 
+### Oracle
+
+Authentication is done via CLI configuration file. Follow [this](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm) link to learn how to create such a file and set an environment variable that points to that config file:
+
+```
+export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
+./productinfo --provider oracle
+```
+
 ### Configuring multiple providers
 
 Cloud providers can be configured one by one. To configure multiple providers simply list all of them and configure the credentials for all of them.
@@ -93,7 +102,8 @@ export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 export AWS_ACCESS_KEY_ID=<your-access-key-id>
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
-./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb"
+export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
+./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle
 
 ```
 
