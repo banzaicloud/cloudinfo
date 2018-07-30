@@ -242,7 +242,7 @@ func (g *GceInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 				Type:    mt.Name,
 				Cpus:    float64(mt.GuestCpus),
 				Mem:     float64(mt.MemoryMb) / 1024,
-				NtwPerf: ntwPerf,
+				NtwPerf: ntwPerf + " Gbit/s",
 			})
 		}
 		return nil

@@ -44,34 +44,50 @@ type VmInfo struct {
 }
 
 var (
-	// ScrapeDurationGauge collects metrics for the prometheus
-	ScrapeDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "http",
-		Name:      "scrape_duration_seconds",
-		Help:      "Cloud provider scrape duration in seconds",
+	// ScrapeCompleteDurationGauge collects metrics for the prometheus
+	ScrapeCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "scrape",
+		Name:      "complete_duration_seconds",
+		Help:      "Cloud provider scrape complete duration in seconds",
+	},
+		[]string{"provider"},
+	)
+	// ScrapeRegionDurationGauge collects metrics for the prometheus
+	ScrapeRegionDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "scrape",
+		Name:      "region_duration_seconds",
+		Help:      "Cloud provider scrape region duration in seconds",
 	},
 		[]string{"provider", "region"},
 	)
 	// ScrapeFailuresTotalCounter collects metrics for the prometheus
 	ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "http",
-		Name:      "scrape_failures_total",
+		Namespace: "scrape",
+		Name:      "failures_total",
 		Help:      "Total number of scrape failures, partitioned by provider and region",
 	},
 		[]string{"provider", "region"},
 	)
-	// ScrapeShortLivedDurationGauge collects metrics for the prometheus
-	ScrapeShortLivedDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "http",
-		Name:      "scrape_short_lived_duration_seconds",
-		Help:      "Cloud provider short lived scrape duration in seconds",
+	// ScrapeShortLivedCompleteDurationGauge collects metrics for the prometheus
+	ScrapeShortLivedCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "scrape",
+		Name:      "short_lived_complete_duration_seconds",
+		Help:      "Cloud provider short lived scrape complete duration in seconds",
+	},
+		[]string{"provider"},
+	)
+	// ScrapeShortLivedRegionDurationGauge collects metrics for the prometheus
+	ScrapeShortLivedRegionDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "scrape",
+		Name:      "short_lived_region_duration_seconds",
+		Help:      "Cloud provider short lived scrape region duration in seconds",
 	},
 		[]string{"provider", "region"},
 	)
 	// ScrapeShortLivedFailuresTotalCounter collects metrics for the prometheus
 	ScrapeShortLivedFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "http",
-		Name:      "scrape_short_lived_failures_total",
+		Namespace: "scrape",
+		Name:      "short_lived_failures_total",
 		Help:      "Total number of short lived scrape failures, partitioned by provider and region",
 	},
 		[]string{"provider", "region"},
@@ -113,7 +129,7 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	if wg != nil {
 		defer wg.Done()
 	}
-	start := time.Now().Unix()
+	start := time.Now()
 	// get the provider specific infoer
 	pi := cpi.productInfoers[provider]
 
@@ -133,12 +149,12 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	}
 	if regions, err := pi.GetRegions(); err == nil {
 		for regionId := range regions {
+			start := time.Now()
 			if _, err := cpi.renewVms(provider, regionId); err != nil {
 				ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
 				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 			} else {
-				elapsed := float64(time.Now().Unix() - start)
-				ScrapeDurationGauge.WithLabelValues(provider, regionId).Set(elapsed)
+				ScrapeRegionDurationGauge.WithLabelValues(provider, regionId).Set(time.Since(start).Seconds())
 			}
 		}
 	} else {
@@ -146,6 +162,7 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 		return
 	}
+	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
 }
 
 // renewAll sequentially renews information for all provider
@@ -167,7 +184,7 @@ func (cpi *CachingProductInfo) renewShortLived() {
 			defer providerWg.Done()
 			if i.HasShortLivedPriceInfo() {
 				log.Infof("renewing short lived %s product info", p)
-				start := time.Now().UnixNano()
+				start := time.Now()
 				var wg sync.WaitGroup
 				regions, err := i.GetRegions()
 				if err != nil {
@@ -185,11 +202,11 @@ func (cpi *CachingProductInfo) renewShortLived() {
 							log.Errorf("couldn't renew short lived info in cache: %s", err.Error())
 							return
 						}
-						elapsed := float64(time.Now().UnixNano()-start) * 1e-9
-						ScrapeShortLivedDurationGauge.WithLabelValues(p, r).Set(elapsed)
+						ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
 					}(p, regionId)
 				}
 				wg.Wait()
+				ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())
 			}
 		}(provider, infoer)
 	}
