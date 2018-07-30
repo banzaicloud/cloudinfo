@@ -108,7 +108,8 @@ func init() {
 	// register prometheus custom metrics
 	prometheus.MustRegister(productinfo.ScrapeDurationGauge)
 	prometheus.MustRegister(productinfo.ScrapeFailuresTotalCounter)
-	prometheus.MustRegister(productinfo.RegionFailuresTotalCounter)
+	prometheus.MustRegister(productinfo.ScrapeShortLivedDurationGauge)
+	prometheus.MustRegister(productinfo.ScrapeShortLivedFailuresTotalCounter)
 }
 
 func main() {

@@ -50,23 +50,31 @@ var (
 		Name:      "scrape_duration_seconds",
 		Help:      "Cloud provider scrape duration in seconds",
 	},
-		[]string{"provider"},
-	)
-	// RegionFailuresTotalCounter collects metrics for the prometheus
-	RegionFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "http",
-		Name:      "region_failures_total",
-		Help:      "Total number of region failures, partitioned by provider and region",
-	},
 		[]string{"provider", "region"},
 	)
 	// ScrapeFailuresTotalCounter collects metrics for the prometheus
 	ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "http",
 		Name:      "scrape_failures_total",
-		Help:      "Total number of scrape failures, partitioned by provider",
+		Help:      "Total number of scrape failures, partitioned by provider and region",
 	},
-		[]string{"provider"},
+		[]string{"provider", "region"},
+	)
+	// ScrapeShortLivedDurationGauge collects metrics for the prometheus
+	ScrapeShortLivedDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "http",
+		Name:      "scrape_short_lived_duration_seconds",
+		Help:      "Cloud provider short lived scrape duration in seconds",
+	},
+		[]string{"provider", "region"},
+	)
+	// ScrapeShortLivedFailuresTotalCounter collects metrics for the prometheus
+	ScrapeShortLivedFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "http",
+		Name:      "scrape_short_lived_failures_total",
+		Help:      "Total number of short lived scrape failures, partitioned by provider and region",
+	},
+		[]string{"provider", "region"},
 	)
 )
 
@@ -111,14 +119,14 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 
 	log.Infof("renewing product info for provider [%s]", provider)
 	if _, err := cpi.Initialize(provider); err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider).Inc()
+		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
 		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 		return
 	}
 	attributes := []string{Cpu, Memory}
 	for _, attr := range attributes {
 		if _, err := cpi.renewAttrValues(provider, attr); err != nil {
-			ScrapeFailuresTotalCounter.WithLabelValues(provider).Inc()
+			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
 			log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 			return
 		}
@@ -126,17 +134,18 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	if regions, err := pi.GetRegions(); err == nil {
 		for regionId := range regions {
 			if _, err := cpi.renewVms(provider, regionId); err != nil {
-				RegionFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
+				ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
 				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+			} else {
+				elapsed := float64(time.Now().Unix() - start)
+				ScrapeDurationGauge.WithLabelValues(provider, regionId).Set(elapsed)
 			}
 		}
 	} else {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider).Inc()
+		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
 		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 		return
 	}
-	elapsed := float64(time.Now().Unix() - start)
-	ScrapeDurationGauge.WithLabelValues(provider).Set(elapsed)
 }
 
 // renewAll sequentially renews information for all provider
@@ -150,42 +159,46 @@ func (cpi *CachingProductInfo) renewAll() {
 	log.Info("finished renewing product info")
 }
 
+func (cpi *CachingProductInfo) renewShortLived() {
+	var providerWg sync.WaitGroup
+	for provider, infoer := range cpi.productInfoers {
+		providerWg.Add(1)
+		go func(p string, i ProductInfoer) {
+			defer providerWg.Done()
+			if i.HasShortLivedPriceInfo() {
+				log.Infof("renewing short lived %s product info", p)
+				start := time.Now().UnixNano()
+				var wg sync.WaitGroup
+				regions, err := i.GetRegions()
+				if err != nil {
+					ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
+					log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+					return
+				}
+				for regionId := range regions {
+					wg.Add(1)
+					go func(p string, r string) {
+						defer wg.Done()
+						_, err := cpi.renewShortLivedInfo(p, r)
+						if err != nil {
+							ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
+							log.Errorf("couldn't renew short lived info in cache: %s", err.Error())
+							return
+						}
+						elapsed := float64(time.Now().UnixNano()-start) * 1e-9
+						ScrapeShortLivedDurationGauge.WithLabelValues(p, r).Set(elapsed)
+					}(p, regionId)
+				}
+				wg.Wait()
+			}
+		}(provider, infoer)
+	}
+	providerWg.Wait()
+	log.Info("finished renewing short lived product info")
+}
+
 // Start starts the information retrieval in a new goroutine
 func (cpi *CachingProductInfo) Start(ctx context.Context) {
-
-	renewShortLived := func() {
-		var providerWg sync.WaitGroup
-		for provider, infoer := range cpi.productInfoers {
-			providerWg.Add(1)
-			go func(p string, i ProductInfoer) {
-				defer providerWg.Done()
-				if i.HasShortLivedPriceInfo() {
-					log.Infof("renewing short lived %s product info", p)
-					var wg sync.WaitGroup
-					regions, err := i.GetRegions()
-					if err != nil {
-						log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
-						return
-					}
-					for regionId := range regions {
-						wg.Add(1)
-						go func(p string, r string) {
-							defer wg.Done()
-							_, err := cpi.renewShortLivedInfo(p, r)
-							if err != nil {
-								log.Errorf("couldn't renew short lived info in cache: %s", err.Error())
-								return
-							}
-						}(p, regionId)
-					}
-
-					wg.Wait()
-				}
-			}(provider, infoer)
-		}
-		providerWg.Wait()
-		log.Info("finished renewing short lived product info")
-	}
 
 	go cpi.renewAll()
 	ticker := time.NewTicker(cpi.renewalInterval)
@@ -201,12 +214,12 @@ func (cpi *CachingProductInfo) Start(ctx context.Context) {
 			}
 		}
 	}()
-	go renewShortLived()
+	go cpi.renewShortLived()
 	shortTicker := time.NewTicker(1 * time.Minute)
 	for {
 		select {
 		case <-shortTicker.C:
-			renewShortLived()
+			cpi.renewShortLived()
 		case <-ctx.Done():
 			log.Debugf("closing ticker")
 			shortTicker.Stop()
