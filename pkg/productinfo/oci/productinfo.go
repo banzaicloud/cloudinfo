@@ -38,7 +38,7 @@ var shapeSpecs = map[string]ShapeSpecs{
 	"VM.Standard1.1":  ShapeSpecs{PartNumber: "B88317", Mem: 7, Cpus: 1},
 	"VM.Standard2.1":  ShapeSpecs{PartNumber: "B88514", Mem: 15, Cpus: 1},
 	"VM.Standard1.2":  ShapeSpecs{PartNumber: "B88317", Mem: 14, Cpus: 2},
-	"VM.Standard2.2":  ShapeSpecs{PartNumber: "B88514", Mem: 30, Cpus: 3},
+	"VM.Standard2.2":  ShapeSpecs{PartNumber: "B88514", Mem: 30, Cpus: 2},
 	"VM.Standard1.4":  ShapeSpecs{PartNumber: "B88317", Mem: 28, Cpus: 4},
 	"VM.Standard2.4":  ShapeSpecs{PartNumber: "B88514", Mem: 60, Cpus: 4},
 	"VM.Standard1.8":  ShapeSpecs{PartNumber: "B88317", Mem: 56, Cpus: 8},
