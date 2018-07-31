@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
@@ -55,6 +56,7 @@ type AzureInfoer struct {
 	subscriptionsClient subscriptions.Client
 	vmSizesClient       compute.VirtualMachineSizesClient
 	rateCardClient      commerce.RateCardClient
+	providersClient     resources.ProvidersClient
 }
 
 // NewAzureInfoer creates a new instance of the Azure infoer
@@ -73,11 +75,15 @@ func NewAzureInfoer(subscriptionId string) (*AzureInfoer, error) {
 	rcClient := commerce.NewRateCardClient(subscriptionId)
 	rcClient.Authorizer = authorizer
 
+	providersClient := resources.NewProvidersClient(subscriptionId)
+	providersClient.Authorizer = authorizer
+
 	return &AzureInfoer{
 		subscriptionId:      subscriptionId,
 		subscriptionsClient: sClient,
 		vmSizesClient:       vmClient,
 		rateCardClient:      rcClient,
+		providersClient:     providersClient,
 	}, nil
 }
 
@@ -345,15 +351,46 @@ func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (a *AzureInfoer) GetRegions() (map[string]string, error) {
-	regions := make(map[string]string)
-	locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId)
-	if err != nil {
+
+	allLocations := make(map[string]string)
+	supLocations := make(map[string]string)
+
+	// retrieve all locations for the subscription id (some of them may not be supported by the required provider
+	if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
+		// fill up the map: DisplayName - > Name
+		for _, loc := range *locations.Value {
+			allLocations[*loc.DisplayName] = *loc.Name
+		}
+	} else {
+		log.Errorf("error while retrieving azure locations. err: %s", err.Error())
 		return nil, err
 	}
-	for _, loc := range *locations.Value {
-		regions[*loc.Name] = *loc.DisplayName
+
+	// identify supported locations for the namespace and resource type
+	const (
+		providerNamespace = "Microsoft.Compute"
+		resourceType      = "locations/vmSizes"
+	)
+
+	if providers, err := a.providersClient.Get(context.TODO(), providerNamespace, ""); err == nil {
+		for _, pr := range *providers.ResourceTypes {
+			if *pr.ResourceType == resourceType {
+				for _, displName := range *pr.Locations {
+					if loc, ok := allLocations[displName]; ok {
+						log.Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
+						supLocations[loc] = loc
+					} else {
+						log.Debugf("unsupported location. [name, display name] = [%s, %s]", loc, displName)
+					}
+				}
+			}
+		}
+	} else {
+		log.Errorf("error while retrieving supported locations for provider: %s. err: %s", providerNamespace, err.Error())
+		return nil, err
 	}
-	return regions, nil
+
+	return supLocations, nil
 }
 
 // HasShortLivedPriceInfo - Azure doesn't have frequently changing prices
