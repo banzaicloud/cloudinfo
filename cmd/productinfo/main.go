@@ -106,9 +106,12 @@ func init() {
 	setLogLevel()
 
 	// register prometheus custom metrics
-	prometheus.MustRegister(productinfo.ScrapeDurationGauge)
+	prometheus.MustRegister(productinfo.ScrapeCompleteDurationGauge)
+	prometheus.MustRegister(productinfo.ScrapeRegionDurationGauge)
 	prometheus.MustRegister(productinfo.ScrapeFailuresTotalCounter)
-	prometheus.MustRegister(productinfo.RegionFailuresTotalCounter)
+	prometheus.MustRegister(productinfo.ScrapeShortLivedCompleteDurationGauge)
+	prometheus.MustRegister(productinfo.ScrapeShortLivedRegionDurationGauge)
+	prometheus.MustRegister(productinfo.ScrapeShortLivedFailuresTotalCounter)
 }
 
 func main() {

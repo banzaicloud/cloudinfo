@@ -8,10 +8,10 @@ import (
 
 var (
 	ntwPerfMap = map[string][]string{
-		productinfo.NTW_LOW:    {"1", "2"},
-		productinfo.NTW_MEDIUM: {"4", "6", "8"},
-		productinfo.NTW_HIGH:   {"10", "12", "14"},
-		productinfo.NTW_EXTRA:  {"16"},
+		productinfo.NTW_LOW:    {"1 Gbit/s", "2 Gbit/s"},
+		productinfo.NTW_MEDIUM: {"4 Gbit/s", "6 Gbit/s", "8 Gbit/s"},
+		productinfo.NTW_HIGH:   {"10 Gbit/s", "12 Gbit/s", "14 Gbit/s"},
+		productinfo.NTW_EXTRA:  {"16 Gbit/s"},
 	}
 )
 
