@@ -378,11 +378,12 @@ func (a *AzureInfoer) GetRegions() (map[string]string, error) {
 				for _, displName := range *pr.Locations {
 					if loc, ok := allLocations[displName]; ok {
 						log.Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
-						supLocations[loc] = loc
+						supLocations[loc] = displName
 					} else {
 						log.Debugf("unsupported location. [name, display name] = [%s, %s]", loc, displName)
 					}
 				}
+				break
 			}
 		}
 	} else {
