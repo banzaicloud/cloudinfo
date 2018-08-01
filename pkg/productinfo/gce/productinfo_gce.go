@@ -38,6 +38,7 @@ var regionNames = map[string]string{
 	"us-east1":                "US East (South Carolina)",
 	"us-east4":                "US East (Northern Virginia)",
 	"us-west1":                "US West (Oregon)",
+	"us-west2":                "US West (Los Angeles)",
 }
 
 // GceInfoer encapsulates the data and operations needed to access external resources
