@@ -20,6 +20,7 @@ type ShapeSpecs struct {
 	PartNumber string
 	Cpus       float64 `json:"cpusPerVm"`
 	Mem        float64 `json:"memPerVm"`
+	NtwPerf    string  `json:"NtwPerf"`
 }
 
 const (
@@ -35,23 +36,23 @@ var regionNames = map[string]string{
 }
 
 var shapeSpecs = map[string]ShapeSpecs{
-	"VM.Standard1.1":  ShapeSpecs{PartNumber: "B88317", Mem: 7, Cpus: 1},
-	"VM.Standard2.1":  ShapeSpecs{PartNumber: "B88514", Mem: 15, Cpus: 1},
-	"VM.Standard1.2":  ShapeSpecs{PartNumber: "B88317", Mem: 14, Cpus: 2},
-	"VM.Standard2.2":  ShapeSpecs{PartNumber: "B88514", Mem: 30, Cpus: 2},
-	"VM.Standard1.4":  ShapeSpecs{PartNumber: "B88317", Mem: 28, Cpus: 4},
-	"VM.Standard2.4":  ShapeSpecs{PartNumber: "B88514", Mem: 60, Cpus: 4},
-	"VM.Standard1.8":  ShapeSpecs{PartNumber: "B88317", Mem: 56, Cpus: 8},
-	"VM.Standard2.8":  ShapeSpecs{PartNumber: "B88514", Mem: 120, Cpus: 8},
-	"VM.Standard1.16": ShapeSpecs{PartNumber: "B88317", Mem: 112, Cpus: 16},
-	"VM.Standard2.16": ShapeSpecs{PartNumber: "B88514", Mem: 240, Cpus: 16},
-	"VM.Standard2.24": ShapeSpecs{PartNumber: "B88514", Mem: 320, Cpus: 24},
-	"VM.DenseIO1.4":   ShapeSpecs{PartNumber: "B88316", Mem: 60, Cpus: 4},
-	"VM.DenseIO1.8":   ShapeSpecs{PartNumber: "B88316", Mem: 60, Cpus: 8},
-	"VM.DenseIO2.8":   ShapeSpecs{PartNumber: "B88516", Mem: 120, Cpus: 8},
-	"VM.DenseIO1.16":  ShapeSpecs{PartNumber: "B88316", Mem: 120, Cpus: 16},
-	"VM.DenseIO2.16":  ShapeSpecs{PartNumber: "B88516", Mem: 240, Cpus: 16},
-	"VM.DenseIO2.24":  ShapeSpecs{PartNumber: "B88516", Mem: 320, Cpus: 24},
+	"VM.Standard1.1":  ShapeSpecs{PartNumber: "B88317", Mem: 7, Cpus: 1, NtwPerf: "0.6 Gbps"},
+	"VM.Standard2.1":  ShapeSpecs{PartNumber: "B88514", Mem: 15, Cpus: 1, NtwPerf: "1 Gbps"},
+	"VM.Standard1.2":  ShapeSpecs{PartNumber: "B88317", Mem: 14, Cpus: 2, NtwPerf: "1.2 Gbps"},
+	"VM.Standard2.2":  ShapeSpecs{PartNumber: "B88514", Mem: 30, Cpus: 2, NtwPerf: "2 Gbps"},
+	"VM.Standard1.4":  ShapeSpecs{PartNumber: "B88317", Mem: 28, Cpus: 4, NtwPerf: "1.2 Gbps"},
+	"VM.Standard2.4":  ShapeSpecs{PartNumber: "B88514", Mem: 60, Cpus: 4, NtwPerf: "4.1 Gbps"},
+	"VM.Standard1.8":  ShapeSpecs{PartNumber: "B88317", Mem: 56, Cpus: 8, NtwPerf: "2.4 Gbps"},
+	"VM.Standard2.8":  ShapeSpecs{PartNumber: "B88514", Mem: 120, Cpus: 8, NtwPerf: "8.2 Gbps"},
+	"VM.Standard1.16": ShapeSpecs{PartNumber: "B88317", Mem: 112, Cpus: 16, NtwPerf: "4.8 Gbps"},
+	"VM.Standard2.16": ShapeSpecs{PartNumber: "B88514", Mem: 240, Cpus: 16, NtwPerf: "16.4 Gbps"},
+	"VM.Standard2.24": ShapeSpecs{PartNumber: "B88514", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
+	"VM.DenseIO1.4":   ShapeSpecs{PartNumber: "B88316", Mem: 60, Cpus: 4, NtwPerf: "1.2 Gbps"},
+	"VM.DenseIO1.8":   ShapeSpecs{PartNumber: "B88316", Mem: 60, Cpus: 8, NtwPerf: "2.4 Gbps"},
+	"VM.DenseIO2.8":   ShapeSpecs{PartNumber: "B88516", Mem: 120, Cpus: 8, NtwPerf: "8.2 Gbps"},
+	"VM.DenseIO1.16":  ShapeSpecs{PartNumber: "B88316", Mem: 120, Cpus: 16, NtwPerf: "4.8 Gbps"},
+	"VM.DenseIO2.16":  ShapeSpecs{PartNumber: "B88516", Mem: 240, Cpus: 16, NtwPerf: "16.4 Gbps"},
+	"VM.DenseIO2.24":  ShapeSpecs{PartNumber: "B88516", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
 }
 
 // NewInfoer creates a new instance of the infoer
@@ -224,7 +225,7 @@ func (i *Infoer) GetProducts(regionId string) (products []productinfo.VmInfo, er
 		s := i.shapeSpecs[shape]
 		products = append(products, productinfo.VmInfo{
 			Type:    shape,
-			NtwPerf: "1",
+			NtwPerf: s.NtwPerf,
 			Cpus:    s.Cpus,
 			Mem:     s.Mem,
 		})
