@@ -160,7 +160,7 @@ type ProductDetails struct {
 	Burst bool `json:"burst,omitempty"`
 
 	// ZonePrice holds spot price information per zone
-	SpotInfo []ZonePrice `json:"spotPrice"`
+	SpotInfo []ZonePrice `json:"spotPrice,omitempty"`
 }
 
 // ProductDetailSource product details related set of operations

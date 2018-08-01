@@ -109,13 +109,6 @@ func (i *Infoer) Initialize() (prices map[string]map[string]productinfo.Price, e
 
 			price := prices[region][product.Type]
 			price.OnDemandPrice = shapePrice
-
-			spotPrice := make(productinfo.SpotPriceInfo)
-			for _, zone := range zonesInRegions[region] {
-				spotPrice[zone] = shapePrice
-			}
-
-			price.SpotPrice = spotPrice
 			prices[region][product.Type] = price
 			log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, product.Type, price)
 		}
