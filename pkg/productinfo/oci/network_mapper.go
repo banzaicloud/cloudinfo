@@ -1,7 +1,18 @@
 package oci
 
 import (
+	"fmt"
+
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
+)
+
+var (
+	ntwPerfMap = map[string][]string{
+		productinfo.NTW_LOW:    {"0.6 Gbps"},
+		productinfo.NTW_MEDIUM: {"1 Gbps", "1.2 Gbps", "2 Gbps", "2.4 Gbps"},
+		productinfo.NTW_HIGH:   {"4.1 Gbps", "4.8 Gbps", "8.2 Gbps"},
+		productinfo.NTW_EXTRA:  {"16.4 Gbps", "24.6 Gbps"},
+	}
 )
 
 // OCINetworkMapper module object for handling Oracle specific VM to Networking capabilities mapping
@@ -13,9 +24,12 @@ func newNetworkMapper() *OCINetworkMapper {
 	return &OCINetworkMapper{}
 }
 
-// MapNetworkPerf maps the network performance of the gce instance to the category supported by telescopes
-// Currently it always gives back productinfo.NTW_MEDIUM
+// MapNetworkPerf maps the network performance of the instance to the category supported by telescopes
 func (nm *OCINetworkMapper) MapNetworkPerf(vm productinfo.VmInfo) (string, error) {
-
-	return productinfo.NTW_MEDIUM, nil
+	for perfCat, strVals := range ntwPerfMap {
+		if productinfo.Contains(strVals, vm.NtwPerf) {
+			return perfCat, nil
+		}
+	}
+	return "", fmt.Errorf("could not determine network performance for: [%s]", vm.NtwPerf)
 }
