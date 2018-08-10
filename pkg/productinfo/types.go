@@ -26,6 +26,9 @@ const (
 
 	// RegionKeyTemplate format for generating region cache keys
 	RegionKeyTemplate = "/banzaicloud.com/recommender/%s/regions/"
+
+	// StatusKeyTemplate format for generating status cache keys
+	StatusKeyTemplate = "/banzaicloud.com/recommender/%s/status/"
 )
 
 // ProductInfoer gathers operations for retrieving cloud provider information for recommendations
@@ -137,7 +140,7 @@ type ProductStorer interface {
 	Set(k string, x interface{}, d time.Duration)
 }
 
-// ZonePrice struct for displaying proce information per zone
+// ZonePrice struct for displaying price information per zone
 type ZonePrice struct {
 	Zone  string  `json:"zone"`
 	Price float64 `json:"price"`
