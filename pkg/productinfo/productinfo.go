@@ -10,6 +10,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 )
 
 func (v AttrValues) floatValues() []float64 {
@@ -162,7 +163,16 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 		return
 	}
+	cpi.renewStatus(provider)
+
 	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
+}
+
+func (cpi *CachingProductInfo) renewStatus(provider string) (string, error) {
+	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
+
+	cpi.vmAttrStore.Set(cpi.getStatusKey(provider), values, cpi.renewalInterval)
+	return values, nil
 }
 
 // renewAll sequentially renews information for all provider
@@ -485,4 +495,20 @@ func Contains(slice []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// GetStatus retrieves status form the given provider
+func (cpi *CachingProductInfo) GetStatus(provider string) (string, error) {
+
+	cachedStatus, ok := cpi.vmAttrStore.Get(cpi.getStatusKey(provider))
+	if !ok {
+		return "", fmt.Errorf("status not yet cached for the key: %s", cpi.getStatusKey(provider))
+	}
+	status := cachedStatus.(string)
+
+	return status, nil
+}
+
+func (cpi *CachingProductInfo) getStatusKey(provider string) string {
+	return fmt.Sprintf(StatusKeyTemplate, provider)
 }

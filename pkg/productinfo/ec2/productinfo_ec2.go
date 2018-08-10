@@ -420,7 +420,7 @@ func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]productinfo.Pric
 		log.Debug("getting current spot prices directly from the AWS API")
 		spotPrices, err = e.getCurrentSpotPrices(region)
 		if err != nil {
-			log.Errorf("could notr retrieve current prices. region %s, error: %s", region, err.Error())
+			log.Errorf("could not retrieve current prices. region %s, error: %s", region, err.Error())
 			return nil, err
 		}
 	}

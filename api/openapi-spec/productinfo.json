@@ -354,6 +354,11 @@
             "$ref": "#/definitions/ProductDetails"
           },
           "x-go-name": "Products"
+        },
+        "scrapingTime": {
+          "description": "ScrapingTime represents scraping time for a given provider in milliseconds",
+          "type": "string",
+          "x-go-name": "ScrapingTime"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
@@ -422,7 +427,7 @@
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
     },
     "ZonePrice": {
-      "description": "ZonePrice struct for displaying proce information per zone",
+      "description": "ZonePrice struct for displaying price information per zone",
       "type": "object",
       "properties": {
         "price": {

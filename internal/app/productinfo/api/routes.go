@@ -113,10 +113,12 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 	log.Infof("getting product details for provider: %s, region: %s", prov, region)
 
 	var err error
-	if details, err := r.prod.GetProductDetails(prov, region); err == nil {
-		log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
-		c.JSON(http.StatusOK, ProductDetailsResponse{details})
-		return
+	if scrapingTime, err := r.prod.GetStatus(prov); err == nil {
+		if details, err := r.prod.GetProductDetails(prov, region); err == nil {
+			log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
+			c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
+			return
+		}
 	}
 
 	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})

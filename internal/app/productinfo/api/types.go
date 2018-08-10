@@ -16,6 +16,8 @@ type GetProductDetailsParams struct {
 type ProductDetailsResponse struct {
 	// Products represents a slice of products for a given provider (VMs with attributes and process)
 	Products []productinfo.ProductDetails `json:"products"`
+	// ScrapingTime represents scraping time for a given provider in milliseconds
+	ScrapingTime string `json:"scrapingTime"`
 }
 
 // GetRegionsParams is a placeholder for the get regions route's path parameters

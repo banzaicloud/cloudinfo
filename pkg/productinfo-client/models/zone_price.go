@@ -11,7 +11,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ZonePrice ZonePrice struct for displaying proce information per zone
+// ZonePrice ZonePrice struct for displaying price information per zone
 // swagger:model ZonePrice
 type ZonePrice struct {
 

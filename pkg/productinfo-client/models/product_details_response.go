@@ -20,6 +20,9 @@ type ProductDetailsResponse struct {
 
 	// Products represents a slice of products for a given provider (VMs with attributes and process)
 	Products []*ProductDetails `json:"products"`
+
+	// ScrapingTime represents scraping time for a given provider in milliseconds
+	ScrapingTime string `json:"scrapingTime,omitempty"`
 }
 
 // Validate validates this product details response
