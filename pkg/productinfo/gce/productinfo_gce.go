@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
@@ -220,36 +219,44 @@ func (g *GceInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
 func (g *GceInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 	log.Debugf("getting product info [region=%s]", regionId)
-	var vms []productinfo.VmInfo
-	var ntwPerf string
+	var vmsMap = make(map[string]productinfo.VmInfo)
+	var ntwPerf uint
 	zones, err := g.GetZones(regionId)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: check if all machine types are available in every regions??
-	err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
-		for _, mt := range allMts.Items {
-			if mt.GuestCpus < 1 {
-				// minimum 1 Gbps network performance for each virtual machine
-				ntwPerf = strconv.Itoa(1)
-			} else if mt.GuestCpus > 8 {
-				// theoretical maximum of 16 Gbps for each virtual machine
-				ntwPerf = strconv.Itoa(16)
-			} else {
-				// each vCPU has a 2 Gbps egress cap for peak performance
-				ntwPerf = strconv.Itoa(int(mt.GuestCpus * 2))
+	for _, zone := range zones {
+		err = g.computeSvc.MachineTypes.List(g.projectId, zone).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
+			for _, mt := range allMts.Items {
+				if _, ok := vmsMap[mt.Name]; !ok {
+					switch {
+					case mt.GuestCpus < 1:
+						// minimum 1 Gbps network performance for each virtual machine
+						ntwPerf = 1
+					case mt.GuestCpus > 8:
+						// theoretical maximum of 16 Gbps for each virtual machine
+						ntwPerf = 16
+					default:
+						// each vCPU has a 2 Gbps egress cap for peak performance
+						ntwPerf = uint(mt.GuestCpus * 2)
+					}
+					vmsMap[mt.Name] = productinfo.VmInfo{
+						Type:    mt.Name,
+						Cpus:    float64(mt.GuestCpus),
+						Mem:     float64(mt.MemoryMb) / 1024,
+						NtwPerf: fmt.Sprintf("%d Gbit/s", ntwPerf),
+					}
+				}
 			}
-			vms = append(vms, productinfo.VmInfo{
-				Type:    mt.Name,
-				Cpus:    float64(mt.GuestCpus),
-				Mem:     float64(mt.MemoryMb) / 1024,
-				NtwPerf: ntwPerf + " Gbit/s",
-			})
-		}
-		return nil
-	})
+			return nil
+		})
+	}
 	if err != nil {
 		return nil, err
+	}
+	var vms []productinfo.VmInfo
+	for _, vm := range vmsMap {
+		vms = append(vms, vm)
 	}
 	log.Debugf("found vms: %#v", vms)
 	return vms, nil
