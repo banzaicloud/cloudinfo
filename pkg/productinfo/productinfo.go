@@ -466,12 +466,11 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 			if pr.OnDemandPrice > 0 {
 				pdWithNtwPerfCat.OnDemandPrice = pr.OnDemandPrice
 			}
+			for zone, price := range pr.SpotPrice {
+				pdWithNtwPerfCat.SpotInfo = append(pdWithNtwPerfCat.SpotInfo, *newZonePrice(zone, price))
+			}
 		} else {
 			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(cloud, region, vm.Type))
-		}
-
-		for zone, price := range pr.SpotPrice {
-			pdWithNtwPerfCat.SpotInfo = append(pdWithNtwPerfCat.SpotInfo, *newZonePrice(zone, price))
 		}
 
 		details[i] = *pdWithNtwPerfCat
