@@ -581,7 +581,7 @@ func TestCachingProductInfo_GetProductDetails(t *testing.T) {
 			cache: &DummyProductInfoer{TcId: ProductDetailsOK},
 			checker: func(details []ProductDetails, err error) {
 				assert.Nil(t, err, "the error should be nil")
-				assert.Equal(t, 3, len(details))
+				assert.Equal(t, 2, len(details))
 			},
 		},
 		{
