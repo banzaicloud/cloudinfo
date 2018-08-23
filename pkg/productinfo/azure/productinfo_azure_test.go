@@ -180,36 +180,38 @@ func TestAzureInfoer_toRegionID(t *testing.T) {
 
 func TestAzureInfoer_transformMachineType(t *testing.T) {
 	tests := []struct {
-		name     string
-		sourceMt string
-		check    func(mt string)
+		name        string
+		subCategory string
+		sourceMt    []string
+		check       func(mt []string)
 	}{
 		{
 			name:     "return source if transformation not needed",
-			sourceMt: "Standard_A1_v2",
-			check: func(mt string) {
-				assert.Equal(t, "Standard_A1_v2", mt, "invalid machine type returned")
+			sourceMt: []string{"A1_v2"},
+			check: func(mt []string) {
+				assert.Equal(t, []string([]string{"Standard_A1_v2"}), mt, "invalid machine type returned")
 			},
 		},
 		{
-			name:     "successful check for Basic.A",
-			sourceMt: "BASIC.A8",
-			check: func(mt string) {
-				assert.Equal(t, "Basic_A8", mt, "invalid machine type returned")
+			name:        "successful check for Basic.A",
+			subCategory: "A Series Basic",
+			sourceMt:    []string{"A8"},
+			check: func(mt []string) {
+				assert.Equal(t, []string([]string{"Basic_A8"}), mt, "invalid machine type returned")
 			},
 		},
 		{
 			name:     "successful check for Standard_A",
-			sourceMt: "A6",
-			check: func(mt string) {
-				assert.Equal(t, "Standard_A6", mt, "invalid machine type returned")
+			sourceMt: []string{"A6"},
+			check: func(mt []string) {
+				assert.Equal(t, []string([]string{"Standard_A6"}), mt, "invalid machine type returned")
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			azureInfoer := AzureInfoer{}
-			test.check(azureInfoer.transformMachineType(test.sourceMt))
+			test.check(azureInfoer.transformMachineType(test.subCategory, test.sourceMt))
 		})
 	}
 }
@@ -337,7 +339,7 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 			name:     "successful check for Standard_M16ms",
 			sourceMt: "Standard_M16ms",
 			check: func(mts []string) {
-				assert.Equal(t, []string{"Standard_M16-2ms", "Standard_M16-4ms", "Standard_M16-8ms", "Standard_M16-16ms", "Standard_M16-32ms"}, mts, "invalid machine type returned")
+				assert.Equal(t, []string{"Standard_M16-2ms", "Standard_M16-4ms", "Standard_M16-8ms", "Standard_M16-16ms", "Standard_M16-32ms", "Standard_M16-64ms"}, mts, "invalid machine type returned")
 			},
 		},
 		{

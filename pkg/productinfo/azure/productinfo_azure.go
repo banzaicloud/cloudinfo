@@ -149,28 +149,15 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, err
 	}
 	for _, v := range *result.Meters {
 		if *v.MeterCategory == "Virtual Machines" && len(*v.MeterTags) == 0 && *v.MeterRegion != "" {
-			if !strings.Contains(*v.MeterSubCategory, "(Windows)") {
+			if !strings.Contains(*v.MeterSubCategory, "Windows") {
 				region, err := a.toRegionID(*v.MeterRegion, regions)
 				if err != nil {
 					log.Debugf(err.Error())
 					continue
 				}
-				var instanceType string
-				category := strings.Split(*v.MeterSubCategory, " ")
-				if len(category) < 2 {
-					log.Debugf("couldn't parse meter sub category: %s, region=%s", *v.MeterSubCategory, *v.MeterRegion)
-					continue
-				}
-				switch category[1] {
-				case "VM":
-					instanceType = category[0]
-				case "VM_Promo":
-					instanceType = category[0] + "_Promo"
-				default:
-					log.Debugf("instance type is empty: %s, region=%s", *v.MeterSubCategory, *v.MeterRegion)
-					continue
-				}
-				instanceType = a.transformMachineType(instanceType)
+				var instanceTypes []string
+
+				instanceTypes = a.machineType(*v.MeterName, *v.MeterSubCategory)
 
 				var priceInUsd float64
 
@@ -184,21 +171,23 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, err
 				if allPrices[region] == nil {
 					allPrices[region] = make(map[string]productinfo.Price)
 				}
-				price := allPrices[region][instanceType]
-				if !strings.Contains(*v.MeterSubCategory, "Low Priority") {
-					price.OnDemandPrice = priceInUsd
-				} else {
-					spotPrice := make(productinfo.SpotPriceInfo)
-					spotPrice[region] = priceInUsd
-					price.SpotPrice = spotPrice
-				}
+				for _, instanceType := range instanceTypes {
+					price := allPrices[region][instanceType]
+					if !strings.Contains(*v.MeterName, "Low Priority") {
+						price.OnDemandPrice = priceInUsd
+					} else {
+						spotPrice := make(productinfo.SpotPriceInfo)
+						spotPrice[region] = priceInUsd
+						price.SpotPrice = spotPrice
+					}
 
-				allPrices[region][instanceType] = price
-				log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, instanceType, price)
-				mts := a.getMachineTypeVariants(instanceType)
-				for _, mt := range mts {
-					allPrices[region][mt] = price
-					log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, mt, price)
+					allPrices[region][instanceType] = price
+					log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, instanceType, price)
+					mts := a.getMachineTypeVariants(instanceType)
+					for _, mt := range mts {
+						allPrices[region][mt] = price
+						log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, mt, price)
+					}
 				}
 			}
 		}
@@ -208,15 +197,34 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, err
 	return allPrices, nil
 }
 
-func (a *AzureInfoer) transformMachineType(mt string) string {
-	switch {
-	case mtBasic.MatchString(mt):
-		parts := strings.Split(mt, ".")
-		return strings.Title(strings.ToLower(parts[0])) + "_" + parts[1]
-	case mtStandardA.MatchString(mt):
-		return "Standard_" + mt
+func (a *AzureInfoer) machineType(meterName string, subCategory string) []string {
+	var instanceTypes []string
+	name := strings.TrimSuffix(meterName, " Low Priority")
+	instanceType := strings.Split(name, "/")
+	for _, it := range instanceType {
+		instanceTypes = append(instanceTypes, strings.Replace(it, " ", "_", 1))
 	}
-	return mt
+
+	// not available now
+	if strings.Contains(subCategory, "Promo") {
+		instanceTypes[0] = instanceTypes[0] + "_Promo"
+	}
+	instanceTypes = a.transformMachineType(subCategory, instanceTypes)
+	if strings.Contains(name, "Expired") {
+		instanceTypes = []string{}
+	}
+	return instanceTypes
+}
+
+func (a *AzureInfoer) transformMachineType(subCategory string, mt []string) []string {
+	switch {
+	case strings.Contains(subCategory, "Basic"):
+		return []string{"Basic_" + mt[0]}
+	case len(mt) == 2:
+		return []string{"Standard_" + mt[0], "Standard_" + mt[1]}
+	default:
+		return []string{"Standard_" + mt[0]}
+	}
 }
 
 func (a *AzureInfoer) getMachineTypeVariants(mt string) []string {
@@ -252,7 +260,7 @@ func (a *AzureInfoer) getMachineTypeVariants(mt string) []string {
 		return a.addSuffix(mt, "s")
 	case mtStandardM.MatchString(mt) && strings.HasSuffix(mt, "ms"):
 		base := strings.TrimSuffix(mt, "ms")
-		return a.addSuffix(base, "-2ms", "-4ms", "-8ms", "-16ms", "-32ms")
+		return a.addSuffix(base, "-2ms", "-4ms", "-8ms", "-16ms", "-32ms", "-64ms")
 	case mtStandardM.MatchString(mt) && (strings.HasSuffix(mt, "ls") || strings.HasSuffix(mt, "ts")):
 		return []string{}
 	case mtStandardM.MatchString(mt) && strings.HasSuffix(mt, "s"):

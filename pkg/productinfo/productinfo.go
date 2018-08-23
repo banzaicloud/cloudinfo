@@ -454,10 +454,10 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 	}
 
 	vms := cachedVms.([]VmInfo)
-	details := make([]ProductDetails, len(vms))
+	var details []ProductDetails
 
 	var pr Price
-	for i, vm := range vms {
+	for _, vm := range vms {
 		pd := newProductDetails(vm)
 		pdWithNtwPerfCat := cpi.decorateNtwPerfCat(cloud, pd)
 		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(cloud, region, vm.Type)); ok {
@@ -473,7 +473,9 @@ func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([
 			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(cloud, region, vm.Type))
 		}
 
-		details[i] = *pdWithNtwPerfCat
+		if pdWithNtwPerfCat.OnDemandPrice != 0 {
+			details = append(details, *pdWithNtwPerfCat)
+		}
 	}
 
 	return details, nil
