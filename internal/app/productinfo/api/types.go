@@ -1,6 +1,16 @@
 package api
 
-import "github.com/banzaicloud/productinfo/pkg/productinfo"
+import (
+	"fmt"
+	"github.com/banzaicloud/productinfo/pkg/productinfo"
+)
+
+const (
+	providerParam  = "provider"
+	regionParam    = "region"
+	attributeParam = "attribute"
+	serviceParam   = "service"
+)
 
 // GetProductDetailsParams is a placeholder for the get products route's path parameters
 // swagger:parameters getProductDetails
@@ -75,3 +85,32 @@ type AttributeResponse struct {
 // ProviderResponse is the response used for the supported providers
 // swagger:model ProviderResponse
 type ProviderResponse []string
+
+// ServicePathParams represents the information from the path
+// Serves as an abstraction of the request path information to be used in handlers
+type ServicePathParams struct {
+	// Embedding the already defined structg
+	GetRegionParams
+	// Service represents the service from the request path
+	Service string
+	// Attribute represents a service resource (cpu, hdd etc ...)
+	Attribute string
+}
+
+// newPathParams creates a new struct with the provided information
+func newPathParams(provider, region, service, attribute string) ServicePathParams {
+	rp := GetRegionParams{
+		Provider: provider,
+		Region:   region,
+	}
+
+	return ServicePathParams{
+		GetRegionParams: rp,
+		Service:         service,
+		Attribute:       attribute,
+	}
+}
+
+func (p *ServicePathParams) String() string {
+	return fmt.Sprintf("Provider: %s, Region: %s, Service: %s", p.Provider, p.Region, p.Service)
+}

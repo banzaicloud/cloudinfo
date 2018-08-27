@@ -290,3 +290,23 @@ func (i *Infoer) GetZones(region string) (zones []string, err error) {
 func (i *Infoer) HasShortLivedPriceInfo() bool {
 	return false
 }
+
+// GetServices returns the available services on the  given region
+func (i *Infoer) GetServices(region string) ([]productinfo.ProductService, error) {
+	return nil, fmt.Errorf("GetServices - not yet implemented")
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (i *Infoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (i *Infoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (i *Infoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}

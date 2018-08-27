@@ -14,12 +14,6 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
-const (
-	providerParam  = "provider"
-	regionParam    = "region"
-	attributeParam = "attribute"
-)
-
 // RouteHandler configures the REST API routes in the gin router
 type RouteHandler struct {
 	prod *productinfo.CachingProductInfo
@@ -67,24 +61,24 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 
 	v1 := base.Group("/api/v1")
 
-	piGroup := v1.Group("/products")
-	{
-		piGroup.Use(ValidatePathParam(providerParam, v, "provider"))
-		piGroup.Use(ValidateRegionData(v))
-		piGroup.GET("/:provider/:region/", r.getProductDetails)
-		piGroup.GET("/:provider/:region/:attribute", r.getAttrValues).Use(ValidatePathParam(attributeParam, v, "attribute"))
-	}
-
-	metaGroup := v1.Group("/regions")
-	{
-		metaGroup.Use(ValidatePathParam(providerParam, v, "provider"))
-		metaGroup.GET("/:provider", r.getRegions)
-		metaGroup.GET("/:provider/:region", r.getRegion).Use(ValidateRegionData(v))
-	}
-
+	// this is the new base path, all the other resources - with the registered middlewares should be moved in this group
 	providerGroup := v1.Group("/providers")
 	{
+		providerGroup.Use(ValidatePathParam(providerParam, v, "provider"))
 		providerGroup.GET("/", r.getProviders)
+
+		providerGroup.GET("/:provider/regions", r.getRegions)
+		providerGroup.GET("/:provider/regions/:region", r.getRegion).Use(ValidateRegionData(v))
+		providerGroup.GET("/:provider/regions/:region/products", r.getProductDetails)
+		providerGroup.GET("/:provider/regions/:region/products/:attribute", r.getAttrValues).
+			Use(ValidatePathParam(attributeParam, v, "attribute"))
+
+		// services related endpoints
+		providerGroup.GET("/:provider/regions/:region/services", r.getServices)
+		providerGroup.GET("/:provider/regions/:region/services/:service", r.getService) // todo does this make sense?
+		providerGroup.GET("/:provider/regions/:region/services/:service/images", r.getServiceImages)
+		providerGroup.GET("/:provider/regions/:region/services/:service/products", r.getServiceProducts)
+		providerGroup.GET("/:provider/regions/:region/services/:service/products/:attribute", r.getServiceAttributes)
 	}
 
 }
