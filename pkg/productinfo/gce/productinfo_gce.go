@@ -327,3 +327,23 @@ func (g *GceInfoer) GetCpuAttrName() string {
 func (g *GceInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	return newGceNetworkMapper(), nil
 }
+
+// GetServices returns the available services on the  given region
+func (g *GceInfoer) GetServices(region string) ([]productinfo.ProductService, error) {
+	return nil, fmt.Errorf("GetServices - not yet implemented")
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (g *GceInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (g *GceInfoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}

@@ -421,3 +421,23 @@ func (a *AzureInfoer) GetCpuAttrName() string {
 func (a *AzureInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	return newAzureNetworkMapper(), nil
 }
+
+// GetServices returns the available services on the  given region
+func (a *AzureInfoer) GetServices(region string) ([]productinfo.ProductService, error) {
+	return nil, fmt.Errorf("GetServices - not yet implemented")
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (a *AzureInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (a *AzureInfoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (a *AzureInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}
