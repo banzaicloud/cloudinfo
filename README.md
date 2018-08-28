@@ -95,10 +95,13 @@ export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
 
 ### Alibaba
 
-The easiest way to authenticate:
+The easiest way to authenticate is through environment variables:
 
 ```
-./productinfo --provider alibaba --alibaba-region-id <region-id> --alibaba-access-key-id <your-access-key-id> --alibaba-access-key-secret <your-access-key-secret>
+export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
+export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
+export ALIBABA_REGION_ID=<region-id>
+./productinfo --provider alibaba
 ```
 
 ### Configuring multiple providers
@@ -111,7 +114,10 @@ export AWS_ACCESS_KEY_ID=<your-access-key-id>
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
 export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
-./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle --provider alibaba --alibaba-region-id <region-id> --alibaba-access-key-id <your-access-key-id> --alibaba-access-key-secret <your-access-key-secret>
+export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
+export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
+export ALIBABA_REGION_ID=<region-id>
+./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle --provider alibaba
 
 ```
 

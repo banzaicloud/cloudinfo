@@ -15,7 +15,7 @@ type AlibabaInfoer struct {
 }
 
 // NewAlibabaInfoer creates a new instance of the Alibaba infoer
-func NewAlibabaInfoer(regionId string, accessKeyId string, accessKeySecret string) (*AlibabaInfoer, error) {
+func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaInfoer, error) {
 
 	// Create an ECS client
 	ecsClient, err := ecs.NewClientWithAccessKey(

@@ -15,6 +15,7 @@ package main
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -113,6 +114,11 @@ func init() {
 
 	// handle log level
 	setLogLevel()
+
+	// Viper check for an environment variable
+	viper.AutomaticEnv()
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
 
 	// register prometheus custom metrics
 	prometheus.MustRegister(productinfo.ScrapeCompleteDurationGauge)
