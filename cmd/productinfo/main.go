@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/productinfo/internal/app/productinfo/api"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/alibaba"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/ec2"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/gce"
@@ -47,17 +48,22 @@ const (
 	metricsAddressFlag         = "metrics-address"
 
 	//temporary flags
-	gceApiKeyFlag       = "gce-api-key"
-	azureSubscriptionId = "azure-subscription-id"
+	gceApiKeyFlag          = "gce-api-key"
+	azureSubscriptionId    = "azure-subscription-id"
+	alibabaRegionId        = "alibaba-region-id"
+	alibabaAccessKeyId     = "alibaba-access-key-id"
+	alibabaAccessKeySecret = "alibaba-access-key-secret"
 
 	// Gce is the identifier of the Google Cloud Engine provider
 	Gce = "gce"
-	// Ec2 is the identifier of the Google Cloud Engine provider
+	// Ec2 is the identifier of the Amazon Ec2 provider
 	Ec2 = "ec2"
 	// Azure is the identifier of the MS Azure provider
 	Azure = "azure"
 	// Oracle is the identifier of the Oracle Cloud Infrastructure provider
 	Oracle = "oracle"
+	// Alibaba is the identifier of the Alibaba Cloud provider
+	Alibaba = "alibaba"
 )
 
 // defineFlags defines supported flags and makes them available for viper
@@ -70,11 +76,14 @@ func defineFlags() {
 	flag.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
 		"advanced configuration: change the query used to query spot price info from Prometheus.")
 	flag.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
-	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure, Oracle}, "Providers that will be used with the productinfo application.")
+	flag.StringSlice(providerFlag, []string{Ec2, Gce, Azure, Oracle, Alibaba}, "Providers that will be used with the productinfo application.")
 	flag.String(azureSubscriptionId, "", "Azure subscription ID to use with the APIs")
 	flag.Bool(helpFlag, false, "print usage")
 	flag.Bool(metricsEnabledFlag, false, "internal metrics are exposed if enabled")
 	flag.String(metricsAddressFlag, ":9900", "the address where internal metrics are exposed")
+	flag.String(alibabaRegionId, "", "alibaba region id")
+	flag.String(alibabaAccessKeyId, "", "alibaba access key id")
+	flag.String(alibabaAccessKeySecret, "", "alibaba access key secret")
 }
 
 // bindFlags binds parsed flags into viper
@@ -167,6 +176,8 @@ func infoers() map[string]productinfo.ProductInfoer {
 			infoer, err = azure.NewAzureInfoer(viper.GetString(azureSubscriptionId))
 		case Oracle:
 			infoer, err = oci.NewInfoer()
+		case Alibaba:
+			infoer, err = alibaba.NewAlibabaInfoer(viper.GetString(alibabaRegionId), viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret))
 		default:
 			log.Fatalf("provider %s is not supported", p)
 		}

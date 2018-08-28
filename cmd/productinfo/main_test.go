@@ -64,7 +64,7 @@ func Test_processProviderFlag(t *testing.T) {
 				// no provider flag specified
 			},
 			check: func(val interface{}) {
-				assert.Equal(t, []string{Ec2, Gce, Azure, Oracle}, val)
+				assert.Equal(t, []string{Ec2, Gce, Azure, Oracle, Alibaba}, val)
 
 			},
 		},

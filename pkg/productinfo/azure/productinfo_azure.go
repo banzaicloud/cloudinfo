@@ -18,11 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	cpu    = "cpu"
-	memory = "memory"
-)
-
 var (
 	regionCodeMappings = map[string]string{
 		"ap": "asia",
@@ -309,12 +304,12 @@ func (a *AzureInfoer) GetAttributeValues(attribute string) (productinfo.AttrValu
 		}
 		for _, v := range *vmSizes.Value {
 			switch attribute {
-			case cpu:
+			case productinfo.Cpu:
 				valueSet[productinfo.AttrValue{
 					Value:    float64(*v.NumberOfCores),
 					StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
 				}] = ""
-			case memory:
+			case productinfo.Memory:
 				valueSet[productinfo.AttrValue{
 					Value:    float64(*v.MemoryInMB) / 1024,
 					StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
@@ -414,15 +409,15 @@ func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]productinfo.Pr
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
 func (a *AzureInfoer) GetMemoryAttrName() string {
-	return memory
+	return productinfo.Memory
 }
 
 // GetCpuAttrName returns the provider representation of the cpu attribute
 func (a *AzureInfoer) GetCpuAttrName() string {
-	return cpu
+	return productinfo.Cpu
 }
 
-// GetNetworkPerformanceMapper returns the network performance mappier implementation for this provider
+// GetNetworkPerformanceMapper returns the network performance mapper implementation for this provider
 func (a *AzureInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	return newAzureNetworkMapper(), nil
 }
