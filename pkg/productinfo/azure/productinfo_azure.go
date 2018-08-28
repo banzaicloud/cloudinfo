@@ -422,13 +422,13 @@ func (a *AzureInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapp
 	return newAzureNetworkMapper(), nil
 }
 
-// GetServices returns the available services on the  given region
-func (a *AzureInfoer) GetServices(region string) ([]productinfo.ServiceDescriber, error) {
+// GetServices returns the available services on the  provider
+func (a *AzureInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 	return nil, fmt.Errorf("GetServices - not yet implemented")
 }
 
-// GetService returns the service on the  given region
-func (a *AzureInfoer) GetService(region, service string) (productinfo.ServiceDescriber, error) {
+// GetService returns the service on the provider
+func (a *AzureInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
 	return nil, fmt.Errorf("GetService - not yet implemented")
 }
 

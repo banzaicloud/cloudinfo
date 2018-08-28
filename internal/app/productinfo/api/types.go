@@ -6,22 +6,28 @@ import (
 
 const (
 	providerParam  = "provider"
-	regionParam    = "region"
 	attributeParam = "attribute"
-	serviceParam   = "service"
 )
 
 // GetProviderPathParams is a placeholder for the providers related route path parameters
-// swagger:parameters getRegions
+// swagger:parameters getServices
 type GetProviderPathParams struct {
 	// in:path
 	Provider string `json:"provider"`
 }
 
-// GetRegionPathParams is a placeholder for the regions related route path parameters
-// swagger:parameters getRegion getServices getProductDetails
-type GetRegionPathParams struct {
+// GetServicesPathParams is a placeholder for the services related route path parameters
+// swagger:parameters getRegions
+type GetServicesPathParams struct {
 	GetProviderPathParams `mapstructure:",squash"`
+	// in:path
+	Service string `json:"service"`
+}
+
+// GetRegionPathParams is a placeholder for the regions related route path parameters
+// swagger:parameters getRegion getServiceImages, getProductDetails
+type GetRegionPathParams struct {
+	GetServicesPathParams `mapstructure:",squash"`
 	// in:path
 	Region string `json:"region"`
 }
@@ -30,22 +36,6 @@ type GetRegionPathParams struct {
 // swagger:parameters getAttributeValues
 type GetAttributeValuesPathParams struct {
 	GetRegionPathParams `mapstructure:",squash"`
-	// in:path
-	Attribute string `json:"attribute"`
-}
-
-// GetServicePathParams is a placeholder for the services related route path parameters
-// swagger:parameters getService getServiceImages getServiceProducts
-type GetServicePathParams struct {
-	GetRegionPathParams `mapstructure:",squash"`
-	// in:path
-	Service string `json:"service"`
-}
-
-// GetServiceAttributeValuesParams is a placeholder for the get service attribute values route's path parameters
-// swagger:parameters getServiceAttributeValues
-type GetServiceAttributeValuesParams struct {
-	GetServicePathParams `mapstructure:",squash"`
 	// in:path
 	Attribute string `json:"attribute"`
 }

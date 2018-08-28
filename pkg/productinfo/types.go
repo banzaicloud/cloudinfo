@@ -65,11 +65,11 @@ type ProductInfoer interface {
 	// GetNetworkPerformanceMapper returns the provider specific network performance mapper
 	GetNetworkPerformanceMapper() (NetworkPerfMapper, error)
 
-	// GetServices returns the available services on the  given region
-	GetServices(region string) ([]ServiceDescriber, error)
+	// GetServices returns the available services on the given provider
+	GetServices() ([]ServiceDescriber, error)
 
 	// GetServices returns the available services on the  given region
-	GetService(region, service string) (ServiceDescriber, error)
+	GetService(service string) (ServiceDescriber, error)
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
 	GetServiceImages(region, service string) ([]ImageDescriber, error)
@@ -197,9 +197,6 @@ func newProductDetails(vm VmInfo) *ProductDetails {
 type ServiceDescriber interface {
 	// GetName abstracts the name assembly for the service
 	GetName() string
-
-	// GetResources returns a slice with the resources available for the given service
-	GetResources() []string // todo is this required?
 }
 
 // ImageDescriber is a placeholder interface for image information
