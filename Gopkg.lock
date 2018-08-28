@@ -58,6 +58,7 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
+<<<<<<< HEAD
   digest = "1:18b121ad5d70dcb08f5ca205f530a8ea3d91347c371b7cf7813537e8632f7c5b"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
@@ -78,6 +79,8 @@
   version = "1.27.5"
 
 [[projects]]
+=======
+>>>>>>> dep ensure - raised dep version
   digest = "1:5a23cd3a5496a0b2da7e3b348d14e77b11a210738c398200d7d6f04ea8cf3bd8"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -716,8 +719,11 @@
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources",
     "github.com/Azure/go-autorest/autorest/azure",
     "github.com/Azure/go-autorest/autorest/azure/auth",
+<<<<<<< HEAD
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/log",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
+=======
+>>>>>>> dep ensure - raised dep version
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/endpoints",
     "github.com/aws/aws-sdk-go/aws/session",
@@ -733,6 +739,10 @@
     "github.com/go-openapi/runtime/client",
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
+<<<<<<< HEAD
+=======
+    "github.com/mitchellh/mapstructure",
+>>>>>>> dep ensure - raised dep version
     "github.com/oracle/oci-go-sdk/common",
     "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
