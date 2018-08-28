@@ -95,7 +95,7 @@ func (rd *regionData) String() string {
 	return fmt.Sprintf("Cloud: %s, Region: %s", rd.Cloud, rd.Region)
 }
 
-// newRegionData constructs a new
+// newRegionData constructs a new struct
 func newRegionData(cloud string, region string) regionData {
 	return regionData{Cloud: cloud, Region: region}
 }

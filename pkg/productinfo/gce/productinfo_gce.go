@@ -333,13 +333,13 @@ func (g *GceInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper
 	return newGceNetworkMapper(), nil
 }
 
-// GetServices returns the available services on the  given region
-func (g *GceInfoer) GetServices(region string) ([]productinfo.ServiceDescriber, error) {
+// GetServices returns the available services on the  provider
+func (g *GceInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 	return nil, fmt.Errorf("GetServices - not yet implemented")
 }
 
-// GetService returns the given services on the  given region
-func (g *GceInfoer) GetService(region, service string) (productinfo.ServiceDescriber, error) {
+// GetService returns the given service details on the provider
+func (g *GceInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
 	return nil, fmt.Errorf("GetService - not yet implemented")
 }
 
