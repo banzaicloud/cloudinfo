@@ -292,7 +292,12 @@ func (i *Infoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetServices returns the available services on the  given region
-func (i *Infoer) GetServices(region string) ([]productinfo.ProductService, error) {
+func (i *Infoer) GetServices(region string) ([]productinfo.ServiceDescriber, error) {
+	return nil, fmt.Errorf("GetService - not yet implemented")
+}
+
+// GetService returns the services on the  given region
+func (i *Infoer) GetService(region, service string) (productinfo.ServiceDescriber, error) {
 	return nil, fmt.Errorf("GetServices - not yet implemented")
 }
 

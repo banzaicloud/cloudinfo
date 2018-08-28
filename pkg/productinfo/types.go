@@ -66,7 +66,10 @@ type ProductInfoer interface {
 	GetNetworkPerformanceMapper() (NetworkPerfMapper, error)
 
 	// GetServices returns the available services on the  given region
-	GetServices(region string) ([]ProductService, error)
+	GetServices(region string) ([]ServiceDescriber, error)
+
+	// GetServices returns the available services on the  given region
+	GetService(region, service string) (ServiceDescriber, error)
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
 	GetServiceImages(region, service string) ([]ImageDescriber, error)
@@ -190,8 +193,8 @@ func newProductDetails(vm VmInfo) *ProductDetails {
 	return &pd
 }
 
-// ProductService represents a service; eg.: oke, eks
-type ProductService interface {
+// ServiceDescriber represents a service; eg.: oke, eks
+type ServiceDescriber interface {
 	// GetName abstracts the name assembly for the service
 	GetName() string
 
