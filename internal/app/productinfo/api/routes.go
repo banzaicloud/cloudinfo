@@ -78,7 +78,7 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 		providerGroup.GET("/:provider/regions/:region/services/:service", r.getService) // todo does this make sense?
 		providerGroup.GET("/:provider/regions/:region/services/:service/images", r.getServiceImages)
 		providerGroup.GET("/:provider/regions/:region/services/:service/products", r.getServiceProducts)
-		providerGroup.GET("/:provider/regions/:region/services/:service/products/:attribute", r.getServiceAttributes)
+		providerGroup.GET("/:provider/regions/:region/services/:service/products/:attribute", r.getServiceAttributeValues)
 	}
 
 }
@@ -87,7 +87,7 @@ func (r *RouteHandler) signalStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
-// swagger:route GET /products/{provider}/{region} products getProductDetails
+// swagger:route GET /providers/{provider}/regions/{region}/products products getProductDetails
 //
 // Provides a list of available machine types on a given provider in a specific region.
 //
@@ -118,7 +118,7 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 }
 
-// swagger:route GET /products/{provider}/{region}/{attribute} attributes getAttributeValues
+// swagger:route GET /providers/{provider}/regions/{region}/products/{attribute} attributes getAttributeValues
 //
 // Provides a list of available attribute values in a provider's region.
 //
@@ -148,7 +148,7 @@ func (r *RouteHandler) getAttrValues(c *gin.Context) {
 	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 }
 
-// swagger:route GET /regions/{provider} regions getRegions
+// swagger:route GET /providers/{provider}/regions regions getRegions
 //
 // Provides the list of available regions of a cloud provider
 //
@@ -175,7 +175,7 @@ func (r *RouteHandler) getRegions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// swagger:route GET /regions/{provider}/{region} regions getRegion
+// swagger:route GET /providers/{provider}/regions/{region} regions getRegion
 //
 // Provides the detailed info of a specific region of a cloud provider
 //

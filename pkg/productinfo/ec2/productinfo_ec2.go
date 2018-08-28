@@ -452,8 +452,13 @@ func (e *Ec2Infoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper
 }
 
 // GetServices returns the available services on the  given region
-func (e *Ec2Infoer) GetServices(region string) ([]productinfo.ProductService, error) {
-	return []productinfo.ProductService{newEc2ProductService("eks", []string{"images", "products"})}, nil
+func (e *Ec2Infoer) GetServices(region string) ([]productinfo.ServiceDescriber, error) {
+	return []productinfo.ServiceDescriber{newEc2ProductService("eks", []string{"images", "products"})}, nil
+}
+
+// GetService returns the given services on the  given region
+func (e *Ec2Infoer) GetService(region, service string) (productinfo.ServiceDescriber, error) {
+	return nil, fmt.Errorf("GetService - not yet implemented")
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region

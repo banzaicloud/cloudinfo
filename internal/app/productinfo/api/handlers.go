@@ -5,100 +5,165 @@ import (
 
 	"fmt"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
 )
 
-// getServices retrieves services supported by the gibven provider in the given region
+// swagger:route GET /providers/{provider}/regions/{region}/services services getServices
+//
+// Provides a list with the available services for the provider in the given region
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ProductServiceResponse
 func (r *RouteHandler) getServices(c *gin.Context) {
 
-	pathParams := getPathParams(c)
-	log.Debug("Path params: [%s]", pathParams)
-
-	var err error
-	if infoer, err := r.prod.GetInfoer(pathParams.Provider); err == nil {
-		if services, err := infoer.GetServices(pathParams.Region); err == nil {
-			c.JSON(http.StatusOK, services)
-			return
-		}
-	}
-
-	c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving services: %s", err.Error()))
-
 }
 
+// swagger:route GET /providers/{provider}/regions/{region}/services/{service} service getService
+//
+// Provides service details for the given service on the provider in the given region
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ProductServiceResponse
 func (r *RouteHandler) getService(c *gin.Context) {
+	// bind the path parameters
+	pathParams := GetServicePathParams{}
+	mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := getPathParams(c)
-	log.Debug("Path params: [%s]", pathParams)
+	infoer, err := r.prod.GetInfoer(pathParams.Provider)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service: %s", err.Error()))
+		return
+	}
 
-	c.JSON(http.StatusInternalServerError, "not yet implemented")
+	service, err := infoer.GetService(pathParams.Region, pathParams.Service)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service: %s", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, service)
 
 }
 
+// swagger:route GET /providers/{provider}/regions/{region}/services/{service}/images images getServiceImages
+//
+// Provides a list with the images available for the given service on the provider in the given region
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ServiceImageResponse
 func (r *RouteHandler) getServiceImages(c *gin.Context) {
+	// bind the path parameters
+	pathParams := GetServicePathParams{}
+	mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := getPathParams(c)
-	log.Debug("Path params: [%s]", pathParams)
-
-	var err error
-	if infoer, err := r.prod.GetInfoer(pathParams.Provider); err == nil {
-		if services, err := infoer.GetServiceImages(pathParams.Region, pathParams.Service); err == nil {
-			c.JSON(http.StatusOK, services)
-			return
-		}
+	infoer, err := r.prod.GetInfoer(pathParams.Provider)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service images: %s", err.Error()))
+		return
 	}
 
-	c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service images: %s", err.Error()))
+	images, err := infoer.GetServiceImages(pathParams.Region, pathParams.Service)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service imaged: %s", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, images)
 
 }
 
+// swagger:route GET /providers/{provider}/regions/{region}/services/{service}/products serviceProducts getServiceProducts
+//
+// Provides a list with the products available for the given service on the provider in the given region
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ProductDetailsResponse
 func (r *RouteHandler) getServiceProducts(c *gin.Context) {
+	// bind the path parameters
+	pathParams := GetServicePathParams{}
+	mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := getPathParams(c)
-	log.Debug("Path params: [%s]", pathParams)
-
-	var err error
-	if infoer, err := r.prod.GetInfoer(pathParams.Provider); err == nil {
-		if services, err := infoer.GetServiceProducts(pathParams.Region, pathParams.Service); err == nil {
-			c.JSON(http.StatusOK, services)
-			return
-		}
+	infoer, err := r.prod.GetInfoer(pathParams.Provider)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service products: %s", err.Error()))
+		return
+	}
+	products, err := infoer.GetServiceProducts(pathParams.Region, pathParams.Service)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service products: %s", err.Error()))
+		return
 	}
 
-	c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service products: %s", err.Error()))
+	c.JSON(http.StatusOK, products)
 
 }
 
-func (r *RouteHandler) getServiceAttributes(c *gin.Context) {
-	pathParams := getPathParams(c)
-	log.Debug("Path params: [%s]", pathParams)
+// swagger:route GET /providers/{provider}/regions/{region}/services/{service}/products/{attribute} serviceAttributeValues getServiceAttributeValues
+//
+// Provides a list with the attribute values available for the given service on the provider in the given region
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: AttributeResponse
+func (r *RouteHandler) getServiceAttributeValues(c *gin.Context) {
 
-	var err error
-	if infoer, err := r.prod.GetInfoer(pathParams.Provider); err == nil {
-		if services, err := infoer.GetServiceAttributes(pathParams.Region, pathParams.Service, pathParams.Attribute); err == nil {
-			c.JSON(http.StatusOK, services)
-			return
-		}
+	pathParams := GetServiceAttributeValuesParams{}
+	mapstructure.Decode(getPathParamMap(c), &pathParams)
+	infoer, err := r.prod.GetInfoer(pathParams.Provider)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service attribute values: %s", err.Error()))
+		return
+	}
+	services, err := infoer.GetServiceAttributes(pathParams.Region, pathParams.Service, pathParams.Attribute)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service attribute values: %s", err.Error()))
+		return
 	}
 
-	c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service attribute values: %s", err.Error()))
+	c.JSON(http.StatusOK, services)
 
 }
 
-// getPathParam handles path params retrieval in case tha path param is not set a warning is logged
-func getPathParam(pathParam string, c *gin.Context) string {
-	param := c.Param(pathParam)
-	if param == "" {
-		log.Warnf("path param %s is not set", pathParam)
+// getPathParamMap transforms the path params into a map to be able to easily bind to param structs
+func getPathParamMap(c *gin.Context) map[string]string {
+	pm := make(map[string]string)
+	for _, p := range c.Params {
+		pm[p.Key] = p.Value
 	}
-	return param
-}
-
-// getPathParams parses the path information from the gin Contexts
-func getPathParams(c *gin.Context) ServicePathParams {
-	provider := getPathParam(providerParam, c)
-	region := getPathParam(regionParam, c)
-	service := getPathParam(serviceParam, c)
-	attribute := getPathParam(attributeParam, c)
-	return newPathParams(provider, region, service, attribute)
+	return pm
 }
