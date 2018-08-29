@@ -83,7 +83,7 @@ func (r *RouteHandler) signalStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
 }
 
-// swagger:route GET /providers/{provider}/regions/{region}/products products getProductDetails
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products products getProductDetails
 //
 // Provides a list of available machine types on a given provider in a specific region.
 //
@@ -119,7 +119,7 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 
 }
 
-// swagger:route GET /providers/{provider}/regions/{region}/products/{attribute} attributes getAttributeValues
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attributes getAttributeValues
 //
 // Provides a list of available attribute values in a provider's region.
 //
@@ -148,7 +148,7 @@ func (r *RouteHandler) getAttrValues(c *gin.Context) {
 	c.JSON(http.StatusOK, AttributeResponse{pathParams.Attribute, attributes})
 }
 
-// swagger:route GET /providers/{provider}/regions regions getRegions
+// swagger:route GET /providers/{provider}/services/{service}/regions regions getRegions
 //
 // Provides the list of available regions of a cloud provider
 //
@@ -161,9 +161,10 @@ func (r *RouteHandler) getAttrValues(c *gin.Context) {
 //
 //     Responses:
 //       200: RegionsResponse
+//
 func (r *RouteHandler) getRegions(c *gin.Context) {
 
-	pathParams := GetProviderPathParams{}
+	pathParams := GetServicesPathParams{}
 	mapstructure.Decode(getPathParamMap(c), &pathParams)
 
 	regions, err := r.prod.GetRegions(pathParams.Provider)
@@ -178,7 +179,7 @@ func (r *RouteHandler) getRegions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// swagger:route GET /providers/{provider}/regions/{region} regions getRegion
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region} regions getRegion
 //
 // Provides the detailed info of a specific region of a cloud provider
 //

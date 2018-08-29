@@ -28,7 +28,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProviderResponse'
-  '/providers/{provider}/regions':
+  '/providers/{provider}/services/{service}':
+    get:
+      description: >-
+        Provides service details for the given service on the provider in the
+        given region
+      tags:
+        - service
+      operationId: getService
+      parameters:
+        - x-go-name: Provider
+          name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - x-go-name: Service
+          name: service
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ProductServiceResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductServiceResponse'
+        '503':
+          description: ErrorResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/providers/{provider}/services/{service}/regions':
     get:
       description: Provides the list of available regions of a cloud provider
       tags:
@@ -41,6 +75,12 @@ paths:
           required: true
           schema:
             type: string
+        - x-go-name: Service
+          name: service
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: RegionsResponse
@@ -48,7 +88,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegionsResponse'
-  '/providers/{provider}/regions/{region}':
+  '/providers/{provider}/services/{service}/regions/{region}':
     get:
       description: Provides the detailed info of a specific region of a cloud provider
       tags:
@@ -57,6 +97,12 @@ paths:
       parameters:
         - x-go-name: Provider
           name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - x-go-name: Service
+          name: service
           in: path
           required: true
           schema:
@@ -74,7 +120,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegionResponse'
-  '/providers/{provider}/regions/{region}/products':
+  '/providers/{provider}/services/{service}/regions/{region}/products':
     get:
       tags:
         - products
@@ -89,6 +135,12 @@ paths:
           required: true
           schema:
             type: string
+        - x-go-name: Service
+          name: service
+          in: path
+          required: true
+          schema:
+            type: string
         - x-go-name: Region
           name: region
           in: path
@@ -102,7 +154,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductDetailsResponse'
-  '/providers/{provider}/regions/{region}/products/{attribute}':
+  '/providers/{provider}/services/{service}/regions/{region}/products/{attribute}':
     get:
       tags:
         - attributes
@@ -115,178 +167,14 @@ paths:
           required: true
           schema:
             type: string
-        - x-go-name: Region
-          name: region
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Attribute
-          name: attribute
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: AttributeResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AttributeResponse'
-  '/providers/{provider}/regions/{region}/services':
-    get:
-      description: >-
-        Provides a list with the available services for the provider in the
-        given region
-      tags:
-        - services
-      operationId: getServices
-      parameters:
-        - x-go-name: Provider
-          name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Region
-          name: region
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: ProductServiceResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProductServiceResponse'
-  '/providers/{provider}/regions/{region}/services/{service}':
-    get:
-      description: >-
-        Provides service details for the given service on the provider in the
-        given region
-      tags:
-        - service
-      operationId: getService
-      parameters:
-        - x-go-name: Provider
-          name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Region
-          name: region
-          in: path
-          required: true
-          schema:
-            type: string
         - x-go-name: Service
           name: service
           in: path
           required: true
           schema:
             type: string
-      responses:
-        '200':
-          description: ProductServiceResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProductServiceResponse'
-  '/providers/{provider}/regions/{region}/services/{service}/images':
-    get:
-      description: >-
-        Provides a list with the images available for the given service on the
-        provider in the given region
-      tags:
-        - images
-      operationId: getServiceImages
-      parameters:
-        - x-go-name: Provider
-          name: provider
-          in: path
-          required: true
-          schema:
-            type: string
         - x-go-name: Region
           name: region
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Service
-          name: service
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: ServiceImageResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServiceImageResponse'
-  '/providers/{provider}/regions/{region}/services/{service}/products':
-    get:
-      description: >-
-        Provides a list with the products available for the given service on the
-        provider in the given region
-      tags:
-        - serviceProducts
-      operationId: getServiceProducts
-      parameters:
-        - x-go-name: Provider
-          name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Region
-          name: region
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Service
-          name: service
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: ProductDetailsResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProductDetailsResponse'
-  '/providers/{provider}/regions/{region}/services/{service}/products/{attribute}':
-    get:
-      description: >-
-        Provides a list with the attribute values available for the given
-        service on the provider in the given region
-      tags:
-        - serviceAttributeValues
-      operationId: getServiceAttributeValues
-      parameters:
-        - x-go-name: Provider
-          name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Region
-          name: region
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Service
-          name: service
           in: path
           required: true
           schema:
@@ -322,6 +210,17 @@ components:
             format: double
           x-go-name: AttributeValues
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
+    ErrorResponse:
+      description: ErrorResponse struct for error responses
+      type: object
+      properties:
+        code:
+          type: string
+          x-go-name: ErrorCode
+        message:
+          type: string
+          x-go-name: ErrorMessage
+      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     GetAttributeValuesPathParams:
       description: >-
         GetAttributeValuesPathParams is a placeholder for the get attribute
@@ -340,10 +239,14 @@ components:
           description: 'in:path'
           type: string
           x-go-name: Region
+        service:
+          description: 'in:path'
+          type: string
+          x-go-name: Service
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     GetProviderPathParams:
       description: >-
-        GetServicePathParams is a placeholder for the providers related route
+        GetProviderPathParams is a placeholder for the providers related route
         path parameters
       type: object
       properties:
@@ -366,33 +269,14 @@ components:
           description: 'in:path'
           type: string
           x-go-name: Region
-      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
-    GetServiceAttributeValuesParams:
-      description: >-
-        GetServiceAttributeValuesParams is a placeholder for the get service
-        attribute values route's path parameters
-      type: object
-      properties:
-        attribute:
-          description: 'in:path'
-          type: string
-          x-go-name: Attribute
-        provider:
-          description: 'in:path'
-          type: string
-          x-go-name: Provider
-        region:
-          description: 'in:path'
-          type: string
-          x-go-name: Region
         service:
           description: 'in:path'
           type: string
           x-go-name: Service
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
-    GetServicePathParams:
+    GetServicesPathParams:
       description: >-
-        GetServicePathParams is a placeholder for the services related route
+        GetServicesPathParams is a placeholder for the services related route
         path parameters
       type: object
       properties:
@@ -400,10 +284,6 @@ components:
           description: 'in:path'
           type: string
           x-go-name: Provider
-        region:
-          description: 'in:path'
-          type: string
-          x-go-name: Region
         service:
           description: 'in:path'
           type: string
@@ -522,19 +402,14 @@ components:
         $ref: '#/components/schemas/Region'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     ServiceDescriber:
-      description: 'ServiceDescriber represents a service; eg.: oke, eks'
+      description: |-
+        ServiceDescriber represents a service; eg.: oke, eks
+        Extend this interface with other operations if needed
       type: object
       properties:
         GetName:
           description: GetName abstracts the name assembly for the service
           type: string
-        GetResources:
-          description: >-
-            GetResources returns a slice with the resources available for the
-            given service
-          type: array
-          items:
-            type: string
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ServiceImageResponse:
       description: ServiceImageResponse holds the list of available images
