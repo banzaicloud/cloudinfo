@@ -25,7 +25,7 @@ type GetServicesPathParams struct {
 }
 
 // GetRegionPathParams is a placeholder for the regions related route path parameters
-// swagger:parameters getRegion getServiceImages getProductDetails
+// swagger:parameters getRegion getServiceImages getProducts
 type GetRegionPathParams struct {
 	GetServicesPathParams `mapstructure:",squash"`
 	// in:path
