@@ -17,6 +17,15 @@ _no-target-specified:
 list:
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
 
+DEP_VERSION = 0.5.0
+bin/dep:
+	@mkdir -p ./bin/
+	@curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=./bin DEP_RELEASE_TAG=v${DEP_VERSION} sh
+
+.PHONY: vendor
+vendor: bin/dep ## Install dependencies
+	bin/dep ensure -vendor-only
+
 all: clean deps fmt vet docker push
 
 clean:
