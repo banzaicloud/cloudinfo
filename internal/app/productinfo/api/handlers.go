@@ -8,9 +8,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// swagger:route GET /providers/{provider}/regions/{region}/services services getServices
+// swagger:route GET /providers/{provider}/services/{service} services getServices
 //
-// Provides a list with the available services for the provider in the given region
+// Provides a list with the available services for the provider
 //
 //     Produces:
 //     - application/json
@@ -21,19 +21,23 @@ import (
 //
 //     Responses:
 //       200: ProductServiceResponse
+//       503: ErrorResponse
 func (r *RouteHandler) getServices(c *gin.Context) {
+
 	pathParams := GetProviderPathParams{}
 	mapstructure.Decode(getPathParamMap(c), &pathParams)
 
 	infoer, err := r.prod.GetInfoer(pathParams.Provider)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving services: %s", err.Error()))
+		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving services: %v", err))
+		c.JSON(http.StatusInternalServerError, er)
 		return
 	}
 
 	services, err := infoer.GetServices()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving services: %s", err.Error()))
+		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
+		c.JSON(http.StatusServiceUnavailable, er)
 		return
 	}
 
@@ -54,6 +58,7 @@ func (r *RouteHandler) getServices(c *gin.Context) {
 //
 //     Responses:
 //       200: ProductServiceResponse
+//       503: ErrorResponse
 func (r *RouteHandler) getService(c *gin.Context) {
 	// bind the path parameters
 	pathParams := GetServicesPathParams{}
@@ -61,21 +66,21 @@ func (r *RouteHandler) getService(c *gin.Context) {
 
 	infoer, err := r.prod.GetInfoer(pathParams.Provider)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service: %s", err.Error()))
+		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving service: %v", err))
+		c.JSON(http.StatusInternalServerError, er)
 		return
 	}
 
 	service, err := infoer.GetService(pathParams.Service)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, fmt.Sprintf("error while retrieving service: %s", err.Error()))
+		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
+		c.JSON(http.StatusServiceUnavailable, er)
 		return
 	}
 
 	c.JSON(http.StatusOK, service)
 
 }
-
-
 
 // getPathParamMap transforms the path params into a map to be able to easily bind to param structs
 func getPathParamMap(c *gin.Context) map[string]string {

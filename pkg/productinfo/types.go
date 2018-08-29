@@ -194,6 +194,7 @@ func newProductDetails(vm VmInfo) *ProductDetails {
 }
 
 // ServiceDescriber represents a service; eg.: oke, eks
+// Extend this interface with other operations if needed
 type ServiceDescriber interface {
 	// GetName abstracts the name assembly for the service
 	GetName() string
@@ -204,4 +205,20 @@ type ServiceDescriber interface {
 type ImageDescriber interface {
 	// ImageName returns the image name
 	ImageName() string
+}
+
+// Service represents a service supported by a given provider.
+// it's intended to implement the ServiceDescriber interface
+type Service struct {
+	Service string `json:"service"`
+}
+
+// GetName returns the service name
+func (s Service) GetName() string {
+	return s.Service
+}
+
+// NewService creates a new servicedescriptor struct
+func NewService(name string) ServiceDescriber {
+	return Service{Service: name,}
 }

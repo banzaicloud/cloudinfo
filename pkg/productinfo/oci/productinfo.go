@@ -293,12 +293,25 @@ func (i *Infoer) HasShortLivedPriceInfo() bool {
 
 // GetServices returns the available services on the  given region
 func (i *Infoer) GetServices() ([]productinfo.ServiceDescriber, error) {
-	return nil, fmt.Errorf("GetServices - not yet implemented")
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("oke")}
+	return services, nil
 }
 
 // GetService returns the service on the  provider
 func (i *Infoer) GetService(service string) (productinfo.ServiceDescriber, error) {
-	return nil, fmt.Errorf("GetServices - not yet implemented")
+	svcs, err := i.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.GetName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
