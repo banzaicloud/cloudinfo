@@ -10,7 +10,24 @@ jobs:
     working_directory: /go/src/github.com/banzaicloud/productinfo
     steps:
       - checkout
-       
+
+      - restore_cache:
+          keys:
+          - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          - gopkg-v1-{{ .Branch }}
+          - gopkg-v1-master
+          - gopkg-v1
+
+      - run:
+          name: Install dependencies
+          command: make vendor
+
+      - save_cache:
+          key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+          - vendor/
+
+
       - run:
           name: Install license checker
           command: curl https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v0.0.6
@@ -33,8 +50,8 @@ jobs:
 
       - run:
           name: Check dependency licenses
-          command: bin/licensei check 
-     
+          command: bin/licensei check
+
       - run:
           name: Build
           command:
