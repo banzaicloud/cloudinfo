@@ -28,6 +28,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProviderResponse'
+  '/providers/{provider}/services':
+    get:
+      description: Provides a list with the available services for the provider
+      tags:
+        - services
+      operationId: getServices
+      parameters:
+        - x-go-name: Provider
+          name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ProductServiceResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductServiceResponse'
+        '503':
+          description: ErrorResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   '/providers/{provider}/services/{service}':
     get:
       description: >-
@@ -120,6 +146,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegionResponse'
+  '/providers/{provider}/services/{service}/regions/{region}/images':
+    get:
+      tags:
+        - images
+      summary: >-
+        Provides a list of available images on a given provider in a specific
+        region for a service.
+      operationId: getImages
+      parameters:
+        - x-go-name: Provider
+          name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - x-go-name: Service
+          name: service
+          in: path
+          required: true
+          schema:
+            type: string
+        - x-go-name: Region
+          name: region
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ServiceImageResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceImageResponse'
   '/providers/{provider}/services/{service}/regions/{region}/products':
     get:
       tags:
@@ -127,7 +187,7 @@ paths:
       summary: >-
         Provides a list of available machine types on a given provider in a
         specific region.
-      operationId: getProductDetails
+      operationId: getProducts
       parameters:
         - x-go-name: Provider
           name: provider
@@ -159,7 +219,7 @@ paths:
       tags:
         - attributes
       summary: Provides a list of available attribute values in a provider's region.
-      operationId: getAttributeValues
+      operationId: getAttrValues
       parameters:
         - x-go-name: Provider
           name: provider

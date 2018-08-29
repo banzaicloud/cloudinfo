@@ -204,7 +204,7 @@ func (r *RouteHandler) getProducts(c *gin.Context) {
 
 }
 
-// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products products getProducts
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/images images getImages
 //
 // Provides a list of available images on a given provider in a specific region for a service.
 //
@@ -240,7 +240,7 @@ func (r *RouteHandler) getImages(c *gin.Context) {
 
 }
 
-// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attributes getAttributeValues
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attributes getAttrValues
 //
 // Provides a list of available attribute values in a provider's region.
 //

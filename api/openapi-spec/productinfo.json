@@ -42,6 +42,44 @@
         }
       }
     },
+    "/providers/{provider}/services": {
+      "get": {
+        "description": "Provides a list with the available services for the provider",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "services"
+        ],
+        "operationId": "getServices",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProductServiceResponse",
+            "schema": {
+              "$ref": "#/definitions/ProductServiceResponse"
+            }
+          },
+          "503": {
+            "description": "ErrorResponse",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
     "/providers/{provider}/services/{service}": {
       "get": {
         "description": "Provides service details for the given service on the provider in the given region",
@@ -172,6 +210,52 @@
         }
       }
     },
+    "/providers/{provider}/services/{service}/regions/{region}/images": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "images"
+        ],
+        "summary": "Provides a list of available images on a given provider in a specific region for a service.",
+        "operationId": "getImages",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Region",
+            "name": "region",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ServiceImageResponse",
+            "schema": {
+              "$ref": "#/definitions/ServiceImageResponse"
+            }
+          }
+        }
+      }
+    },
     "/providers/{provider}/services/{service}/regions/{region}/products": {
       "get": {
         "produces": [
@@ -184,7 +268,7 @@
           "products"
         ],
         "summary": "Provides a list of available machine types on a given provider in a specific region.",
-        "operationId": "getProductDetails",
+        "operationId": "getProducts",
         "parameters": [
           {
             "type": "string",
@@ -230,7 +314,7 @@
           "attributes"
         ],
         "summary": "Provides a list of available attribute values in a provider's region.",
-        "operationId": "getAttributeValues",
+        "operationId": "getAttrValues",
         "parameters": [
           {
             "type": "string",
