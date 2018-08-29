@@ -62,9 +62,8 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 
 	providerGroup := v1.Group("/providers")
 	{
-		providerGroup.Use(ValidatePathParam(providerParam, v, "provider"))
 
-		providerGroup.GET("/", r.getProviders)
+		providerGroup.GET("/", r.getProviders).Use(ValidatePathParam(providerParam, v, "provider"))
 		providerGroup.GET("/:provider/services", r.getServices)
 		providerGroup.GET("/:provider/services/:service", r.getService)
 		providerGroup.GET("/:provider/services/:service/regions", r.getRegions).Use(ValidateRegionData(v))
