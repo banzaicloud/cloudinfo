@@ -37,18 +37,15 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 func (e *AlibabaInfoer) Initialize() (map[string]map[string]productinfo.Price, error) {
 	log.Debug("initializing Alibaba price info")
 
-	var allPrices = struct {
-		sync.RWMutex
-		prices map[string]map[string]productinfo.Price
-	}{prices: make(map[string]map[string]productinfo.Price)}
 	var waitGroup sync.WaitGroup
+	allPrices := make(map[string]map[string]productinfo.Price)
 	zonesInRegions := make(map[string][]string)
 
 	regions, err := e.GetRegions()
 	if err != nil {
 		return nil, err
 	}
-
+	queue := make(chan map[string]map[string]productinfo.Price, len(regions))
 	req := ecs.CreateDescribeInstanceTypesRequest()
 	req.RegionId = "eu-central-1"
 
@@ -64,60 +61,100 @@ func (e *AlibabaInfoer) Initialize() (map[string]map[string]productinfo.Price, e
 		}
 		zonesInRegions[region] = zones
 		waitGroup.Add(1)
-		go func(region string, instanceTypes []ecs.InstanceType, zonesInRegions map[string][]string) {
-			defer waitGroup.Done()
-			for _, instanceType := range instanceTypes {
-				request := ecs.CreateDescribeSpotPriceHistoryRequest()
-				request.RegionId = region
-				request.NetworkType = "vpc"
-				request.InstanceType = instanceType.InstanceTypeId
-				request.OSType = "linux"
-				allPrices.RLock()
-				if allPrices.prices[region] == nil {
-					allPrices.RUnlock()
-					allPrices.Lock()
-					allPrices.prices[region] = make(map[string]productinfo.Price)
-					allPrices.Unlock()
-					allPrices.RLock()
-				}
-				allPrices.RUnlock()
+		go e.getData(region, instanceTypes, zonesInRegions, queue, &waitGroup)
 
-				prices, err := e.client.DescribeSpotPriceHistory(request)
-				if err != nil {
-					return
-				}
-
-				allPrices.RLock()
-				price := allPrices.prices[region][instanceType.InstanceTypeId]
-				allPrices.RUnlock()
-				spotPrice := make(productinfo.SpotPriceInfo)
-				priceTypes := prices.SpotPrices.SpotPriceType
-				for _, priceType := range priceTypes {
-					price.OnDemandPrice = priceType.OriginPrice
-					for _, z := range zonesInRegions[region] {
-						if z == priceType.ZoneId {
-							spotPrice[z] = priceType.SpotPrice
-							price.SpotPrice = spotPrice
-							break
-						}
-					}
-
-					allPrices.Lock()
-					allPrices.prices[region][priceType.InstanceType] = price
-					allPrices.Unlock()
-				}
-			}
-		}(region, instanceTypes, zonesInRegions)
 	}
 	waitGroup.Wait()
 
+	close(queue)
+
+	for elem := range queue {
+		for key, value := range elem {
+			allPrices[key] = value
+		}
+	}
+
 	log.Debug("finished initializing Alibaba price info")
-	return allPrices.prices, nil
+	return allPrices, nil
+}
+
+func (e *AlibabaInfoer) getData(region string, instanceTypes []ecs.InstanceType, zonesInRegions map[string][]string, queue chan<- map[string]map[string]productinfo.Price, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
+	allRegionPrices := make(map[string]map[string]productinfo.Price)
+	regionPrices := make(map[string]productinfo.Price)
+	for _, instanceType := range instanceTypes {
+		request := ecs.CreateDescribeSpotPriceHistoryRequest()
+		request.RegionId = region
+		request.NetworkType = "vpc"
+		request.InstanceType = instanceType.InstanceTypeId
+		request.OSType = "linux"
+
+		prices, err := e.client.DescribeSpotPriceHistory(request)
+		if err != nil {
+			return
+		}
+
+		price := regionPrices[instanceType.InstanceTypeId]
+		spotPrice := make(productinfo.SpotPriceInfo)
+		priceTypes := prices.SpotPrices.SpotPriceType
+		for _, priceType := range priceTypes {
+			price.OnDemandPrice = priceType.OriginPrice
+			for _, z := range zonesInRegions[region] {
+				if z == priceType.ZoneId {
+					spotPrice[z] = priceType.SpotPrice
+					price.SpotPrice = spotPrice
+					break
+				}
+			}
+			regionPrices[instanceType.InstanceTypeId] = price
+		}
+	}
+	allRegionPrices[region] = regionPrices
+	queue <- allRegionPrices
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 func (e *AlibabaInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues, error) {
-	return nil, nil
+	log.Debugf("getting %s values", attribute)
+
+	values := make(productinfo.AttrValues, 0)
+	valueSet := make(map[productinfo.AttrValue]interface{})
+
+	regions, err := e.GetRegions()
+	if err != nil {
+		return nil, err
+	}
+
+	for region := range regions {
+		request := ecs.CreateDescribeInstanceTypesRequest()
+		request.RegionId = region
+
+		vmSizes, err := e.client.DescribeInstanceTypes(request)
+		if err != nil {
+			return nil, err
+		}
+		instanceTypes := vmSizes.InstanceTypes.InstanceType
+		for _, v := range instanceTypes {
+			switch attribute {
+			case productinfo.Cpu:
+				valueSet[productinfo.AttrValue{
+					Value:    float64(v.CpuCoreCount),
+					StrValue: fmt.Sprintf("%v", v.CpuCoreCount),
+				}] = ""
+			case productinfo.Memory:
+				valueSet[productinfo.AttrValue{
+					Value:    v.MemorySize,
+					StrValue: fmt.Sprintf("%v", v.MemorySize),
+				}] = ""
+			}
+		}
+
+		for attr := range valueSet {
+			values = append(values, attr)
+		}
+	}
+	log.Debugf("found %s values: %v", attribute, values)
+	return values, nil
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
