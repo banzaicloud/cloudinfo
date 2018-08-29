@@ -4,6 +4,7 @@
   <div class="col-6 mt-5">
     <mat-form-field class="mr-5">
       <mat-select [(value)]="provider" placeholder="Cloud Provider" (selectionChange)="updateProducts()">
+        <mat-option value="alibaba">Alibaba Cloud</mat-option>
         <mat-option value="ec2">Amazon EC2</mat-option>
         <mat-option value="gce">Google Cloud</mat-option>
         <mat-option value="azure">Microsoft Azure</mat-option>
