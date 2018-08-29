@@ -87,3 +87,18 @@ type ProductServiceResponse []productinfo.ServiceDescriber
 type ServiceImageResponse struct {
 	Services productinfo.ServiceDescriber
 }
+
+// ErrorResponse struct for error responses
+// // swagger:model ErrorResponse
+type ErrorResponse struct {
+	ErrorCode    string `json:"code,omitempty"`
+	ErrorMessage string `json:"message,omitempty"`
+}
+
+// NewErrorResponse creates a new ERrorResponse struct
+func NewErrorResponse(code, message string) ErrorResponse {
+	return ErrorResponse{
+		ErrorCode:    code,
+		ErrorMessage: message,
+	}
+}

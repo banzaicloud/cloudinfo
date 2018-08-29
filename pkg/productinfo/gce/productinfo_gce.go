@@ -330,12 +330,26 @@ func (g *GceInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper
 
 // GetServices returns the available services on the  provider
 func (g *GceInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
-	return nil, fmt.Errorf("GetServices - not yet implemented")
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("gke")}
+	return services, nil
 }
 
 // GetService returns the given service details on the provider
 func (g *GceInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
-	return nil, fmt.Errorf("GetService - not yet implemented")
+	svcs, err := g.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.GetName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
+
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region

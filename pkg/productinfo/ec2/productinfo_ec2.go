@@ -450,12 +450,26 @@ func (e *Ec2Infoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper
 
 // GetServices returns the available services on the provider
 func (e *Ec2Infoer) GetServices() ([]productinfo.ServiceDescriber, error) {
-	return []productinfo.ServiceDescriber{newEc2ProductService("eks", []string{"images", "products"})}, nil
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("eks")}
+	return services, nil
 }
 
 // GetService returns the given service description
 func (e *Ec2Infoer) GetService(service string) (productinfo.ServiceDescriber, error) {
-	return nil, fmt.Errorf("GetService - not yet implemented")
+	svcs, err := e.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.GetName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
+
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
@@ -471,24 +485,4 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]productinfo.Pr
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
 	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
-}
-
-// Ec2ProductService represents a product service
-type Ec2ProductService struct {
-	Name         string   `json:"name"`
-	ResourceList []string `json:"resources"`
-}
-
-// GetName returns the name of the service instance
-func (ec2ps Ec2ProductService) GetName() string {
-	return ec2ps.Name
-}
-
-// GetResources returns resource names under the service instance
-func (ec2ps Ec2ProductService) GetResources() []string {
-	return ec2ps.ResourceList
-}
-
-func newEc2ProductService(name string, resources []string) Ec2ProductService {
-	return Ec2ProductService{Name: name, ResourceList: resources}
 }
