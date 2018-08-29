@@ -12,6 +12,15 @@ jobs:
       - checkout
 
       - restore_cache:
+          name: Restore build dependencies
+          keys:
+          - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+          - build-deps-v1-{{ .Branch }}
+          - build-deps-v1-master
+          - build-deps-v1
+
+      - restore_cache:
+          name: Restore dependencies
           keys:
           - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           - gopkg-v1-{{ .Branch }}
@@ -23,16 +32,13 @@ jobs:
           command: make vendor
 
       - save_cache:
+          name: Save dependencies
           key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           paths:
           - vendor/
 
-
-      - run:
-          name: Install license checker
-          command: curl https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v0.0.6
-
       - restore_cache:
+          name: Restore license cache
           keys:
           - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           - licensei-v1-{{ .Branch }}
@@ -41,53 +47,62 @@ jobs:
 
       - run:
           name: Download license information for dependencies
-          command: bin/licensei cache
+          command: make license-cache
 
       - save_cache:
+          name: Save license cache
           key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           paths:
-            - .licensei.cache
+          - .licensei.cache
 
       - run:
           name: Check dependency licenses
-          command: bin/licensei check
+          command: make license-check
 
       - run:
           name: Build
           command:
-              make build
+            make build
+          
       - run:
           name: Run go vet
           command:
-              make vet
+            make vet
+
       - run:
           name: Run fmt
           command:
-              make check-fmt
+            make check-fmt
+
       - run:
           name: Run golint
           command:
-              make lint
+            make lint
+
       - run:
           name: Run misspell
           command:
-              make check-misspell
+            make check-misspell
+
       - run:
           name: Run ineffassign
           command:
-              make ineffassign
+            make ineffassign
+
       - run:
           name: Run gocyclo
           command:
-              make gocyclo
+            make gocyclo
+
       - run:
           name: Run tests
           command:
-              make test
+            make test
+
       - run:
           name: Generate test reports
           command:
-              make go-junit-report
+            make go-junit-report
           when: always
 
       - store_test_results:
