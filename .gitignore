@@ -6,3 +6,4 @@ bin/*
 conf/config.toml
 *.swp
 test.txt
+/.licensei.cache
