@@ -12,9 +12,12 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/attributes"
+	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/images"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/products"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/providers"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/regions"
+	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/service"
+	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/services"
 )
 
 // Default productinfo HTTP client.
@@ -62,11 +65,17 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Productinf
 
 	cli.Attributes = attributes.New(transport, formats)
 
+	cli.Images = images.New(transport, formats)
+
 	cli.Products = products.New(transport, formats)
 
 	cli.Providers = providers.New(transport, formats)
 
 	cli.Regions = regions.New(transport, formats)
+
+	cli.Service = service.New(transport, formats)
+
+	cli.Services = services.New(transport, formats)
 
 	return cli
 }
@@ -114,11 +123,17 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 type Productinfo struct {
 	Attributes *attributes.Client
 
+	Images *images.Client
+
 	Products *products.Client
 
 	Providers *providers.Client
 
 	Regions *regions.Client
+
+	Service *service.Client
+
+	Services *services.Client
 
 	Transport runtime.ClientTransport
 }
@@ -129,10 +144,16 @@ func (c *Productinfo) SetTransport(transport runtime.ClientTransport) {
 
 	c.Attributes.SetTransport(transport)
 
+	c.Images.SetTransport(transport)
+
 	c.Products.SetTransport(transport)
 
 	c.Providers.SetTransport(transport)
 
 	c.Regions.SetTransport(transport)
+
+	c.Service.SetTransport(transport)
+
+	c.Services.SetTransport(transport)
 
 }

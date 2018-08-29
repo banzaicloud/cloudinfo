@@ -51,7 +51,7 @@ type GetRegionOK struct {
 }
 
 func (o *GetRegionOK) Error() string {
-	return fmt.Sprintf("[GET /regions/{provider}/{region}][%d] getRegionOK  %+v", 200, o.Payload)
+	return fmt.Sprintf("[GET /providers/{provider}/services/{service}/regions/{region}][%d] getRegionOK  %+v", 200, o.Payload)
 }
 
 func (o *GetRegionOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
