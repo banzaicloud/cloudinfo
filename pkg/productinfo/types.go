@@ -31,8 +31,9 @@ const (
 	StatusKeyTemplate = "/banzaicloud.com/recommender/%s/status/"
 )
 
-// ProductInfoer gathers operations for retrieving cloud provider information for recommendations
-// it also decouples provider api specific code from the recommender
+// ProductInfoer lists operations for retrieving cloud provider information
+// Implementers are expected to know the cloud provider specific logic (eg.: cloud provider client usage etc ...)
+// This interface abstracts the cloud provider specifics to its clients
 type ProductInfoer interface {
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
 	Initialize() (map[string]map[string]Price, error)
@@ -63,9 +64,26 @@ type ProductInfoer interface {
 
 	// GetNetworkPerformanceMapper returns the provider specific network performance mapper
 	GetNetworkPerformanceMapper() (NetworkPerfMapper, error)
+
+	// GetServices returns the available services on the given provider
+	GetServices() ([]ServiceDescriber, error)
+
+	// GetServices returns the available services on the  given region
+	GetService(service string) (ServiceDescriber, error)
+
+	// GetServiceImages retrieves the images supported by the given service in the given region
+	GetServiceImages(region, service string) ([]ImageDescriber, error)
+
+	// GetServiceProducts retrieves the products supported by the given service in the given region
+	GetServiceProducts(region, service string) ([]ProductDetails, error)
+
+	// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+	GetServiceAttributes(region, service, attribute string) (AttrValues, error)
 }
 
 // ProductInfo is the main entry point for retrieving vm type characteristics and pricing information on different cloud providers
+// todo this interface should be reduced not to contain methods defined in the Productinfoer interface;
+// todo it's enough to get the provider specific infoer implementation and delegate to that ...
 type ProductInfo interface {
 	// GetProviders returns the supported providers
 	GetProviders() []string
@@ -96,14 +114,9 @@ type ProductInfo interface {
 
 	// GetNetworkPerfMapper retrieves the network performance mapper implementation
 	GetNetworkPerfMapper(provider string) (NetworkPerfMapper, error)
-}
 
-// CachingProductInfo is the module struct, holds configuration and cache
-// It's the entry point for the product info retrieval and management subsystem
-type CachingProductInfo struct {
-	productInfoers  map[string]ProductInfoer
-	renewalInterval time.Duration
-	vmAttrStore     ProductStorer
+	// GetInfoer gets the cloud provider specific Infoer implementation (discriminator for cloud providers)
+	GetInfoer(provider string) (ProductInfoer, error)
 }
 
 // AttrValue represents an attribute value
@@ -178,4 +191,34 @@ func newProductDetails(vm VmInfo) *ProductDetails {
 	pd.VmInfo = vm
 	pd.Burst = vm.IsBurst()
 	return &pd
+}
+
+// ServiceDescriber represents a service; eg.: oke, eks
+// Extend this interface with other operations if needed
+type ServiceDescriber interface {
+	// GetName abstracts the name assembly for the service
+	GetName() string
+}
+
+// ImageDescriber is a placeholder interface for image information
+// to be extended with other operations if needed
+type ImageDescriber interface {
+	// ImageName returns the image name
+	ImageName() string
+}
+
+// Service represents a service supported by a given provider.
+// it's intended to implement the ServiceDescriber interface
+type Service struct {
+	Service string `json:"service"`
+}
+
+// GetName returns the service name
+func (s Service) GetName() string {
+	return s.Service
+}
+
+// NewService creates a new servicedescriptor struct
+func NewService(name string) ServiceDescriber {
+	return Service{Service: name}
 }

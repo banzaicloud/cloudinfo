@@ -426,3 +426,42 @@ func (a *AzureInfoer) GetCpuAttrName() string {
 func (a *AzureInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	return newAzureNetworkMapper(), nil
 }
+
+// GetServices returns the available services on the  provider
+func (a *AzureInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("aks")}
+	return services, nil
+}
+
+// GetService returns the service on the provider
+func (a *AzureInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+	svcs, err := a.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.GetName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
+
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (a *AzureInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (a *AzureInfoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (a *AzureInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}

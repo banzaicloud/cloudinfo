@@ -134,7 +134,7 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 	for i, price := range products.PriceList {
 		pd, err := newPriceData(price)
 		if err != nil {
-			log.Warn("could not extract pricing info for the item with index: [ %d ]", i)
+			log.Warnf("could not extract pricing info for the item with index: [ %d ]", i)
 			continue
 		}
 
@@ -449,4 +449,43 @@ func (e *Ec2Infoer) GetCpuAttrName() string {
 func (e *Ec2Infoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	nm := newEc2NetworkMapper()
 	return &nm, nil
+}
+
+// GetServices returns the available services on the provider
+func (e *Ec2Infoer) GetServices() ([]productinfo.ServiceDescriber, error) {
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("eks")}
+	return services, nil
+}
+
+// GetService returns the given service description
+func (e *Ec2Infoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+	svcs, err := e.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.GetName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
+
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (e *Ec2Infoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
 }

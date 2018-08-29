@@ -19,7 +19,160 @@
   },
   "basePath": "/api/v1",
   "paths": {
-    "/products/{provider}/{region}": {
+    "/providers": {
+      "get": {
+        "description": "Returns the supported providers",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "providers"
+        ],
+        "operationId": "getProviders",
+        "responses": {
+          "200": {
+            "description": "ProviderResponse",
+            "schema": {
+              "$ref": "#/definitions/ProviderResponse"
+            }
+          }
+        }
+      }
+    },
+    "/providers/{provider}/services/{service}": {
+      "get": {
+        "description": "Provides service details for the given service on the provider in the given region",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "service"
+        ],
+        "operationId": "getService",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProductServiceResponse",
+            "schema": {
+              "$ref": "#/definitions/ProductServiceResponse"
+            }
+          },
+          "503": {
+            "description": "ErrorResponse",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/providers/{provider}/services/{service}/regions": {
+      "get": {
+        "description": "Provides the list of available regions of a cloud provider",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "regions"
+        ],
+        "operationId": "getRegions",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RegionsResponse",
+            "schema": {
+              "$ref": "#/definitions/RegionsResponse"
+            }
+          }
+        }
+      }
+    },
+    "/providers/{provider}/services/{service}/regions/{region}": {
+      "get": {
+        "description": "Provides the detailed info of a specific region of a cloud provider",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "regions"
+        ],
+        "operationId": "getRegion",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Region",
+            "name": "region",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RegionResponse",
+            "schema": {
+              "$ref": "#/definitions/RegionResponse"
+            }
+          }
+        }
+      }
+    },
+    "/providers/{provider}/services/{service}/regions/{region}/products": {
       "get": {
         "produces": [
           "application/json"
@@ -42,6 +195,13 @@
           },
           {
             "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
             "x-go-name": "Region",
             "name": "region",
             "in": "path",
@@ -58,7 +218,7 @@
         }
       }
     },
-    "/products/{provider}/{region}/{attribute}": {
+    "/providers/{provider}/services/{service}/regions/{region}/products/{attribute}": {
       "get": {
         "produces": [
           "application/json"
@@ -76,6 +236,13 @@
             "type": "string",
             "x-go-name": "Provider",
             "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
             "in": "path",
             "required": true
           },
@@ -103,100 +270,6 @@
           }
         }
       }
-    },
-    "/providers": {
-      "get": {
-        "description": "Returns the supported providers",
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "providers"
-        ],
-        "operationId": "getProviders",
-        "responses": {
-          "200": {
-            "description": "ProviderResponse",
-            "schema": {
-              "$ref": "#/definitions/ProviderResponse"
-            }
-          }
-        }
-      }
-    },
-    "/regions/{provider}": {
-      "get": {
-        "description": "Provides the list of available regions of a cloud provider",
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "regions"
-        ],
-        "operationId": "getRegions",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Provider",
-            "name": "provider",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "RegionsResponse",
-            "schema": {
-              "$ref": "#/definitions/RegionsResponse"
-            }
-          }
-        }
-      }
-    },
-    "/regions/{provider}/{region}": {
-      "get": {
-        "description": "Provides the detailed info of a specific region of a cloud provider",
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "regions"
-        ],
-        "operationId": "getRegion",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Provider",
-            "name": "provider",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Region",
-            "name": "region",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "RegionResponse",
-            "schema": {
-              "$ref": "#/definitions/RegionResponse"
-            }
-          }
-        }
-      }
     }
   },
   "definitions": {
@@ -219,8 +292,23 @@
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "GetAttributeValuesParams": {
-      "description": "GetAttributeValuesParams is a placeholder for the get attribute values route's path parameters",
+    "ErrorResponse": {
+      "description": "ErrorResponse struct for error responses",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "x-go-name": "ErrorCode"
+        },
+        "message": {
+          "type": "string",
+          "x-go-name": "ErrorMessage"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+    },
+    "GetAttributeValuesPathParams": {
+      "description": "GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters",
       "type": "object",
       "properties": {
         "attribute": {
@@ -237,12 +325,29 @@
           "description": "in:path",
           "type": "string",
           "x-go-name": "Region"
+        },
+        "service": {
+          "description": "in:path",
+          "type": "string",
+          "x-go-name": "Service"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "GetProductDetailsParams": {
-      "description": "GetProductDetailsParams is a placeholder for the get products route's path parameters",
+    "GetProviderPathParams": {
+      "description": "GetProviderPathParams is a placeholder for the providers related route path parameters",
+      "type": "object",
+      "properties": {
+        "provider": {
+          "description": "in:path",
+          "type": "string",
+          "x-go-name": "Provider"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+    },
+    "GetRegionPathParams": {
+      "description": "GetRegionPathParams is a placeholder for the regions related route path parameters",
       "type": "object",
       "properties": {
         "provider": {
@@ -254,12 +359,17 @@
           "description": "in:path",
           "type": "string",
           "x-go-name": "Region"
+        },
+        "service": {
+          "description": "in:path",
+          "type": "string",
+          "x-go-name": "Service"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "GetRegionParams": {
-      "description": "GetRegionParams is a placeholder for the get region route's path parameters",
+    "GetServicesPathParams": {
+      "description": "GetServicesPathParams is a placeholder for the services related route path parameters",
       "type": "object",
       "properties": {
         "provider": {
@@ -267,22 +377,10 @@
           "type": "string",
           "x-go-name": "Provider"
         },
-        "region": {
+        "service": {
           "description": "in:path",
           "type": "string",
-          "x-go-name": "Region"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
-    },
-    "GetRegionsParams": {
-      "description": "GetRegionsParams is a placeholder for the get regions route's path parameters",
-      "type": "object",
-      "properties": {
-        "provider": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Provider"
+          "x-go-name": "Service"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
@@ -363,6 +461,14 @@
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
+    "ProductServiceResponse": {
+      "description": "ProductServiceResponse holds the list of available services",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ServiceDescriber"
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+    },
     "ProviderResponse": {
       "description": "ProviderResponse is the response used for the supported providers",
       "type": "array",
@@ -414,6 +520,27 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/Region"
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+    },
+    "ServiceDescriber": {
+      "description": "ServiceDescriber represents a service; eg.: oke, eks\nExtend this interface with other operations if needed",
+      "type": "object",
+      "properties": {
+        "GetName": {
+          "description": "GetName abstracts the name assembly for the service",
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
+    },
+    "ServiceImageResponse": {
+      "description": "ServiceImageResponse holds the list of available images",
+      "type": "object",
+      "properties": {
+        "Services": {
+          "$ref": "#/definitions/ServiceDescriber"
+        }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },

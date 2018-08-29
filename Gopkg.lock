@@ -711,6 +711,7 @@
     "github.com/go-openapi/runtime/client",
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
+    "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",
     "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
