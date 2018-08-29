@@ -21,9 +21,6 @@ import (
 )
 
 const (
-	// Memory represents the memory attribute for the recommender
-	Memory = "memory"
-
 	// Cpu represents the cpu attribute for the recommender
 	Cpu = "vcpu"
 )
@@ -148,7 +145,7 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 			log.Warn("could not retrieve vcpu")
 			continue
 		}
-		memStr, err := pd.GetDataForKey(Memory)
+		memStr, err := pd.GetDataForKey(productinfo.Memory)
 		if err != nil {
 			log.Warn("could not retrieve memory")
 			continue
@@ -437,7 +434,7 @@ func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]productinfo.Pric
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
 func (e *Ec2Infoer) GetMemoryAttrName() string {
-	return Memory
+	return productinfo.Memory
 }
 
 // GetCpuAttrName returns the provider representation of the cpu attribute

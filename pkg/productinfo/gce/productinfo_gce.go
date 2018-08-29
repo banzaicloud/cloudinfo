@@ -15,11 +15,6 @@ import (
 	"google.golang.org/api/googleapi/transport"
 )
 
-const (
-	cpu    = "cpu"
-	memory = "memory"
-)
-
 var regionNames = map[string]string{
 	"asia-east1":              "Asia Pacific (Taiwan)",
 	"asia-northeast1":         "Asia Pacific (Tokyo)",
@@ -188,12 +183,12 @@ func (g *GceInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues
 		for _, scope := range allMts.Items {
 			for _, mt := range scope.MachineTypes {
 				switch attribute {
-				case cpu:
+				case productinfo.Cpu:
 					valueSet[productinfo.AttrValue{
 						Value:    float64(mt.GuestCpus),
 						StrValue: fmt.Sprintf("%v", mt.GuestCpus),
 					}] = ""
-				case memory:
+				case productinfo.Memory:
 					valueSet[productinfo.AttrValue{
 						Value:    float64(mt.MemoryMb) / 1024,
 						StrValue: fmt.Sprintf("%v", mt.MemoryMb),
@@ -320,15 +315,15 @@ func (g *GceInfoer) GetCurrentPrices(region string) (map[string]productinfo.Pric
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
 func (g *GceInfoer) GetMemoryAttrName() string {
-	return memory
+	return productinfo.Memory
 }
 
 // GetCpuAttrName returns the provider representation of the cpu attribute
 func (g *GceInfoer) GetCpuAttrName() string {
-	return cpu
+	return productinfo.Cpu
 }
 
-// GetNetworkPerformanceMapper returns the network performance mappier implementation for this provider
+// GetNetworkPerformanceMapper returns the network performance mapper implementation for this provider
 func (g *GceInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	return newGceNetworkMapper(), nil
 }

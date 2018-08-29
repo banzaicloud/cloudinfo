@@ -13,7 +13,7 @@ var (
 	}
 )
 
-// AzureNetworkMapper module object for handling Google Cloud specific VM to Networking capabilities mapping
+// AzureNetworkMapper module object for handling Azure specific VM to Networking capabilities mapping
 type AzureNetworkMapper struct {
 }
 
@@ -22,7 +22,7 @@ func newAzureNetworkMapper() *AzureNetworkMapper {
 	return &AzureNetworkMapper{}
 }
 
-// MapNetworkPerf maps the network performance of the gce instance to the category supported by telescopes
+// MapNetworkPerf maps the network performance of the azure instance to the category supported by telescopes
 func (nm *AzureNetworkMapper) MapNetworkPerf(vm productinfo.VmInfo) (string, error) {
 	return ntwPerfMap[productinfo.NTW_MEDIUM][0], nil
 }

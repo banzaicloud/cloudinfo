@@ -75,7 +75,7 @@ func (dps *testStruct) GetProducts(input *pricing.GetProductsInput) (*pricing.Ge
 						"attributes": map[string]interface{}{
 							"instanceType":       ec2.InstanceTypeT2Small,
 							Cpu:                  "1",
-							Memory:               "2",
+							productinfo.Memory:   "2",
 							"networkPerformance": "Low to Moderate",
 						}},
 					"terms": map[string]interface{}{
@@ -96,9 +96,9 @@ func (dps *testStruct) GetProducts(input *pricing.GetProductsInput) (*pricing.Ge
 				{
 					"product": map[string]interface{}{
 						"attributes": map[string]interface{}{
-							"instanceType": ec2.InstanceTypeT2Small,
-							Cpu:            "1",
-							Memory:         "2",
+							"instanceType":     ec2.InstanceTypeT2Small,
+							Cpu:                "1",
+							productinfo.Memory: "2",
 						}},
 					"terms": map[string]interface{}{
 						"OnDemand": map[string]interface{}{
@@ -532,10 +532,10 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
-					"instanceType": 0,
-					Cpu:            1,
-					Memory:         2,
-					"gpu":          3,
+					"instanceType":     0,
+					Cpu:                1,
+					productinfo.Memory: 2,
+					"gpu":              3,
 				}},
 		},
 	}
@@ -543,10 +543,10 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
-					"instanceType": ec2.InstanceTypeT2Small,
-					Cpu:            "1",
-					Memory:         "2",
-					"gpu":          "5",
+					"instanceType":     ec2.InstanceTypeT2Small,
+					Cpu:                "1",
+					productinfo.Memory: "2",
+					"gpu":              "5",
 				}},
 			"terms": map[string]interface{}{
 				"OnDemand": map[string]interface{}{
@@ -620,7 +620,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		},
 		{
 			name:  "successful - get memory",
-			attr:  Memory,
+			attr:  productinfo.Memory,
 			price: data,
 			check: func(s string, err error) {
 				assert.Nil(t, err, "the error should be nil")
@@ -629,7 +629,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		},
 		{
 			name:  "cast problem - get memory",
-			attr:  Memory,
+			attr:  productinfo.Memory,
 			price: wrongCast,
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
@@ -638,7 +638,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		},
 		{
 			name:  "missing data - get memory",
-			attr:  Memory,
+			attr:  productinfo.Memory,
 			price: missingData,
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
@@ -686,10 +686,10 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
-					"instanceType": ec2.InstanceTypeT2Small,
-					Cpu:            "1",
-					Memory:         "2",
-					"gpu":          "5",
+					"instanceType":     ec2.InstanceTypeT2Small,
+					Cpu:                "1",
+					productinfo.Memory: "2",
+					"gpu":              "5",
 				}},
 			"terms": map[string]interface{}{
 				"OnDemand": map[string]interface{}{

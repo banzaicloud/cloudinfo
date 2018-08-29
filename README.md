@@ -33,7 +33,7 @@ Usage of ./productinfo:
       --product-info-renewal-interval duration   duration (in go syntax) between renewing the product information. Example: 2h30m (default 24h0m0s)
       --prometheus-address string                http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.
       --prometheus-query string                  advanced configuration: change the query used to query spot price info from Prometheus. (default "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
-      --provider strings                         Providers that will be used with the productinfo application. (default [ec2,gce,azure,oracle])
+      --provider strings                         Providers that will be used with the productinfo application. (default [ec2,gce,azure,oracle,alibaba])
 ```
 
 ## Cloud credentials
@@ -93,6 +93,17 @@ export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
 ./productinfo --provider oracle
 ```
 
+### Alibaba
+
+The easiest way to authenticate is through environment variables:
+
+```
+export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
+export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
+export ALIBABA_REGION_ID=<region-id>
+./productinfo --provider alibaba
+```
+
 ### Configuring multiple providers
 
 Cloud providers can be configured one by one. To configure multiple providers simply list all of them and configure the credentials for all of them.
@@ -103,7 +114,10 @@ export AWS_ACCESS_KEY_ID=<your-access-key-id>
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
 export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
-./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle
+export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
+export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
+export ALIBABA_REGION_ID=<region-id>
+./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle --provider alibaba
 
 ```
 
