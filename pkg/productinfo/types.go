@@ -220,5 +220,5 @@ func (s Service) GetName() string {
 
 // NewService creates a new servicedescriptor struct
 func NewService(name string) ServiceDescriber {
-	return Service{Service: name,}
+	return Service{Service: name}
 }
