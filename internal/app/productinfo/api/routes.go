@@ -112,16 +112,21 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 
 	log.Infof("getting product details for provider: %s, region: %s", prov, region)
 
-	var err error
-	if scrapingTime, err := r.prod.GetStatus(prov); err == nil {
-		if details, err := r.prod.GetProductDetails(prov, region); err == nil {
-			log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
-			c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
-			return
-		}
+	scrapingTime, err := r.prod.GetStatus(prov)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+		return
 	}
 
-	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+	details, err := r.prod.GetProductDetails(prov, region)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+		return
+	}
+
+	log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
+	c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
+	return
 }
 
 // swagger:route GET /products/{provider}/{region}/{attribute} attributes getAttributeValues
