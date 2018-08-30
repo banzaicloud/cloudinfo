@@ -23,6 +23,11 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 		accessKeyId,
 		accessKeySecret,
 	)
+
+	//ecsClient.GetConfig().WithAutoRetry(true)
+	ecsClient.GetConfig().WithGoRoutinePoolSize(100)
+	ecsClient.GetConfig().WithEnableAsync(true)
+
 	if err != nil {
 		// Handle exceptions
 		panic(err)
