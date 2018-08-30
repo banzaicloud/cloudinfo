@@ -144,7 +144,7 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	log.Infof("start to renew attribute values for provider [%s]", provider)
 	attributes := []string{Cpu, Memory}
 	for _, attr := range attributes {
-		_, err := cpi.renewAttrValues(provider, attr);
+		_, err := cpi.renewAttrValues(provider, attr)
 		if err != nil {
 			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
 			log.Errorf("failed to renew attribute values for provider [%s], attribute [%s]; error [%s]", provider, attr, err.Error())
