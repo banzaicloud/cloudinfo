@@ -137,34 +137,42 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	log.Infof("renewing product info for provider [%s]", provider)
 	if _, err := cpi.Initialize(provider); err != nil {
 		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
-		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+		log.Errorf("failed to renew product info for provider [%s], error:  %s", provider, err.Error())
 		return
 	}
+
+	log.Infof("start to renew attribute values for provider [%s]", provider)
 	attributes := []string{Cpu, Memory}
 	for _, attr := range attributes {
-		if _, err := cpi.renewAttrValues(provider, attr); err != nil {
+		_, err := cpi.renewAttrValues(provider, attr);
+		if err != nil {
 			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
-			log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+			log.Errorf("failed to renew attribute values for provider [%s], attribute [%s]; error [%s]", provider, attr, err.Error())
 			return
 		}
 	}
-	if regions, err := pi.GetRegions(); err == nil {
-		for regionId := range regions {
-			start := time.Now()
-			if _, err := cpi.renewVms(provider, regionId); err != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
-				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
-			} else {
-				ScrapeRegionDurationGauge.WithLabelValues(provider, regionId).Set(time.Since(start).Seconds())
-			}
-		}
-	} else {
+	log.Infof("finished to renew attribute values for provider [%s]", provider)
+
+	log.Infof("start to renew products (vm-s) for provider [%s]", provider)
+	regions, err := pi.GetRegions()
+	if err != nil {
 		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
-		log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+		log.Errorf("failed to renew products for provider [%s], error: %s", provider, err.Error())
 		return
 	}
-	cpi.renewStatus(provider)
 
+	for regionId := range regions {
+		start := time.Now()
+		if _, err := cpi.renewVms(provider, regionId); err != nil {
+			ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
+			log.Errorf("failed to renew products for provider [%s], error: %s", provider, err.Error())
+		} else {
+			ScrapeRegionDurationGauge.WithLabelValues(provider, regionId).Set(time.Since(start).Seconds())
+		}
+	}
+	log.Infof("finished to renew products (vm-s) for provider [%s]", provider)
+
+	cpi.renewStatus(provider)
 	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
 }
 
@@ -257,15 +265,20 @@ func (cpi *CachingProductInfo) Start(ctx context.Context) {
 
 // Initialize stores the result of the Infoer's Initialize output in cache
 func (cpi *CachingProductInfo) Initialize(provider string) (map[string]map[string]Price, error) {
+	log.Infof("start initializing product information for provider: [%s]", provider)
 	allPrices, err := cpi.productInfoers[provider].Initialize()
+
 	if err != nil {
+		log.Warnf("failed to initialize product information for provider: [%s], error: %s", provider, err.Error())
 		return nil, err
 	}
+
 	for region, ap := range allPrices {
 		for instType, p := range ap {
 			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
 		}
 	}
+	log.Infof("finished to initialize product information for provider: [%s]", provider)
 	return allPrices, nil
 }
 

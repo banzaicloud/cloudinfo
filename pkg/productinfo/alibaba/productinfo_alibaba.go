@@ -35,7 +35,6 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 
 // Initialize downloads and parses the ECS price list on Alibaba Cloud
 func (e *AlibabaInfoer) Initialize() (map[string]map[string]productinfo.Price, error) {
-	log.Debug("initializing Alibaba price info")
 
 	var waitGroup sync.WaitGroup
 	allPrices := make(map[string]map[string]productinfo.Price)
@@ -74,14 +73,16 @@ func (e *AlibabaInfoer) Initialize() (map[string]map[string]productinfo.Price, e
 		}
 	}
 
-	log.Debug("finished initializing Alibaba price info")
 	return allPrices, nil
 }
 
 func (e *AlibabaInfoer) getData(region string, instanceTypes []ecs.InstanceType, zonesInRegions map[string][]string, queue chan<- map[string]map[string]productinfo.Price, waitGroup *sync.WaitGroup) {
 	defer waitGroup.Done()
+
+	log.Debugf("start retrieving price data for region [%s]", region)
 	allRegionPrices := make(map[string]map[string]productinfo.Price)
 	regionPrices := make(map[string]productinfo.Price)
+
 	for _, instanceType := range instanceTypes {
 		request := ecs.CreateDescribeSpotPriceHistoryRequest()
 		request.RegionId = region
@@ -109,6 +110,7 @@ func (e *AlibabaInfoer) getData(region string, instanceTypes []ecs.InstanceType,
 			regionPrices[instanceType.InstanceTypeId] = price
 		}
 	}
+	log.Debugf("finished retrieving price data for region [%s]", region)
 	allRegionPrices[region] = regionPrices
 	queue <- allRegionPrices
 }
