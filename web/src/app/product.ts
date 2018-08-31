@@ -1,5 +1,6 @@
 export class Products {
   products: Product[];
+  scrapingTime: string;
 }
 
 export class Product {

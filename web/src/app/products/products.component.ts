@@ -14,9 +14,10 @@ export class ProductsComponent implements OnInit {
   columnsToDisplay = ['type', 'cpu', 'mem', 'ntwPerf', 'regularPrice', 'spotPrice'];
 
   regions: Region[];
-  provider: string = 'ec2';
+  provider = 'ec2';
   region: string;
   products: MatTableDataSource<DisplayedProduct>;
+  scrapingTime: Observable<number>;
 
   constructor(private productService: ProductService) {
   }
@@ -25,6 +26,7 @@ export class ProductsComponent implements OnInit {
 
   ngOnInit() {
     this.updateProducts();
+    this.scrapingTime = this.productService.getScrapingTime();
   }
 
   getRegions(): Observable<Region[]> {
