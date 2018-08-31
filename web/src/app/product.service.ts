@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {DisplayedProduct, Products, Region} from './product';
-import {Observable} from 'rxjs';
+import {Observable, BehaviorSubject} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
 
@@ -10,8 +10,13 @@ import {HttpClient} from '@angular/common/http';
 export class ProductService {
 
   private productsUrlBase = 'api/v1/';
+  private scrapingTime$ = new BehaviorSubject<number>(null);
 
   constructor(private http: HttpClient) {
+  }
+
+  public getScrapingTime() {
+    return this.scrapingTime$.asObservable();
   }
 
   getRegions(provider): Observable<Region[]> {
@@ -21,6 +26,9 @@ export class ProductService {
   getProducts(provider, region): Observable<DisplayedProduct[]> {
     return this.http.get<Products>(this.productsUrlBase + 'products/' + provider + '/' + region).pipe(
       map(res => {
+        if (res.scrapingTime) {
+          this.scrapingTime$.next(+res.scrapingTime);
+        }
         return res.products.map(
           response => {
             let avgSpot = 0;
