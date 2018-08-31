@@ -200,32 +200,36 @@ func (cpi *CachingProductInfo) renewShortLived() {
 		providerWg.Add(1)
 		go func(p string, i ProductInfoer) {
 			defer providerWg.Done()
-			if i.HasShortLivedPriceInfo() {
-				log.Infof("renewing short lived %s product info", p)
-				start := time.Now()
-				var wg sync.WaitGroup
-				regions, err := i.GetRegions()
-				if err != nil {
-					ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
-					log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
-					return
-				}
-				for regionId := range regions {
-					wg.Add(1)
-					go func(p string, r string) {
-						defer wg.Done()
-						_, err := cpi.renewShortLivedInfo(p, r)
-						if err != nil {
-							ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
-							log.Errorf("couldn't renew short lived info in cache: %s", err.Error())
-							return
-						}
-						ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
-					}(p, regionId)
-				}
-				wg.Wait()
-				ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())
+			if !i.HasShortLivedPriceInfo() {
+				log.Infof("provider [%s] has no short lived price info", p)
+				return
 			}
+
+			log.Infof("renewing short lived %s product info", p)
+			start := time.Now()
+			var wg sync.WaitGroup
+			regions, err := i.GetRegions()
+			if err != nil {
+				ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
+				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+				return
+			}
+			for regionId := range regions {
+				wg.Add(1)
+				go func(p string, r string) {
+					defer wg.Done()
+					_, err := cpi.renewShortLivedInfo(p, r)
+					if err != nil {
+						ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
+						log.Errorf("couldn't renew short lived info in cache: %s", err.Error())
+						return
+					}
+					ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
+				}(p, regionId)
+			}
+			wg.Wait()
+			ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())
+
 		}(provider, infoer)
 	}
 	providerWg.Wait()

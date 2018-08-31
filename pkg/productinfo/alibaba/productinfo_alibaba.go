@@ -6,6 +6,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
+	"github.com/spf13/viper"
 	"sync"
 )
 
@@ -27,6 +28,7 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 	//ecsClient.GetConfig().WithAutoRetry(true)
 	ecsClient.GetConfig().WithGoRoutinePoolSize(100)
 	ecsClient.GetConfig().WithEnableAsync(true)
+	ecsClient.GetConfig().WithDebug(true)
 
 	if err != nil {
 		// Handle exceptions
@@ -88,16 +90,28 @@ func (e *AlibabaInfoer) getData(region string, instanceTypes []ecs.InstanceType,
 	allRegionPrices := make(map[string]map[string]productinfo.Price)
 	regionPrices := make(map[string]productinfo.Price)
 
-	for _, instanceType := range instanceTypes {
-		request := ecs.CreateDescribeSpotPriceHistoryRequest()
-		request.RegionId = region
-		request.NetworkType = "vpc"
-		request.InstanceType = instanceType.InstanceTypeId
-		request.OSType = "linux"
+	var (
+		alibabaAccessKeyId     = "alibaba-access-key-id"
+		alibabaAccessKeySecret = "alibaba-access-key-secret"
+	)
 
-		prices, err := e.client.DescribeSpotPriceHistory(request)
+	testCli, _ := ecs.NewClientWithAccessKey(
+		region, viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret),
+	)
+
+	request := ecs.CreateDescribeSpotPriceHistoryRequest()
+	request.RegionId = region
+	request.NetworkType = "vpc"
+	request.OSType = "linux"
+
+	log.Debugf("created new client for %s, %v", region, testCli)
+	for _, instanceType := range instanceTypes {
+
+		request.InstanceType = instanceType.InstanceTypeId
+		prices, err := testCli.DescribeSpotPriceHistory(request)
 		if err != nil {
-			return
+			log.Errorf("failed to get spot price history for provider [%s], region [%s], instance type [%s]. error: [%s]", "alibaba", region, instanceType, err.Error())
+			continue
 		}
 
 		price := regionPrices[instanceType.InstanceTypeId]
