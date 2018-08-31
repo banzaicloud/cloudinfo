@@ -125,8 +125,15 @@ func (r *RouteHandler) getProductDetails(c *gin.Context) {
 	}
 
 	log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
-	c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
+	c.JSON(http.StatusOK, newProductDetailsResponse(details, scrapingTime))
 	return
+}
+
+func newProductDetailsResponse(result []productinfo.ProductDetails, scrTime string) ProductDetailsResponse {
+	if result == nil {
+		result = make([]productinfo.ProductDetails, 0)
+	}
+	return ProductDetailsResponse{Products: result, ScrapingTime: scrTime}
 }
 
 // swagger:route GET /products/{provider}/{region}/{attribute} attributes getAttributeValues

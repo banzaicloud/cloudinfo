@@ -207,13 +207,14 @@ func (cpi *CachingProductInfo) renewShortLived() {
 
 			log.Infof("renewing short lived %s product info", p)
 			start := time.Now()
-			var wg sync.WaitGroup
+
 			regions, err := i.GetRegions()
 			if err != nil {
 				ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
 				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
 				return
 			}
+			var wg sync.WaitGroup
 			for regionId := range regions {
 				wg.Add(1)
 				go func(p string, r string) {
