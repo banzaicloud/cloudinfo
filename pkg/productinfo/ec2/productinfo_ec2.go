@@ -131,37 +131,37 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 	for i, price := range products.PriceList {
 		pd, err := newPriceData(price)
 		if err != nil {
-			log.Warn("could not extract pricing info for the item with index: [ %d ]", i)
+			log.Warnf("could not extract pricing info for the item with index: [ %d ]", i)
 			continue
 		}
 
 		instanceType, err := pd.GetDataForKey("instanceType")
 		if err != nil {
-			log.Warn("could not retrieve instance type")
+			log.Warnf("could not retrieve instance type [%s]", instanceType)
 			continue
 		}
 		cpusStr, err := pd.GetDataForKey(Cpu)
 		if err != nil {
-			log.Warn("could not retrieve vcpu")
+			log.Warnf("could not retrieve vcpu [%s]", cpusStr)
 			continue
 		}
 		memStr, err := pd.GetDataForKey(productinfo.Memory)
 		if err != nil {
-			log.Warn("could not retrieve memory")
+			log.Warnf("could not retrieve memory [%s]", memStr)
 			continue
 		}
 		gpu, err := pd.GetDataForKey("gpu")
 		if err != nil {
-			log.Debugf("could not retrieve gpu")
+			log.Warnf("could not retrieve gpu [%s]", gpu)
 		}
 		odPriceStr, err := pd.GetOnDemandPrice()
 		if err != nil {
-			log.Warn("could not retrieve on demand price")
+			log.Warnf("could not retrieve on demand price [%s]", odPriceStr)
 			continue
 		}
 		ntwPerf, err := pd.GetDataForKey("networkPerformance")
 		if err != nil {
-			log.Warn("could not parse network performance")
+			log.Warnf("could not parse network performance [%s]", ntwPerf)
 			continue
 		}
 
