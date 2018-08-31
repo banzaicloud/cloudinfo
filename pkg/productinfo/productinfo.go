@@ -201,9 +201,10 @@ func (cpi *CachingProductInfo) renewShortLived() {
 		go func(p string, i ProductInfoer) {
 			defer providerWg.Done()
 			if !i.HasShortLivedPriceInfo() {
-				log.Infof("renewing short lived %s product info", p)
+				log.Infof("provider [%s] has no short lived price info", p)
 				return
 			}
+
 			log.Infof("renewing short lived %s product info", p)
 			start := time.Now()
 			var wg sync.WaitGroup
