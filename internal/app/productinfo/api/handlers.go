@@ -73,7 +73,7 @@ func (r *RouteHandler) getProvider(c *gin.Context) {
 //     Security:
 //
 //     Responses:
-//       200: ProductServiceResponse
+//       200: ServiceResponse
 //       503: ErrorResponse
 func (r *RouteHandler) getServices(c *gin.Context) {
 
@@ -110,7 +110,7 @@ func (r *RouteHandler) getServices(c *gin.Context) {
 //     Security:
 //
 //     Responses:
-//       200: ProductServiceResponse
+//       200: ServiceResponse
 //       503: ErrorResponse
 func (r *RouteHandler) getService(c *gin.Context) {
 	// bind the path parameters

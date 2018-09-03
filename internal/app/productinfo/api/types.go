@@ -78,9 +78,9 @@ type AttributeResponse struct {
 // swagger:model ProviderResponse
 type ProviderResponse []productinfo.ProviderDescriber
 
-// ProductServiceResponse holds the list of available services
-// swagger:model ProductServiceResponse
-type ProductServiceResponse []productinfo.ServiceDescriber
+// ServiceResponse holds the list of available services
+// swagger:model ServiceResponse
+type ServiceResponse []productinfo.ServiceDescriber
 
 // ServiceImageResponse holds the list of available images
 // swagger:model ServiceImageResponse
