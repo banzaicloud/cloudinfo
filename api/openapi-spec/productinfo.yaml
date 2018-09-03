@@ -28,6 +28,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProviderResponse'
+  '/providers/{provider}':
+    get:
+      description: Returns the supported providers
+      tags:
+        - provider
+      operationId: getProvider
+      parameters:
+        - x-go-name: Provider
+          name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ProviderResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
   '/providers/{provider}/services':
     get:
       description: Provides a list with the available services for the provider
@@ -43,11 +63,11 @@ paths:
             type: string
       responses:
         '200':
-          description: ProductServiceResponse
+          description: ServiceResponse
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductServiceResponse'
+                $ref: '#/components/schemas/ServiceResponse'
         '503':
           description: ErrorResponse
           content:
@@ -77,11 +97,11 @@ paths:
             type: string
       responses:
         '200':
-          description: ProductServiceResponse
+          description: ServiceResponse
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductServiceResponse'
+                $ref: '#/components/schemas/ServiceResponse'
         '503':
           description: ErrorResponse
           content:
@@ -413,17 +433,19 @@ components:
           type: string
           x-go-name: ScrapingTime
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
-    ProductServiceResponse:
-      description: ProductServiceResponse holds the list of available services
-      type: array
-      items:
-        $ref: '#/components/schemas/ServiceDescriber'
-      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
+    ProviderDescriber:
+      description: ProviderDescriber describes a provider
+      type: object
+      properties:
+        GetProvider:
+          description: GetProvider returns the name of the provider
+          type: string
+      x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ProviderResponse:
       description: ProviderResponse is the response used for the supported providers
       type: array
       items:
-        type: string
+        $ref: '#/components/schemas/ProviderDescriber'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     Region:
       description: Region hold the id and name of a cloud provider region
@@ -477,6 +499,12 @@ components:
       properties:
         Services:
           $ref: '#/components/schemas/ServiceDescriber'
+      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
+    ServiceResponse:
+      description: ServiceResponse holds the list of available services
+      type: array
+      items:
+        $ref: '#/components/schemas/ServiceDescriber'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     SpotPriceInfo:
       description: SpotPriceInfo represents different prices per availability zones
