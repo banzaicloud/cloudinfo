@@ -136,7 +136,7 @@ func (cpi *CachingProductInfo) GetProviders() []ProviderDescriber {
 // GetProvider returns the supported providers
 func (cpi *CachingProductInfo) GetProvider(provider string) (ProviderDescriber, error) {
 	for p := range cpi.productInfoers {
-		if (provider == p) {
+		if provider == p {
 			return NewProvider(provider), nil
 		}
 	}
