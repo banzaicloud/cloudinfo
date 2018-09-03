@@ -23,11 +23,11 @@ paths:
       operationId: getProviders
       responses:
         '200':
-          description: ProviderResponse
+          description: ProvidersResponse
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProviderResponse'
+                $ref: '#/components/schemas/ProvidersResponse'
   '/providers/{provider}':
     get:
       description: Returns the supported providers
@@ -443,9 +443,20 @@ components:
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ProviderResponse:
       description: ProviderResponse is the response used for the supported providers
-      type: array
-      items:
-        $ref: '#/components/schemas/ProviderDescriber'
+      type: object
+      properties:
+        GetProvider:
+          description: GetProvider returns the name of the provider
+          type: string
+      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
+    ProvidersResponse:
+      description: ProvidersResponse is the response used for the supported providers
+      type: object
+      properties:
+        Providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderDescriber'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     Region:
       description: Region hold the id and name of a cloud provider region

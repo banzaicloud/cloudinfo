@@ -6,40 +6,38 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"strconv"
-
 	strfmt "github.com/go-openapi/strfmt"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
 )
 
 // ProviderResponse ProviderResponse is the response used for the supported providers
 // swagger:model ProviderResponse
-type ProviderResponse []*ProviderDescriber
+type ProviderResponse struct {
+
+	// GetProvider returns the name of the provider
+	GetProvider string `json:"GetProvider,omitempty"`
+}
 
 // Validate validates this provider response
-func (m ProviderResponse) Validate(formats strfmt.Registry) error {
-	var res []error
+func (m *ProviderResponse) Validate(formats strfmt.Registry) error {
+	return nil
+}
 
-	for i := 0; i < len(m); i++ {
-		if swag.IsZero(m[i]) { // not required
-			continue
-		}
-
-		if m[i] != nil {
-			if err := m[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName(strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
+// MarshalBinary interface implementation
+func (m *ProviderResponse) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
 	}
+	return swag.WriteJSON(m)
+}
 
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
+// UnmarshalBinary interface implementation
+func (m *ProviderResponse) UnmarshalBinary(b []byte) error {
+	var res ProviderResponse
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
 	}
+	*m = res
 	return nil
 }

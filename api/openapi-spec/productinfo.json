@@ -34,9 +34,9 @@
         "operationId": "getProviders",
         "responses": {
           "200": {
-            "description": "ProviderResponse",
+            "description": "ProvidersResponse",
             "schema": {
-              "$ref": "#/definitions/ProviderResponse"
+              "$ref": "#/definitions/ProvidersResponse"
             }
           }
         }
@@ -590,9 +590,25 @@
     },
     "ProviderResponse": {
       "description": "ProviderResponse is the response used for the supported providers",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/ProviderDescriber"
+      "type": "object",
+      "properties": {
+        "GetProvider": {
+          "description": "GetProvider returns the name of the provider",
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+    },
+    "ProvidersResponse": {
+      "description": "ProvidersResponse is the response used for the supported providers",
+      "type": "object",
+      "properties": {
+        "Providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProviderDescriber"
+          }
+        }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },

@@ -23,14 +23,17 @@ import (
 //     Security:
 //
 //     Responses:
-//       200: ProviderResponse
+//       200: ProvidersResponse
 func (r *RouteHandler) getProviders(c *gin.Context) {
 
 	providers := r.prod.GetProviders()
 	if len(providers) < 1 {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "no providers are configured"})
 	}
-	c.JSON(http.StatusOK, providers)
+
+	c.JSON(http.StatusOK, ProvidersResponse{
+		Providers: providers,
+	})
 }
 
 // swagger:route GET /providers/{provider} provider getProvider
