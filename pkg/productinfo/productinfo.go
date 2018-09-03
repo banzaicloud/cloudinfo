@@ -255,7 +255,7 @@ func (cpi *CachingProductInfo) Start(ctx context.Context) {
 		}
 	}()
 	go cpi.renewShortLived()
-	shortTicker := time.NewTicker(1 * time.Minute)
+	shortTicker := time.NewTicker(4 * time.Minute)
 	for {
 		select {
 		case <-shortTicker.C:
@@ -374,7 +374,7 @@ func (cpi *CachingProductInfo) renewShortLivedInfo(provider string, region strin
 		return nil, err
 	}
 	for instType, p := range prices {
-		cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, 2*time.Minute)
+		cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, 8*time.Minute)
 	}
 	return prices, nil
 }

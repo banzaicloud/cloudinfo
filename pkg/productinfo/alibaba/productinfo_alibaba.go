@@ -1,14 +1,42 @@
 package alibaba
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/spf13/viper"
-	"sync"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
+
+// DataFromJson parses json file
+type DataFromJson struct {
+	Currency        string          `json:"currency"`
+	Version         string          `json:"version"`
+	PublicationDate string          `json:"publicationDate"`
+	PricingInfo     map[string]Time `json:"pricingInfo"`
+	Disclaimer      string          `json:"disclaimer"`
+	Type            string          `json:"type"`
+	Site            string          `json:"site"`
+	Description     string          `json:"description"`
+}
+
+// Time contains time data from json
+type Time struct {
+	Hours  []Price `json:"hours"`
+	Months []Price `json:"months"`
+	Years  []Price `json:"years"`
+}
+
+// Price contains price data from json
+type Price struct {
+	Price  string `json:"price"`
+	Period string `json:"period"`
+}
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
@@ -40,55 +68,14 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 	}, nil
 }
 
-// Initialize downloads and parses the ECS price list on Alibaba Cloud
+// Initialize is not needed on Alibaba because price info is changing frequently
 func (e *AlibabaInfoer) Initialize() (map[string]map[string]productinfo.Price, error) {
-
-	var waitGroup sync.WaitGroup
-	allPrices := make(map[string]map[string]productinfo.Price)
-	zonesInRegions := make(map[string][]string)
-
-	regions, err := e.GetRegions()
-	if err != nil {
-		return nil, err
-	}
-	queue := make(chan map[string]map[string]productinfo.Price, len(regions))
-	req := ecs.CreateDescribeInstanceTypesRequest()
-	req.RegionId = "eu-central-1"
-
-	vmSizes, err := e.client.DescribeInstanceTypes(req)
-	if err != nil {
-		return nil, err
-	}
-	instanceTypes := vmSizes.InstanceTypes.InstanceType
-	for region := range regions {
-		zones, err := e.GetZones(region)
-		if err != nil {
-			return nil, err
-		}
-		zonesInRegions[region] = zones
-		waitGroup.Add(1)
-		go e.getData(region, instanceTypes, zonesInRegions, queue, &waitGroup)
-
-	}
-	waitGroup.Wait()
-
-	close(queue)
-
-	for elem := range queue {
-		for key, value := range elem {
-			allPrices[key] = value
-		}
-	}
-
-	return allPrices, nil
+	return nil, nil
 }
 
-func (e *AlibabaInfoer) getData(region string, instanceTypes []ecs.InstanceType, zonesInRegions map[string][]string, queue chan<- map[string]map[string]productinfo.Price, waitGroup *sync.WaitGroup) {
-	defer waitGroup.Done()
-
-	log.Debugf("start retrieving price data for region [%s]", region)
-	allRegionPrices := make(map[string]map[string]productinfo.Price)
-	regionPrices := make(map[string]productinfo.Price)
+func (e *AlibabaInfoer) getCurrentSpotPrices(region string, zones []string) (map[string]productinfo.SpotPriceInfo, error) {
+	log.Debugf("start retrieving alibaba spot price data for region [%s]", region)
+	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 
 	var (
 		alibabaAccessKeyId     = "alibaba-access-key-id"
@@ -105,33 +92,40 @@ func (e *AlibabaInfoer) getData(region string, instanceTypes []ecs.InstanceType,
 	request.OSType = "linux"
 
 	log.Debugf("created new client for %s, %v", region, testCli)
-	for _, instanceType := range instanceTypes {
 
-		request.InstanceType = instanceType.InstanceTypeId
-		prices, err := testCli.DescribeSpotPriceHistory(request)
-		if err != nil {
-			log.Errorf("failed to get spot price history for provider [%s], region [%s], instance type [%s]. error: [%s]", "alibaba", region, instanceType, err.Error())
-			continue
-		}
+	dataFromJson, err := getJson()
+	if err != nil {
+		return nil, err
+	}
 
-		price := regionPrices[instanceType.InstanceTypeId]
-		spotPrice := make(productinfo.SpotPriceInfo)
-		priceTypes := prices.SpotPrices.SpotPriceType
-		for _, priceType := range priceTypes {
-			price.OnDemandPrice = priceType.OriginPrice
-			for _, z := range zonesInRegions[region] {
-				if z == priceType.ZoneId {
-					spotPrice[z] = priceType.SpotPrice
-					price.SpotPrice = spotPrice
-					break
-				}
+	for key := range dataFromJson.PricingInfo {
+		values := strings.Split(key, "::")
+		if values[0] == region && values[3] == "linux" {
+			request.InstanceType = values[1]
+
+			prices, err := testCli.DescribeSpotPriceHistory(request)
+			if err != nil {
+				log.Errorf("failed to get spot price history for provider [%s], region [%s], instance type [%s]. error: [%s]", "alibaba", region, values[1], err.Error())
+				continue
 			}
-			regionPrices[instanceType.InstanceTypeId] = price
+
+			price := priceInfo[values[1]]
+			spotPrice := make(productinfo.SpotPriceInfo)
+			priceTypes := prices.SpotPrices.SpotPriceType
+			for _, priceType := range priceTypes {
+				for _, z := range zones {
+					if z == priceType.ZoneId {
+						spotPrice[z] = priceType.SpotPrice
+						price = spotPrice
+						break
+					}
+				}
+				priceInfo[values[1]] = price
+			}
 		}
 	}
-	log.Debugf("finished retrieving price data for region [%s]", region)
-	allRegionPrices[region] = regionPrices
-	queue <- allRegionPrices
+	log.Debugf("finished retrieving alibaba spot price data for region [%s]", region)
+	return priceInfo, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
@@ -146,33 +140,44 @@ func (e *AlibabaInfoer) GetAttributeValues(attribute string) (productinfo.AttrVa
 		return nil, err
 	}
 
-	for region := range regions {
-		request := ecs.CreateDescribeInstanceTypesRequest()
-		request.RegionId = region
+	request := ecs.CreateDescribeInstanceTypesRequest()
+	request.RegionId = "eu-central-1"
 
-		vmSizes, err := e.client.DescribeInstanceTypes(request)
-		if err != nil {
-			return nil, err
-		}
-		instanceTypes := vmSizes.InstanceTypes.InstanceType
+	vmSizes, err := e.client.DescribeInstanceTypes(request)
+	if err != nil {
+		return nil, err
+	}
+
+	dataFromJson, err := getJson()
+	if err != nil {
+		return nil, err
+	}
+
+	instanceTypes := vmSizes.InstanceTypes.InstanceType
+	for region := range regions {
 		for _, v := range instanceTypes {
-			switch attribute {
-			case productinfo.Cpu:
-				valueSet[productinfo.AttrValue{
-					Value:    float64(v.CpuCoreCount),
-					StrValue: fmt.Sprintf("%v", v.CpuCoreCount),
-				}] = ""
-			case productinfo.Memory:
-				valueSet[productinfo.AttrValue{
-					Value:    v.MemorySize,
-					StrValue: fmt.Sprintf("%v", v.MemorySize),
-				}] = ""
+			for key := range dataFromJson.PricingInfo {
+				values := strings.Split(key, "::")
+				if values[0] == region && values[1] == v.InstanceTypeId {
+					switch attribute {
+					case productinfo.Cpu:
+						valueSet[productinfo.AttrValue{
+							Value:    float64(v.CpuCoreCount),
+							StrValue: fmt.Sprintf("%v", v.CpuCoreCount),
+						}] = ""
+					case productinfo.Memory:
+						valueSet[productinfo.AttrValue{
+							Value:    v.MemorySize,
+							StrValue: fmt.Sprintf("%v", v.MemorySize),
+						}] = ""
+					}
+				}
 			}
 		}
+	}
 
-		for attr := range valueSet {
-			values = append(values, attr)
-		}
+	for attr := range valueSet {
+		values = append(values, attr)
 	}
 	log.Debugf("found %s values: %v", attribute, values)
 	return values, nil
@@ -184,21 +189,40 @@ func (e *AlibabaInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, erro
 	var vms []productinfo.VmInfo
 
 	request := ecs.CreateDescribeInstanceTypesRequest()
-	request.RegionId = regionId
+	request.RegionId = "eu-central-1"
 
 	vmSizes, err := e.client.DescribeInstanceTypes(request)
 	if err != nil {
 		return nil, err
 	}
+
+	dataFromJson, err := getJson()
+	if err != nil {
+		return nil, err
+	}
+
 	instanceTypes := vmSizes.InstanceTypes.InstanceType
 	for _, instanceType := range instanceTypes {
-		vms = append(vms, productinfo.VmInfo{
-			Type:    instanceType.InstanceTypeId,
-			Cpus:    float64(instanceType.CpuCoreCount),
-			Mem:     instanceType.MemorySize,
-			Gpus:    float64(instanceType.GPUAmount),
-			NtwPerf: fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000),
-		})
+		for key, prices := range dataFromJson.PricingInfo {
+			for _, price := range prices.Hours {
+				values := strings.Split(key, "::")
+				if values[0] == regionId && values[1] == instanceType.InstanceTypeId {
+					onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
+					if err != nil {
+						return nil, err
+					}
+					vms = append(vms, productinfo.VmInfo{
+						Type:          instanceType.InstanceTypeId,
+						OnDemandPrice: onDemandPrice,
+						Cpus:          float64(instanceType.CpuCoreCount),
+						Mem:           instanceType.MemorySize,
+						Gpus:          float64(instanceType.GPUAmount),
+						NtwPerf:       fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000),
+					})
+				}
+			}
+
+		}
 	}
 	log.Debugf("found vms: %#v", vms)
 	return vms, nil
@@ -238,14 +262,37 @@ func (e *AlibabaInfoer) GetRegions() (map[string]string, error) {
 	return RegionIdMap, nil
 }
 
-// HasShortLivedPriceInfo - Alibaba doesn't have frequently changing prices
+// HasShortLivedPriceInfo - Spot Prices are changing continuously on Alibaba
 func (e *AlibabaInfoer) HasShortLivedPriceInfo() bool {
-	return false
+	return true
 }
 
-// GetCurrentPrices retrieves all the price info in a region
+// GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
 func (e *AlibabaInfoer) GetCurrentPrices(region string) (map[string]productinfo.Price, error) {
-	return nil, errors.New("alibaba prices cannot be queried on the fly")
+	var spotPrices map[string]productinfo.SpotPriceInfo
+	var err error
+
+	zones, err := e.GetZones(region)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debug("getting current spot prices directly from the ECS API")
+	spotPrices, err = e.getCurrentSpotPrices(region, zones)
+
+	if err != nil {
+		log.Errorf("could not retrieve current prices. region %s, error: %s", region, err.Error())
+		return nil, err
+	}
+	prices := make(map[string]productinfo.Price)
+	for region, sp := range spotPrices {
+		prices[region] = productinfo.Price{
+			SpotPrice:     sp,
+			OnDemandPrice: -1,
+		}
+	}
+
+	return prices, nil
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -262,4 +309,18 @@ func (e *AlibabaInfoer) GetCpuAttrName() string {
 func (e *AlibabaInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
 	nm := newAlibabaNetworkMapper()
 	return nm, nil
+}
+
+func getJson() (DataFromJson, error) {
+	var myClient = &http.Client{Timeout: 10 * time.Second}
+	var dataFromJson DataFromJson
+	r, err := myClient.Get("https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.1/price/download/instancePrice.json?spm=0.6883001.price.1.741827my27myFB&file=instancePrice.json")
+	if err != nil {
+		return DataFromJson{}, err
+	}
+	defer r.Body.Close()
+
+	json.NewDecoder(r.Body).Decode(&dataFromJson)
+
+	return dataFromJson, nil
 }
