@@ -10,7 +10,7 @@ const (
 )
 
 // GetProviderPathParams is a placeholder for the providers related route path parameters
-// swagger:parameters getServices
+// swagger:parameters getServices getProvider
 type GetProviderPathParams struct {
 	// in:path
 	Provider string `json:"provider"`

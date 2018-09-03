@@ -33,6 +33,34 @@ func (r *RouteHandler) getProviders(c *gin.Context) {
 	c.JSON(http.StatusOK, providers)
 }
 
+// swagger:route GET /providers/{provider} provider getProvider
+//
+// Returns the supported providers
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ProviderResponse
+func (r *RouteHandler) getProvider(c *gin.Context) {
+
+	pathParams := GetProviderPathParams{}
+	mapstructure.Decode(getPathParamMap(c), &pathParams)
+
+	provider, err := r.prod.GetProvider(pathParams.Provider)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+		return
+
+	}
+
+	c.JSON(http.StatusOK, provider)
+}
+
 // swagger:route GET /providers/{provider}/services services getServices
 //
 // Provides a list with the available services for the provider

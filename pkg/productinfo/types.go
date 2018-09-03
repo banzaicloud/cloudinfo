@@ -86,7 +86,10 @@ type ProductInfoer interface {
 // todo it's enough to get the provider specific infoer implementation and delegate to that ...
 type ProductInfo interface {
 	// GetProviders returns the supported providers
-	GetProviders() []string
+	GetProviders() []ProviderDescriber
+
+	// GetProvider retrieves information about the provider
+	GetProvider(provider string) (ProviderDescriber, error)
 
 	// Start starts the product information retrieval in a new goroutine
 	Start(ctx context.Context)
@@ -221,4 +224,27 @@ func (s Service) GetName() string {
 // NewService creates a new servicedescriptor struct
 func NewService(name string) ServiceDescriber {
 	return Service{Service: name}
+}
+
+// ProviderDescriber describes a provider
+type ProviderDescriber interface {
+	// GetProvider returns the name of the provider
+	GetProvider() string
+}
+
+// Provider represents a cloud provider
+type Provider struct {
+	Provider string `json:"provider"`
+}
+
+// GetProvider returns the name of the provider
+func (p Provider) GetProvider() string {
+	return p.Provider
+}
+
+// NewProvider create new provider describer struct
+func NewProvider(name string) ProviderDescriber {
+	return Provider{
+		Provider: name,
+	}
 }
