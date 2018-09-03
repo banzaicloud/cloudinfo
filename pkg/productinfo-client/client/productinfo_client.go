@@ -14,6 +14,7 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/attributes"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/images"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/products"
+	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/provider"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/providers"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/regions"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/service"
@@ -68,6 +69,8 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Productinf
 	cli.Images = images.New(transport, formats)
 
 	cli.Products = products.New(transport, formats)
+
+	cli.Provider = provider.New(transport, formats)
 
 	cli.Providers = providers.New(transport, formats)
 
@@ -127,6 +130,8 @@ type Productinfo struct {
 
 	Products *products.Client
 
+	Provider *provider.Client
+
 	Providers *providers.Client
 
 	Regions *regions.Client
@@ -147,6 +152,8 @@ func (c *Productinfo) SetTransport(transport runtime.ClientTransport) {
 	c.Images.SetTransport(transport)
 
 	c.Products.SetTransport(transport)
+
+	c.Provider.SetTransport(transport)
 
 	c.Providers.SetTransport(transport)
 

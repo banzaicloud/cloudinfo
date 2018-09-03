@@ -14,12 +14,12 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ProviderResponse ProviderResponse is the response used for the supported providers
-// swagger:model ProviderResponse
-type ProviderResponse []*ProviderDescriber
+// ServiceResponse ServiceResponse holds the list of available services
+// swagger:model ServiceResponse
+type ServiceResponse []*ServiceDescriber
 
-// Validate validates this provider response
-func (m ProviderResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this service response
+func (m ServiceResponse) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	for i := 0; i < len(m); i++ {
