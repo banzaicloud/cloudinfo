@@ -86,7 +86,7 @@ type ProvidersResponse struct {
 	Providers []productinfo.Provider `json:"providers"`
 }
 
-// ServiceResponse holds the list of available services
+// ServicesResponse holds the list of available services
 // swagger:model ServicesResponse
 type ServicesResponse struct {
 	Services []productinfo.Service `json:"services"`
