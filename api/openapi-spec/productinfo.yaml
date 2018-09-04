@@ -30,7 +30,7 @@ paths:
                 $ref: '#/components/schemas/ProvidersResponse'
   '/providers/{provider}':
     get:
-      description: Returns the supported providers
+      description: Returns the requested provider
       tags:
         - provider
       operationId: getProvider
@@ -449,7 +449,7 @@ components:
           x-go-name: Provider
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ProviderResponse:
-      description: ProviderResponse is the response used for the supported providers
+      description: ProviderResponse is the response used for the requested provider
       type: object
       properties:
         provider:

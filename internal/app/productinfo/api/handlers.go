@@ -38,7 +38,7 @@ func (r *RouteHandler) getProviders(c *gin.Context) {
 
 // swagger:route GET /providers/{provider} provider getProvider
 //
-// Returns the supported providers
+// Returns the requested provider
 //
 //     Produces:
 //     - application/json
@@ -61,7 +61,9 @@ func (r *RouteHandler) getProvider(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, provider)
+	c.JSON(http.StatusOK, ProviderResponse{
+		Provider: provider,
+	})
 }
 
 // swagger:route GET /providers/{provider}/services services getServices

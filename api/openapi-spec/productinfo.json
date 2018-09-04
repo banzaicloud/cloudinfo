@@ -44,7 +44,7 @@
     },
     "/providers/{provider}": {
       "get": {
-        "description": "Returns the supported providers",
+        "description": "Returns the requested provider",
         "produces": [
           "application/json"
         ],
@@ -599,7 +599,7 @@
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
     },
     "ProviderResponse": {
-      "description": "ProviderResponse is the response used for the supported providers",
+      "description": "ProviderResponse is the response used for the requested provider",
       "type": "object",
       "properties": {
         "provider": {

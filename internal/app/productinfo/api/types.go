@@ -74,10 +74,10 @@ type AttributeResponse struct {
 	AttributeValues []float64 `json:"attributeValues"`
 }
 
-// ProviderResponse is the response used for the supported providers
+// ProviderResponse is the response used for the requested provider
 // swagger:model ProviderResponse
 type ProviderResponse struct {
-	Provider productinfo.Provider `json:"provider"`
+	Provider *productinfo.Provider `json:"provider"`
 }
 
 // ProvidersResponse is the response used for the supported providers

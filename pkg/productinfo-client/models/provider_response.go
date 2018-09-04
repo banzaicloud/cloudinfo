@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ProviderResponse ProviderResponse is the response used for the supported providers
+// ProviderResponse ProviderResponse is the response used for the requested provider
 // swagger:model ProviderResponse
 type ProviderResponse struct {
 

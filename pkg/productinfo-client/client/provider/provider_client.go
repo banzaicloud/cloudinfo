@@ -25,7 +25,7 @@ type Client struct {
 }
 
 /*
-GetProvider Returns the supported providers
+GetProvider Returns the requested provider
 */
 func (a *Client) GetProvider(params *GetProviderParams) (*GetProviderOK, error) {
 	// TODO: Validate the params before sending
