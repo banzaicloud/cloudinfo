@@ -3,30 +3,31 @@ package alibaba
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"github.com/banzaicloud/productinfo/pkg/productinfo"
-	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/banzaicloud/productinfo/pkg/productinfo"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-// DataFromJson parses json file
-type DataFromJson struct {
-	Currency        string          `json:"currency"`
-	Version         string          `json:"version"`
-	PublicationDate string          `json:"publicationDate"`
-	PricingInfo     map[string]Time `json:"pricingInfo"`
-	Disclaimer      string          `json:"disclaimer"`
-	Type            string          `json:"type"`
-	Site            string          `json:"site"`
-	Description     string          `json:"description"`
+// OnDemandPriceFromJson parses json file
+type OnDemandPriceFromJson struct {
+	Currency        string                   `json:"currency"`
+	Version         string                   `json:"version"`
+	PublicationDate string                   `json:"publicationDate"`
+	PricingInfo     map[string]TimeUnitPrice `json:"pricingInfo"`
+	Disclaimer      string                   `json:"disclaimer"`
+	Type            string                   `json:"type"`
+	Site            string                   `json:"site"`
+	Description     string                   `json:"description"`
 }
 
-// Time contains time data from json
-type Time struct {
+// TimeUnitPrice contains time data from json
+type TimeUnitPrice struct {
 	Hours  []Price `json:"hours"`
 	Months []Price `json:"months"`
 	Years  []Price `json:"years"`
@@ -37,6 +38,8 @@ type Price struct {
 	Price  string `json:"price"`
 	Period string `json:"period"`
 }
+
+var priceInfoUrl = "alibaba-price-info-url"
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
@@ -93,7 +96,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(region string, zones []string) (map
 
 	log.Debugf("created new client for %s, %v", region, testCli)
 
-	dataFromJson, err := getJson()
+	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -148,27 +151,28 @@ func (e *AlibabaInfoer) GetAttributeValues(attribute string) (productinfo.AttrVa
 		return nil, err
 	}
 
-	dataFromJson, err := getJson()
+	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
 	if err != nil {
 		return nil, err
 	}
 
 	instanceTypes := vmSizes.InstanceTypes.InstanceType
 	for region := range regions {
-		for _, v := range instanceTypes {
+		for _, instanceType := range instanceTypes {
 			for key := range dataFromJson.PricingInfo {
+				// The key structure is 'RegionId::InstanceType::NetworkType::OSType::IoOptimized'"
 				values := strings.Split(key, "::")
-				if values[0] == region && values[1] == v.InstanceTypeId {
+				if values[0] == region && values[1] == instanceType.InstanceTypeId {
 					switch attribute {
 					case productinfo.Cpu:
 						valueSet[productinfo.AttrValue{
-							Value:    float64(v.CpuCoreCount),
-							StrValue: fmt.Sprintf("%v", v.CpuCoreCount),
+							Value:    float64(instanceType.CpuCoreCount),
+							StrValue: fmt.Sprintf("%v", instanceType.CpuCoreCount),
 						}] = ""
 					case productinfo.Memory:
 						valueSet[productinfo.AttrValue{
-							Value:    v.MemorySize,
-							StrValue: fmt.Sprintf("%v", v.MemorySize),
+							Value:    instanceType.MemorySize,
+							StrValue: fmt.Sprintf("%v", instanceType.MemorySize),
 						}] = ""
 					}
 				}
@@ -189,14 +193,14 @@ func (e *AlibabaInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, erro
 	var vms []productinfo.VmInfo
 
 	request := ecs.CreateDescribeInstanceTypesRequest()
-	request.RegionId = "eu-central-1"
+	request.RegionId = regionId
 
 	vmSizes, err := e.client.DescribeInstanceTypes(request)
 	if err != nil {
 		return nil, err
 	}
 
-	dataFromJson, err := getJson()
+	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -205,20 +209,23 @@ func (e *AlibabaInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, erro
 	for _, instanceType := range instanceTypes {
 		for key, prices := range dataFromJson.PricingInfo {
 			for _, price := range prices.Hours {
-				values := strings.Split(key, "::")
-				if values[0] == regionId && values[1] == instanceType.InstanceTypeId {
-					onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
-					if err != nil {
-						return nil, err
+				if price.Period == "1" {
+					// The key structure is 'RegionId::InstanceType::NetworkType::OSType::IoOptimized'"
+					values := strings.Split(key, "::")
+					if values[0] == regionId && values[1] == instanceType.InstanceTypeId {
+						onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
+						if err != nil {
+							return nil, err
+						}
+						vms = append(vms, productinfo.VmInfo{
+							Type:          instanceType.InstanceTypeId,
+							OnDemandPrice: onDemandPrice,
+							Cpus:          float64(instanceType.CpuCoreCount),
+							Mem:           instanceType.MemorySize,
+							Gpus:          float64(instanceType.GPUAmount),
+							NtwPerf:       fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000),
+						})
 					}
-					vms = append(vms, productinfo.VmInfo{
-						Type:          instanceType.InstanceTypeId,
-						OnDemandPrice: onDemandPrice,
-						Cpus:          float64(instanceType.CpuCoreCount),
-						Mem:           instanceType.MemorySize,
-						Gpus:          float64(instanceType.GPUAmount),
-						NtwPerf:       fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000),
-					})
 				}
 			}
 
@@ -311,12 +318,12 @@ func (e *AlibabaInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMa
 	return nm, nil
 }
 
-func getJson() (DataFromJson, error) {
+func getJson(url string) (OnDemandPriceFromJson, error) {
 	var myClient = &http.Client{Timeout: 10 * time.Second}
-	var dataFromJson DataFromJson
-	r, err := myClient.Get("https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.1/price/download/instancePrice.json?spm=0.6883001.price.1.741827my27myFB&file=instancePrice.json")
+	var dataFromJson OnDemandPriceFromJson
+	r, err := myClient.Get(url)
 	if err != nil {
-		return DataFromJson{}, err
+		return OnDemandPriceFromJson{}, err
 	}
 	defer r.Body.Close()
 
