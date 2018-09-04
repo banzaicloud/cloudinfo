@@ -518,7 +518,7 @@ components:
           $ref: '#/components/schemas/Service'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     ServicesResponse:
-      description: ServiceResponse holds the list of available services
+      description: ServicesResponse holds the list of available services
       type: object
       properties:
         services:

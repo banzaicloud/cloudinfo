@@ -14,7 +14,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ServicesResponse ServiceResponse holds the list of available services
+// ServicesResponse ServicesResponse holds the list of available services
 // swagger:model ServicesResponse
 type ServicesResponse struct {
 
