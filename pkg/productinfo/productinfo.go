@@ -125,8 +125,8 @@ func NewCachingProductInfo(ri time.Duration, cache ProductStorer, infoers map[st
 }
 
 // GetProviders returns the supported providers
-func (cpi *CachingProductInfo) GetProviders() []ProviderDescriber {
-	var providers []ProviderDescriber
+func (cpi *CachingProductInfo) GetProviders() []Provider {
+	var providers []Provider
 	for p := range cpi.productInfoers {
 		providers = append(providers, NewProvider(p))
 	}

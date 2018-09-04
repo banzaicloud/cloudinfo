@@ -243,7 +243,7 @@ func (p Provider) GetProvider() string {
 }
 
 // NewProvider create new provider describer struct
-func NewProvider(name string) ProviderDescriber {
+func NewProvider(name string) Provider {
 	return Provider{
 		Provider: name,
 	}
