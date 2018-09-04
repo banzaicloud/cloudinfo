@@ -98,9 +98,9 @@
         ],
         "responses": {
           "200": {
-            "description": "ServiceResponse",
+            "description": "ServicesResponse",
             "schema": {
-              "$ref": "#/definitions/ServiceResponse"
+              "$ref": "#/definitions/ServicesResponse"
             }
           },
           "503": {
@@ -280,9 +280,9 @@
         ],
         "responses": {
           "200": {
-            "description": "ServiceImageResponse",
+            "description": "ImageResponse",
             "schema": {
-              "$ref": "#/definitions/ServiceImageResponse"
+              "$ref": "#/definitions/ImageResponse"
             }
           }
         }
@@ -501,6 +501,16 @@
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
+    "ImageResponse": {
+      "description": "ImageResponse holds the list of available images",
+      "type": "object",
+      "properties": {
+        "Services": {
+          "$ref": "#/definitions/Service"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+    },
     "ProductDetails": {
       "description": "ProductDetails extended view of the virtual machine details",
       "type": "object",
@@ -593,8 +603,7 @@
       "type": "object",
       "properties": {
         "provider": {
-          "type": "string",
-          "x-go-name": "Provider"
+          "$ref": "#/definitions/Provider"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
@@ -603,11 +612,12 @@
       "description": "ProvidersResponse is the response used for the supported providers",
       "type": "object",
       "properties": {
-        "Providers": {
+        "providers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/Provider"
-          }
+          },
+          "x-go-name": "Providers"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
@@ -658,32 +668,39 @@
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "ServiceDescriber": {
-      "description": "ServiceDescriber represents a service; eg.: oke, eks\nExtend this interface with other operations if needed",
+    "Service": {
+      "description": "it's intended to implement the ServiceDescriber interface",
       "type": "object",
+      "title": "Service represents a service supported by a given provider.",
       "properties": {
-        "GetName": {
-          "description": "GetName abstracts the name assembly for the service",
-          "type": "string"
+        "service": {
+          "type": "string",
+          "x-go-name": "Service"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
     },
-    "ServiceImageResponse": {
-      "description": "ServiceImageResponse holds the list of available images",
+    "ServiceResponse": {
+      "description": "ServiceResponse holds the list of available services",
       "type": "object",
       "properties": {
-        "Services": {
-          "$ref": "#/definitions/ServiceDescriber"
+        "service": {
+          "$ref": "#/definitions/Service"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "ServiceResponse": {
+    "ServicesResponse": {
       "description": "ServiceResponse holds the list of available services",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/ServiceDescriber"
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Service"
+          },
+          "x-go-name": "Services"
+        }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },

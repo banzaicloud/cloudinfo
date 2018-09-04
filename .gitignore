@@ -8,3 +8,4 @@ conf/config.toml
 test.txt
 /vendor/
 /.licensei.cache
+client_test.go

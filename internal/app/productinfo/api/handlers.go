@@ -76,7 +76,7 @@ func (r *RouteHandler) getProvider(c *gin.Context) {
 //     Security:
 //
 //     Responses:
-//       200: ServiceResponse
+//       200: ServicesResponse
 //       503: ErrorResponse
 func (r *RouteHandler) getServices(c *gin.Context) {
 
@@ -247,7 +247,7 @@ func (r *RouteHandler) getProducts(c *gin.Context) {
 //     Security:
 //
 //     Responses:
-//       200: ServiceImageResponse
+//       200: ImageResponse
 func (r *RouteHandler) getImages(c *gin.Context) {
 
 	pathParams := GetRegionPathParams{}

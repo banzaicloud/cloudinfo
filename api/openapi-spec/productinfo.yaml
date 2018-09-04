@@ -63,11 +63,11 @@ paths:
             type: string
       responses:
         '200':
-          description: ServiceResponse
+          description: ServicesResponse
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceResponse'
+                $ref: '#/components/schemas/ServicesResponse'
         '503':
           description: ErrorResponse
           content:
@@ -195,11 +195,11 @@ paths:
             type: string
       responses:
         '200':
-          description: ServiceImageResponse
+          description: ImageResponse
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ServiceImageResponse'
+                $ref: '#/components/schemas/ImageResponse'
   '/providers/{provider}/services/{service}/regions/{region}/products':
     get:
       tags:
@@ -369,6 +369,13 @@ components:
           type: string
           x-go-name: Service
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
+    ImageResponse:
+      description: ImageResponse holds the list of available images
+      type: object
+      properties:
+        Services:
+          $ref: '#/components/schemas/Service'
+      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     ProductDetails:
       description: ProductDetails extended view of the virtual machine details
       type: object
@@ -446,17 +453,17 @@ components:
       type: object
       properties:
         provider:
-          type: string
-          x-go-name: Provider
+          $ref: '#/components/schemas/Provider'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     ProvidersResponse:
       description: ProvidersResponse is the response used for the supported providers
       type: object
       properties:
-        Providers:
+        providers:
           type: array
           items:
             $ref: '#/components/schemas/Provider'
+          x-go-name: Providers
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     Region:
       description: Region hold the id and name of a cloud provider region
@@ -494,28 +501,31 @@ components:
       items:
         $ref: '#/components/schemas/Region'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
-    ServiceDescriber:
-      description: |-
-        ServiceDescriber represents a service; eg.: oke, eks
-        Extend this interface with other operations if needed
+    Service:
+      description: it's intended to implement the ServiceDescriber interface
       type: object
+      title: Service represents a service supported by a given provider.
       properties:
-        GetName:
-          description: GetName abstracts the name assembly for the service
+        service:
           type: string
+          x-go-name: Service
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
-    ServiceImageResponse:
-      description: ServiceImageResponse holds the list of available images
-      type: object
-      properties:
-        Services:
-          $ref: '#/components/schemas/ServiceDescriber'
-      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     ServiceResponse:
       description: ServiceResponse holds the list of available services
-      type: array
-      items:
-        $ref: '#/components/schemas/ServiceDescriber'
+      type: object
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+      x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
+    ServicesResponse:
+      description: ServiceResponse holds the list of available services
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+          x-go-name: Services
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     SpotPriceInfo:
       description: SpotPriceInfo represents different prices per availability zones

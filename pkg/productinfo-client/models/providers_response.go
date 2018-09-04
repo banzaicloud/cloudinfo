@@ -19,7 +19,7 @@ import (
 type ProvidersResponse struct {
 
 	// providers
-	Providers []*Provider `json:"Providers"`
+	Providers []*Provider `json:"providers"`
 }
 
 // Validate validates this providers response
@@ -50,7 +50,7 @@ func (m *ProvidersResponse) validateProviders(formats strfmt.Registry) error {
 		if m.Providers[i] != nil {
 			if err := m.Providers[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("Providers" + "." + strconv.Itoa(i))
+					return ve.ValidateName("providers" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

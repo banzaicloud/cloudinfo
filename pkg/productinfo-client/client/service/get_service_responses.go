@@ -54,7 +54,7 @@ func NewGetServiceOK() *GetServiceOK {
 ServiceResponse
 */
 type GetServiceOK struct {
-	Payload models.ServiceResponse
+	Payload *models.ServiceResponse
 }
 
 func (o *GetServiceOK) Error() string {
@@ -63,8 +63,10 @@ func (o *GetServiceOK) Error() string {
 
 func (o *GetServiceOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.ServiceResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 

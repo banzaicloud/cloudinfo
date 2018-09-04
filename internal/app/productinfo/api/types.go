@@ -77,23 +77,31 @@ type AttributeResponse struct {
 // ProviderResponse is the response used for the supported providers
 // swagger:model ProviderResponse
 type ProviderResponse struct {
-	productinfo.Provider
+	Provider productinfo.Provider `json:"provider"`
 }
 
 // ProvidersResponse is the response used for the supported providers
 // swagger:model ProvidersResponse
 type ProvidersResponse struct {
-	Providers []productinfo.Provider
+	Providers []productinfo.Provider `json:"providers"`
+}
+
+// ServiceResponse holds the list of available services
+// swagger:model ServicesResponse
+type ServicesResponse struct {
+	Services []productinfo.Service `json:"services"`
 }
 
 // ServiceResponse holds the list of available services
 // swagger:model ServiceResponse
-type ServiceResponse []productinfo.ServiceDescriber
+type ServiceResponse struct {
+	Service productinfo.Service `json:"service"`
+}
 
-// ServiceImageResponse holds the list of available images
-// swagger:model ServiceImageResponse
-type ServiceImageResponse struct {
-	Services productinfo.ServiceDescriber
+// ImageResponse holds the list of available images
+// swagger:model ImageResponse
+type ImageResponse struct {
+	Services productinfo.Service
 }
 
 // ErrorResponse struct for error responses
