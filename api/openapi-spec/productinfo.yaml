@@ -433,21 +433,21 @@ components:
           type: string
           x-go-name: ScrapingTime
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
-    ProviderDescriber:
-      description: ProviderDescriber describes a provider
+    Provider:
+      description: Provider represents a cloud provider
       type: object
       properties:
-        GetProvider:
-          description: GetProvider returns the name of the provider
+        provider:
           type: string
+          x-go-name: Provider
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ProviderResponse:
       description: ProviderResponse is the response used for the supported providers
       type: object
       properties:
-        GetProvider:
-          description: GetProvider returns the name of the provider
+        provider:
           type: string
+          x-go-name: Provider
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     ProvidersResponse:
       description: ProvidersResponse is the response used for the supported providers
@@ -456,7 +456,7 @@ components:
         Providers:
           type: array
           items:
-            $ref: '#/components/schemas/ProviderDescriber'
+            $ref: '#/components/schemas/Provider'
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     Region:
       description: Region hold the id and name of a cloud provider region

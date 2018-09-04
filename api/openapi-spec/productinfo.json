@@ -577,13 +577,13 @@
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "ProviderDescriber": {
-      "description": "ProviderDescriber describes a provider",
+    "Provider": {
+      "description": "Provider represents a cloud provider",
       "type": "object",
       "properties": {
-        "GetProvider": {
-          "description": "GetProvider returns the name of the provider",
-          "type": "string"
+        "provider": {
+          "type": "string",
+          "x-go-name": "Provider"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
@@ -592,9 +592,9 @@
       "description": "ProviderResponse is the response used for the supported providers",
       "type": "object",
       "properties": {
-        "GetProvider": {
-          "description": "GetProvider returns the name of the provider",
-          "type": "string"
+        "provider": {
+          "type": "string",
+          "x-go-name": "Provider"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
@@ -606,7 +606,7 @@
         "Providers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ProviderDescriber"
+            "$ref": "#/definitions/Provider"
           }
         }
       },

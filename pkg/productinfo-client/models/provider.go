@@ -11,21 +11,21 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ProviderResponse ProviderResponse is the response used for the supported providers
-// swagger:model ProviderResponse
-type ProviderResponse struct {
+// Provider Provider represents a cloud provider
+// swagger:model Provider
+type Provider struct {
 
 	// provider
 	Provider string `json:"provider,omitempty"`
 }
 
-// Validate validates this provider response
-func (m *ProviderResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this provider
+func (m *Provider) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *ProviderResponse) MarshalBinary() ([]byte, error) {
+func (m *Provider) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -33,8 +33,8 @@ func (m *ProviderResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ProviderResponse) UnmarshalBinary(b []byte) error {
-	var res ProviderResponse
+func (m *Provider) UnmarshalBinary(b []byte) error {
+	var res Provider
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

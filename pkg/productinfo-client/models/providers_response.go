@@ -19,7 +19,7 @@ import (
 type ProvidersResponse struct {
 
 	// providers
-	Providers []*ProviderDescriber `json:"Providers"`
+	Providers []*Provider `json:"Providers"`
 }
 
 // Validate validates this providers response
