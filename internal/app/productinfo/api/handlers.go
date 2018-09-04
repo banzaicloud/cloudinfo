@@ -255,21 +255,22 @@ func (r *RouteHandler) getImages(c *gin.Context) {
 	pathParams := GetRegionPathParams{}
 	mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	log.Infof("getting product details for provider: %s, region: %s", pathParams.Provider, pathParams.Region)
+	log.Infof("getting image details for provider: %s, region: %s", pathParams.Provider, pathParams.Region)
 
-	scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
+	infoer, err := r.prod.GetInfoer(pathParams.Provider)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 		return
 	}
-	details, err := r.prod.GetProductDetails(pathParams.Provider, pathParams.Region)
+
+	images, err := infoer.GetServiceImages(pathParams.Region, pathParams.Service)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 		return
 	}
 
 	log.Debugf("successfully retrieved product details:  %s, region: %s", pathParams.Provider, pathParams.Region)
-	c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
+	c.JSON(http.StatusOK, ImagesResponse{Images: &images,})
 
 }
 

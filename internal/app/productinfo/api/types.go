@@ -98,10 +98,11 @@ type ServiceResponse struct {
 	Service productinfo.Service `json:"service"`
 }
 
-// ImageResponse holds the list of available images
-// swagger:model ImageResponse
-type ImageResponse struct {
-	Services productinfo.Service
+
+// ImagesResponse holds the list of available images
+// swagger:model ImagesResponse
+type ImagesResponse struct {
+	Images *[]productinfo.Image
 }
 
 // ErrorResponse struct for error responses

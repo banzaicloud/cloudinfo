@@ -72,7 +72,7 @@ type ProductInfoer interface {
 	GetService(service string) (ServiceDescriber, error)
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
-	GetServiceImages(region, service string) ([]ImageDescriber, error)
+	GetServiceImages(region, service string) ([]Image, error)
 
 	// GetServiceProducts retrieves the products supported by the given service in the given region
 	GetServiceProducts(region, service string) ([]ProductDetails, error)
@@ -199,8 +199,8 @@ func newProductDetails(vm VmInfo) *ProductDetails {
 // ServiceDescriber represents a service; eg.: oke, eks
 // Extend this interface with other operations if needed
 type ServiceDescriber interface {
-	// GetName abstracts the name assembly for the service
-	GetName() string
+	// ServiceName abstracts the name assembly for the service
+	ServiceName() string
 }
 
 // ImageDescriber is a placeholder interface for image information
@@ -216,8 +216,8 @@ type Service struct {
 	Service string `json:"service"`
 }
 
-// GetName returns the service name
-func (s Service) GetName() string {
+// ServiceName returns the service name
+func (s Service) ServiceName() string {
 	return s.Service
 }
 
@@ -228,8 +228,8 @@ func NewService(name string) ServiceDescriber {
 
 // ProviderDescriber describes a provider
 type ProviderDescriber interface {
-	// GetProvider returns the name of the provider
-	GetProvider() string
+	// ProviderName returns the name of the provider
+	ProviderName() string
 }
 
 // Provider represents a cloud provider
@@ -237,8 +237,8 @@ type Provider struct {
 	Provider string `json:"provider"`
 }
 
-// GetProvider returns the name of the provider
-func (p Provider) GetProvider() string {
+// ProviderName returns the name of the provider
+func (p Provider) ProviderName() string {
 	return p.Provider
 }
 
@@ -246,5 +246,21 @@ func (p Provider) GetProvider() string {
 func NewProvider(name string) *Provider {
 	return &Provider{
 		Provider: name,
+	}
+}
+
+type Image struct {
+	Image string
+}
+
+// ImageName returns the name of the image
+func (i Image) ImageName() string {
+	return i.Image
+}
+
+// NewImage create new provider describer struct
+func NewImage(name string) *Image {
+	return &Image{
+		Image: name,
 	}
 }
