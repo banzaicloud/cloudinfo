@@ -44,10 +44,10 @@ func NewGetImagesOK() *GetImagesOK {
 
 /*GetImagesOK handles this case with default header values.
 
-ImageResponse
+ImagesResponse
 */
 type GetImagesOK struct {
-	Payload *models.ImageResponse
+	Payload *models.ImagesResponse
 }
 
 func (o *GetImagesOK) Error() string {
@@ -56,7 +56,7 @@ func (o *GetImagesOK) Error() string {
 
 func (o *GetImagesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.ImageResponse)
+	o.Payload = new(models.ImagesResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

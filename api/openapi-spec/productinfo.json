@@ -280,9 +280,9 @@
         ],
         "responses": {
           "200": {
-            "description": "ImageResponse",
+            "description": "ImagesResponse",
             "schema": {
-              "$ref": "#/definitions/ImageResponse"
+              "$ref": "#/definitions/ImagesResponse"
             }
           }
         }
@@ -501,12 +501,25 @@
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
-    "ImageResponse": {
-      "description": "ImageResponse holds the list of available images",
+    "Image": {
       "type": "object",
       "properties": {
-        "Services": {
-          "$ref": "#/definitions/Service"
+        "Image": {
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
+    },
+    "ImagesResponse": {
+      "description": "ImagesResponse holds the list of available images",
+      "type": "object",
+      "properties": {
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Image"
+          },
+          "x-go-name": "Images"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"

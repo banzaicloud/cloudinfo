@@ -249,7 +249,7 @@ func (r *RouteHandler) getProducts(c *gin.Context) {
 //     Security:
 //
 //     Responses:
-//       200: ImageResponse
+//       200: ImagesResponse
 func (r *RouteHandler) getImages(c *gin.Context) {
 
 	pathParams := GetRegionPathParams{}
