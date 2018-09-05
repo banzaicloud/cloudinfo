@@ -11,12 +11,12 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// Image image
+// Image Image represents an image
 // swagger:model Image
 type Image struct {
 
 	// image
-	Image string `json:"Image,omitempty"`
+	Image string `json:"image,omitempty"`
 }
 
 // Validate validates this image

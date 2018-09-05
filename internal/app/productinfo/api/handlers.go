@@ -32,7 +32,7 @@ func (r *RouteHandler) getProviders(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ProvidersResponse{
-		Providers: &providers,
+		Providers: providers,
 	})
 }
 

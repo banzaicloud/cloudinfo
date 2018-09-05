@@ -370,10 +370,12 @@ components:
           x-go-name: Service
       x-go-package: github.com/banzaicloud/productinfo/internal/app/productinfo/api
     Image:
+      description: Image represents an image
       type: object
       properties:
-        Image:
+        image:
           type: string
+          x-go-name: Image
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ImagesResponse:
       description: ImagesResponse holds the list of available images

@@ -77,13 +77,13 @@ type AttributeResponse struct {
 // ProviderResponse is the response used for the requested provider
 // swagger:model ProviderResponse
 type ProviderResponse struct {
-	Provider *productinfo.Provider `json:"provider"`
+	Provider productinfo.Provider `json:"provider"`
 }
 
 // ProvidersResponse is the response used for the supported providers
 // swagger:model ProvidersResponse
 type ProvidersResponse struct {
-	Providers *[]productinfo.Provider `json:"providers"`
+	Providers []productinfo.Provider `json:"providers"`
 }
 
 // ServicesResponse holds the list of available services

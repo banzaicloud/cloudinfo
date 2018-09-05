@@ -502,10 +502,12 @@
       "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
     "Image": {
+      "description": "Image represents an image",
       "type": "object",
       "properties": {
-        "Image": {
-          "type": "string"
+        "image": {
+          "type": "string",
+          "x-go-name": "Image"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
