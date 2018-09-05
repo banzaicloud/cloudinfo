@@ -249,8 +249,9 @@ func NewProvider(name string) *Provider {
 	}
 }
 
+// Image represents an image
 type Image struct {
-	Image string
+	Image string `json:"image"`
 }
 
 // ImageName returns the name of the image
