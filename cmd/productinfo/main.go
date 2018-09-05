@@ -86,7 +86,7 @@ func defineFlags() {
 	flag.String(alibabaRegionId, "", "alibaba region id")
 	flag.String(alibabaAccessKeyId, "", "alibaba access key id")
 	flag.String(alibabaAccessKeySecret, "", "alibaba access key secret")
-	flag.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.3/price/download/instancePrice.json", "Alibaba get price info from this file")
+	flag.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.4/price/download/instancePrice.json", "Alibaba get price info from this file")
 }
 
 // bindFlags binds parsed flags into viper
