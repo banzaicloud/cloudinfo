@@ -270,7 +270,7 @@ func (r *RouteHandler) getImages(c *gin.Context) {
 	}
 
 	log.Debugf("successfully retrieved product details:  %s, region: %s", pathParams.Provider, pathParams.Region)
-	c.JSON(http.StatusOK, ImagesResponse{Images: &images,})
+	c.JSON(http.StatusOK, images)
 
 }
 

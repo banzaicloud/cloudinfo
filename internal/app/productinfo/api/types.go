@@ -102,7 +102,7 @@ type ServiceResponse struct {
 // ImagesResponse holds the list of available images
 // swagger:model ImagesResponse
 type ImagesResponse struct {
-	Images *[]productinfo.Image
+	Images []productinfo.Image `json:"images"`
 }
 
 // ErrorResponse struct for error responses

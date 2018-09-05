@@ -437,7 +437,7 @@ func (a *AzureInfoer) GetService(service string) (productinfo.ServiceDescriber, 
 		return nil, err
 	}
 	for _, sd := range svcs {
-		if service == sd.GetName() {
+		if service == sd.ServiceName() {
 			log.Debugf("found service: %s", service)
 			return sd, nil
 		}

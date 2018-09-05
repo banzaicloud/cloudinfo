@@ -72,7 +72,7 @@ type ProductInfoer interface {
 	GetService(service string) (ServiceDescriber, error)
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
-	GetServiceImages(region, service string) ([]Image, error)
+	GetServiceImages(region, service string) ([]ImageDescriber, error)
 
 	// GetServiceProducts retrieves the products supported by the given service in the given region
 	GetServiceProducts(region, service string) ([]ProductDetails, error)
