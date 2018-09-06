@@ -30,8 +30,6 @@ license-check: bin/licensei ## Run license check
 license-cache: bin/licensei ## Generate license cache
 	@bin/licensei cache
 
-
-
 DEP_VERSION = 0.5.0
 bin/dep:
 	@mkdir -p ./bin/
@@ -136,6 +134,16 @@ ifndef GOLINT_CMD
 	go get -u github.com/jstemmer/go-junit-report
 endif
 
+
 go-junit-report: install-go-junit-report
 	$(shell mkdir -p test-results)
 	cat test.txt | go-junit-report > test-results/report.xml
+
+
+## starts the productinfo app with docker-compose
+pi-start:
+	docker-compose -f docker-compose.yml up -d
+
+## stops the productinfo app with docker-compose
+pi-stop:
+	docker-compose -f docker-compose.yml stop
