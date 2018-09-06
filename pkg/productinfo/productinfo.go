@@ -127,8 +127,23 @@ func NewCachingProductInfo(ri time.Duration, cache ProductStorer, infoers map[st
 // GetProviders returns the supported providers
 func (cpi *CachingProductInfo) GetProviders() []Provider {
 	var providers []Provider
-	for p := range cpi.productInfoers {
-		providers = append(providers, NewProvider(p))
+
+	for name, infoer := range cpi.productInfoers {
+
+		services, err := infoer.GetServices()
+		if err != nil {
+			log.Error("could not retrieve services for provider: %s, err: %v", name, err)
+		}
+
+		// decorate the provider with service information
+		svcs := make([]Service, 0)
+		for _, s := range services {
+			svcs = append(svcs, NewService(s.ServiceName()))
+		}
+		provider := NewProvider(name)
+		provider.Services = svcs
+
+		providers = append(providers, provider)
 	}
 	return providers
 }

@@ -222,7 +222,7 @@ func (s Service) ServiceName() string {
 }
 
 // NewService creates a new servicedescriptor struct
-func NewService(name string) ServiceDescriber {
+func NewService(name string) Service {
 	return Service{Service: name}
 }
 
@@ -234,7 +234,8 @@ type ProviderDescriber interface {
 
 // Provider represents a cloud provider
 type Provider struct {
-	Provider string `json:"provider"`
+	Provider string    `json:"provider"`
+	Services []Service `json:"services"`
 }
 
 // ProviderName returns the name of the provider

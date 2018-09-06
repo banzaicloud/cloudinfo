@@ -609,6 +609,13 @@
         "provider": {
           "type": "string",
           "x-go-name": "Provider"
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Service"
+          },
+          "x-go-name": "Services"
         }
       },
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"

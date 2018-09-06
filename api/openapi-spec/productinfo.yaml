@@ -458,6 +458,11 @@ components:
         provider:
           type: string
           x-go-name: Provider
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+          x-go-name: Services
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ProviderResponse:
       description: ProviderResponse is the response used for the requested provider
