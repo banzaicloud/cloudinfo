@@ -132,7 +132,7 @@ func (cpi *CachingProductInfo) GetProviders() []Provider {
 
 		services, err := infoer.GetServices()
 		if err != nil {
-			log.Error("could not retrieve services for provider: %s, err: %v", name, err)
+			log.Errorf("could not retrieve services for provider: %s, err: %v", name, err)
 		}
 
 		// decorate the provider with service information
