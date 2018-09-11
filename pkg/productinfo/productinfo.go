@@ -4,14 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 )
+
+// CachingProductInfo is the module struct, holds configuration and cache
+// It's the entry point for the product info retrieval and management subsystem
+// It's also responsible for delegating to the cloud provider specific implementations
+type CachingProductInfo struct {
+	productInfoers  map[string]ProductInfoer
+	renewalInterval time.Duration
+	vmAttrStore     ProductStorer
+}
 
 func (v AttrValues) floatValues() []float64 {
 	floatValues := make([]float64, len(v))
@@ -116,12 +125,37 @@ func NewCachingProductInfo(ri time.Duration, cache ProductStorer, infoers map[st
 }
 
 // GetProviders returns the supported providers
-func (cpi *CachingProductInfo) GetProviders() []string {
-	var providers []string
-	for p := range cpi.productInfoers {
-		providers = append(providers, p)
+func (cpi *CachingProductInfo) GetProviders() []Provider {
+	var providers []Provider
+
+	for name, infoer := range cpi.productInfoers {
+
+		services, err := infoer.GetServices()
+		if err != nil {
+			log.Errorf("could not retrieve services for provider: %s, err: %v", name, err)
+		}
+
+		// decorate the provider with service information
+		svcs := make([]Service, 0)
+		for _, s := range services {
+			svcs = append(svcs, NewService(s.ServiceName()))
+		}
+		provider := NewProvider(name)
+		provider.Services = svcs
+
+		providers = append(providers, provider)
 	}
 	return providers
+}
+
+// GetProvider returns the supported providers
+func (cpi *CachingProductInfo) GetProvider(provider string) (Provider, error) {
+	for p := range cpi.productInfoers {
+		if provider == p {
+			return NewProvider(provider), nil
+		}
+	}
+	return Provider{}, fmt.Errorf("unsupported provider: [%s]", provider)
 }
 
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
@@ -530,4 +564,14 @@ func (cpi *CachingProductInfo) GetStatus(provider string) (string, error) {
 
 func (cpi *CachingProductInfo) getStatusKey(provider string) string {
 	return fmt.Sprintf(StatusKeyTemplate, provider)
+}
+
+// GetInfoer returns the provider specific infoer implementation. This method is the discriminator for cloud providers
+func (cpi *CachingProductInfo) GetInfoer(provider string) (ProductInfoer, error) {
+
+	if infoer, ok := cpi.productInfoers[provider]; ok {
+		return infoer, nil
+	}
+
+	return nil, fmt.Errorf("could not find infoer for: [ %s ]", provider)
 }

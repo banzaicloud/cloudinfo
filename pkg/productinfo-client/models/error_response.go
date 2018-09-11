@@ -11,24 +11,24 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// GetRegionsResp GetRegionsResp holds the list of available regions of a cloud provider
-// swagger:model GetRegionsResp
-type GetRegionsResp struct {
+// ErrorResponse ErrorResponse struct for error responses
+// swagger:model ErrorResponse
+type ErrorResponse struct {
 
-	// Id
-	ID string `json:"id,omitempty"`
+	// error code
+	ErrorCode string `json:"code,omitempty"`
 
-	// name
-	Name string `json:"name,omitempty"`
+	// error message
+	ErrorMessage string `json:"message,omitempty"`
 }
 
-// Validate validates this get regions resp
-func (m *GetRegionsResp) Validate(formats strfmt.Registry) error {
+// Validate validates this error response
+func (m *ErrorResponse) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *GetRegionsResp) MarshalBinary() ([]byte, error) {
+func (m *ErrorResponse) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -36,8 +36,8 @@ func (m *GetRegionsResp) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *GetRegionsResp) UnmarshalBinary(b []byte) error {
-	var res GetRegionsResp
+func (m *ErrorResponse) UnmarshalBinary(b []byte) error {
+	var res ErrorResponse
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

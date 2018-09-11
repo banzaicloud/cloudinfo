@@ -12,19 +12,19 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ProviderResponse ProviderResponse is the response used for the requested provider
-// swagger:model ProviderResponse
-type ProviderResponse struct {
+// ServiceResponse ServiceResponse holds the list of available services
+// swagger:model ServiceResponse
+type ServiceResponse struct {
 
-	// provider
-	Provider *Provider `json:"provider,omitempty"`
+	// service
+	Service *Service `json:"service,omitempty"`
 }
 
-// Validate validates this provider response
-func (m *ProviderResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this service response
+func (m *ServiceResponse) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateProvider(formats); err != nil {
+	if err := m.validateService(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -34,16 +34,16 @@ func (m *ProviderResponse) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ProviderResponse) validateProvider(formats strfmt.Registry) error {
+func (m *ServiceResponse) validateService(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Provider) { // not required
+	if swag.IsZero(m.Service) { // not required
 		return nil
 	}
 
-	if m.Provider != nil {
-		if err := m.Provider.Validate(formats); err != nil {
+	if m.Service != nil {
+		if err := m.Service.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("provider")
+				return ve.ValidateName("service")
 			}
 			return err
 		}
@@ -53,7 +53,7 @@ func (m *ProviderResponse) validateProvider(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *ProviderResponse) MarshalBinary() ([]byte, error) {
+func (m *ServiceResponse) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -61,8 +61,8 @@ func (m *ProviderResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ProviderResponse) UnmarshalBinary(b []byte) error {
-	var res ProviderResponse
+func (m *ServiceResponse) UnmarshalBinary(b []byte) error {
+	var res ServiceResponse
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

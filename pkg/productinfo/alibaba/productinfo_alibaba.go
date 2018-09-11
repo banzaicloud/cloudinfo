@@ -331,3 +331,41 @@ func getJson(url string) (OnDemandPriceFromJson, error) {
 
 	return dataFromJson, nil
 }
+
+// GetServices returns the available services on the provider
+func (e *AlibabaInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("acs")}
+	return services, nil
+}
+
+// GetService returns the given service description
+func (e *AlibabaInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+	svcs, err := e.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.ServiceName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (e *AlibabaInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (e *AlibabaInfoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (e *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}

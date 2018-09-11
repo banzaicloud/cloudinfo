@@ -36,7 +36,7 @@ func (a *Client) GetRegion(params *GetRegionParams) (*GetRegionOK, error) {
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "getRegion",
 		Method:             "GET",
-		PathPattern:        "/regions/{provider}/{region}",
+		PathPattern:        "/providers/{provider}/services/{service}/regions/{region}",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{""},
 		Schemes:            []string{"http", "https"},
@@ -64,7 +64,7 @@ func (a *Client) GetRegions(params *GetRegionsParams) (*GetRegionsOK, error) {
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "getRegions",
 		Method:             "GET",
-		PathPattern:        "/regions/{provider}",
+		PathPattern:        "/providers/{provider}/services/{service}/regions",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{""},
 		Schemes:            []string{"http", "https"},

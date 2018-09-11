@@ -11,24 +11,24 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// GetProductDetailsParams GetProductDetailsParams is a placeholder for the get products route's path parameters
-// swagger:model GetProductDetailsParams
-type GetProductDetailsParams struct {
+// GetServicesPathParams GetServicesPathParams is a placeholder for the services related route path parameters
+// swagger:model GetServicesPathParams
+type GetServicesPathParams struct {
 
 	// in:path
 	Provider string `json:"provider,omitempty"`
 
 	// in:path
-	Region string `json:"region,omitempty"`
+	Service string `json:"service,omitempty"`
 }
 
-// Validate validates this get product details params
-func (m *GetProductDetailsParams) Validate(formats strfmt.Registry) error {
+// Validate validates this get services path params
+func (m *GetServicesPathParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *GetProductDetailsParams) MarshalBinary() ([]byte, error) {
+func (m *GetServicesPathParams) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -36,8 +36,8 @@ func (m *GetProductDetailsParams) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *GetProductDetailsParams) UnmarshalBinary(b []byte) error {
-	var res GetProductDetailsParams
+func (m *GetServicesPathParams) UnmarshalBinary(b []byte) error {
+	var res GetServicesPathParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

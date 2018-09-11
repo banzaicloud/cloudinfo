@@ -11,21 +11,21 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// GetRegionsParams GetRegionsParams is a placeholder for the get regions route's path parameters
-// swagger:model GetRegionsParams
-type GetRegionsParams struct {
+// Image Image represents an image
+// swagger:model Image
+type Image struct {
 
-	// in:path
-	Provider string `json:"provider,omitempty"`
+	// image
+	Image string `json:"image,omitempty"`
 }
 
-// Validate validates this get regions params
-func (m *GetRegionsParams) Validate(formats strfmt.Registry) error {
+// Validate validates this image
+func (m *Image) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *GetRegionsParams) MarshalBinary() ([]byte, error) {
+func (m *Image) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -33,8 +33,8 @@ func (m *GetRegionsParams) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *GetRegionsParams) UnmarshalBinary(b []byte) error {
-	var res GetRegionsParams
+func (m *Image) UnmarshalBinary(b []byte) error {
+	var res Image
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

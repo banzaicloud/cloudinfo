@@ -290,3 +290,41 @@ func (i *Infoer) GetZones(region string) (zones []string, err error) {
 func (i *Infoer) HasShortLivedPriceInfo() bool {
 	return false
 }
+
+// GetServices returns the available services on the  given region
+func (i *Infoer) GetServices() ([]productinfo.ServiceDescriber, error) {
+	services := []productinfo.ServiceDescriber{
+		productinfo.NewService("compute"),
+		productinfo.NewService("oke")}
+	return services, nil
+}
+
+// GetService returns the service on the  provider
+func (i *Infoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+	svcs, err := i.GetServices()
+	if err != nil {
+		return nil, err
+	}
+	for _, sd := range svcs {
+		if service == sd.ServiceName() {
+			log.Debugf("found service: %s", service)
+			return sd, nil
+		}
+	}
+	return nil, fmt.Errorf("the service [%s] is not supported", service)
+}
+
+// GetServiceImages retrieves the images supported by the given service in the given region
+func (i *Infoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
+	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+}
+
+// GetServiceProducts retrieves the products supported by the given service in the given region
+func (i *Infoer) GetServiceProducts(region, service string) ([]productinfo.ProductDetails, error) {
+	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+}
+
+// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
+func (i *Infoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
+	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}

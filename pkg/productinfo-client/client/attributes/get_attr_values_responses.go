@@ -16,17 +16,17 @@ import (
 	models "github.com/banzaicloud/productinfo/pkg/productinfo-client/models"
 )
 
-// GetAttributeValuesReader is a Reader for the GetAttributeValues structure.
-type GetAttributeValuesReader struct {
+// GetAttrValuesReader is a Reader for the GetAttrValues structure.
+type GetAttrValuesReader struct {
 	formats strfmt.Registry
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *GetAttributeValuesReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *GetAttrValuesReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
 
 	case 200:
-		result := NewGetAttributeValuesOK()
+		result := NewGetAttrValuesOK()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -37,24 +37,24 @@ func (o *GetAttributeValuesReader) ReadResponse(response runtime.ClientResponse,
 	}
 }
 
-// NewGetAttributeValuesOK creates a GetAttributeValuesOK with default headers values
-func NewGetAttributeValuesOK() *GetAttributeValuesOK {
-	return &GetAttributeValuesOK{}
+// NewGetAttrValuesOK creates a GetAttrValuesOK with default headers values
+func NewGetAttrValuesOK() *GetAttrValuesOK {
+	return &GetAttrValuesOK{}
 }
 
-/*GetAttributeValuesOK handles this case with default header values.
+/*GetAttrValuesOK handles this case with default header values.
 
 AttributeResponse
 */
-type GetAttributeValuesOK struct {
+type GetAttrValuesOK struct {
 	Payload *models.AttributeResponse
 }
 
-func (o *GetAttributeValuesOK) Error() string {
-	return fmt.Sprintf("[GET /products/{provider}/{region}/{attribute}][%d] getAttributeValuesOK  %+v", 200, o.Payload)
+func (o *GetAttrValuesOK) Error() string {
+	return fmt.Sprintf("[GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute}][%d] getAttrValuesOK  %+v", 200, o.Payload)
 }
 
-func (o *GetAttributeValuesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *GetAttrValuesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.AttributeResponse)
 

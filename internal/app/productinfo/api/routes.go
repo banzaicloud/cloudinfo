@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -12,12 +11,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
-)
-
-const (
-	providerParam  = "provider"
-	regionParam    = "region"
-	attributeParam = "attribute"
 )
 
 // RouteHandler configures the REST API routes in the gin router
@@ -67,180 +60,23 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 
 	v1 := base.Group("/api/v1")
 
-	piGroup := v1.Group("/products")
-	{
-		piGroup.Use(ValidatePathParam(providerParam, v, "provider"))
-		piGroup.Use(ValidateRegionData(v))
-		piGroup.GET("/:provider/:region/", r.getProductDetails)
-		piGroup.GET("/:provider/:region/:attribute", r.getAttrValues).Use(ValidatePathParam(attributeParam, v, "attribute"))
-	}
-
-	metaGroup := v1.Group("/regions")
-	{
-		metaGroup.Use(ValidatePathParam(providerParam, v, "provider"))
-		metaGroup.GET("/:provider", r.getRegions)
-		metaGroup.GET("/:provider/:region", r.getRegion).Use(ValidateRegionData(v))
-	}
-
 	providerGroup := v1.Group("/providers")
 	{
-		providerGroup.GET("/", r.getProviders)
+
+		providerGroup.GET("/", r.getProviders).Use(ValidatePathParam(providerParam, v, "provider"))
+		providerGroup.GET("/:provider", r.getProvider)
+		providerGroup.GET("/:provider/services", r.getServices)
+		providerGroup.GET("/:provider/services/:service", r.getService)
+		providerGroup.GET("/:provider/services/:service/regions", r.getRegions).Use(ValidateRegionData(v))
+		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion)
+		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages)
+		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts)
+		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues).
+			Use(ValidatePathParam(attributeParam, v, "attribute"))
 	}
 
 }
 
 func (r *RouteHandler) signalStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
-}
-
-// swagger:route GET /products/{provider}/{region} products getProductDetails
-//
-// Provides a list of available machine types on a given provider in a specific region.
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: ProductDetailsResponse
-func (r *RouteHandler) getProductDetails(c *gin.Context) {
-	prov := c.Param(providerParam)
-	region := c.Param(regionParam)
-
-	log.Infof("getting product details for provider: %s, region: %s", prov, region)
-
-	scrapingTime, err := r.prod.GetStatus(prov)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-
-	details, err := r.prod.GetProductDetails(prov, region)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-
-	log.Debugf("successfully retrieved product details:  %s, region: %s", prov, region)
-	c.JSON(http.StatusOK, newProductDetailsResponse(details, scrapingTime))
-	return
-}
-
-func newProductDetailsResponse(result []productinfo.ProductDetails, scrTime string) ProductDetailsResponse {
-	if result == nil {
-		result = make([]productinfo.ProductDetails, 0)
-	}
-	return ProductDetailsResponse{Products: result, ScrapingTime: scrTime}
-}
-
-// swagger:route GET /products/{provider}/{region}/{attribute} attributes getAttributeValues
-//
-// Provides a list of available attribute values in a provider's region.
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: AttributeResponse
-func (r *RouteHandler) getAttrValues(c *gin.Context) {
-	prov := c.Param(providerParam)
-	region := c.Param(regionParam)
-	attr := c.Param(attributeParam)
-
-	log.Infof("getting %s attribute values for provider: %s, region: %s", attr, prov, region)
-
-	var err error
-	if attributes, err := r.prod.GetAttrValues(prov, attr); err == nil {
-		log.Debugf("successfully retrieved %s attribute values:  %s, region: %s", attr, prov, region)
-		c.JSON(http.StatusOK, AttributeResponse{attr, attributes})
-		return
-	}
-
-	c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-}
-
-// swagger:route GET /regions/{provider} regions getRegions
-//
-// Provides the list of available regions of a cloud provider
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: RegionsResponse
-func (r *RouteHandler) getRegions(c *gin.Context) {
-	provider := c.Param("provider")
-	regions, err := r.prod.GetRegions(provider)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-	var response RegionsResponse
-	for id, name := range regions {
-		response = append(response, Region{id, name})
-	}
-	c.JSON(http.StatusOK, response)
-}
-
-// swagger:route GET /regions/{provider}/{region} regions getRegion
-//
-// Provides the detailed info of a specific region of a cloud provider
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: RegionResponse
-func (r *RouteHandler) getRegion(c *gin.Context) {
-	provider := c.Param("provider")
-	region := c.Param("region")
-
-	regions, err := r.prod.GetRegions(provider)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-	zones, err := r.prod.GetZones(provider, region)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-	c.JSON(http.StatusOK, GetRegionResp{region, regions[region], zones})
-}
-
-// swagger:route GET /providers providers getProviders
-//
-// Returns the supported providers
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: ProviderResponse
-func (r *RouteHandler) getProviders(c *gin.Context) {
-
-	providers := r.prod.GetProviders()
-	if len(providers) < 1 {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "no providers are configured"})
-	}
-	c.JSON(http.StatusOK, providers)
 }

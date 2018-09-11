@@ -44,10 +44,10 @@ func NewGetProvidersOK() *GetProvidersOK {
 
 /*GetProvidersOK handles this case with default header values.
 
-ProviderResponse
+ProvidersResponse
 */
 type GetProvidersOK struct {
-	Payload models.ProviderResponse
+	Payload *models.ProvidersResponse
 }
 
 func (o *GetProvidersOK) Error() string {
@@ -56,8 +56,10 @@ func (o *GetProvidersOK) Error() string {
 
 func (o *GetProvidersOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.ProvidersResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 

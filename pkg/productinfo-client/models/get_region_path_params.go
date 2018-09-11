@@ -11,24 +11,27 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// GetRegionParams GetRegionParams is a placeholder for the get region route's path parameters
-// swagger:model GetRegionParams
-type GetRegionParams struct {
+// GetRegionPathParams GetRegionPathParams is a placeholder for the regions related route path parameters
+// swagger:model GetRegionPathParams
+type GetRegionPathParams struct {
 
 	// in:path
 	Provider string `json:"provider,omitempty"`
 
 	// in:path
 	Region string `json:"region,omitempty"`
+
+	// in:path
+	Service string `json:"service,omitempty"`
 }
 
-// Validate validates this get region params
-func (m *GetRegionParams) Validate(formats strfmt.Registry) error {
+// Validate validates this get region path params
+func (m *GetRegionPathParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *GetRegionParams) MarshalBinary() ([]byte, error) {
+func (m *GetRegionPathParams) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -36,8 +39,8 @@ func (m *GetRegionParams) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *GetRegionParams) UnmarshalBinary(b []byte) error {
-	var res GetRegionParams
+func (m *GetRegionPathParams) UnmarshalBinary(b []byte) error {
+	var res GetRegionPathParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

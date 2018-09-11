@@ -64,6 +64,8 @@ type GetRegionsParams struct {
 
 	/*Provider*/
 	Provider string
+	/*Service*/
+	Service string
 
 	timeout    time.Duration
 	Context    context.Context
@@ -114,6 +116,17 @@ func (o *GetRegionsParams) SetProvider(provider string) {
 	o.Provider = provider
 }
 
+// WithService adds the service to the get regions params
+func (o *GetRegionsParams) WithService(service string) *GetRegionsParams {
+	o.SetService(service)
+	return o
+}
+
+// SetService adds the service to the get regions params
+func (o *GetRegionsParams) SetService(service string) {
+	o.Service = service
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetRegionsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -124,6 +137,11 @@ func (o *GetRegionsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Re
 
 	// path param provider
 	if err := r.SetPathParam("provider", o.Provider); err != nil {
+		return err
+	}
+
+	// path param service
+	if err := r.SetPathParam("service", o.Service); err != nil {
 		return err
 	}
 

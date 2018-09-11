@@ -11,9 +11,9 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// GetAttributeValuesParams GetAttributeValuesParams is a placeholder for the get attribute values route's path parameters
-// swagger:model GetAttributeValuesParams
-type GetAttributeValuesParams struct {
+// GetAttributeValuesPathParams GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
+// swagger:model GetAttributeValuesPathParams
+type GetAttributeValuesPathParams struct {
 
 	// in:path
 	Attribute string `json:"attribute,omitempty"`
@@ -23,15 +23,18 @@ type GetAttributeValuesParams struct {
 
 	// in:path
 	Region string `json:"region,omitempty"`
+
+	// in:path
+	Service string `json:"service,omitempty"`
 }
 
-// Validate validates this get attribute values params
-func (m *GetAttributeValuesParams) Validate(formats strfmt.Registry) error {
+// Validate validates this get attribute values path params
+func (m *GetAttributeValuesPathParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *GetAttributeValuesParams) MarshalBinary() ([]byte, error) {
+func (m *GetAttributeValuesPathParams) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -39,8 +42,8 @@ func (m *GetAttributeValuesParams) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *GetAttributeValuesParams) UnmarshalBinary(b []byte) error {
-	var res GetAttributeValuesParams
+func (m *GetAttributeValuesPathParams) UnmarshalBinary(b []byte) error {
+	var res GetAttributeValuesPathParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

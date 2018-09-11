@@ -11,24 +11,21 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// RegionResp RegionResp holds the list of available regions of a cloud provider
-// swagger:model RegionResp
-type RegionResp struct {
+// GetProviderPathParams GetProviderPathParams is a placeholder for the providers related route path parameters
+// swagger:model GetProviderPathParams
+type GetProviderPathParams struct {
 
-	// Id
-	ID string `json:"id,omitempty"`
-
-	// name
-	Name string `json:"name,omitempty"`
+	// in:path
+	Provider string `json:"provider,omitempty"`
 }
 
-// Validate validates this region resp
-func (m *RegionResp) Validate(formats strfmt.Registry) error {
+// Validate validates this get provider path params
+func (m *GetProviderPathParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *RegionResp) MarshalBinary() ([]byte, error) {
+func (m *GetProviderPathParams) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -36,8 +33,8 @@ func (m *RegionResp) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *RegionResp) UnmarshalBinary(b []byte) error {
-	var res RegionResp
+func (m *GetProviderPathParams) UnmarshalBinary(b []byte) error {
+	var res GetProviderPathParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

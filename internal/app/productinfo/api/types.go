@@ -1,14 +1,43 @@
 package api
 
-import "github.com/banzaicloud/productinfo/pkg/productinfo"
+import (
+	"github.com/banzaicloud/productinfo/pkg/productinfo"
+)
 
-// GetProductDetailsParams is a placeholder for the get products route's path parameters
-// swagger:parameters getProductDetails
-type GetProductDetailsParams struct {
+const (
+	providerParam  = "provider"
+	attributeParam = "attribute"
+)
+
+// GetProviderPathParams is a placeholder for the providers related route path parameters
+// swagger:parameters getServices getProvider
+type GetProviderPathParams struct {
 	// in:path
 	Provider string `json:"provider"`
+}
+
+// GetServicesPathParams is a placeholder for the services related route path parameters
+// swagger:parameters getRegions getService
+type GetServicesPathParams struct {
+	GetProviderPathParams `mapstructure:",squash"`
+	// in:path
+	Service string `json:"service"`
+}
+
+// GetRegionPathParams is a placeholder for the regions related route path parameters
+// swagger:parameters getRegion getImages getProducts
+type GetRegionPathParams struct {
+	GetServicesPathParams `mapstructure:",squash"`
 	// in:path
 	Region string `json:"region"`
+}
+
+// GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
+// swagger:parameters getAttrValues
+type GetAttributeValuesPathParams struct {
+	GetRegionPathParams `mapstructure:",squash"`
+	// in:path
+	Attribute string `json:"attribute"`
 }
 
 // ProductDetailsResponse Api object to be mapped to product info response
@@ -18,13 +47,6 @@ type ProductDetailsResponse struct {
 	Products []productinfo.ProductDetails `json:"products"`
 	// ScrapingTime represents scraping time for a given provider in milliseconds
 	ScrapingTime string `json:"scrapingTime"`
-}
-
-// GetRegionsParams is a placeholder for the get regions route's path parameters
-// swagger:parameters getRegions
-type GetRegionsParams struct {
-	// in:path
-	Provider string `json:"provider"`
 }
 
 // RegionsResponse holds the list of available regions of a cloud provider
@@ -37,32 +59,12 @@ type Region struct {
 	Name string `json:"name"`
 }
 
-// GetRegionParams is a placeholder for the get region route's path parameters
-// swagger:parameters getRegion
-type GetRegionParams struct {
-	// in:path
-	Provider string `json:"provider"`
-	// in:path
-	Region string `json:"region"`
-}
-
 // GetRegionResp holds the detailed description of a specific region of a cloud provider
 // swagger:model RegionResponse
 type GetRegionResp struct {
 	Id    string   `json:"id"`
 	Name  string   `json:"name"`
 	Zones []string `json:"zones"`
-}
-
-// GetAttributeValuesParams is a placeholder for the get attribute values route's path parameters
-// swagger:parameters getAttributeValues
-type GetAttributeValuesParams struct {
-	// in:path
-	Provider string `json:"provider"`
-	// in:path
-	Region string `json:"region"`
-	// in:path
-	Attribute string `json:"attribute"`
 }
 
 // AttributeResponse holds attribute values
@@ -72,6 +74,47 @@ type AttributeResponse struct {
 	AttributeValues []float64 `json:"attributeValues"`
 }
 
-// ProviderResponse is the response used for the supported providers
+// ProviderResponse is the response used for the requested provider
 // swagger:model ProviderResponse
-type ProviderResponse []string
+type ProviderResponse struct {
+	Provider productinfo.Provider `json:"provider"`
+}
+
+// ProvidersResponse is the response used for the supported providers
+// swagger:model ProvidersResponse
+type ProvidersResponse struct {
+	Providers []productinfo.Provider `json:"providers"`
+}
+
+// ServicesResponse holds the list of available services
+// swagger:model ServicesResponse
+type ServicesResponse struct {
+	Services []productinfo.Service `json:"services"`
+}
+
+// ServiceResponse holds the list of available services
+// swagger:model ServiceResponse
+type ServiceResponse struct {
+	Service productinfo.Service `json:"service"`
+}
+
+// ImagesResponse holds the list of available images
+// swagger:model ImagesResponse
+type ImagesResponse struct {
+	Images []productinfo.Image `json:"images"`
+}
+
+// ErrorResponse struct for error responses
+// // swagger:model ErrorResponse
+type ErrorResponse struct {
+	ErrorCode    string `json:"code,omitempty"`
+	ErrorMessage string `json:"message,omitempty"`
+}
+
+// NewErrorResponse creates a new ERrorResponse struct
+func NewErrorResponse(code, message string) ErrorResponse {
+	return ErrorResponse{
+		ErrorCode:    code,
+		ErrorMessage: message,
+	}
+}

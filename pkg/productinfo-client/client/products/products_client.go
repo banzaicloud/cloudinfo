@@ -25,30 +25,30 @@ type Client struct {
 }
 
 /*
-GetProductDetails provides a list of available machine types on a given provider in a specific region
+GetProducts provides a list of available machine types on a given provider in a specific region
 */
-func (a *Client) GetProductDetails(params *GetProductDetailsParams) (*GetProductDetailsOK, error) {
+func (a *Client) GetProducts(params *GetProductsParams) (*GetProductsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetProductDetailsParams()
+		params = NewGetProductsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "getProductDetails",
+		ID:                 "getProducts",
 		Method:             "GET",
-		PathPattern:        "/products/{provider}/{region}",
+		PathPattern:        "/providers/{provider}/services/{service}/regions/{region}/products",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{""},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &GetProductDetailsReader{formats: a.formats},
+		Reader:             &GetProductsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*GetProductDetailsOK), nil
+	return result.(*GetProductsOK), nil
 
 }
 

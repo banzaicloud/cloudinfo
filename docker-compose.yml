@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+
+  productinfo:
+    image: banzaicloud/productinfo:${TAG:-svc}
+    restart: always
+    environment:
+    #    - AWS_ACCESS_KEY_ID = ${AWS_ACCESS_KEY_ID}
+    #    - AWS_SECRET_ACCESS_KEY = ${AWS_SECRET_ACCESS_KEY}
+    - PROVIDER=ec2
+    ports:
+    - 9090:9090
+    volumes:
+    - ${HOME}/.aws:/root/.aws
