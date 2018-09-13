@@ -51,10 +51,10 @@ func Test_processProviderFlag(t *testing.T) {
 			name: "--provider flag properly made available through viper",
 			args: []string{
 				// notice the 3 ways providers may be given
-				"--provider=ec2,gke", "--provider=azure", "--provider", "alibaba",
+				"--provider=amazon,google", "--provider=azure", "--provider", "alibaba",
 			},
 			check: func(val interface{}) {
-				assert.Equal(t, []string{"ec2", "gke", "azure", "alibaba"}, val)
+				assert.Equal(t, []string{"amazon", "google", "azure", "alibaba"}, val)
 
 			},
 		},
@@ -64,7 +64,7 @@ func Test_processProviderFlag(t *testing.T) {
 				// no provider flag specified
 			},
 			check: func(val interface{}) {
-				assert.Equal(t, []string{Ec2, Gce, Azure, Oracle, Alibaba}, val)
+				assert.Equal(t, []string{Amazon, Google, Azure, Oracle, Alibaba}, val)
 
 			},
 		},

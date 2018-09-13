@@ -33,7 +33,7 @@ Usage of ./productinfo:
       --product-info-renewal-interval duration   duration (in go syntax) between renewing the product information. Example: 2h30m (default 24h0m0s)
       --prometheus-address string                http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.
       --prometheus-query string                  advanced configuration: change the query used to query spot price info from Prometheus. (default "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
-      --provider strings                         Providers that will be used with the productinfo application. (default [ec2,gce,azure,oracle,alibaba])
+      --provider strings                         Providers that will be used with the productinfo application. (default [amazon,google,azure,oracle,alibaba])
 ```
 
 ## Cloud credentials
@@ -51,7 +51,7 @@ The easiest way is through environment variables:
 ```
 export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 export AWS_ACCESS_KEY_ID=<your-access-key-id>
-./productinfo --provider ec2
+./productinfo --provider amazon
 ```
 
 ### Google Cloud
@@ -65,7 +65,7 @@ Once you have a service account, download the JSON credentials file from the Goo
 
 ```
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
-./productinfo --provider gce --gce-api-key "<gce-api-key>"
+./productinfo --provider google --gce-api-key "<gce-api-key>"
 
 ```
 
@@ -117,7 +117,7 @@ export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
 export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
 export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
 export ALIBABA_REGION_ID=<region-id>
-./productinfo --provider ec2 --provider gce --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle --provider alibaba
+./productinfo --provider amazon --provider google --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle --provider alibaba
 
 ```
 
@@ -147,7 +147,7 @@ curl  -ksL -X GET "http://localhost:9091/api/v1/regions/azure/" | jq .
 ```
 
 ```
-curl  -ksL -X GET "http://localhost:9091/api/v1/products/ec2/eu-west-1" | jq .
+curl  -ksL -X GET "http://localhost:9091/api/v1/products/amazon/eu-west-1" | jq .
 {
   "products": [
     {
