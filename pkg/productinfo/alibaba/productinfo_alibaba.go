@@ -336,7 +336,7 @@ func getJson(url string) (OnDemandPriceFromJson, error) {
 func (e *AlibabaInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 	services := []productinfo.ServiceDescriber{
 		productinfo.NewService("compute"),
-		productinfo.NewService("acs")}
+		productinfo.NewService("acsk")}
 	return services, nil
 }
 
