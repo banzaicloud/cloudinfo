@@ -34,8 +34,12 @@ func ConfigureValidator(providers []string, pi *productinfo.CachingProductInfo) 
 		return false
 	})
 
+	// register validator for the service parameter in the request path
+	v.RegisterValidation("service", serviceValidator(pi))
+
 	// register validator for the region parameter in the request path
 	v.RegisterValidation("region", regionValidator(pi))
+
 }
 
 // ValidatePathParam is a gin middleware handler function that validates a named path parameter with specific Validate tags
@@ -58,23 +62,35 @@ func ValidatePathParam(name string, validate *validator.Validate, tags ...string
 	}
 }
 
-// ValidateRegionData middleware function to validate region information in the request path.
-func ValidateRegionData(validate *validator.Validate) gin.HandlerFunc {
+// ValidatePathData middleware function to validate region information in the request path.
+func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
 	const (
 		providerParam = "provider"
+		serviceParam  = "service"
 		regionParam   = "region"
 	)
 	return func(c *gin.Context) {
-		regionData := newRegionData(c.Param(providerParam), c.Param(regionParam))
-		logrus.Debugf("region data being validated: %s", regionData)
-		err := validate.Struct(regionData)
+		var data interface{}
+		// build the appropriate internal struct based on the path params
+		provider, _ := c.Params.Get(providerParam)
+		service, _ := c.Params.Get(serviceParam)
+		region, hasRegion := c.Params.Get(regionParam)
+
+		data = newServiceData(provider, service)
+
+		if hasRegion {
+			data = regionData{pathData: data.(pathData), Region: region}
+		}
+
+		logrus.Debugf("path data is being validated: %s", data)
+		err := validate.Struct(data)
 		if err != nil {
 			logrus.Errorf("validation failed. err: %s", err.Error())
 			c.Abort()
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "bad_params",
-				"message": fmt.Sprintf("invalid region in path: %s", regionData),
-				"params":  regionData,
+				"message": fmt.Sprintf("invalid path parameter value: %s", data),
+				"params":  data,
 			})
 			return
 		}
@@ -82,25 +98,32 @@ func ValidateRegionData(validate *validator.Validate) gin.HandlerFunc {
 
 }
 
-// regionData struct encapsulating data for region validation in the request path
-type regionData struct {
+// pathData struct encapsulates request path data for validation purposes
+type pathData struct {
 	// Cloud the cloud provider from the request path
 	Cloud string `binding:"required"`
+	// Service the service in the request path
+	Service string `binding:"service"`
+}
+
+type regionData struct {
+	// embedded
+	pathData
 	// Region the region in the request path
 	Region string `binding:"region"`
 }
 
 // String representation of the path data
-func (rd *regionData) String() string {
-	return fmt.Sprintf("Cloud: %s, Region: %s", rd.Cloud, rd.Region)
+func (rd *pathData) String() string {
+	return fmt.Sprintf("Cloud: %s, Service: %s", rd.Cloud, rd.Service)
 }
 
-// newRegionData constructs a new struct
-func newRegionData(cloud string, region string) regionData {
-	return regionData{Cloud: cloud, Region: region}
+// newPathData constructs a new struct
+func newServiceData(cloud, service string) pathData {
+	return pathData{Cloud: cloud, Service: service}
 }
 
-// validationFn validation logic for the region data to be registered with the validator
+// regionValidator validates the `region` path parameter
 func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -115,6 +138,32 @@ func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 		logrus.Debugf("current region: %s, regions: %#v", currentRegion, regions)
 		for reg := range regions {
 			if reg == currentRegion {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// serviceValidator validates the `service` path parameter
+func serviceValidator(cpi *productinfo.CachingProductInfo) validator.Func {
+
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+		currentProvider := currentStruct.FieldByName("Cloud").String()
+		currentService := currentStruct.FieldByName("Service").String()
+
+		infoer, err := cpi.GetInfoer(currentProvider)
+		if err != nil {
+			logrus.Errorf("could not get information for provider: %s, err: %s", currentProvider, err.Error())
+		}
+		services, err := infoer.GetServices()
+		if err != nil {
+			logrus.Errorf("could not get services for provider: [%s], err: %s", currentProvider, err.Error())
+		}
+
+		for _, svc := range services {
+			if svc.ServiceName() == currentService {
 				return true
 			}
 		}
