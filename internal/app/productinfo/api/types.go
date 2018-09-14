@@ -21,7 +21,7 @@ type GetProviderPathParams struct {
 type GetServicesPathParams struct {
 	GetProviderPathParams `mapstructure:",squash"`
 	// in:path
-	Service string `json:"service"`
+	Service string `binding:"service" json:"service"`
 }
 
 // GetRegionPathParams is a placeholder for the regions related route path parameters
@@ -29,7 +29,7 @@ type GetServicesPathParams struct {
 type GetRegionPathParams struct {
 	GetServicesPathParams `mapstructure:",squash"`
 	// in:path
-	Region string `json:"region"`
+	Region string `binding:"region" json:"region"`
 }
 
 // GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters

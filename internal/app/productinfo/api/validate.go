@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/mitchellh/mapstructure"
 	"net/http"
 	"reflect"
 
@@ -70,27 +71,28 @@ func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
 		regionParam   = "region"
 	)
 	return func(c *gin.Context) {
-		var data interface{}
-		// build the appropriate internal struct based on the path params
-		provider, _ := c.Params.Get(providerParam)
-		service, _ := c.Params.Get(serviceParam)
-		region, hasRegion := c.Params.Get(regionParam)
 
-		data = newServiceData(provider, service)
+		var pathData interface{}
+		// build the appropriate internal struct based on the path params
+		_, hasRegion := c.Params.Get(regionParam)
 
 		if hasRegion {
-			data = regionData{pathData: data.(pathData), Region: region}
+			pathData = &GetRegionPathParams{}
+		} else {
+			pathData = &GetServicesPathParams{}
 		}
 
-		logrus.Debugf("path data is being validated: %s", data)
-		err := validate.Struct(data)
+		mapstructure.Decode(getPathParamMap(c), pathData)
+
+		logrus.Debugf("path data is being validated: %s", pathData)
+		err := validate.Struct(pathData)
 		if err != nil {
 			logrus.Errorf("validation failed. err: %s", err.Error())
 			c.Abort()
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "bad_params",
-				"message": fmt.Sprintf("invalid path parameter value: %s", data),
-				"params":  data,
+				"message": fmt.Sprintf("invalid path parameter value: %s", pathData),
+				"params":  pathData,
 			})
 			return
 		}
@@ -98,37 +100,12 @@ func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
 
 }
 
-// pathData struct encapsulates request path data for validation purposes
-type pathData struct {
-	// Cloud the cloud provider from the request path
-	Cloud string `binding:"required"`
-	// Service the service in the request path
-	Service string `binding:"service"`
-}
-
-type regionData struct {
-	// embedded
-	pathData
-	// Region the region in the request path
-	Region string `binding:"region"`
-}
-
-// String representation of the path data
-func (rd *pathData) String() string {
-	return fmt.Sprintf("Cloud: %s, Service: %s", rd.Cloud, rd.Service)
-}
-
-// newPathData constructs a new struct
-func newServiceData(cloud, service string) pathData {
-	return pathData{Cloud: cloud, Service: service}
-}
-
 // regionValidator validates the `region` path parameter
 func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		currentProvider := currentStruct.FieldByName("Cloud").String()
-		currentRegion := currentStruct.FieldByName("Region").String()
+		currentProvider := digValueForName(currentStruct, "Provider")
+		currentRegion := digValueForName(currentStruct, "Region")
 
 		regions, err := cpi.GetRegions(currentProvider)
 		if err != nil {
@@ -150,8 +127,8 @@ func serviceValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-		currentProvider := currentStruct.FieldByName("Cloud").String()
-		currentService := currentStruct.FieldByName("Service").String()
+		currentProvider := digValueForName(currentStruct, "Provider")
+		currentService := digValueForName(currentStruct, "Service")
 
 		infoer, err := cpi.GetInfoer(currentProvider)
 		if err != nil {
@@ -169,4 +146,15 @@ func serviceValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 		}
 		return false
 	}
+}
+
+func digValueForName(value reflect.Value, field string) string {
+	var ret string
+	switch value.Kind() {
+	case reflect.Struct:
+		ret = value.FieldByName(field).String()
+	case reflect.Ptr:
+		ret = value.Elem().FieldByName(field).String()
+	}
+	return ret
 }
