@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/mitchellh/mapstructure"
 	"net/http"
 	"reflect"
 
@@ -34,8 +35,12 @@ func ConfigureValidator(providers []string, pi *productinfo.CachingProductInfo) 
 		return false
 	})
 
+	// register validator for the service parameter in the request path
+	v.RegisterValidation("service", serviceValidator(pi))
+
 	// register validator for the region parameter in the request path
 	v.RegisterValidation("region", regionValidator(pi))
+
 }
 
 // ValidatePathParam is a gin middleware handler function that validates a named path parameter with specific Validate tags
@@ -58,23 +63,36 @@ func ValidatePathParam(name string, validate *validator.Validate, tags ...string
 	}
 }
 
-// ValidateRegionData middleware function to validate region information in the request path.
-func ValidateRegionData(validate *validator.Validate) gin.HandlerFunc {
+// ValidatePathData middleware function to validate region information in the request path.
+func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
 	const (
 		providerParam = "provider"
+		serviceParam  = "service"
 		regionParam   = "region"
 	)
 	return func(c *gin.Context) {
-		regionData := newRegionData(c.Param(providerParam), c.Param(regionParam))
-		logrus.Debugf("region data being validated: %s", regionData)
-		err := validate.Struct(regionData)
+
+		var pathData interface{}
+		// build the appropriate internal struct based on the path params
+		_, hasRegion := c.Params.Get(regionParam)
+
+		if hasRegion {
+			pathData = &GetRegionPathParams{}
+		} else {
+			pathData = &GetServicesPathParams{}
+		}
+
+		mapstructure.Decode(getPathParamMap(c), pathData)
+
+		logrus.Debugf("path data is being validated: %s", pathData)
+		err := validate.Struct(pathData)
 		if err != nil {
 			logrus.Errorf("validation failed. err: %s", err.Error())
 			c.Abort()
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "bad_params",
-				"message": fmt.Sprintf("invalid region in path: %s", regionData),
-				"params":  regionData,
+				"message": fmt.Sprintf("invalid path parameter value: %s", pathData),
+				"params":  pathData,
 			})
 			return
 		}
@@ -82,30 +100,12 @@ func ValidateRegionData(validate *validator.Validate) gin.HandlerFunc {
 
 }
 
-// regionData struct encapsulating data for region validation in the request path
-type regionData struct {
-	// Cloud the cloud provider from the request path
-	Cloud string `binding:"required"`
-	// Region the region in the request path
-	Region string `binding:"region"`
-}
-
-// String representation of the path data
-func (rd *regionData) String() string {
-	return fmt.Sprintf("Cloud: %s, Region: %s", rd.Cloud, rd.Region)
-}
-
-// newRegionData constructs a new struct
-func newRegionData(cloud string, region string) regionData {
-	return regionData{Cloud: cloud, Region: region}
-}
-
-// validationFn validation logic for the region data to be registered with the validator
+// regionValidator validates the `region` path parameter
 func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		currentProvider := currentStruct.FieldByName("Cloud").String()
-		currentRegion := currentStruct.FieldByName("Region").String()
+		currentProvider := digValueForName(currentStruct, "Provider")
+		currentRegion := digValueForName(currentStruct, "Region")
 
 		regions, err := cpi.GetRegions(currentProvider)
 		if err != nil {
@@ -120,4 +120,41 @@ func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 		}
 		return false
 	}
+}
+
+// serviceValidator validates the `service` path parameter
+func serviceValidator(cpi *productinfo.CachingProductInfo) validator.Func {
+
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+		currentProvider := digValueForName(currentStruct, "Provider")
+		currentService := digValueForName(currentStruct, "Service")
+
+		infoer, err := cpi.GetInfoer(currentProvider)
+		if err != nil {
+			logrus.Errorf("could not get information for provider: %s, err: %s", currentProvider, err.Error())
+		}
+		services, err := infoer.GetServices()
+		if err != nil {
+			logrus.Errorf("could not get services for provider: [%s], err: %s", currentProvider, err.Error())
+		}
+
+		for _, svc := range services {
+			if svc.ServiceName() == currentService {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func digValueForName(value reflect.Value, field string) string {
+	var ret string
+	switch value.Kind() {
+	case reflect.Struct:
+		ret = value.FieldByName(field).String()
+	case reflect.Ptr:
+		ret = value.Elem().FieldByName(field).String()
+	}
+	return ret
 }
