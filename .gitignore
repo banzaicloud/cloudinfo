@@ -1,4 +1,3 @@
-.idea*
 .DS_Store
 bin/*
 .idea/
@@ -9,3 +8,13 @@ test.txt
 /vendor/
 /.licensei.cache
 client_test.go
+
+# IDE integration
+/.idea/*
+!/.idea/copyright/
+!/.idea/*.iml
+!/.idea/externalDependencies.xml
+!/.idea/go.imports.xml
+!/.idea/modules.xml
+!/.idea/runConfigurations/
+!/.idea/scopes/
