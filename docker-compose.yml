@@ -12,4 +12,4 @@ services:
     ports:
     - 9090:9090
     volumes:
-    - ${HOME}/.aws:/root/.aws
+    - ${HOME}/.amazon:/root/.amazon

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ec2
+package amazon
 
 import (
 	"context"
@@ -21,6 +21,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/banzaicloud/productinfo/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
@@ -31,7 +33,6 @@ import (
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -40,7 +41,7 @@ const (
 )
 
 // PricingSource list of operations for retrieving pricing information
-// Decouples the pricing logic from the aws api
+// Decouples the pricing logic from the amazon api
 type PricingSource interface {
 	GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error)
 	GetProducts(input *pricing.GetProductsInput) (*pricing.GetProductsOutput, error)
@@ -62,9 +63,9 @@ type Ec2Describer interface {
 }
 
 // NewEc2Infoer creates a new instance of the infoer
-func NewEc2Infoer(promAddr string, pq string) (*Ec2Infoer, error) {
+func NewEc2Infoer(ctx context.Context, promAddr string, pq string) (*Ec2Infoer, error) {
+	log := logger.Extract(ctx)
 	s, err := session.NewSession()
-
 	if err != nil {
 		log.WithError(err).Error("Error creating AWS session")
 		return nil, err
@@ -78,7 +79,7 @@ func NewEc2Infoer(promAddr string, pq string) (*Ec2Infoer, error) {
 			Address: promAddr,
 		})
 		if err != nil {
-			log.WithError(err).Warn("Error creating Prometheus client, fallback to direct API access.")
+			log.WithError(err).Error("Error creating Prometheus client, fallback to direct API access.")
 			promApi = nil
 		} else {
 			promApi = v1.NewAPI(promClient)
@@ -103,13 +104,14 @@ func NewConfig() *aws.Config {
 }
 
 // Initialize is not needed on EC2 because price info is changing frequently
-func (e *Ec2Infoer) Initialize() (map[string]map[string]productinfo.Price, error) {
+func (e *Ec2Infoer) Initialize(ctx context.Context) (map[string]map[string]productinfo.Price, error) {
 	return nil, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 // Delegates to the underlying PricingSource instance and unifies (transforms) the response
-func (e *Ec2Infoer) GetAttributeValues(attribute string) (productinfo.AttrValues, error) {
+func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+	log := logger.Extract(ctx)
 	apiValues, err := e.pricingSvc.GetAttributeValues(e.newAttributeValuesInput(attribute))
 	if err != nil {
 		return nil, err
@@ -119,7 +121,7 @@ func (e *Ec2Infoer) GetAttributeValues(attribute string) (productinfo.AttrValues
 		dotValue := strings.Replace(*v.Value, ",", ".", -1)
 		floatValue, err := strconv.ParseFloat(strings.Split(dotValue, " ")[0], 64)
 		if err != nil {
-			log.Warnf("Couldn't parse attribute Value: [%s=%s]: %v", attribute, dotValue, err.Error())
+			log.WithError(err).Warnf("Couldn't parse attribute Value: [%s=%s]", attribute, dotValue)
 		}
 		values = append(values, productinfo.AttrValue{
 			Value:    floatValue,
@@ -132,10 +134,11 @@ func (e *Ec2Infoer) GetAttributeValues(attribute string) (productinfo.AttrValues
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
+func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+	log := logger.Extract(ctx)
 
 	var vms []productinfo.VmInfo
-	log.Debugf("Getting available instance types from AWS API. [region=%s]", regionId)
+	log.WithField("region", regionId).Debug("Getting available instance types from AWS API.")
 
 	products, err := e.pricingSvc.GetProducts(e.newGetProductsInput(regionId))
 
@@ -145,37 +148,37 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 	for i, price := range products.PriceList {
 		pd, err := newPriceData(price)
 		if err != nil {
-			log.Warnf("could not extract pricing info for the item with index: [ %d ]", i)
+			log.WithField("region", regionId).WithError(err).Warnf("could not extract pricing info for the item with index: [ %d ]", i)
 			continue
 		}
 
 		instanceType, err := pd.GetDataForKey("instanceType")
 		if err != nil {
-			log.Warnf("could not retrieve instance type [%s]", instanceType)
+			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve instance type [%s]", instanceType)
 			continue
 		}
 		cpusStr, err := pd.GetDataForKey(Cpu)
 		if err != nil {
-			log.Warnf("could not retrieve vcpu [%s]", cpusStr)
+			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve vcpu [%s]", cpusStr)
 			continue
 		}
 		memStr, err := pd.GetDataForKey(productinfo.Memory)
 		if err != nil {
-			log.Warnf("could not retrieve memory [%s]", memStr)
+			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve memory [%s]", memStr)
 			continue
 		}
 		gpu, err := pd.GetDataForKey("gpu")
 		if err != nil {
-			log.Warnf("could not retrieve gpu [%s]", gpu)
+			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve gpu [%s]", gpu)
 		}
 		odPriceStr, err := pd.GetOnDemandPrice()
 		if err != nil {
-			log.Warnf("could not retrieve on demand price [%s]", odPriceStr)
+			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve on demand price [%s]", odPriceStr)
 			continue
 		}
 		ntwPerf, err := pd.GetDataForKey("networkPerformance")
 		if err != nil {
-			log.Warnf("could not parse network performance [%s]", ntwPerf)
+			log.WithField("region", regionId).WithError(err).Warnf("could not parse network performance [%s]", ntwPerf)
 			continue
 		}
 
@@ -202,10 +205,10 @@ func (e *Ec2Infoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 		vms = append(vms, vm)
 	}
 	if vms == nil {
-		log.Debugf("couldn't find any virtual machines to recommend")
+		log.WithField("region", regionId).Debug("couldn't find any virtual machines to recommend")
 	}
 
-	log.Debugf("found vms: %#v", vms)
+	log.WithField("region", regionId).Debugf("found vms: %#v", vms)
 	return vms, nil
 }
 
@@ -308,22 +311,22 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 		ServiceCode: aws.String("AmazonEC2"),
 		Filters: []*pricing.Filter{
 			{
-				Type:  aws.String("TERM_MATCH"),
+				Type:  aws.String(pricing.FilterTypeTermMatch),
 				Field: aws.String("operatingSystem"),
 				Value: aws.String("Linux"),
 			},
 			{
-				Type:  aws.String("TERM_MATCH"),
+				Type:  aws.String(pricing.FilterTypeTermMatch),
 				Field: aws.String("location"),
 				Value: aws.String(e.GetRegion(regionId).Description()),
 			},
 			{
-				Type:  aws.String("TERM_MATCH"),
+				Type:  aws.String(pricing.FilterTypeTermMatch),
 				Field: aws.String("tenancy"),
 				Value: aws.String("shared"),
 			},
 			{
-				Type:  aws.String("TERM_MATCH"),
+				Type:  aws.String(pricing.FilterTypeTermMatch),
 				Field: aws.String("preInstalledSw"),
 				Value: aws.String("NA"),
 			},
@@ -333,7 +336,7 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
-func (e *Ec2Infoer) GetRegions() (map[string]string, error) {
+func (e *Ec2Infoer) GetRegions(ctx context.Context) (map[string]string, error) {
 	regionIdMap := make(map[string]string)
 	for key, region := range endpoints.AwsPartition().Regions() {
 		regionIdMap[key] = region.Description()
@@ -342,7 +345,7 @@ func (e *Ec2Infoer) GetRegions() (map[string]string, error) {
 }
 
 // GetZones returns the availability zones in a region
-func (e *Ec2Infoer) GetZones(region string) ([]string, error) {
+func (e *Ec2Infoer) GetZones(ctx context.Context, region string) ([]string, error) {
 
 	var zones []string
 	azs, err := e.ec2Describer(region).DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
@@ -362,17 +365,18 @@ func (e *Ec2Infoer) HasShortLivedPriceInfo() bool {
 	return true
 }
 
-func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]productinfo.SpotPriceInfo, error) {
-	log.Debug("getting spot price averages from Prometheus API")
+func (e *Ec2Infoer) getSpotPricesFromPrometheus(ctx context.Context, region string) (map[string]productinfo.SpotPriceInfo, error) {
+	log := logger.Extract(ctx)
+	log.WithField("region", region).Debug("getting spot price averages from Prometheus API")
 	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
-	log.Debugf("sending prometheus query: %s", query)
+	log.WithField("region", region).Debugf("sending prometheus query: %s", query)
 	result, err := e.prometheus.Query(context.Background(), query, time.Now())
 	if err != nil {
 		return nil, err
 	}
 	if result.String() == "" {
-		log.Warnf("Prometheus metric is empty")
+		log.WithField("region", region).Warn("Prometheus metric is empty")
 	} else {
 		r := result.(model.Vector)
 		for _, value := range r {
@@ -391,7 +395,7 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]produ
 	return priceInfo, nil
 }
 
-func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]productinfo.SpotPriceInfo, error) {
+func (e *Ec2Infoer) getCurrentSpotPrices(ctx context.Context, region string) (map[string]productinfo.SpotPriceInfo, error) {
 	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 	err := e.ec2Describer(region).DescribeSpotPriceHistoryPages(&ec2.DescribeSpotPriceHistoryInput{
 		StartTime:           aws.Time(time.Now()),
@@ -400,7 +404,7 @@ func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]productinfo.
 		for _, pe := range history.SpotPriceHistory {
 			price, err := strconv.ParseFloat(*pe.SpotPrice, 64)
 			if err != nil {
-				log.WithError(err).Errorf("couldn't parse spot price from history")
+				logger.Extract(ctx).WithField("region", region).WithError(err).Error("couldn't parse spot price from history")
 				continue
 			}
 			if priceInfo[*pe.InstanceType] == nil {
@@ -417,21 +421,22 @@ func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]productinfo.
 }
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
-func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]productinfo.Price, error) {
+func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[string]productinfo.Price, error) {
+	log := logger.Extract(ctx)
 	var spotPrices map[string]productinfo.SpotPriceInfo
 	var err error
 	if e.prometheus != nil {
-		spotPrices, err = e.getSpotPricesFromPrometheus(region)
+		spotPrices, err = e.getSpotPricesFromPrometheus(ctx, region)
 		if err != nil {
-			log.WithError(err).Warn("Couldn't get spot price info from Prometheus API, fallback to direct AWS API access.")
+			log.WithField("region", region).WithError(err).Warn("Couldn't get spot price info from Prometheus API, fallback to direct AWS API access.")
 		}
 	}
 
 	if len(spotPrices) == 0 {
-		log.Debug("getting current spot prices directly from the AWS API")
-		spotPrices, err = e.getCurrentSpotPrices(region)
+		log.WithField("region", region).Debug("getting current spot prices directly from the AWS API")
+		spotPrices, err = e.getCurrentSpotPrices(ctx, region)
 		if err != nil {
-			log.Errorf("could not retrieve current prices. region %s, error: %s", region, err.Error())
+			log.WithField("region", region).WithError(err).Error("could not retrieve current prices")
 			return nil, err
 		}
 	}
@@ -471,14 +476,14 @@ func (e *Ec2Infoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 }
 
 // GetService returns the given service description
-func (e *Ec2Infoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+func (e *Ec2Infoer) GetService(ctx context.Context, service string) (productinfo.ServiceDescriber, error) {
 	svcs, err := e.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			log.Debugf("found service: %s", service)
+			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}

@@ -50,25 +50,25 @@ const (
 // This interface abstracts the cloud provider specifics to its clients
 type ProductInfoer interface {
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
-	Initialize() (map[string]map[string]Price, error)
+	Initialize(ctx context.Context) (map[string]map[string]Price, error)
 
 	// GetAttributeValues gets the attribute values for the given attribute from the external system
-	GetAttributeValues(attribute string) (AttrValues, error)
+	GetAttributeValues(ctx context.Context, attribute string) (AttrValues, error)
 
 	// GetProducts gets product information based on the given arguments from an external system
-	GetProducts(regionId string) ([]VmInfo, error)
+	GetProducts(ctx context.Context, regionId string) ([]VmInfo, error)
 
 	// GetZones returns the availability zones in a region
-	GetZones(region string) ([]string, error)
+	GetZones(ctx context.Context, region string) ([]string, error)
 
 	// GetRegions retrieves the available regions form the external system
-	GetRegions() (map[string]string, error)
+	GetRegions(ctx context.Context) (map[string]string, error)
 
 	// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
 	HasShortLivedPriceInfo() bool
 
 	// GetCurrentPrices retrieves all the spot prices in a region
-	GetCurrentPrices(region string) (map[string]Price, error)
+	GetCurrentPrices(ctx context.Context, region string) (map[string]Price, error)
 
 	// GetMemoryAttrName returns the provider representation of the memory attribute
 	GetMemoryAttrName() string
@@ -83,7 +83,7 @@ type ProductInfoer interface {
 	GetServices() ([]ServiceDescriber, error)
 
 	// GetServices returns the available services on the  given region
-	GetService(service string) (ServiceDescriber, error)
+	GetService(ctx context.Context, service string) (ServiceDescriber, error)
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
 	GetServiceImages(region, service string) ([]ImageDescriber, error)

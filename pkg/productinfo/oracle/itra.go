@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package oci
+package oracle
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/banzaicloud/productinfo/logger"
 )
 
 // ITRAProductInfo holds information of a product
@@ -45,18 +46,18 @@ type ITRAResponse struct {
 }
 
 // GetProductInfoFromITRA gets product information from ITRA api by part number
-func (i *Infoer) GetProductInfoFromITRA(partNumber string) (info ITRAProductInfo, err error) {
+func (i *Infoer) GetProductInfoFromITRA(ctx context.Context, partNumber string) (info ITRAProductInfo, err error) {
 
 	if i.productInfoCache == nil {
 		i.productInfoCache = make(map[string]ITRAProductInfo)
 	}
 
 	if _, ok := i.productInfoCache[partNumber]; ok {
-		log.Debugf("getting product info for PN[%s] - from cache", partNumber)
+		logger.Extract(ctx).Debugf("getting product info for PN[%s] - from cache", partNumber)
 		return i.productInfoCache[partNumber], nil
 	}
 
-	log.Debugf("getting product info for PN[%s]", partNumber)
+	logger.Extract(ctx).Debugf("getting product info for PN[%s]", partNumber)
 
 	url := fmt.Sprintf("https://itra.oraclecloud.com/itas/.anon/myservices/api/v1/products?partNumber=%s", partNumber)
 	resp, err := http.Get(url)

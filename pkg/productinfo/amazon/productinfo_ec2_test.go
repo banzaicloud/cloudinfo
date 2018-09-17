@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ec2
+package amazon
 
 import (
+	"context"
 	"errors"
+	"github.com/sirupsen/logrus"
+	"sync"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -30,6 +33,30 @@ import (
 type testStruct struct {
 	TcId int
 }
+
+// ToContext sets a logrus logger on the context, which can then obtained by Extract
+func toContextDummy(ctx context.Context, entry *logrus.Entry) context.Context {
+	l := &ctxLogger{
+		log:    entry,
+		fields: logrus.Fields{},
+	}
+	return context.WithValue(ctx, ctxLoggerKey, l)
+}
+
+type ctxLoggerMarker struct{}
+
+type ctxLogger struct {
+	rm     sync.Mutex
+	log    *logrus.Entry
+	fields logrus.Fields
+}
+
+var (
+	ctxLoggerKey = &ctxLoggerMarker{}
+
+	// Logger is root logger for events
+	Logger *logrus.Logger
+)
 
 func (dps *testStruct) GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error) {
 
@@ -215,7 +242,7 @@ func TestNewEc2Infoer(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.check(NewEc2Infoer(test.prom, ""))
+			test.check(NewEc2Infoer(context.Background(), test.prom, ""))
 		})
 	}
 }
@@ -254,14 +281,14 @@ func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "", "")
 			// override pricingSvc
 			productInfoer.pricingSvc = test.pricingService
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.GetAttributeValues(test.attrName))
+			test.check(productInfoer.GetAttributeValues(context.Background(), test.attrName))
 
 		})
 	}
@@ -282,11 +309,11 @@ func TestEc2Infoer_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "", "")
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
-			regions, err := productInfoer.GetRegions()
+			regions, err := productInfoer.GetRegions(context.Background())
 			test.check(regions, err)
 		})
 	}
@@ -356,14 +383,14 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "", "")
 			// override pricingSvc
 			productInfoer.pricingSvc = test.pricingService
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.GetProducts(test.regionId))
+			test.check(productInfoer.GetProducts(context.Background(), test.regionId))
 		})
 	}
 }
@@ -395,7 +422,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "", "")
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
@@ -406,6 +433,9 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 }
 
 func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
+
+	ctx := context.Background()
+	ctx = toContextDummy(ctx, logrus.WithFields(logrus.Fields{"provider": "sfds", "region": "addsd"}))
 	tests := []struct {
 		name       string
 		region     string
@@ -437,14 +467,14 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("", "")
+			productInfoer, err := NewEc2Infoer(ctx, "", "")
 			// override ec2cli
 			productInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.getCurrentSpotPrices(test.region))
+			test.check(productInfoer.getCurrentSpotPrices(ctx, test.region))
 		})
 	}
 }
@@ -481,14 +511,14 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("PromAPIAddress", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "")
 			// override ec2cli
 			productInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.GetCurrentPrices(test.region))
+			test.check(productInfoer.GetCurrentPrices(context.Background(), test.region))
 		})
 	}
 }
@@ -526,13 +556,13 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer("PromAPIAddress", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "")
 			// override ec2cli
 			productInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
-			test.check(productInfoer.GetZones(test.region))
+			test.check(productInfoer.GetZones(context.Background(), test.region))
 		})
 	}
 }

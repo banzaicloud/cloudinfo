@@ -18,13 +18,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/banzaicloud/productinfo/logger"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // CachingProductInfo is the module struct, holds configuration and cache
@@ -66,6 +68,11 @@ type VmInfo struct {
 	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
 	CurrentGen bool `json:"currentGen"`
 }
+
+var (
+	scrapeCounterShortLived uint64
+	scrapeCounterComplete   uint64
+)
 
 var (
 	// ScrapeCompleteDurationGauge collects metrics for the prometheus
@@ -139,14 +146,13 @@ func NewCachingProductInfo(ri time.Duration, cache ProductStorer, infoers map[st
 }
 
 // GetProviders returns the supported providers
-func (cpi *CachingProductInfo) GetProviders() []Provider {
+func (cpi *CachingProductInfo) GetProviders(ctx context.Context) []Provider {
 	var providers []Provider
 
 	for name, infoer := range cpi.productInfoers {
-
 		services, err := infoer.GetServices()
 		if err != nil {
-			log.Errorf("could not retrieve services for provider: %s, err: %v", name, err)
+			logger.Extract(ctx).WithField("provider", name).WithError(err).Error("could not retrieve services")
 		}
 
 		// decorate the provider with service information
@@ -163,7 +169,7 @@ func (cpi *CachingProductInfo) GetProviders() []Provider {
 }
 
 // GetProvider returns the supported providers
-func (cpi *CachingProductInfo) GetProvider(provider string) (Provider, error) {
+func (cpi *CachingProductInfo) GetProvider(ctx context.Context, provider string) (Provider, error) {
 	for p := range cpi.productInfoers {
 		if provider == p {
 			return NewProvider(provider), nil
@@ -174,7 +180,8 @@ func (cpi *CachingProductInfo) GetProvider(provider string) (Provider, error) {
 
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
 // provided WaitGroup (if provided)
-func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitGroup) {
+func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider string, wg *sync.WaitGroup) {
+	log := logger.Extract(ctx)
 	if wg != nil {
 		defer wg.Done()
 	}
@@ -182,43 +189,43 @@ func (cpi *CachingProductInfo) renewProviderInfo(provider string, wg *sync.WaitG
 	// get the provider specific infoer
 	pi := cpi.productInfoers[provider]
 
-	log.Infof("renewing product info for provider [%s]", provider)
-	if _, err := cpi.Initialize(provider); err != nil {
+	log.Info("renewing product info")
+	if _, err := cpi.Initialize(ctx, provider); err != nil {
 		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
-		log.Errorf("failed to renew product info for provider [%s], error:  %s", provider, err.Error())
+		log.WithError(err).Error("failed to renew product info")
 		return
 	}
 
-	log.Infof("start to renew attribute values for provider [%s]", provider)
+	log.Info("start to renew attribute values")
 	attributes := []string{Cpu, Memory}
 	for _, attr := range attributes {
-		_, err := cpi.renewAttrValues(provider, attr)
+		_, err := cpi.renewAttrValues(ctx, provider, attr)
 		if err != nil {
 			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
-			log.Errorf("failed to renew attribute values for provider [%s], attribute [%s]; error [%s]", provider, attr, err.Error())
+			log.WithError(err).Errorf("failed to renew %s attribute values", attr)
 			return
 		}
 	}
-	log.Infof("finished to renew attribute values for provider [%s]", provider)
+	log.Info("finished to renew attribute values")
 
-	log.Infof("start to renew products (vm-s) for provider [%s]", provider)
-	regions, err := pi.GetRegions()
+	log.Info("start to renew products (vm-s)")
+	regions, err := pi.GetRegions(ctx)
 	if err != nil {
 		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
-		log.Errorf("failed to renew products for provider [%s], error: %s", provider, err.Error())
+		log.WithError(err).Error("failed to renew products")
 		return
 	}
 
 	for regionId := range regions {
 		start := time.Now()
-		if _, err := cpi.renewVms(provider, regionId); err != nil {
+		if _, err := cpi.renewVms(ctx, provider, regionId); err != nil {
 			ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
-			log.Errorf("failed to renew products for provider [%s], error: %s", provider, err.Error())
+			log.WithField("region", regionId).WithError(err).Error("failed to renew products")
 		} else {
 			ScrapeRegionDurationGauge.WithLabelValues(provider, regionId).Set(time.Since(start).Seconds())
 		}
 	}
-	log.Infof("finished to renew products (vm-s) for provider [%s]", provider)
+	log.Info("finished to renew products (vm-s)")
 
 	cpi.renewStatus(provider)
 	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
@@ -232,84 +239,88 @@ func (cpi *CachingProductInfo) renewStatus(provider string) (string, error) {
 }
 
 // renewAll sequentially renews information for all provider
-func (cpi *CachingProductInfo) renewAll() {
+func (cpi *CachingProductInfo) renewAll(ctx context.Context) {
+	atomic.AddUint64(&scrapeCounterComplete, 1)
 	var providerWg sync.WaitGroup
 	for provider := range cpi.productInfoers {
 		providerWg.Add(1)
-		go cpi.renewProviderInfo(provider, &providerWg)
+		ctxWithFields := logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": provider, "scrapeIdComplete": atomic.LoadUint64(&scrapeCounterComplete)}))
+		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
 	}
 	providerWg.Wait()
-	log.Info("finished renewing product info")
+	logger.Extract(ctx).WithField("scrapeIdComplete", atomic.LoadUint64(&scrapeCounterComplete)).Info("finished renewing product info")
 }
 
-func (cpi *CachingProductInfo) renewShortLived() {
+func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
+	atomic.AddUint64(&scrapeCounterShortLived, 1)
 	var providerWg sync.WaitGroup
 	for provider, infoer := range cpi.productInfoers {
+		ctxWithFields := logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"scrapeIdShortLived": atomic.LoadUint64(&scrapeCounterShortLived), "provider": provider}))
 		providerWg.Add(1)
-		go func(p string, i ProductInfoer) {
+		go func(c context.Context, p string, i ProductInfoer) {
 			defer providerWg.Done()
 			if !i.HasShortLivedPriceInfo() {
-				log.Infof("provider [%s] has no short lived price info", p)
+				logger.Extract(c).Info("no short lived price info")
 				return
 			}
 
-			log.Infof("renewing short lived %s product info", p)
+			logger.Extract(c).Info("renewing short lived product info")
 			start := time.Now()
 
-			regions, err := i.GetRegions()
+			regions, err := i.GetRegions(c)
 			if err != nil {
 				ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
-				log.Errorf("couldn't renew attribute values in cache: %s", err.Error())
+				logger.Extract(c).WithError(err).Error("couldn't renew attribute values in cache")
 				return
 			}
 			var wg sync.WaitGroup
 			for regionId := range regions {
 				wg.Add(1)
-				go func(p string, r string) {
+				go func(c context.Context, p string, r string) {
 					defer wg.Done()
-					_, err := cpi.renewShortLivedInfo(p, r)
+					_, err := cpi.renewShortLivedInfo(c, p, r)
 					if err != nil {
 						ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
-						log.Errorf("couldn't renew short lived info in cache: %s", err.Error())
+						logger.Extract(c).WithField("region", r).WithError(err).Error("couldn't renew short lived info in cache")
 						return
 					}
 					ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
-				}(p, regionId)
+				}(c, p, regionId)
 			}
 			wg.Wait()
 			ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())
 
-		}(provider, infoer)
+		}(ctxWithFields, provider, infoer)
 	}
 	providerWg.Wait()
-	log.Info("finished renewing short lived product info")
+	logger.Extract(ctx).WithField("scrapeIdShortLived", atomic.LoadUint64(&scrapeCounterShortLived)).Info("finished renewing short lived product info")
 }
 
 // Start starts the information retrieval in a new goroutine
 func (cpi *CachingProductInfo) Start(ctx context.Context) {
 
-	go cpi.renewAll()
+	go cpi.renewAll(ctx)
 	ticker := time.NewTicker(cpi.renewalInterval)
-	go func() {
+	go func(c context.Context) {
 		for {
 			select {
 			case <-ticker.C:
-				cpi.renewAll()
-			case <-ctx.Done():
-				log.Debugf("closing ticker")
+				cpi.renewAll(c)
+			case <-c.Done():
+				logger.Extract(c).Debug("closing ticker")
 				ticker.Stop()
 				return
 			}
 		}
-	}()
-	go cpi.renewShortLived()
+	}(ctx)
+	go cpi.renewShortLived(ctx)
 	shortTicker := time.NewTicker(4 * time.Minute)
 	for {
 		select {
 		case <-shortTicker.C:
-			cpi.renewShortLived()
+			cpi.renewShortLived(ctx)
 		case <-ctx.Done():
-			log.Debugf("closing ticker")
+			logger.Extract(ctx).Debug("closing ticker")
 			shortTicker.Stop()
 			return
 		}
@@ -317,12 +328,13 @@ func (cpi *CachingProductInfo) Start(ctx context.Context) {
 }
 
 // Initialize stores the result of the Infoer's Initialize output in cache
-func (cpi *CachingProductInfo) Initialize(provider string) (map[string]map[string]Price, error) {
-	log.Infof("start initializing product information for provider: [%s]", provider)
-	allPrices, err := cpi.productInfoers[provider].Initialize()
+func (cpi *CachingProductInfo) Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error) {
+	log := logger.Extract(ctx)
+	log.Info("start initializing product information")
+	allPrices, err := cpi.productInfoers[provider].Initialize(ctx)
 
 	if err != nil {
-		log.Warnf("failed to initialize product information for provider: [%s], error: %s", provider, err.Error())
+		log.WithError(err).Warn("failed to initialize product information")
 		return nil, err
 	}
 
@@ -331,7 +343,7 @@ func (cpi *CachingProductInfo) Initialize(provider string) (map[string]map[strin
 			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
 		}
 	}
-	log.Infof("finished to initialize product information for provider: [%s]", provider)
+	log.Info("finished to initialize product information")
 	return allPrices, nil
 }
 
@@ -341,23 +353,23 @@ func (cpi *CachingProductInfo) GetAttributes() []string {
 }
 
 // GetAttrValues returns a slice with the values for the given attribute name
-func (cpi *CachingProductInfo) GetAttrValues(provider string, attribute string) ([]float64, error) {
-	v, err := cpi.getAttrValues(provider, attribute)
+func (cpi *CachingProductInfo) GetAttrValues(ctx context.Context, provider string, attribute string) ([]float64, error) {
+	v, err := cpi.getAttrValues(ctx, provider, attribute)
 	if err != nil {
 		return nil, err
 	}
 	floatValues := v.floatValues()
-	log.Debugf("%s attribute values: %v", attribute, floatValues)
+	logger.Extract(ctx).Debugf("%s attribute values: %v", attribute, floatValues)
 	return floatValues, nil
 }
 
-func (cpi *CachingProductInfo) getAttrValues(provider string, attribute string) (AttrValues, error) {
+func (cpi *CachingProductInfo) getAttrValues(ctx context.Context, provider string, attribute string) (AttrValues, error) {
 	attrCacheKey := cpi.getAttrKey(provider, attribute)
 	if cachedVal, ok := cpi.vmAttrStore.Get(attrCacheKey); ok {
-		log.Debugf("Getting available %s values from cache.", attribute)
+		logger.Extract(ctx).Debugf("Getting available %s values from cache.", attribute)
 		return cachedVal.(AttrValues), nil
 	}
-	values, err := cpi.renewAttrValues(provider, attribute)
+	values, err := cpi.renewAttrValues(ctx, provider, attribute)
 	if err != nil {
 		return nil, err
 	}
@@ -369,12 +381,12 @@ func (cpi *CachingProductInfo) getAttrKey(provider string, attribute string) str
 }
 
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
-func (cpi *CachingProductInfo) renewAttrValues(provider string, attribute string) (AttrValues, error) {
+func (cpi *CachingProductInfo) renewAttrValues(ctx context.Context, provider string, attribute string) (AttrValues, error) {
 	attr, err := cpi.toProviderAttribute(provider, attribute)
 	if err != nil {
 		return nil, err
 	}
-	values, err := cpi.productInfoers[provider].GetAttributeValues(attr)
+	values, err := cpi.productInfoers[provider].GetAttributeValues(ctx, attr)
 	if err != nil {
 		return nil, err
 	}
@@ -388,13 +400,14 @@ func (cpi *CachingProductInfo) HasShortLivedPriceInfo(provider string) bool {
 }
 
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
-func (cpi *CachingProductInfo) GetPrice(provider string, region string, instanceType string, zones []string) (float64, float64, error) {
+func (cpi *CachingProductInfo) GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error) {
 	var p Price
+	ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": provider, "region": region}))
 	if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, instanceType)); ok {
-		log.Debugf("Getting price info from cache [provider=%s, region=%s, type=%s].", provider, region, instanceType)
+		logger.Extract(ctx).Debugf("Getting price info from cache [instance type=%s].", instanceType)
 		p = cachedVal.(Price)
 	} else {
-		allPriceInfo, err := cpi.renewShortLivedInfo(provider, region)
+		allPriceInfo, err := cpi.renewShortLivedInfo(ctx, provider, region)
 		if err != nil {
 			return 0, 0, err
 		}
@@ -416,8 +429,8 @@ func (cpi *CachingProductInfo) getPriceKey(provider string, region string, insta
 }
 
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
-func (cpi *CachingProductInfo) renewShortLivedInfo(provider string, region string) (map[string]Price, error) {
-	prices, err := cpi.productInfoers[provider].GetCurrentPrices(region)
+func (cpi *CachingProductInfo) renewShortLivedInfo(ctx context.Context, provider string, region string) (map[string]Price, error) {
+	prices, err := cpi.productInfoers[provider].GetCurrentPrices(ctx, region)
 	if err != nil {
 		return nil, err
 	}
@@ -441,8 +454,8 @@ func (cpi *CachingProductInfo) getVmKey(provider string, region string) string {
 	return fmt.Sprintf(VmKeyTemplate, provider, region)
 }
 
-func (cpi *CachingProductInfo) renewVms(provider string, regionId string) ([]VmInfo, error) {
-	values, err := cpi.productInfoers[provider].GetProducts(regionId)
+func (cpi *CachingProductInfo) renewVms(ctx context.Context, provider, regionId string) ([]VmInfo, error) {
+	values, err := cpi.productInfoers[provider].GetProducts(ctx, regionId)
 	if err != nil {
 		return nil, err
 	}
@@ -451,19 +464,20 @@ func (cpi *CachingProductInfo) renewVms(provider string, regionId string) ([]VmI
 }
 
 // GetZones returns the availability zones in a region
-func (cpi *CachingProductInfo) GetZones(provider string, region string) ([]string, error) {
+func (cpi *CachingProductInfo) GetZones(ctx context.Context, provider string, region string) ([]string, error) {
+	log := logger.Extract(ctx)
 	zoneCacheKey := cpi.getZonesKey(provider, region)
 
 	// check the cache
 	if cachedVal, ok := cpi.vmAttrStore.Get(zoneCacheKey); ok {
-		log.Debugf("Getting available zones from cache. [provider=%s, region=%s]", provider, region)
+		log.Debug("Getting available zones from cache.")
 		return cachedVal.([]string), nil
 	}
 
 	// retrieve zones from the provider
-	zones, err := cpi.productInfoers[provider].GetZones(region)
+	zones, err := cpi.productInfoers[provider].GetZones(ctx, region)
 	if err != nil {
-		log.Errorf("error while retrieving zones. provider: %s, region: %s", provider, region)
+		log.WithError(err).Error("error while retrieving zones.")
 		return nil, err
 	}
 
@@ -485,19 +499,21 @@ func (cpi *CachingProductInfo) GetNetworkPerfMapper(provider string) (NetworkPer
 }
 
 // GetRegions gets the regions for the provided provider
-func (cpi *CachingProductInfo) GetRegions(provider string) (map[string]string, error) {
+func (cpi *CachingProductInfo) GetRegions(ctx context.Context, provider string) (map[string]string, error) {
+	log := logger.Extract(ctx)
 	regionCacheKey := cpi.getRegionsKey(provider)
 
 	// check the cache
 	if cachedVal, ok := cpi.vmAttrStore.Get(regionCacheKey); ok {
-		log.Debugf("Getting available regions from cache. [provider=%s]", provider)
+
+		log.Debug("Getting available regions from cache.")
 		return cachedVal.(map[string]string), nil
 	}
 
 	// retrieve regions from the provider
-	regions, err := cpi.productInfoers[provider].GetRegions()
+	regions, err := cpi.productInfoers[provider].GetRegions(ctx)
 	if err != nil {
-		log.Errorf("could not retrieve regions. provider: %s", provider)
+		log.WithError(err).Error("could not retrieve regions.")
 		return nil, err
 	}
 
@@ -511,9 +527,9 @@ func (cpi *CachingProductInfo) getRegionsKey(provider string) string {
 }
 
 // GetProductDetails retrieves product details form the given provider and region
-func (cpi *CachingProductInfo) GetProductDetails(cloud string, region string) ([]ProductDetails, error) {
-	log.Debugf("getting product details for provider: %s, region: %s", cloud, region)
-
+func (cpi *CachingProductInfo) GetProductDetails(ctx context.Context, cloud string, region string) ([]ProductDetails, error) {
+	log := logger.Extract(ctx)
+	log.Debug("getting product details")
 	cachedVms, ok := cpi.vmAttrStore.Get(cpi.getVmKey(cloud, region))
 	if !ok {
 		return nil, fmt.Errorf("vms not yet cached for the key: %s", cpi.getVmKey(cloud, region))

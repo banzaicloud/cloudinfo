@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/banzaicloud/productinfo/logger"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,7 +30,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -140,11 +140,12 @@ func (a *AzureInfoer) checkRegionID(regionID string, regions map[string]string) 
 }
 
 // Initialize downloads and parses the Rate Card API's meter list on Azure
-func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, error) {
-	log.Debug("initializing Azure price info")
+func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]productinfo.Price, error) {
+	log := logger.Extract(ctx)
+	log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]productinfo.Price)
 
-	regions, err := a.GetRegions()
+	regions, err := a.GetRegions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +162,7 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, err
 			if !strings.Contains(*v.MeterSubCategory, "Windows") {
 				region, err := a.toRegionID(*v.MeterRegion, regions)
 				if err != nil {
-					log.Debugf(err.Error())
+					log.WithError(err).Debug()
 					continue
 				}
 				var instanceTypes []string
@@ -171,7 +172,7 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, err
 				var priceInUsd float64
 
 				if len(v.MeterRates) < 1 {
-					log.Debugf("%s doesn't have rate info in region %s", *v.MeterSubCategory, *v.MeterRegion)
+					log.WithField("region", *v.MeterRegion).Debugf("%s doesn't have rate info in region %s", *v.MeterSubCategory, *v.MeterRegion)
 					continue
 				}
 				for _, rate := range v.MeterRates {
@@ -191,18 +192,18 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]productinfo.Price, err
 					}
 
 					allPrices[region][instanceType] = price
-					log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, instanceType, price)
+					log.WithField("region", region).Debugf("price info added: [machinetype=%s, price=%v]", instanceType, price)
 					mts := a.getMachineTypeVariants(instanceType)
 					for _, mt := range mts {
 						allPrices[region][mt] = price
-						log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, mt, price)
+						log.WithField("region", region).Debugf("price info added: [machinetype=%s, price=%v]", mt, price)
 					}
 				}
 			}
 		}
 	}
 
-	log.Debug("finished initializing Azure price info")
+	log.Debug("finished initializing price info")
 	return allPrices, nil
 }
 
@@ -298,14 +299,15 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AzureInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues, error) {
+func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+	log := logger.Extract(ctx)
 
 	log.Debugf("getting %s values", attribute)
 
 	values := make(productinfo.AttrValues, 0)
 	valueSet := make(map[productinfo.AttrValue]interface{})
 
-	regions, err := a.GetRegions()
+	regions, err := a.GetRegions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +315,7 @@ func (a *AzureInfoer) GetAttributeValues(attribute string) (productinfo.AttrValu
 	for region := range regions {
 		vmSizes, err := a.vmSizesClient.List(context.TODO(), region)
 		if err != nil {
-			log.WithError(err).Warnf("[Azure] couldn't get VM sizes in region %s", region)
+			log.WithField("region", region).WithError(err).Warn("couldn't get VM sizes")
 			continue
 		}
 		for _, v := range *vmSizes.Value {
@@ -341,8 +343,9 @@ func (a *AzureInfoer) GetAttributeValues(attribute string) (productinfo.AttrValu
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AzureInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
-	log.Debugf("getting product info [region=%s]", regionId)
+func (a *AzureInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+	log := logger.Extract(ctx)
+	log.WithField("region", regionId).Debug("getting product info")
 	var vms []productinfo.VmInfo
 	vmSizes, err := a.vmSizesClient.List(context.TODO(), regionId)
 	if err != nil {
@@ -357,17 +360,18 @@ func (a *AzureInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error)
 		})
 	}
 
-	log.Debugf("found vms: %#v", vms)
+	log.WithField("region", regionId).Debugf("found vms: %#v", vms)
 	return vms, nil
 }
 
 // GetZones returns the availability zones in a region
-func (a *AzureInfoer) GetZones(region string) ([]string, error) {
+func (a *AzureInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
 	return []string{region}, nil
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (a *AzureInfoer) GetRegions() (map[string]string, error) {
+func (a *AzureInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
+	log := logger.Extract(ctx)
 
 	allLocations := make(map[string]string)
 	supLocations := make(map[string]string)
@@ -379,7 +383,7 @@ func (a *AzureInfoer) GetRegions() (map[string]string, error) {
 			allLocations[*loc.DisplayName] = *loc.Name
 		}
 	} else {
-		log.Errorf("error while retrieving azure locations. err: %s", err.Error())
+		log.WithError(err).Error("error while retrieving azure locations")
 		return nil, err
 	}
 
@@ -394,7 +398,7 @@ func (a *AzureInfoer) GetRegions() (map[string]string, error) {
 			if *pr.ResourceType == resourceType {
 				for _, displName := range *pr.Locations {
 					if loc, ok := allLocations[displName]; ok {
-						log.Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
+						log.WithField("region", loc).Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
 						supLocations[loc] = displName
 					} else {
 						log.Debugf("unsupported location. [name, display name] = [%s, %s]", loc, displName)
@@ -404,7 +408,7 @@ func (a *AzureInfoer) GetRegions() (map[string]string, error) {
 			}
 		}
 	} else {
-		log.Errorf("error while retrieving supported locations for provider: %s. err: %s", providerNamespace, err.Error())
+		log.WithError(err).Errorf("error while retrieving supported locations for provider: %s.", providerNamespace)
 		return nil, err
 	}
 
@@ -417,7 +421,7 @@ func (a *AzureInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices retrieves all the price info in a region
-func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]productinfo.Price, error) {
+func (a *AzureInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]productinfo.Price, error) {
 	return nil, errors.New("azure prices cannot be queried on the fly")
 }
 
@@ -445,14 +449,14 @@ func (a *AzureInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 }
 
 // GetService returns the service on the provider
-func (a *AzureInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+func (a *AzureInfoer) GetService(ctx context.Context, service string) (productinfo.ServiceDescriber, error) {
 	svcs, err := a.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			log.Debugf("found service: %s", service)
+			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}

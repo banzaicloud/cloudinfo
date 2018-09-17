@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gce
+package oracle
 
 import (
 	"fmt"
@@ -22,24 +22,24 @@ import (
 
 var (
 	ntwPerfMap = map[string][]string{
-		productinfo.NTW_LOW:    {"1 Gbit/s", "2 Gbit/s"},
-		productinfo.NTW_MEDIUM: {"4 Gbit/s", "6 Gbit/s", "8 Gbit/s"},
-		productinfo.NTW_HIGH:   {"10 Gbit/s", "12 Gbit/s", "14 Gbit/s"},
-		productinfo.NTW_EXTRA:  {"16 Gbit/s"},
+		productinfo.NTW_LOW:    {"0.6 Gbps"},
+		productinfo.NTW_MEDIUM: {"1 Gbps", "1.2 Gbps", "2 Gbps", "2.4 Gbps"},
+		productinfo.NTW_HIGH:   {"4.1 Gbps", "4.8 Gbps", "8.2 Gbps"},
+		productinfo.NTW_EXTRA:  {"16.4 Gbps", "24.6 Gbps"},
 	}
 )
 
-// GceNetworkMapper module object for handling Google Cloud specific VM to Networking capabilities mapping
-type GceNetworkMapper struct {
+// OCINetworkMapper module object for handling Oracle specific VM to Networking capabilities mapping
+type OCINetworkMapper struct {
 }
 
-// newGceNetworkMapper initializes the network performance mapper struct
-func newGceNetworkMapper() *GceNetworkMapper {
-	return &GceNetworkMapper{}
+// newNetworkMapper initializes the network performance mapper struct
+func newNetworkMapper() *OCINetworkMapper {
+	return &OCINetworkMapper{}
 }
 
-// MapNetworkPerf maps the network performance of the gce instance to the category supported by telescopes
-func (nm *GceNetworkMapper) MapNetworkPerf(vm productinfo.VmInfo) (string, error) {
+// MapNetworkPerf maps the network performance of the instance to the category supported by telescopes
+func (nm *OCINetworkMapper) MapNetworkPerf(vm productinfo.VmInfo) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
 		if productinfo.Contains(strVals, vm.NtwPerf) {
 			return perfCat, nil

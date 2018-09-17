@@ -15,9 +15,10 @@
 package api
 
 import (
+	"context"
+	"github.com/banzaicloud/productinfo/logger"
+	"github.com/sirupsen/logrus"
 	"net/http"
-
-	log "github.com/sirupsen/logrus"
 
 	"fmt"
 
@@ -38,16 +39,18 @@ import (
 //
 //     Responses:
 //       200: ProvidersResponse
-func (r *RouteHandler) getProviders(c *gin.Context) {
+func (r *RouteHandler) getProviders(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"correlation-id": logger.GetCorrelationId(c)}))
+		providers := r.prod.GetProviders(ctx)
+		if len(providers) < 1 {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "no providers are configured"})
+		}
 
-	providers := r.prod.GetProviders()
-	if len(providers) < 1 {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "no providers are configured"})
+		c.JSON(http.StatusOK, ProvidersResponse{
+			Providers: providers,
+		})
 	}
-
-	c.JSON(http.StatusOK, ProvidersResponse{
-		Providers: providers,
-	})
 }
 
 // swagger:route GET /providers/{provider} provider getProvider
@@ -63,21 +66,23 @@ func (r *RouteHandler) getProviders(c *gin.Context) {
 //
 //     Responses:
 //       200: ProviderResponse
-func (r *RouteHandler) getProvider(c *gin.Context) {
+func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetProviderPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := GetProviderPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "correlation-id": logger.GetCorrelationId(c)}))
+		provider, err := r.prod.GetProvider(ctx, pathParams.Provider)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+			return
 
-	provider, err := r.prod.GetProvider(pathParams.Provider)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
-		return
+		}
 
+		c.JSON(http.StatusOK, ProviderResponse{
+			Provider: provider,
+		})
 	}
-
-	c.JSON(http.StatusOK, ProviderResponse{
-		Provider: provider,
-	})
 }
 
 // swagger:route GET /providers/{provider}/services services getServices
@@ -94,27 +99,27 @@ func (r *RouteHandler) getProvider(c *gin.Context) {
 //     Responses:
 //       200: ServicesResponse
 //       503: ErrorResponse
-func (r *RouteHandler) getServices(c *gin.Context) {
+func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetProviderPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := GetProviderPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+		infoer, err := r.prod.GetInfoer(pathParams.Provider)
+		if err != nil {
+			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving services: %v", err))
+			c.JSON(http.StatusInternalServerError, er)
+			return
+		}
 
-	infoer, err := r.prod.GetInfoer(pathParams.Provider)
-	if err != nil {
-		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving services: %v", err))
-		c.JSON(http.StatusInternalServerError, er)
-		return
+		services, err := infoer.GetServices()
+		if err != nil {
+			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
+			c.JSON(http.StatusServiceUnavailable, er)
+			return
+		}
+
+		c.JSON(http.StatusOK, services)
 	}
-
-	services, err := infoer.GetServices()
-	if err != nil {
-		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
-		c.JSON(http.StatusServiceUnavailable, er)
-		return
-	}
-
-	c.JSON(http.StatusOK, services)
-
 }
 
 // swagger:route GET /providers/{provider}/services/{service} service getService
@@ -131,27 +136,30 @@ func (r *RouteHandler) getServices(c *gin.Context) {
 //     Responses:
 //       200: ServiceResponse
 //       503: ErrorResponse
-func (r *RouteHandler) getService(c *gin.Context) {
-	// bind the path parameters
-	pathParams := GetServicesPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// bind the path parameters
+		pathParams := GetServicesPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	infoer, err := r.prod.GetInfoer(pathParams.Provider)
-	if err != nil {
-		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving service: %v", err))
-		c.JSON(http.StatusInternalServerError, er)
-		return
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "service": pathParams.Service, "correlation-id": logger.GetCorrelationId(c)}))
+
+		infoer, err := r.prod.GetInfoer(pathParams.Provider)
+		if err != nil {
+			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving service: %v", err))
+			c.JSON(http.StatusInternalServerError, er)
+			return
+		}
+
+		service, err := infoer.GetService(ctx, pathParams.Service)
+		if err != nil {
+			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
+			c.JSON(http.StatusServiceUnavailable, er)
+			return
+		}
+
+		c.JSON(http.StatusOK, service)
 	}
-
-	service, err := infoer.GetService(pathParams.Service)
-	if err != nil {
-		er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
-		c.JSON(http.StatusServiceUnavailable, er)
-		return
-	}
-
-	c.JSON(http.StatusOK, service)
-
 }
 
 // swagger:route GET /providers/{provider}/services/{service}/regions regions getRegions
@@ -168,21 +176,23 @@ func (r *RouteHandler) getService(c *gin.Context) {
 //     Responses:
 //       200: RegionsResponse
 //
-func (r *RouteHandler) getRegions(c *gin.Context) {
+func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetServicesPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := GetServicesPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
-
-	regions, err := r.prod.GetRegions(pathParams.Provider)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "service": pathParams.Service, "correlation-id": logger.GetCorrelationId(c)}))
+		regions, err := r.prod.GetRegions(ctx, pathParams.Provider)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+		var response RegionsResponse
+		for id, name := range regions {
+			response = append(response, Region{id, name})
+		}
+		c.JSON(http.StatusOK, response)
 	}
-	var response RegionsResponse
-	for id, name := range regions {
-		response = append(response, Region{id, name})
-	}
-	c.JSON(http.StatusOK, response)
 }
 
 // swagger:route GET /providers/{provider}/services/{service}/regions/{region} regions getRegion
@@ -198,21 +208,24 @@ func (r *RouteHandler) getRegions(c *gin.Context) {
 //
 //     Responses:
 //       200: RegionResponse
-func (r *RouteHandler) getRegion(c *gin.Context) {
-	pathParams := GetRegionPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetRegionPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	regions, err := r.prod.GetRegions(pathParams.Provider)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "region": pathParams.Region, "service": pathParams.Service, "correlation-id": logger.GetCorrelationId(c)}))
+		regions, err := r.prod.GetRegions(ctx, pathParams.Provider)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+		zones, err := r.prod.GetZones(ctx, pathParams.Provider, pathParams.Region)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+		c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, regions[pathParams.Region], zones})
 	}
-	zones, err := r.prod.GetZones(pathParams.Provider, pathParams.Region)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-	c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, regions[pathParams.Region], zones})
 }
 
 // swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products products getProducts
@@ -228,27 +241,29 @@ func (r *RouteHandler) getRegion(c *gin.Context) {
 //
 //     Responses:
 //       200: ProductDetailsResponse
-func (r *RouteHandler) getProducts(c *gin.Context) {
+func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetRegionPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := GetRegionPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "region": pathParams.Region, "service": pathParams.Service, "correlation-id": logger.GetCorrelationId(c)}))
+		log := logger.Extract(ctx)
+		log.Info("getting product details")
 
-	log.Infof("getting product details for provider: %s, region: %s", pathParams.Provider, pathParams.Region)
+		scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+		details, err := r.prod.GetProductDetails(ctx, pathParams.Provider, pathParams.Region)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
-	scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
+		log.Debug("successfully retrieved product details")
+		c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
 	}
-	details, err := r.prod.GetProductDetails(pathParams.Provider, pathParams.Region)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-
-	log.Debugf("successfully retrieved product details:  %s, region: %s", pathParams.Provider, pathParams.Region)
-	c.JSON(http.StatusOK, ProductDetailsResponse{details, scrapingTime})
-
 }
 
 // swagger:route GET /providers/{provider}/services/{service}/regions/{region}/images images getImages
@@ -264,28 +279,30 @@ func (r *RouteHandler) getProducts(c *gin.Context) {
 //
 //     Responses:
 //       200: ImagesResponse
-func (r *RouteHandler) getImages(c *gin.Context) {
+func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetRegionPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := GetRegionPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "region": pathParams.Region, "service": pathParams.Service, "correlation-id": logger.GetCorrelationId(c)}))
+		log := logger.Extract(ctx)
+		log.Info("getting image details")
 
-	log.Infof("getting image details for provider: %s, region: %s", pathParams.Provider, pathParams.Region)
+		infoer, err := r.prod.GetInfoer(pathParams.Provider)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
-	infoer, err := r.prod.GetInfoer(pathParams.Provider)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
+		images, err := infoer.GetServiceImages(pathParams.Region, pathParams.Service)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+
+		log.Debug("successfully retrieved image details")
+		c.JSON(http.StatusOK, images)
 	}
-
-	images, err := infoer.GetServiceImages(pathParams.Region, pathParams.Service)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
-	}
-
-	log.Debugf("successfully retrieved product details:  %s, region: %s", pathParams.Provider, pathParams.Region)
-	c.JSON(http.StatusOK, images)
-
 }
 
 // swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attributes getAttrValues
@@ -301,20 +318,24 @@ func (r *RouteHandler) getImages(c *gin.Context) {
 //
 //     Responses:
 //       200: AttributeResponse
-func (r *RouteHandler) getAttrValues(c *gin.Context) {
+func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetAttributeValuesPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-	pathParams := GetAttributeValuesPathParams{}
-	mapstructure.Decode(getPathParamMap(c), &pathParams)
+		ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": pathParams.Provider, "region": pathParams.Region, "service": pathParams.Service, "correlation-id": logger.GetCorrelationId(c)}))
+		log := logger.Extract(ctx)
+		log.Infof("getting %s attribute values", pathParams.Attribute)
 
-	log.Infof("getting %s attribute values for provider: %s, region: %s", pathParams.Attribute, pathParams.Provider, pathParams.Region)
+		attributes, err := r.prod.GetAttrValues(ctx, pathParams.Provider, pathParams.Attribute)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+		log.Debugf("successfully retrieved %s attribute values", pathParams.Attribute)
 
-	attributes, err := r.prod.GetAttrValues(pathParams.Provider, pathParams.Attribute)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-		return
+		c.JSON(http.StatusOK, AttributeResponse{pathParams.Attribute, attributes})
 	}
-	log.Debugf("successfully retrieved %s attribute values:  %s, region: %s", pathParams.Attribute, pathParams.Provider, pathParams.Region)
-	c.JSON(http.StatusOK, AttributeResponse{pathParams.Attribute, attributes})
 }
 
 // getPathParamMap transforms the path params into a map to be able to easily bind to param structs

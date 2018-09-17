@@ -58,7 +58,7 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
-  digest = "1:18b121ad5d70dcb08f5ca205f530a8ea3d91347c371b7cf7813537e8632f7c5b"
+  digest = "1:afcc4d8f4a3b162a90e84451fd4dbbc67edf5c3c3aeace09557f04f91eb85c9d"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
     "sdk",
@@ -67,7 +67,6 @@
     "sdk/auth/signers",
     "sdk/endpoints",
     "sdk/errors",
-    "sdk/log",
     "sdk/requests",
     "sdk/responses",
     "sdk/utils",
@@ -716,7 +715,6 @@
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources",
     "github.com/Azure/go-autorest/autorest/azure",
     "github.com/Azure/go-autorest/autorest/azure/auth",
-    "github.com/aliyun/alibaba-cloud-sdk-go/sdk/log",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/endpoints",
@@ -733,6 +731,7 @@
     "github.com/go-openapi/runtime/client",
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
+    "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",
     "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
@@ -741,6 +740,7 @@
     "github.com/prometheus/client_golang/api/prometheus/v1",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/common/model",
+    "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
