@@ -1,19 +1,30 @@
+// Copyright © 2018 Banzai Cloud
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package logger
 
 import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type ctxMarker struct{}
 
 var (
 	ctxKey = &ctxMarker{}
-
-	// Logger is root logger for events
-	Logger *logrus.Logger
+	logger = logrus.New() // default logger
 )
 
 const (
@@ -28,14 +39,14 @@ const (
 
 var ctxFields = []string{providerKey, regionKey, serviceKey, correlationIdKey, scrapeIdFullKey, scrapeIdShortKey}
 
-// NewLogger sets level and format for Logger
-func NewLogger() *logrus.Logger {
-	logger := newLogger(Config{
-		Level:  viper.GetString("log-level"),
-		Format: viper.GetString("log-format"),
+// InitLogger sets level and format for Logger
+func InitLogger(level, format string) {
+
+	logger = newLogger(Config{
+		Level:  level,
+		Format: format,
 	})
 
-	return logger
 }
 
 // Config holds information necessary for customizing the logger.
@@ -68,11 +79,12 @@ func newLogger(config Config) *logrus.Logger {
 	return logger
 }
 
-// Extract takes the logrus.Entry from the context
+// Extract assembles the entry with the fields extracted from the context
 func Extract(ctx context.Context) ContextLogger {
+
 	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
 	if !ok || fds == nil {
-		return logrus.NewEntry(logrus.New())
+		return logrus.NewEntry(logger)
 	}
 
 	fields := logrus.Fields{}
@@ -80,12 +92,26 @@ func Extract(ctx context.Context) ContextLogger {
 		fields[k] = v
 	}
 
-	return Logger.WithFields(fields)
+	return logger.WithFields(fields)
 }
 
-// ToContext sets a logrus logger on the context, which can then obtained by Extract
+// ToContext adds
 func ToContext(ctx context.Context, fields map[string]interface{}) context.Context {
-	// todo ordering ?
+
+	// retrieving the "parent" context
+	parentVals, ok := ctx.Value(ctxKey).(map[string]interface{})
+
+	if parentVals == nil {
+		// there is no logger context set in the parent
+		context.WithValue(ctx, ctxKey, fields)
+	}
+
+	if ok { // the parent context is successfully retrieved
+		for k, v := range parentVals { // copy parent context values into the current context
+			fields[k] = v
+		}
+	}
+
 	return context.WithValue(ctx, ctxKey, fields)
 }
 

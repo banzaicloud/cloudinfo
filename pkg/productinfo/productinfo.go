@@ -217,12 +217,9 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 	}
 
 	for regionId := range regions {
-
 		c := logger.ToContext(ctx,
 			logger.NewLogCtxBuilder().
-				WithProvider(provider).
 				WithRegion(regionId).
-				WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
 				Build())
 
 		start := time.Now()
@@ -259,7 +256,7 @@ func (cpi *CachingProductInfo) renewAll(ctx context.Context) {
 		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
 	}
 	providerWg.Wait()
-	logger.Extract(ctx).WithField("scrapeIdComplete", atomic.LoadUint64(&scrapeCounterComplete)).Info("finished renewing product info")
+	logger.Extract(ctx).WithField("scarpe-id-full", atomic.LoadUint64(&scrapeCounterComplete)).Info("finished renewing product info")
 }
 
 func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
@@ -291,9 +288,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 			var wg sync.WaitGroup
 			for regionId := range regions {
 				c = logger.ToContext(c, logger.NewLogCtxBuilder().
-					WithProvider(p).
 					WithRegion(regionId).
-					WithScrapeIdShort(atomic.LoadUint64(&scrapeCounterShortLived)).
 					Build())
 
 				wg.Add(1)
@@ -314,7 +309,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 		}(ctxWithFields, provider, infoer)
 	}
 	providerWg.Wait()
-	logger.Extract(ctx).WithField("scrapeIdShortLived", atomic.LoadUint64(&scrapeCounterShortLived)).Info("finished renewing short lived product info")
+	logger.Extract(ctx).WithField("scrape-id-short", atomic.LoadUint64(&scrapeCounterShortLived)).Info("finished renewing short lived product info")
 }
 
 // Start starts the information retrieval in a new goroutine
