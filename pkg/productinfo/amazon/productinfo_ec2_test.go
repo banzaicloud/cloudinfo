@@ -17,7 +17,6 @@ package amazon
 import (
 	"context"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -31,7 +30,6 @@ import (
 //testStruct helps to mock external calls
 type testStruct struct {
 	TcId int
-	*logrus.Entry
 }
 
 func (dps *testStruct) GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error) {
@@ -191,10 +189,6 @@ func (dps *testStruct) DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPric
 		return errors.New("invalid")
 	}
 	return nil
-}
-
-func (dps *testStruct) Warn(args ...interface{}) {
-	dps.Level = logrus.InfoLevel
 }
 
 func TestNewEc2Infoer(t *testing.T) {

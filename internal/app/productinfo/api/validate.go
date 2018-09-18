@@ -83,6 +83,7 @@ func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.Han
 	const (
 		regionParam = "region"
 	)
+	log := logger.Extract(ctx)
 	return func(c *gin.Context) {
 
 		var pathData interface{}
@@ -97,10 +98,10 @@ func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.Han
 
 		mapstructure.Decode(getPathParamMap(c), pathData)
 
-		logger.Extract(ctx).Debugf("path data is being validated: %s", pathData)
+		log.Debugf("path data is being validated: %s", pathData)
 		err := validate.Struct(pathData)
 		if err != nil {
-			logger.Extract(ctx).WithError(err).Error("validation failed.")
+			log.WithError(err).Error("validation failed.")
 			c.Abort()
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "bad_params",
@@ -170,7 +171,7 @@ func serviceValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) 
 
 		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(currentProvider).
-			WithRegion(currentService).
+			WithService(currentService).
 			Build())
 
 		log := logger.Extract(ctx)

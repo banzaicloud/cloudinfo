@@ -220,10 +220,10 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 
 		c := logger.ToContext(ctx,
 			logger.NewLogCtxBuilder().
-			WithProvider(provider).
-			WithRegion(regionId).
-			WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
-			Build())
+				WithProvider(provider).
+				WithRegion(regionId).
+				WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
+				Build())
 
 		start := time.Now()
 		if _, err := cpi.renewVms(c, provider, regionId); err != nil {

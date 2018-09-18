@@ -582,7 +582,6 @@ func TestCachingProductInfo_GetRegions(t *testing.T) {
 }
 
 func TestCachingProductInfo_GetProductDetails(t *testing.T) {
-	ctx := context.Background()
 	tests := []struct {
 		name          string
 		ProductInfoer map[string]ProductInfoer
@@ -632,7 +631,7 @@ func TestCachingProductInfo_GetProductDetails(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, test.cache, test.ProductInfoer)
-			test.checker(productInfo.GetProductDetails(ctx, "dummy", "dummyRegion"))
+			test.checker(productInfo.GetProductDetails(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
 }
