@@ -248,15 +248,15 @@ func (cpi *CachingProductInfo) renewAll(ctx context.Context) {
 	atomic.AddUint64(&scrapeCounterComplete, 1)
 	var providerWg sync.WaitGroup
 	for provider := range cpi.productInfoers {
-		providerWg.Add(1)
 		ctxWithFields := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(provider).
 			WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
 			Build())
+		providerWg.Add(1)
 		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
 	}
 	providerWg.Wait()
-	logger.Extract(ctx).WithField("scarpe-id-full", atomic.LoadUint64(&scrapeCounterComplete)).Info("finished renewing product info")
+	logger.Extract(ctx).WithField("scrape-id-full", atomic.LoadUint64(&scrapeCounterComplete)).Info("finished renewing product info")
 }
 
 func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
@@ -265,7 +265,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 	for provider, infoer := range cpi.productInfoers {
 		ctxWithFields := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(provider).
-			WithScrapeIdShort(atomic.LoadUint64(&scrapeCounterComplete)).
+			WithScrapeIdShort(atomic.LoadUint64(&scrapeCounterShortLived)).
 			Build())
 
 		providerWg.Add(1)
@@ -287,7 +287,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 			}
 			var wg sync.WaitGroup
 			for regionId := range regions {
-				c = logger.ToContext(c, logger.NewLogCtxBuilder().
+				ctx := logger.ToContext(c, logger.NewLogCtxBuilder().
 					WithRegion(regionId).
 					Build())
 
@@ -301,7 +301,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 						return
 					}
 					ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
-				}(c, p, regionId)
+				}(ctx, p, regionId)
 			}
 			wg.Wait()
 			ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())

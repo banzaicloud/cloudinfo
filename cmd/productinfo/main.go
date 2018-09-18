@@ -145,7 +145,8 @@ func main() {
 		flag.Usage()
 		return
 	}
-	ctx := context.Background()
+
+	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", "productinfo").Build())
 
 	prodInfo, err := productinfo.NewCachingProductInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
 		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx))
