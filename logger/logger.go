@@ -29,15 +29,13 @@ var (
 
 const (
 	correlationIdKey = "correlation-id"
-	scrapeIdFullKey  = "scarpe-id-full"
+	scrapeIdFullKey  = "scrape-id-full"
 	scrapeIdShortKey = "scrape-id-short"
 
 	providerKey = "provider"
 	serviceKey  = "service"
 	regionKey   = "region"
 )
-
-var ctxFields = []string{providerKey, regionKey, serviceKey, correlationIdKey, scrapeIdFullKey, scrapeIdShortKey}
 
 // InitLogger sets level and format for Logger
 func InitLogger(level, format string) {
@@ -101,9 +99,9 @@ func ToContext(ctx context.Context, fields map[string]interface{}) context.Conte
 	// retrieving the "parent" context
 	parentVals, ok := ctx.Value(ctxKey).(map[string]interface{})
 
-	if parentVals == nil {
+	if parentVals == nil && ok {
 		// there is no logger context set in the parent
-		context.WithValue(ctx, ctxKey, fields)
+		return context.WithValue(ctx, ctxKey, fields)
 	}
 
 	if ok { // the parent context is successfully retrieved
