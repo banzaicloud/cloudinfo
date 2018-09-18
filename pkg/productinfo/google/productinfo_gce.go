@@ -229,7 +229,7 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, attribute string) (p
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
 func (g *GceInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
-	log.WithField("region", regionId).Debugf("getting product info")
+	log.Debugf("getting product info")
 	var vmsMap = make(map[string]productinfo.VmInfo)
 	var ntwPerf uint
 	zones, err := g.GetZones(ctx, regionId)
@@ -269,7 +269,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, regionId string) ([]product
 	for _, vm := range vmsMap {
 		vms = append(vms, vm)
 	}
-	log.WithField("region", regionId).Debugf("found vms: %#v", vms)
+	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }
 

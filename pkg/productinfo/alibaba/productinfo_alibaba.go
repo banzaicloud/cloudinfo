@@ -94,7 +94,7 @@ func (e *AlibabaInfoer) Initialize(ctx context.Context) (map[string]map[string]p
 
 func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string, zones []string) (map[string]productinfo.SpotPriceInfo, error) {
 	log := logger.Extract(ctx)
-	log.WithField("region", region).Debug("start retrieving spot price data")
+	log.Debug("start retrieving spot price data")
 	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 
 	var (
@@ -111,7 +111,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 	request.NetworkType = "vpc"
 	request.OSType = "linux"
 
-	log.WithField("region", region).Debug("created new client")
+	log.Debug("created new client")
 
 	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
 	if err != nil {
@@ -208,7 +208,7 @@ func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, attribute string
 // GetProducts retrieves the available virtual machines based on the arguments provided
 func (e *AlibabaInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
-	log.WithField("region", regionId).Debug("getting product info")
+	log.Debug("getting product info")
 	var vms []productinfo.VmInfo
 
 	request := ecs.CreateDescribeInstanceTypesRequest()
@@ -250,7 +250,7 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, regionId string) ([]pro
 
 		}
 	}
-	log.WithField("region", regionId).Debugf("found vms: %#v", vms)
+	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }
 

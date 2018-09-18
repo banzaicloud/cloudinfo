@@ -345,7 +345,7 @@ func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 func (a *AzureInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
-	log.WithField("region", regionId).Debug("getting product info")
+	log.Debug("getting product info")
 	var vms []productinfo.VmInfo
 	vmSizes, err := a.vmSizesClient.List(context.TODO(), regionId)
 	if err != nil {
@@ -360,7 +360,7 @@ func (a *AzureInfoer) GetProducts(ctx context.Context, regionId string) ([]produ
 		})
 	}
 
-	log.WithField("region", regionId).Debugf("found vms: %#v", vms)
+	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }
 

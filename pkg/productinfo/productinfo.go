@@ -18,15 +18,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/banzaicloud/productinfo/logger"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/banzaicloud/productinfo/logger"
+
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 )
 
 // CachingProductInfo is the module struct, holds configuration and cache
@@ -217,10 +217,11 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 	}
 
 	for regionId := range regions {
+		c := logger.ToContext(ctx, logger.Provider(provider), logger.ScrapeIdComplete(atomic.LoadUint64(&scrapeCounterComplete)), logger.Region(regionId))
 		start := time.Now()
-		if _, err := cpi.renewVms(ctx, provider, regionId); err != nil {
+		if _, err := cpi.renewVms(c, provider, regionId); err != nil {
 			ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
-			log.WithField("region", regionId).WithError(err).Error("failed to renew products")
+			logger.Extract(c).WithError(err).Error("failed to renew products")
 		} else {
 			ScrapeRegionDurationGauge.WithLabelValues(provider, regionId).Set(time.Since(start).Seconds())
 		}
@@ -244,7 +245,7 @@ func (cpi *CachingProductInfo) renewAll(ctx context.Context) {
 	var providerWg sync.WaitGroup
 	for provider := range cpi.productInfoers {
 		providerWg.Add(1)
-		ctxWithFields := logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": provider, "scrapeIdComplete": atomic.LoadUint64(&scrapeCounterComplete)}))
+		ctxWithFields := logger.ToContext(ctx, logger.Provider(provider), logger.ScrapeIdComplete(atomic.LoadUint64(&scrapeCounterComplete)))
 		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
 	}
 	providerWg.Wait()
@@ -255,7 +256,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 	atomic.AddUint64(&scrapeCounterShortLived, 1)
 	var providerWg sync.WaitGroup
 	for provider, infoer := range cpi.productInfoers {
-		ctxWithFields := logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"scrapeIdShortLived": atomic.LoadUint64(&scrapeCounterShortLived), "provider": provider}))
+		ctxWithFields := logger.ToContext(ctx, logger.ScrapeIdShortLived(atomic.LoadUint64(&scrapeCounterShortLived)), logger.Provider(provider))
 		providerWg.Add(1)
 		go func(c context.Context, p string, i ProductInfoer) {
 			defer providerWg.Done()
@@ -275,13 +276,14 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 			}
 			var wg sync.WaitGroup
 			for regionId := range regions {
+				c = logger.ToContext(c, logger.ScrapeIdShortLived(atomic.LoadUint64(&scrapeCounterShortLived)), logger.Provider(p), logger.Region(regionId))
 				wg.Add(1)
 				go func(c context.Context, p string, r string) {
 					defer wg.Done()
 					_, err := cpi.renewShortLivedInfo(c, p, r)
 					if err != nil {
 						ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
-						logger.Extract(c).WithField("region", r).WithError(err).Error("couldn't renew short lived info in cache")
+						logger.Extract(c).WithError(err).Error("couldn't renew short lived info in cache")
 						return
 					}
 					ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
@@ -402,7 +404,7 @@ func (cpi *CachingProductInfo) HasShortLivedPriceInfo(provider string) bool {
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
 func (cpi *CachingProductInfo) GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error) {
 	var p Price
-	ctx = logger.ToContext(ctx, logrus.WithFields(logrus.Fields{"provider": provider, "region": region}))
+	ctx = logger.ToContext(ctx, logger.Provider(provider), logger.Region(region))
 	if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, instanceType)); ok {
 		logger.Extract(ctx).Debugf("Getting price info from cache [instance type=%s].", instanceType)
 		p = cachedVal.(Price)

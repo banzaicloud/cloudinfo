@@ -138,7 +138,7 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]product
 	log := logger.Extract(ctx)
 
 	var vms []productinfo.VmInfo
-	log.WithField("region", regionId).Debug("Getting available instance types from AWS API.")
+	log.Debug("Getting available instance types from AWS API.")
 
 	products, err := e.pricingSvc.GetProducts(e.newGetProductsInput(regionId))
 
@@ -148,37 +148,37 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]product
 	for i, price := range products.PriceList {
 		pd, err := newPriceData(price)
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not extract pricing info for the item with index: [ %d ]", i)
+			log.WithError(err).Warnf("could not extract pricing info for the item with index: [ %d ]", i)
 			continue
 		}
 
 		instanceType, err := pd.GetDataForKey("instanceType")
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve instance type [%s]", instanceType)
+			log.WithError(err).Warnf("could not retrieve instance type [%s]", instanceType)
 			continue
 		}
 		cpusStr, err := pd.GetDataForKey(Cpu)
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve vcpu [%s]", cpusStr)
+			log.WithError(err).Warnf("could not retrieve vcpu [%s]", cpusStr)
 			continue
 		}
 		memStr, err := pd.GetDataForKey(productinfo.Memory)
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve memory [%s]", memStr)
+			log.WithError(err).Warnf("could not retrieve memory [%s]", memStr)
 			continue
 		}
 		gpu, err := pd.GetDataForKey("gpu")
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve gpu [%s]", gpu)
+			log.WithError(err).Warnf("could not retrieve gpu [%s]", gpu)
 		}
 		odPriceStr, err := pd.GetOnDemandPrice()
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not retrieve on demand price [%s]", odPriceStr)
+			log.WithError(err).Warnf("could not retrieve on demand price [%s]", odPriceStr)
 			continue
 		}
 		ntwPerf, err := pd.GetDataForKey("networkPerformance")
 		if err != nil {
-			log.WithField("region", regionId).WithError(err).Warnf("could not parse network performance [%s]", ntwPerf)
+			log.WithError(err).Warnf("could not parse network performance [%s]", ntwPerf)
 			continue
 		}
 
@@ -205,10 +205,10 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]product
 		vms = append(vms, vm)
 	}
 	if vms == nil {
-		log.WithField("region", regionId).Debug("couldn't find any virtual machines to recommend")
+		log.Debug("couldn't find any virtual machines to recommend")
 	}
 
-	log.WithField("region", regionId).Debugf("found vms: %#v", vms)
+	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }
 
@@ -367,16 +367,16 @@ func (e *Ec2Infoer) HasShortLivedPriceInfo() bool {
 
 func (e *Ec2Infoer) getSpotPricesFromPrometheus(ctx context.Context, region string) (map[string]productinfo.SpotPriceInfo, error) {
 	log := logger.Extract(ctx)
-	log.WithField("region", region).Debug("getting spot price averages from Prometheus API")
+	log.Debug("getting spot price averages from Prometheus API")
 	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
-	log.WithField("region", region).Debugf("sending prometheus query: %s", query)
+	log.Debugf("sending prometheus query: %s", query)
 	result, err := e.prometheus.Query(context.Background(), query, time.Now())
 	if err != nil {
 		return nil, err
 	}
 	if result.String() == "" {
-		log.WithField("region", region).Warn("Prometheus metric is empty")
+		log.Warn("Prometheus metric is empty")
 	} else {
 		r := result.(model.Vector)
 		for _, value := range r {
@@ -404,7 +404,7 @@ func (e *Ec2Infoer) getCurrentSpotPrices(ctx context.Context, region string) (ma
 		for _, pe := range history.SpotPriceHistory {
 			price, err := strconv.ParseFloat(*pe.SpotPrice, 64)
 			if err != nil {
-				logger.Extract(ctx).WithField("region", region).WithError(err).Error("couldn't parse spot price from history")
+				logger.Extract(ctx).WithError(err).Error("couldn't parse spot price from history")
 				continue
 			}
 			if priceInfo[*pe.InstanceType] == nil {
@@ -428,15 +428,15 @@ func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[st
 	if e.prometheus != nil {
 		spotPrices, err = e.getSpotPricesFromPrometheus(ctx, region)
 		if err != nil {
-			log.WithField("region", region).WithError(err).Warn("Couldn't get spot price info from Prometheus API, fallback to direct AWS API access.")
+			log.WithError(err).Warn("Couldn't get spot price info from Prometheus API, fallback to direct AWS API access.")
 		}
 	}
 
 	if len(spotPrices) == 0 {
-		log.WithField("region", region).Debug("getting current spot prices directly from the AWS API")
+		log.Debug("getting current spot prices directly from the AWS API")
 		spotPrices, err = e.getCurrentSpotPrices(ctx, region)
 		if err != nil {
-			log.WithField("region", region).WithError(err).Error("could not retrieve current prices")
+			log.WithError(err).Error("could not retrieve current prices")
 			return nil, err
 		}
 	}

@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -141,7 +140,7 @@ func regionValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) v
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentRegion := digValueForName(currentStruct, "Region")
 
-		ctx = logger.ToContext(ctx, logrus.WithField("provider", currentProvider))
+		ctx = logger.ToContext(ctx, logger.Provider(currentProvider), logger.Region(currentRegion))
 		log := logger.Extract(ctx)
 		regions, err := cpi.GetRegions(ctx, currentProvider)
 		if err != nil {
@@ -166,7 +165,7 @@ func serviceValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) 
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 
-		ctx = logger.ToContext(ctx, logrus.WithField("provider", currentProvider))
+		ctx = logger.ToContext(ctx, logger.Provider(currentProvider), logger.Service(currentService))
 		log := logger.Extract(ctx)
 		infoer, err := cpi.GetInfoer(currentProvider)
 		if err != nil {

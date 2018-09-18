@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
-	"sync"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -32,31 +31,8 @@ import (
 //testStruct helps to mock external calls
 type testStruct struct {
 	TcId int
+	*logrus.Entry
 }
-
-// ToContext sets a logrus logger on the context, which can then obtained by Extract
-func toContextDummy(ctx context.Context, entry *logrus.Entry) context.Context {
-	l := &ctxLogger{
-		log:    entry,
-		fields: logrus.Fields{},
-	}
-	return context.WithValue(ctx, ctxLoggerKey, l)
-}
-
-type ctxLoggerMarker struct{}
-
-type ctxLogger struct {
-	rm     sync.Mutex
-	log    *logrus.Entry
-	fields logrus.Fields
-}
-
-var (
-	ctxLoggerKey = &ctxLoggerMarker{}
-
-	// Logger is root logger for events
-	Logger *logrus.Logger
-)
 
 func (dps *testStruct) GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error) {
 
@@ -215,6 +191,10 @@ func (dps *testStruct) DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPric
 		return errors.New("invalid")
 	}
 	return nil
+}
+
+func (dps *testStruct) Warn(args ...interface{}) {
+	dps.Level = logrus.InfoLevel
 }
 
 func TestNewEc2Infoer(t *testing.T) {
@@ -433,9 +413,6 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 }
 
 func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
-
-	ctx := context.Background()
-	ctx = toContextDummy(ctx, logrus.WithFields(logrus.Fields{"provider": "sfds", "region": "addsd"}))
 	tests := []struct {
 		name       string
 		region     string
@@ -457,7 +434,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 			name:   "error - could not get spot price history pages",
 			region: "dummyRegion",
 			ec2CliMock: func(region string) Ec2Describer {
-				return &testStruct{11}
+				return &testStruct{TcId: 11}
 			},
 			check: func(data map[string]productinfo.SpotPriceInfo, err error) {
 				assert.Nil(t, data, "the data should be nil")
@@ -467,14 +444,14 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			productInfoer, err := NewEc2Infoer(ctx, "", "")
+			productInfoer, err := NewEc2Infoer(context.Background(), "", "")
 			// override ec2cli
 			productInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.getCurrentSpotPrices(ctx, test.region))
+			test.check(productInfoer.getCurrentSpotPrices(context.Background(), test.region))
 		})
 	}
 }
@@ -501,7 +478,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 			name:   "error - unknown region",
 			region: "dummyRegion",
 			ec2CliMock: func(region string) Ec2Describer {
-				return &testStruct{11}
+				return &testStruct{TcId: 11}
 			},
 			check: func(price map[string]productinfo.Price, err error) {
 				assert.Nil(t, price, "the zones should be nil")

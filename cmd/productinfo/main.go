@@ -28,7 +28,6 @@ package main
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
 	"time"
@@ -183,7 +182,7 @@ func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 	for _, p := range providers {
 		var infoer productinfo.ProductInfoer
 		var err error
-		ctx = logger.ToContext(ctx, logrus.WithField("provider", p))
+		ctx = logger.ToContext(ctx, logger.Provider(p))
 
 		switch p {
 		case Amazon:
