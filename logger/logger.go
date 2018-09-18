@@ -11,9 +11,6 @@ type ctxMarker struct{}
 
 var (
 	ctxKey = &ctxMarker{}
-
-	// Logger is root logger for events
-	Logger *logrus.Logger
 )
 
 const (
@@ -68,7 +65,7 @@ func newLogger(config Config) *logrus.Logger {
 	return logger
 }
 
-// Extract takes the logrus.Entry from the context
+// Extract assembles the entry with the fields extracted from the context
 func Extract(ctx context.Context) ContextLogger {
 	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
 	if !ok || fds == nil {
@@ -80,12 +77,26 @@ func Extract(ctx context.Context) ContextLogger {
 		fields[k] = v
 	}
 
-	return Logger.WithFields(fields)
+	return logrus.New().WithFields(fields)
 }
 
-// ToContext sets a logrus logger on the context, which can then obtained by Extract
+// ToContext adds
 func ToContext(ctx context.Context, fields map[string]interface{}) context.Context {
-	// todo ordering ?
+
+	// retrieving the "parent" context
+	parentVals, ok := ctx.Value(ctxKey).(map[string]interface{})
+
+	if parentVals == nil {
+		// there is no logger context set in the parent
+		context.WithValue(ctx, ctxKey, fields)
+	}
+
+	if ok { // the parent context is successfully retrieved
+		for k, v := range parentVals { // copy parent context values into the current context
+			fields[k] = v
+		}
+	}
+
 	return context.WithValue(ctx, ctxKey, fields)
 }
 
