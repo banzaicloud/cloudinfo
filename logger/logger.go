@@ -121,6 +121,7 @@ type logCtxBuilder struct {
 	ctx map[string]interface{}
 }
 
+// NewLogCtxBuilder creates a new struct initializes it and returns the pointer to it
 func NewLogCtxBuilder() *logCtxBuilder {
 	lCtx := logCtxBuilder{}
 	lCtx.init()
@@ -133,36 +134,44 @@ func (cb *logCtxBuilder) init() {
 	}
 }
 
+// WithProvider sets the provider into the logger context
 func (cb *logCtxBuilder) WithProvider(provider string) *logCtxBuilder {
 	return cb.WithField(providerKey, provider)
 }
 
+// WithService sets the service into the logger context
 func (cb *logCtxBuilder) WithService(service string) *logCtxBuilder {
 	return cb.WithField(serviceKey, service)
 }
 
+// WithRegion sets the region into the logger context
 func (cb *logCtxBuilder) WithRegion(region string) *logCtxBuilder {
 	return cb.WithField(regionKey, region)
 }
 
+// // WithCorrelationId sets the correlation id into the logger context
 func (cb *logCtxBuilder) WithCorrelationId(cid string) *logCtxBuilder {
 	return cb.WithField(correlationIdKey, cid)
 }
 
+// WithScrapeIdShort sets the short lived scraping identifier into the logger context
 func (cb *logCtxBuilder) WithScrapeIdShort(id interface{}) *logCtxBuilder {
 	return cb.WithField(scrapeIdShortKey, id)
 }
 
+// WithScrapeIdFull sets the scraping identifier into the logger context
 func (cb *logCtxBuilder) WithScrapeIdFull(id interface{}) *logCtxBuilder {
 	return cb.WithField(scrapeIdFullKey, id)
 }
 
+// WithField adds an arbitrary value to the logger context with the provided keys
 func (cb *logCtxBuilder) WithField(field string, value interface{}) *logCtxBuilder {
 	cb.init()
 	cb.ctx[field] = value
 	return cb
 }
 
+// Build gets the map representing logger context
 func (cb *logCtxBuilder) Build() map[string]interface{} {
 	cb.init()
 	return cb.ctx
