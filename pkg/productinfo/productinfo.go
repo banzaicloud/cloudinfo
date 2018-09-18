@@ -217,7 +217,14 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 	}
 
 	for regionId := range regions {
-		c := logger.ToContext(ctx, logger.Provider(provider), logger.ScrapeIdComplete(atomic.LoadUint64(&scrapeCounterComplete)), logger.Region(regionId))
+
+		c := logger.ToContext(ctx,
+			logger.NewLogCtxBuilder().
+			WithProvider(provider).
+			WithRegion(regionId).
+			WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
+			Build())
+
 		start := time.Now()
 		if _, err := cpi.renewVms(c, provider, regionId); err != nil {
 			ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
@@ -245,7 +252,10 @@ func (cpi *CachingProductInfo) renewAll(ctx context.Context) {
 	var providerWg sync.WaitGroup
 	for provider := range cpi.productInfoers {
 		providerWg.Add(1)
-		ctxWithFields := logger.ToContext(ctx, logger.Provider(provider), logger.ScrapeIdComplete(atomic.LoadUint64(&scrapeCounterComplete)))
+		ctxWithFields := logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(provider).
+			WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
+			Build())
 		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
 	}
 	providerWg.Wait()
@@ -256,7 +266,11 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 	atomic.AddUint64(&scrapeCounterShortLived, 1)
 	var providerWg sync.WaitGroup
 	for provider, infoer := range cpi.productInfoers {
-		ctxWithFields := logger.ToContext(ctx, logger.ScrapeIdShortLived(atomic.LoadUint64(&scrapeCounterShortLived)), logger.Provider(provider))
+		ctxWithFields := logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(provider).
+			WithScrapeIdShort(atomic.LoadUint64(&scrapeCounterComplete)).
+			Build())
+
 		providerWg.Add(1)
 		go func(c context.Context, p string, i ProductInfoer) {
 			defer providerWg.Done()
@@ -276,7 +290,12 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 			}
 			var wg sync.WaitGroup
 			for regionId := range regions {
-				c = logger.ToContext(c, logger.ScrapeIdShortLived(atomic.LoadUint64(&scrapeCounterShortLived)), logger.Provider(p), logger.Region(regionId))
+				c = logger.ToContext(c, logger.NewLogCtxBuilder().
+					WithProvider(p).
+					WithRegion(regionId).
+					WithScrapeIdShort(atomic.LoadUint64(&scrapeCounterShortLived)).
+					Build())
+
 				wg.Add(1)
 				go func(c context.Context, p string, r string) {
 					defer wg.Done()
@@ -404,7 +423,11 @@ func (cpi *CachingProductInfo) HasShortLivedPriceInfo(provider string) bool {
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
 func (cpi *CachingProductInfo) GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error) {
 	var p Price
-	ctx = logger.ToContext(ctx, logger.Provider(provider), logger.Region(region))
+	ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+		WithProvider(provider).
+		WithRegion(region).
+		Build())
+
 	if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, instanceType)); ok {
 		logger.Extract(ctx).Debugf("Getting price info from cache [instance type=%s].", instanceType)
 		p = cachedVal.(Price)

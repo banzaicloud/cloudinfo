@@ -40,7 +40,11 @@ import (
 //       200: ProvidersResponse
 func (r *RouteHandler) getProviders(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx = logger.ToContext(ctx, logger.CorrelationId(logger.GetCorrelationId(c)))
+
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		providers := r.prod.GetProviders(ctx)
 		if len(providers) < 1 {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "no providers are configured"})
@@ -70,7 +74,11 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetProviderPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		provider, err := r.prod.GetProvider(ctx, pathParams.Provider)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
@@ -141,7 +149,11 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetServicesPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.Service(pathParams.Service), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
 
 		infoer, err := r.prod.GetInfoer(pathParams.Provider)
 		if err != nil {
@@ -180,7 +192,12 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetServicesPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.Service(pathParams.Service), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		regions, err := r.prod.GetRegions(ctx, pathParams.Provider)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
@@ -212,7 +229,13 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetRegionPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.Region(pathParams.Region), logger.Service(pathParams.Service), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithRegion(pathParams.Region).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		regions, err := r.prod.GetRegions(ctx, pathParams.Provider)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
@@ -245,7 +268,13 @@ func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetRegionPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.Region(pathParams.Region), logger.Service(pathParams.Service), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithRegion(pathParams.Region).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		log := logger.Extract(ctx)
 		log.Info("getting product details")
 
@@ -283,7 +312,13 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetRegionPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.Region(pathParams.Region), logger.Service(pathParams.Service), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithRegion(pathParams.Region).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		log := logger.Extract(ctx)
 		log.Info("getting image details")
 
@@ -322,7 +357,13 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetAttributeValuesPathParams{}
 		mapstructure.Decode(getPathParamMap(c), &pathParams)
 
-		ctx = logger.ToContext(ctx, logger.Provider(pathParams.Provider), logger.Region(pathParams.Region), logger.Service(pathParams.Service), logger.CorrelationId(logger.GetCorrelationId(c)))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithRegion(pathParams.Region).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
 		log := logger.Extract(ctx)
 		log.Infof("getting %s attribute values", pathParams.Attribute)
 

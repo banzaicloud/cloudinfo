@@ -8,7 +8,7 @@ import (
 )
 
 // Middleware returns a gin compatible handler.
-func Middleware(logger GlobalLogger, notlogged ...string) gin.HandlerFunc {
+func Middleware(logger ContextLogger, notlogged ...string) gin.HandlerFunc {
 	var skip map[string]struct{}
 
 	if length := len(notlogged); length > 0 {

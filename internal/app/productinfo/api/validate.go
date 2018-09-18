@@ -81,9 +81,7 @@ func ValidatePathParam(ctx context.Context, name string, validate *validator.Val
 // ValidatePathData middleware function to validate region information in the request path.
 func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.HandlerFunc {
 	const (
-		providerParam = "provider"
-		serviceParam  = "service"
-		regionParam   = "region"
+		regionParam = "region"
 	)
 	return func(c *gin.Context) {
 
@@ -115,6 +113,7 @@ func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.Han
 
 }
 
+// todo remove this struct
 // regionData struct encapsulating data for region validation in the request path
 type regionData struct {
 	// Cloud the cloud provider from the request path
@@ -140,7 +139,11 @@ func regionValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) v
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentRegion := digValueForName(currentStruct, "Region")
 
-		ctx = logger.ToContext(ctx, logger.Provider(currentProvider), logger.Region(currentRegion))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(currentProvider).
+			WithRegion(currentRegion).
+			Build())
+
 		log := logger.Extract(ctx)
 		regions, err := cpi.GetRegions(ctx, currentProvider)
 		if err != nil {
@@ -165,7 +168,11 @@ func serviceValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) 
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 
-		ctx = logger.ToContext(ctx, logger.Provider(currentProvider), logger.Service(currentService))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(currentProvider).
+			WithRegion(currentService).
+			Build())
+
 		log := logger.Extract(ctx)
 		infoer, err := cpi.GetInfoer(currentProvider)
 		if err != nil {

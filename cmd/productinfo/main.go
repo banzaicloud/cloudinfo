@@ -182,7 +182,7 @@ func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 	for _, p := range providers {
 		var infoer productinfo.ProductInfoer
 		var err error
-		ctx = logger.ToContext(ctx, logger.Provider(p))
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
 
 		switch p {
 		case Amazon:

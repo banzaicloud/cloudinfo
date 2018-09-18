@@ -17,15 +17,16 @@ var (
 )
 
 const (
-	providerKey           = "provider"
-	regionKey             = "region"
-	serviceKey            = "service"
-	correlationIdKey      = "correlation-id"
-	scrapeIdCompleteKey   = "scrapeIdComplete"
-	scrapeIdShortLivedKey = "scrapeIdShortLived"
+	correlationIdKey = "correlation-id"
+	scrapeIdFullKey  = "scarpe-id-full"
+	scrapeIdShortKey = "scrape-id-short"
+
+	providerKey = "provider"
+	serviceKey  = "service"
+	regionKey   = "region"
 )
 
-var loggerKey = []string{providerKey, regionKey, serviceKey, correlationIdKey, scrapeIdCompleteKey, scrapeIdShortLivedKey}
+var ctxFields = []string{providerKey, regionKey, serviceKey, correlationIdKey, scrapeIdFullKey, scrapeIdShortKey}
 
 // NewLogger sets level and format for Logger
 func NewLogger() *logrus.Logger {
@@ -68,7 +69,7 @@ func newLogger(config Config) *logrus.Logger {
 }
 
 // Extract takes the logrus.Entry from the context
-func Extract(ctx context.Context) GlobalLogger {
+func Extract(ctx context.Context) ContextLogger {
 	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
 	if !ok || fds == nil {
 		return logrus.NewEntry(Logger)
@@ -76,25 +77,16 @@ func Extract(ctx context.Context) GlobalLogger {
 
 	fields := logrus.Fields{}
 	for k, v := range fds {
-		for _, key := range loggerKey {
-			if k == key {
-				fields[k] = v
-			}
-		}
+		fields[k] = v
 	}
+
 	return Logger.WithFields(fields)
 }
 
 // ToContext sets a logrus logger on the context, which can then obtained by Extract
-func ToContext(ctx context.Context, fields ...map[string]interface{}) context.Context {
-	fds := make(map[string]interface{})
-
-	for _, field := range fields {
-		for k, v := range field {
-			fds[k] = v
-		}
-	}
-	return context.WithValue(ctx, ctxKey, fds)
+func ToContext(ctx context.Context, fields map[string]interface{}) context.Context {
+	// todo ordering ?
+	return context.WithValue(ctx, ctxKey, fields)
 }
 
 // GetCorrelationId get correlation id from gin context
@@ -103,55 +95,16 @@ func GetCorrelationId(c *gin.Context) string {
 	return id
 }
 
-// Provider get provider value
-func Provider(provider string) map[string]interface{} {
-	providers := make(map[string]interface{})
-	providers[providerKey] = provider
-	return providers
-}
-
-// Region get region value
-func Region(region string) map[string]interface{} {
-	regions := make(map[string]interface{})
-	regions[regionKey] = region
-	return regions
-}
-
-// Service get service value
-func Service(service string) map[string]interface{} {
-	services := make(map[string]interface{})
-	services[serviceKey] = service
-	return services
-}
-
-// ScrapeIdShortLived get scrape id short lived value
-func ScrapeIdShortLived(scrapeId uint64) map[string]interface{} {
-	scrapeIdShortLived := make(map[string]interface{})
-	scrapeIdShortLived[scrapeIdShortLivedKey] = scrapeId
-	return scrapeIdShortLived
-}
-
-// ScrapeIdComplete get scrape id complete value
-func ScrapeIdComplete(scrapeId uint64) map[string]interface{} {
-	scrapeIdComplete := make(map[string]interface{})
-	scrapeIdComplete[scrapeIdCompleteKey] = scrapeId
-	return scrapeIdComplete
-}
-
-// CorrelationId get correlation id value
-func CorrelationId(correlationId string) map[string]interface{} {
-	correlationIds := make(map[string]interface{})
-	correlationIds[correlationIdKey] = correlationId
-	return correlationIds
-}
-
-// LogrusEntry ...
-type LogrusEntry struct {
+// LogEntryWrapper wraps the logger entry implementation
+// By embedding the library specific entry (logrus here), we have the default implementation "out of the box"
+type LogEntryWrapper struct {
+	// the default logging library is logrus
 	*logrus.Entry
 }
 
-// GlobalLogger ...
-type GlobalLogger interface {
+// ContextLogger gathers all the log operations used in the application, mainly operations implemented by "conventional" loggers
+// The interface is meant to decouple application dependency on logger libraries
+type ContextLogger interface {
 	WithError(err error) *logrus.Entry
 	WithField(key string, value interface{}) *logrus.Entry
 	WithFields(fields logrus.Fields) *logrus.Entry
@@ -161,4 +114,56 @@ type GlobalLogger interface {
 	Debugf(format string, args ...interface{})
 	Infof(format string, args ...interface{})
 	Fatal(args ...interface{})
+}
+
+// logCtxBuilder helper struct to build the context for logging purposes
+type logCtxBuilder struct {
+	ctx map[string]interface{}
+}
+
+func NewLogCtxBuilder() *logCtxBuilder {
+	lCtx := logCtxBuilder{}
+	lCtx.init()
+	return &lCtx
+}
+
+func (cb *logCtxBuilder) init() {
+	if cb.ctx == nil {
+		cb.ctx = make(map[string]interface{})
+	}
+}
+
+func (cb *logCtxBuilder) WithProvider(provider string) *logCtxBuilder {
+	return cb.WithField(providerKey, provider)
+}
+
+func (cb *logCtxBuilder) WithService(service string) *logCtxBuilder {
+	return cb.WithField(serviceKey, service)
+}
+
+func (cb *logCtxBuilder) WithRegion(region string) *logCtxBuilder {
+	return cb.WithField(regionKey, region)
+}
+
+func (cb *logCtxBuilder) WithCorrelationId(cid string) *logCtxBuilder {
+	return cb.WithField(correlationIdKey, cid)
+}
+
+func (cb *logCtxBuilder) WithScrapeIdShort(id interface{}) *logCtxBuilder {
+	return cb.WithField(scrapeIdShortKey, id)
+}
+
+func (cb *logCtxBuilder) WithScrapeIdFull(id interface{}) *logCtxBuilder {
+	return cb.WithField(scrapeIdFullKey, id)
+}
+
+func (cb *logCtxBuilder) WithField(field string, value interface{}) *logCtxBuilder {
+	cb.init()
+	cb.ctx[field] = value
+	return cb
+}
+
+func (cb *logCtxBuilder) Build() map[string]interface{} {
+	cb.init()
+	return cb.ctx
 }
