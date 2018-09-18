@@ -122,8 +122,8 @@ func init() {
 	// flags are available through the entire application via viper
 	bindFlags()
 
-	// a fallback/root logger for events without context
-	logger.Logger = logger.NewLogger()
+	// initialize the logging framework
+	logger.InitLogger(viper.GetString(logLevelFlag), viper.GetString(logFormatFlag))
 
 	// Viper check for an environment variable
 	viper.AutomaticEnv()

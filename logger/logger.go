@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 type ctxMarker struct{}
 
 var (
 	ctxKey = &ctxMarker{}
+	logger = logrus.New() // default logger
 )
 
 const (
@@ -25,14 +25,14 @@ const (
 
 var ctxFields = []string{providerKey, regionKey, serviceKey, correlationIdKey, scrapeIdFullKey, scrapeIdShortKey}
 
-// NewLogger sets level and format for Logger
-func NewLogger() *logrus.Logger {
-	logger := newLogger(Config{
-		Level:  viper.GetString("log-level"),
-		Format: viper.GetString("log-format"),
+// InitLogger sets level and format for Logger
+func InitLogger(level, format string) {
+
+	logger = newLogger(Config{
+		Level:  level,
+		Format: format,
 	})
 
-	return logger
 }
 
 // Config holds information necessary for customizing the logger.
@@ -67,9 +67,10 @@ func newLogger(config Config) *logrus.Logger {
 
 // Extract assembles the entry with the fields extracted from the context
 func Extract(ctx context.Context) ContextLogger {
+
 	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
 	if !ok || fds == nil {
-		return logrus.NewEntry(logrus.New())
+		return logrus.NewEntry(logger)
 	}
 
 	fields := logrus.Fields{}
@@ -77,7 +78,7 @@ func Extract(ctx context.Context) ContextLogger {
 		fields[k] = v
 	}
 
-	return logrus.New().WithFields(fields)
+	return logger.WithFields(fields)
 }
 
 // ToContext adds
