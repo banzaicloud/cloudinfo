@@ -25,11 +25,18 @@ The following options can be configured when starting the exporter (with default
 ```
 ./productinfo --help
 Usage of ./productinfo:
+      --alibaba-access-key-id string             alibaba access key id
+      --alibaba-access-key-secret string         alibaba access key secret
+      --alibaba-price-info-url string            Alibaba get price info from this file (default "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.4/price/download/instancePrice.json")
+      --alibaba-region-id string                 alibaba region id
       --azure-subscription-id string             Azure subscription ID to use with the APIs
       --gce-api-key string                       GCE API key to use for getting SKUs
       --help                                     print usage
       --listen-address string                    the address the productinfo app listens to HTTP requests. (default ":9090")
+      --log-format string                        log format
       --log-level string                         log level (default "info")
+      --metrics-address string                   the address where internal metrics are exposed (default ":9900")
+      --metrics-enabled                          internal metrics are exposed if enabled
       --product-info-renewal-interval duration   duration (in go syntax) between renewing the product information. Example: 2h30m (default 24h0m0s)
       --prometheus-address string                http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.
       --prometheus-query string                  advanced configuration: change the query used to query spot price info from Prometheus. (default "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
@@ -128,7 +135,7 @@ export ALIBABA_REGION_ID=<region-id>
 Here's a few `cURL` examples to get started:
 
 ```
-curl  -ksL -X GET "http://localhost:9091/api/v1/regions/azure/" | jq .
+curl  -ksL -X GET "http://localhost:9091/api/v1/providers/azure/services/compute/regions/" | jq .
 [
   {
     "id": "centralindia",
@@ -147,7 +154,7 @@ curl  -ksL -X GET "http://localhost:9091/api/v1/regions/azure/" | jq .
 ```
 
 ```
-curl  -ksL -X GET "http://localhost:9091/api/v1/products/amazon/eu-west-1" | jq .
+curl  -ksL -X GET "http://localhost:9091/api/v1/providers/amazon/services/compute/regions/eu-west-1/products" | jq .
 {
   "products": [
     {

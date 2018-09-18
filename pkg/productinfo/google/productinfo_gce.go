@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gce
+package google
 
 import (
 	"context"
@@ -21,8 +21,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/banzaicloud/productinfo/logger"
+
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	billing "google.golang.org/api/cloudbilling/v1"
 	"google.golang.org/api/compute/v1"
@@ -93,9 +94,9 @@ func NewGceInfoer(apiKey string) (*GceInfoer, error) {
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (g *GceInfoer) Initialize() (map[string]map[string]productinfo.Price, error) {
-
-	log.Debug("initializing GCE price info")
+func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]productinfo.Price, error) {
+	log := logger.Extract(ctx)
+	log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]productinfo.Price)
 
 	svcList, err := g.cbSvc.Services.List().Do()
@@ -110,15 +111,15 @@ func (g *GceInfoer) Initialize() (map[string]map[string]productinfo.Price, error
 		}
 	}
 
-	log.Debugf("gce compute engine service id: %s", compEngId)
+	log.Debugf("google compute engine service id: %s", compEngId)
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := g.GetRegions()
+	regions, err := g.GetRegions(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for r := range regions {
-		zones, err := g.GetZones(r)
+		zones, err := g.GetZones(ctx, r)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +170,7 @@ func (g *GceInfoer) Initialize() (map[string]map[string]productinfo.Price, error
 							price.SpotPrice = spotPrice
 						}
 						allPrices[region][instanceType] = price
-						log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, instanceType, price)
+						log.WithField("region", region).Debugf("price info added: [machinetype=%s, price=%v]", instanceType, price)
 					}
 				}
 			}
@@ -180,14 +181,14 @@ func (g *GceInfoer) Initialize() (map[string]map[string]productinfo.Price, error
 		return nil, err
 	}
 
-	log.Debug("finished initializing GCE price info")
+	log.Debug("finished initializing price info")
 	return allPrices, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 // Queries the Google Cloud Compute API's machine type list endpoint
-func (g *GceInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues, error) {
-
+func (g *GceInfoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+	log := logger.Extract(ctx)
 	log.Debugf("getting %s values", attribute)
 
 	values := make(productinfo.AttrValues, 0)
@@ -226,11 +227,12 @@ func (g *GceInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
-func (g *GceInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
-	log.Debugf("getting product info [region=%s]", regionId)
+func (g *GceInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+	log := logger.Extract(ctx)
+	log.Debugf("getting product info")
 	var vmsMap = make(map[string]productinfo.VmInfo)
 	var ntwPerf uint
-	zones, err := g.GetZones(regionId)
+	zones, err := g.GetZones(ctx, regionId)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +274,8 @@ func (g *GceInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (g *GceInfoer) GetRegions() (map[string]string, error) {
+func (g *GceInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
+	log := logger.Extract(ctx)
 	log.Debugf("getting regions")
 	regionIdMap := make(map[string]string)
 	regionList, err := g.computeSvc.Regions.List(g.projectId).Do()
@@ -292,8 +295,9 @@ func (g *GceInfoer) GetRegions() (map[string]string, error) {
 }
 
 // GetZones returns the availability zones in a region
-func (g *GceInfoer) GetZones(region string) ([]string, error) {
-	log.Debugf("getting zones in region %s", region)
+func (g *GceInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
+	log := logger.Extract(ctx)
+	log.Debug("getting zones")
 	zones := make([]string, 0)
 	err := g.computeSvc.Zones.List(g.projectId).Pages(context.TODO(), func(zoneList *compute.ZoneList) error {
 		for _, z := range zoneList.Items {
@@ -307,7 +311,7 @@ func (g *GceInfoer) GetZones(region string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("found zones in region %s", zones)
+	log.Debugf("found zones %s", zones)
 	return zones, nil
 }
 
@@ -317,14 +321,8 @@ func (g *GceInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (g *GceInfoer) GetCurrentPrices(region string) (map[string]productinfo.Price, error) {
-	log.Debugf("getting current prices in region %s", region)
-	allPrices, err := g.Initialize()
-	if err != nil {
-		return nil, err
-	}
-	log.Debugf("found prices in region %s", region)
-	return allPrices[region], nil
+func (g *GceInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]productinfo.Price, error) {
+	return nil, fmt.Errorf("google prices cannot be queried on the fly")
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -351,14 +349,14 @@ func (g *GceInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 }
 
 // GetService returns the given service details on the provider
-func (g *GceInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+func (g *GceInfoer) GetService(ctx context.Context, service string) (productinfo.ServiceDescriber, error) {
 	svcs, err := g.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			log.Debugf("found service: %s", service)
+			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}

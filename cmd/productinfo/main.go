@@ -32,8 +32,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
+
+	"github.com/banzaicloud/productinfo/logger"
+
 	"github.com/patrickmn/go-cache"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/go-gin-prometheus"
@@ -41,9 +44,8 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/alibaba"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
-	"github.com/banzaicloud/productinfo/pkg/productinfo/ec2"
-	"github.com/banzaicloud/productinfo/pkg/productinfo/gce"
-	"github.com/banzaicloud/productinfo/pkg/productinfo/oci"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/google"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/oracle"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	flag "github.com/spf13/pflag"
@@ -53,6 +55,7 @@ const (
 	// the list of flags supported by the application
 	// these constants can be used to retrieve the passed in values or defaults via viper
 	logLevelFlag               = "log-level"
+	logFormatFlag              = "log-format"
 	listenAddressFlag          = "listen-address"
 	prodInfRenewalIntervalFlag = "product-info-renewal-interval"
 	prometheusAddressFlag      = "prometheus-address"
@@ -85,6 +88,7 @@ const (
 // defineFlags defines supported flags and makes them available for viper
 func defineFlags() {
 	flag.String(logLevelFlag, "info", "log level")
+	flag.String(logFormatFlag, "", "log format")
 	flag.String(listenAddressFlag, ":9090", "the address the productinfo app listens to HTTP requests.")
 	flag.Duration(prodInfRenewalIntervalFlag, 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
 	flag.String(prometheusAddressFlag, "", "http address of a Prometheus instance that has AWS spot "+
@@ -109,16 +113,6 @@ func bindFlags() {
 	viper.BindPFlags(flag.CommandLine)
 }
 
-// setLogLevel sets the log level
-func setLogLevel() {
-	parsedLevel, err := log.ParseLevel(viper.GetString("log-level"))
-	if err != nil {
-		log.WithError(err).Warnf("Couldn't parse log level, using default: %s", log.GetLevel())
-	} else {
-		log.SetLevel(parsedLevel)
-		log.Debugf("Set log level to %s", parsedLevel)
-	}
-}
 func init() {
 
 	// describe the flags for the application
@@ -128,8 +122,8 @@ func init() {
 	// flags are available through the entire application via viper
 	bindFlags()
 
-	// handle log level
-	setLogLevel()
+	// a fallback/root logger for events without context
+	logger.Logger = logger.NewLogger()
 
 	// Viper check for an environment variable
 	viper.AutomaticEnv()
@@ -151,17 +145,18 @@ func main() {
 		flag.Usage()
 		return
 	}
+	ctx := context.Background()
 
 	prodInfo, err := productinfo.NewCachingProductInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
-		cache.New(cache.NoExpiration, 24.*time.Hour), infoers())
-	quitOnError("error encountered", err)
+		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx))
+	quitOnError(ctx, "error encountered", err)
 
-	go prodInfo.Start(context.Background())
+	go prodInfo.Start(ctx)
 
-	quitOnError("error encountered", err)
+	quitOnError(ctx, "error encountered", err)
 
 	// configure the gin validator
-	api.ConfigureValidator(viper.GetStringSlice(providerFlag), prodInfo)
+	api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
 
 	routeHandler := api.NewRouteHandler(prodInfo)
 
@@ -175,46 +170,46 @@ func main() {
 		p.Use(router)
 	}
 
-	log.Info("Initialized gin router")
-	routeHandler.ConfigureRoutes(router)
-	log.Info("Configured routes")
-
+	logger.Extract(ctx).Info("Initialized gin router")
+	routeHandler.ConfigureRoutes(ctx, router)
+	logger.Extract(ctx).Info("Configured routes")
 	router.Run(viper.GetString(listenAddressFlag))
 }
 
-func infoers() map[string]productinfo.ProductInfoer {
+func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 	providers := viper.GetStringSlice(providerFlag)
 	infoers := make(map[string]productinfo.ProductInfoer, len(providers))
 	for _, p := range providers {
 		var infoer productinfo.ProductInfoer
 		var err error
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
 
 		switch p {
 		case Amazon:
-			infoer, err = ec2.NewEc2Infoer(viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
+			infoer, err = amazon.NewEc2Infoer(ctx, viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
 		case Google:
-			infoer, err = gce.NewGceInfoer(viper.GetString(gceApiKeyFlag))
+			infoer, err = google.NewGceInfoer(viper.GetString(gceApiKeyFlag))
 		case Azure:
 			infoer, err = azure.NewAzureInfoer(viper.GetString(azureSubscriptionId))
 		case Oracle:
-			infoer, err = oci.NewInfoer()
+			infoer, err = oracle.NewInfoer()
 		case Alibaba:
 			infoer, err = alibaba.NewAlibabaInfoer(viper.GetString(alibabaRegionId), viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret))
 		default:
-			log.Fatalf("provider %s is not supported", p)
+			logger.Extract(ctx).Fatal("provider is not supported")
 		}
 
-		quitOnError("could not initialize product info provider", err)
+		quitOnError(ctx, "could not initialize product info provider", err)
 
 		infoers[p] = infoer
-		log.Infof("Configured '%s' product info provider", p)
+		logger.Extract(ctx).Infof("Configured '%s' product info provider", p)
 	}
 	return infoers
 }
 
-func quitOnError(msg string, err error) {
+func quitOnError(ctx context.Context, msg string, err error) {
 	if err != nil {
-		log.Errorf("%s : %s", msg, err.Error())
+		logger.Extract(ctx).WithError(err).Error(msg)
 		flag.Usage()
 		os.Exit(-1)
 	}

@@ -15,7 +15,9 @@
 package api
 
 import (
+	"context"
 	"fmt"
+	"github.com/banzaicloud/productinfo/logger"
 	"github.com/mitchellh/mapstructure"
 	"net/http"
 	"reflect"
@@ -23,12 +25,11 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(providers []string, pi *productinfo.CachingProductInfo) {
+func ConfigureValidator(ctx context.Context, providers []string, pi *productinfo.CachingProductInfo) {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
@@ -50,21 +51,21 @@ func ConfigureValidator(providers []string, pi *productinfo.CachingProductInfo) 
 	})
 
 	// register validator for the service parameter in the request path
-	v.RegisterValidation("service", serviceValidator(pi))
+	v.RegisterValidation("service", serviceValidator(ctx, pi))
 
 	// register validator for the region parameter in the request path
-	v.RegisterValidation("region", regionValidator(pi))
+	v.RegisterValidation("region", regionValidator(ctx, pi))
 
 }
 
 // ValidatePathParam is a gin middleware handler function that validates a named path parameter with specific Validate tags
-func ValidatePathParam(name string, validate *validator.Validate, tags ...string) gin.HandlerFunc {
+func ValidatePathParam(ctx context.Context, name string, validate *validator.Validate, tags ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		p := c.Param(name)
 		for _, tag := range tags {
 			err := validate.Field(p, tag)
 			if err != nil {
-				logrus.Errorf("validation failed. err: %s", err.Error())
+				logger.Extract(ctx).WithError(err).Error("validation failed.")
 				c.Abort()
 				c.JSON(http.StatusBadRequest, gin.H{
 					"code":    "bad_params",
@@ -78,12 +79,11 @@ func ValidatePathParam(name string, validate *validator.Validate, tags ...string
 }
 
 // ValidatePathData middleware function to validate region information in the request path.
-func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
+func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.HandlerFunc {
 	const (
-		providerParam = "provider"
-		serviceParam  = "service"
-		regionParam   = "region"
+		regionParam = "region"
 	)
+	log := logger.Extract(ctx)
 	return func(c *gin.Context) {
 
 		var pathData interface{}
@@ -98,10 +98,10 @@ func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
 
 		mapstructure.Decode(getPathParamMap(c), pathData)
 
-		logrus.Debugf("path data is being validated: %s", pathData)
+		log.Debugf("path data is being validated: %s", pathData)
 		err := validate.Struct(pathData)
 		if err != nil {
-			logrus.Errorf("validation failed. err: %s", err.Error())
+			log.WithError(err).Error("validation failed.")
 			c.Abort()
 			c.JSON(http.StatusBadRequest, gin.H{
 				"code":    "bad_params",
@@ -114,19 +114,44 @@ func ValidatePathData(validate *validator.Validate) gin.HandlerFunc {
 
 }
 
-// regionValidator validates the `region` path parameter
-func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
+// todo remove this struct
+// regionData struct encapsulating data for region validation in the request path
+type regionData struct {
+	// Cloud the cloud provider from the request path
+	Cloud string `binding:"required"`
+	// Region the region in the request path
+	Region string `binding:"region"`
+}
+
+// String representation of the path data
+func (rd *regionData) String() string {
+	return fmt.Sprintf("Cloud: %s, Region: %s", rd.Cloud, rd.Region)
+}
+
+// newRegionData constructs a new struct
+func newRegionData(cloud string, region string) regionData {
+	return regionData{Cloud: cloud, Region: region}
+}
+
+// validationFn validation logic for the region data to be registered with the validator
+func regionValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentRegion := digValueForName(currentStruct, "Region")
 
-		regions, err := cpi.GetRegions(currentProvider)
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(currentProvider).
+			WithRegion(currentRegion).
+			Build())
+
+		log := logger.Extract(ctx)
+		regions, err := cpi.GetRegions(ctx, currentProvider)
 		if err != nil {
-			logrus.Errorf("could not get regions for provider: %s, err: %s", currentProvider, err.Error())
+			log.WithError(err).Error("could not get regions")
 		}
 
-		logrus.Debugf("current region: %s, regions: %#v", currentRegion, regions)
+		log.Debugf("current region: %s, regions: %#v", currentRegion, regions)
 		for reg := range regions {
 			if reg == currentRegion {
 				return true
@@ -137,20 +162,26 @@ func regionValidator(cpi *productinfo.CachingProductInfo) validator.Func {
 }
 
 // serviceValidator validates the `service` path parameter
-func serviceValidator(cpi *productinfo.CachingProductInfo) validator.Func {
+func serviceValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(currentProvider).
+			WithService(currentService).
+			Build())
+
+		log := logger.Extract(ctx)
 		infoer, err := cpi.GetInfoer(currentProvider)
 		if err != nil {
-			logrus.Errorf("could not get information for provider: %s, err: %s", currentProvider, err.Error())
+			log.WithError(err).Error("could not get information")
 		}
 		services, err := infoer.GetServices()
 		if err != nil {
-			logrus.Errorf("could not get services for provider: [%s], err: %s", currentProvider, err.Error())
+			log.WithError(err).Error("could not get services")
 		}
 
 		for _, svc := range services {

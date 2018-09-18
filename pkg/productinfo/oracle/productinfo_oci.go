@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package oci
+package oracle
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/banzaicloud/productinfo/logger"
+
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
-	"github.com/banzaicloud/productinfo/pkg/productinfo/oci/client"
-	log "github.com/sirupsen/logrus"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/oracle/client"
 )
 
 // Infoer encapsulates the data and operations needed to access external resources
@@ -84,33 +86,34 @@ func NewInfoer() (*Infoer, error) {
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (i *Infoer) Initialize() (prices map[string]map[string]productinfo.Price, err error) {
+func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]productinfo.Price, err error) {
+	log := logger.Extract(ctx)
 
-	log.Infof("initializing OCI price info")
+	log.Info("initializing price info")
 
 	prices = make(map[string]map[string]productinfo.Price)
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := i.GetRegions()
+	regions, err := i.GetRegions(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	for r := range regions {
-		zones, err := i.GetZones(r)
+		zones, err := i.GetZones(ctx, r)
 		if err != nil {
 			return nil, err
 		}
 		zonesInRegions[r] = zones
 	}
 
-	shapePrices, err := i.GetProductPrices()
+	shapePrices, err := i.GetProductPrices(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	for region := range regions {
-		products, err := i.GetProducts(region)
+		products, err := i.GetProducts(ctx, region)
 		if err != nil {
 			return prices, err
 		}
@@ -125,7 +128,7 @@ func (i *Infoer) Initialize() (prices map[string]map[string]productinfo.Price, e
 			price := prices[region][product.Type]
 			price.OnDemandPrice = shapePrice
 			prices[region][product.Type] = price
-			log.Debugf("price info added: [region=%s, machinetype=%s, price=%v]", region, product.Type, price)
+			log.WithField("region", region).Debugf("price info added: [machinetype=%s, price=%v]", product.Type, price)
 		}
 	}
 
@@ -135,7 +138,8 @@ func (i *Infoer) Initialize() (prices map[string]map[string]productinfo.Price, e
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (i *Infoer) GetAttributeValues(attribute string) (values productinfo.AttrValues, err error) {
+func (i *Infoer) GetAttributeValues(ctx context.Context, attribute string) (values productinfo.AttrValues, err error) {
+	log := logger.Extract(ctx)
 
 	log.Debugf("getting %s values", attribute)
 
@@ -180,18 +184,8 @@ func (i *Infoer) GetAttributeValues(attribute string) (values productinfo.AttrVa
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (i *Infoer) GetCurrentPrices(region string) (prices map[string]productinfo.Price, err error) {
-
-	log.Debugf("getting current prices in region %s", region)
-
-	pricesInRegions, err := i.Initialize()
-	if err != nil {
-		return
-	}
-
-	log.Debugf("found prices in region %s", region)
-
-	return pricesInRegions[region], nil
+func (i *Infoer) GetCurrentPrices(ctx context.Context, region string) (prices map[string]productinfo.Price, err error) {
+	return nil, fmt.Errorf("oracle prices cannot be queried on the fly")
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -210,11 +204,11 @@ func (i *Infoer) GetNetworkPerformanceMapper() (mapper productinfo.NetworkPerfMa
 }
 
 // GetProductPrices gets prices for available shapes from ITRA
-func (i *Infoer) GetProductPrices() (prices map[string]float64, err error) {
+func (i *Infoer) GetProductPrices(ctx context.Context) (prices map[string]float64, err error) {
 
 	prices = make(map[string]float64, 0)
 	for shape, specs := range i.shapeSpecs {
-		info, _ := i.GetProductInfoFromITRA(specs.PartNumber)
+		info, _ := i.GetProductInfoFromITRA(ctx, specs.PartNumber)
 		prices[shape] = info.GetPrice("PAY_AS_YOU_GO") * specs.Cpus
 	}
 
@@ -222,7 +216,7 @@ func (i *Infoer) GetProductPrices() (prices map[string]float64, err error) {
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(regionId string) (products []productinfo.VmInfo, err error) {
+func (i *Infoer) GetProducts(ctx context.Context, regionId string) (products []productinfo.VmInfo, err error) {
 
 	err = i.client.ChangeRegion(regionId)
 	if err != nil {
@@ -249,8 +243,8 @@ func (i *Infoer) GetProducts(regionId string) (products []productinfo.VmInfo, er
 }
 
 // GetRegions returns a map with available regions
-func (i *Infoer) GetRegions() (regions map[string]string, err error) {
-	log.Debugf("getting regions")
+func (i *Infoer) GetRegions(ctx context.Context) (regions map[string]string, err error) {
+	logger.Extract(ctx).Debugf("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
@@ -275,8 +269,8 @@ func (i *Infoer) GetRegions() (regions map[string]string, err error) {
 }
 
 // GetZones returns the availability zones in a region
-func (i *Infoer) GetZones(region string) (zones []string, err error) {
-	log.Debugf("getting zones in %s", region)
+func (i *Infoer) GetZones(ctx context.Context, region string) (zones []string, err error) {
+	logger.Extract(ctx).Debug("getting zones")
 
 	err = i.client.ChangeRegion(region)
 	if err != nil {
@@ -314,14 +308,14 @@ func (i *Infoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 }
 
 // GetService returns the service on the  provider
-func (i *Infoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+func (i *Infoer) GetService(ctx context.Context, service string) (productinfo.ServiceDescriber, error) {
 	svcs, err := i.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			log.Debugf("found service: %s", service)
+			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}

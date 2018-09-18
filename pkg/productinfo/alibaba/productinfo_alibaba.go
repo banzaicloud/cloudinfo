@@ -15,6 +15,7 @@
 package alibaba
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -22,9 +23,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/productinfo/logger"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -86,12 +88,13 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 }
 
 // Initialize is not needed on Alibaba because price info is changing frequently
-func (e *AlibabaInfoer) Initialize() (map[string]map[string]productinfo.Price, error) {
+func (e *AlibabaInfoer) Initialize(ctx context.Context) (map[string]map[string]productinfo.Price, error) {
 	return nil, nil
 }
 
-func (e *AlibabaInfoer) getCurrentSpotPrices(region string, zones []string) (map[string]productinfo.SpotPriceInfo, error) {
-	log.Debugf("start retrieving alibaba spot price data for region [%s]", region)
+func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string, zones []string) (map[string]productinfo.SpotPriceInfo, error) {
+	log := logger.Extract(ctx)
+	log.Debug("start retrieving spot price data")
 	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 
 	var (
@@ -108,7 +111,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(region string, zones []string) (map
 	request.NetworkType = "vpc"
 	request.OSType = "linux"
 
-	log.Debugf("created new client for %s, %v", region, testCli)
+	log.Debug("created new client")
 
 	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
 	if err != nil {
@@ -122,7 +125,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(region string, zones []string) (map
 
 			prices, err := testCli.DescribeSpotPriceHistory(request)
 			if err != nil {
-				log.Errorf("failed to get spot price history for provider [%s], region [%s], instance type [%s]. error: [%s]", "alibaba", region, values[1], err.Error())
+				log.WithField("region", region).WithError(err).Errorf("failed to get spot price history for instance type [%s].", values[1])
 				continue
 			}
 
@@ -141,18 +144,19 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(region string, zones []string) (map
 			}
 		}
 	}
-	log.Debugf("finished retrieving alibaba spot price data for region [%s]", region)
+	log.WithField("region", region).Debug("finished retrieving spot price data")
 	return priceInfo, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (e *AlibabaInfoer) GetAttributeValues(attribute string) (productinfo.AttrValues, error) {
+func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+	log := logger.Extract(ctx)
 	log.Debugf("getting %s values", attribute)
 
 	values := make(productinfo.AttrValues, 0)
 	valueSet := make(map[productinfo.AttrValue]interface{})
 
-	regions, err := e.GetRegions()
+	regions, err := e.GetRegions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -202,8 +206,9 @@ func (e *AlibabaInfoer) GetAttributeValues(attribute string) (productinfo.AttrVa
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (e *AlibabaInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, error) {
-	log.Debugf("getting product info [region=%s]", regionId)
+func (e *AlibabaInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+	log := logger.Extract(ctx)
+	log.Debug("getting product info")
 	var vms []productinfo.VmInfo
 
 	request := ecs.CreateDescribeInstanceTypesRequest()
@@ -250,7 +255,7 @@ func (e *AlibabaInfoer) GetProducts(regionId string) ([]productinfo.VmInfo, erro
 }
 
 // GetZones returns the availability zones in a region
-func (e *AlibabaInfoer) GetZones(region string) ([]string, error) {
+func (e *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
 	var zones []string
 
 	request := ecs.CreateDescribeZonesRequest()
@@ -268,7 +273,7 @@ func (e *AlibabaInfoer) GetZones(region string) ([]string, error) {
 }
 
 // GetRegions returns a map with available regions
-func (e *AlibabaInfoer) GetRegions() (map[string]string, error) {
+func (e *AlibabaInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
 	var RegionIdMap = make(map[string]string)
 	request := ecs.CreateDescribeRegionsRequest()
 	request.AcceptLanguage = "en-US"
@@ -289,20 +294,21 @@ func (e *AlibabaInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
-func (e *AlibabaInfoer) GetCurrentPrices(region string) (map[string]productinfo.Price, error) {
+func (e *AlibabaInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]productinfo.Price, error) {
+	log := logger.Extract(ctx)
 	var spotPrices map[string]productinfo.SpotPriceInfo
 	var err error
 
-	zones, err := e.GetZones(region)
+	zones, err := e.GetZones(ctx, region)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debug("getting current spot prices directly from the ECS API")
-	spotPrices, err = e.getCurrentSpotPrices(region, zones)
+	log.WithField("region", region).Debug("getting current spot prices directly from the API")
+	spotPrices, err = e.getCurrentSpotPrices(ctx, region, zones)
 
 	if err != nil {
-		log.Errorf("could not retrieve current prices. region %s, error: %s", region, err.Error())
+		log.WithField("region", region).WithError(err).Error("could not retrieve current prices.")
 		return nil, err
 	}
 	prices := make(map[string]productinfo.Price)
@@ -355,14 +361,14 @@ func (e *AlibabaInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 }
 
 // GetService returns the given service description
-func (e *AlibabaInfoer) GetService(service string) (productinfo.ServiceDescriber, error) {
+func (e *AlibabaInfoer) GetService(ctx context.Context, service string) (productinfo.ServiceDescriber, error) {
 	svcs, err := e.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			log.Debugf("found service: %s", service)
+			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}

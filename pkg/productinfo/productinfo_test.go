@@ -15,6 +15,7 @@
 package productinfo
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -58,7 +59,7 @@ const (
 	GetProductDetail        = "returns a product detail"
 )
 
-func (dpi *DummyProductInfoer) Initialize() (map[string]map[string]Price, error) {
+func (dpi *DummyProductInfoer) Initialize(ctx context.Context) (map[string]map[string]Price, error) {
 	switch dpi.TcId {
 	case InitializeError:
 		return nil, errors.New(InitializeError)
@@ -71,7 +72,7 @@ func (dpi *DummyProductInfoer) Initialize() (map[string]map[string]Price, error)
 	}
 }
 
-func (dpi *DummyProductInfoer) GetAttributeValues(attribute string) (AttrValues, error) {
+func (dpi *DummyProductInfoer) GetAttributeValues(ctx context.Context, attribute string) (AttrValues, error) {
 	switch dpi.TcId {
 	case GetAttributeValuesError:
 		return nil, errors.New(GetAttributeValuesError)
@@ -79,7 +80,7 @@ func (dpi *DummyProductInfoer) GetAttributeValues(attribute string) (AttrValues,
 	return dpi.AttrValues, nil
 }
 
-func (dpi *DummyProductInfoer) GetProducts(regionId string) ([]VmInfo, error) {
+func (dpi *DummyProductInfoer) GetProducts(ctx context.Context, regionId string) ([]VmInfo, error) {
 	switch dpi.TcId {
 	case GetProductsError:
 		return nil, errors.New(GetProductsError)
@@ -88,7 +89,7 @@ func (dpi *DummyProductInfoer) GetProducts(regionId string) ([]VmInfo, error) {
 	}
 }
 
-func (dpi *DummyProductInfoer) GetZones(region string) ([]string, error) {
+func (dpi *DummyProductInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
 	switch dpi.TcId {
 	case GetZonesError:
 		return nil, errors.New(GetZonesError)
@@ -101,7 +102,7 @@ func (dpi *DummyProductInfoer) GetRegion(id string) *endpoints.Region {
 	return nil
 }
 
-func (dpi *DummyProductInfoer) GetRegions() (map[string]string, error) {
+func (dpi *DummyProductInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
 	switch dpi.TcId {
 	case GetRegionsError:
 		return nil, errors.New(GetRegionsError)
@@ -118,7 +119,7 @@ func (dpi *DummyProductInfoer) HasShortLivedPriceInfo() bool {
 	return true
 }
 
-func (dpi *DummyProductInfoer) GetCurrentPrices(region string) (map[string]Price, error) {
+func (dpi *DummyProductInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]Price, error) {
 	switch dpi.TcId {
 	case GetCurrentPricesError:
 		return nil, errors.New(GetCurrentPricesError)
@@ -300,7 +301,7 @@ func TestCachingProductInfo_renewVms(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, test.Cache, test.ProductInfoer)
-			values, err := productInfo.renewVms("dummy", "dummyRegion")
+			values, err := productInfo.renewVms(context.Background(), "dummy", "dummyRegion")
 			test.checker(test.Cache, values, err)
 		})
 	}
@@ -363,7 +364,7 @@ func TestCachingProductInfo_GetAttrValues(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			test.checker(productInfo.GetAttrValues("dummy", test.Attribute))
+			test.checker(productInfo.GetAttrValues(context.Background(), "dummy", test.Attribute))
 		})
 	}
 }
@@ -402,7 +403,7 @@ func TestCachingProductInfo_GetZones(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			values, err := productInfo.GetZones("dummy", "dummyRegion")
+			values, err := productInfo.GetZones(context.Background(), "dummy", "dummyRegion")
 			test.checker(productInfo, values, err)
 		})
 	}
@@ -438,7 +439,7 @@ func TestCachingProductInfo_Initialize(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			test.checker(productInfo.Initialize("dummy"))
+			test.checker(productInfo.Initialize(context.Background(), "dummy"))
 		})
 	}
 }
@@ -473,7 +474,7 @@ func TestCachingProductInfo_renewShortLivedInfo(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			test.checker(productInfo.renewShortLivedInfo("dummy", "dummyRegion"))
+			test.checker(productInfo.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
 }
@@ -538,7 +539,7 @@ func TestCachingProductInfo_GetPrice(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			values, value, err := productInfo.GetPrice("dummy", "dummyRegion", "c3.large", test.zones)
+			values, value, err := productInfo.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
 			test.checker(values, value, err)
 		})
 	}
@@ -575,7 +576,7 @@ func TestCachingProductInfo_GetRegions(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			test.checker(productInfo.GetRegions("dummy"))
+			test.checker(productInfo.GetRegions(context.Background(), "dummy"))
 		})
 	}
 }
@@ -630,7 +631,7 @@ func TestCachingProductInfo_GetProductDetails(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, test.cache, test.ProductInfoer)
-			test.checker(productInfo.GetProductDetails("dummy", "dummyRegion"))
+			test.checker(productInfo.GetProductDetails(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
 }

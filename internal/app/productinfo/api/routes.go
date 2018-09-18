@@ -15,15 +15,17 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"os"
+
+	"github.com/banzaicloud/productinfo/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -54,8 +56,8 @@ func getCorsConfig() cors.Config {
 }
 
 // ConfigureRoutes configures the gin engine, defines the rest API for this application
-func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
-	log.Info("configuring routes")
+func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) {
+	logger.Extract(ctx).Info("configuring routes")
 
 	v := binding.Validator.Engine().(*validator.Validate)
 
@@ -64,6 +66,8 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 		basePath = basePathFromEnv
 	}
 
+	router.Use(logger.MiddlewareCorrelationId())
+	router.Use(logger.Middleware(logger.Extract(ctx)))
 	router.Use(cors.New(getCorsConfig()))
 	router.Use(static.Serve(basePath, static.LocalFile("./web/dist/ui", true)))
 
@@ -77,16 +81,16 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 	providerGroup := v1.Group("/providers")
 	{
 
-		providerGroup.GET("/", r.getProviders).Use(ValidatePathParam(providerParam, v, "provider"))
-		providerGroup.GET("/:provider", r.getProvider)
-		providerGroup.GET("/:provider/services", r.getServices).Use(ValidatePathData(v))
-		providerGroup.GET("/:provider/services/:service", r.getService)
-		providerGroup.GET("/:provider/services/:service/regions", r.getRegions).Use(ValidatePathData(v))
-		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion)
-		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages)
-		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts)
-		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues).
-			Use(ValidatePathParam(attributeParam, v, "attribute"))
+		providerGroup.GET("/", r.getProviders(ctx)).Use(ValidatePathParam(ctx, providerParam, v, "provider"))
+		providerGroup.GET("/:provider", r.getProvider(ctx))
+		providerGroup.GET("/:provider/services", r.getServices(ctx)).Use(ValidatePathData(ctx, v))
+		providerGroup.GET("/:provider/services/:service", r.getService(ctx))
+		providerGroup.GET("/:provider/services/:service/regions", r.getRegions(ctx)).Use(ValidatePathData(ctx, v))
+		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion(ctx))
+		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages(ctx))
+		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts(ctx))
+		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues(ctx)).
+			Use(ValidatePathParam(ctx, attributeParam, v, "attribute"))
 	}
 
 }
