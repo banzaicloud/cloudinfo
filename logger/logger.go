@@ -72,7 +72,7 @@ func newLogger(config Config) *logrus.Logger {
 func Extract(ctx context.Context) ContextLogger {
 	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
 	if !ok || fds == nil {
-		return logrus.NewEntry(Logger)
+		return logrus.NewEntry(logrus.New())
 	}
 
 	fields := logrus.Fields{}
