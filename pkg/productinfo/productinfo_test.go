@@ -80,7 +80,7 @@ func (dpi *DummyProductInfoer) GetAttributeValues(ctx context.Context, attribute
 	return dpi.AttrValues, nil
 }
 
-func (dpi *DummyProductInfoer) GetProducts(ctx context.Context, regionId string) ([]VmInfo, error) {
+func (dpi *DummyProductInfoer) GetProducts(ctx context.Context, service, regionId string) ([]VmInfo, error) {
 	switch dpi.TcId {
 	case GetProductsError:
 		return nil, errors.New(GetProductsError)
@@ -102,7 +102,7 @@ func (dpi *DummyProductInfoer) GetRegion(id string) *endpoints.Region {
 	return nil
 }
 
-func (dpi *DummyProductInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
+func (dpi *DummyProductInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	switch dpi.TcId {
 	case GetRegionsError:
 		return nil, errors.New(GetRegionsError)
@@ -145,7 +145,7 @@ func (dpi *DummyProductInfoer) Get(k string) (interface{}, bool) {
 	switch dpi.TcId {
 	case ProductDetailsOK:
 		switch k {
-		case "/banzaicloud.com/recommender/dummy/dummyRegion/vms":
+		case "/banzaicloud.com/productinfo/providers/dummy/services/dummyService/regions/dummyRegion/vms":
 			return []VmInfo{
 				{
 					Type:          "type-1",
@@ -168,12 +168,12 @@ func (dpi *DummyProductInfoer) Get(k string) (interface{}, bool) {
 					NtwPerfCat: "high",
 				},
 			}, true
-		case "/banzaicloud.com/recommender/dummy/dummyRegion/prices/type-1":
+		case "/banzaicloud.com/productinfo/providers/dummy/regions/dummyRegion/prices/type-1":
 			return Price{
 				OnDemandPrice: 0.023,
 				SpotPrice:     SpotPriceInfo{"dummyZone": 0.0069},
 			}, true
-		case "/banzaicloud.com/recommender/dummy/dummyRegion/prices/type-2":
+		case "/banzaicloud.com/productinfo/providers/dummy/regions/dummyRegion/prices/type-2":
 			return Price{
 				OnDemandPrice: 0.043,
 				SpotPrice:     SpotPriceInfo{"dummyZone": 0.0087},
@@ -183,7 +183,7 @@ func (dpi *DummyProductInfoer) Get(k string) (interface{}, bool) {
 		}
 	case GetProductDetail:
 		switch k {
-		case "/banzaicloud.com/recommender/dummy/dummyRegion/vms":
+		case "/banzaicloud.com/productinfo/providers/dummy/services/dummyService/regions/dummyRegion/vms":
 			return []VmInfo{
 				{
 					Type:          "type-1",
@@ -193,7 +193,7 @@ func (dpi *DummyProductInfoer) Get(k string) (interface{}, bool) {
 					NtwPerfCat:    "high",
 				},
 			}, true
-		case "/banzaicloud.com/recommender/dummy/dummyRegion/prices/type-1":
+		case "/banzaicloud.com/productinfo/providers/dummy/regions/dummyRegion/prices/type-1":
 			return Price{
 				OnDemandPrice: 0.023,
 				SpotPrice:     SpotPriceInfo{"dummyZone": 0.0069},
@@ -272,7 +272,7 @@ func TestCachingProductInfo_renewVms(t *testing.T) {
 			checker: func(cache *cache.Cache, vms []VmInfo, err error) {
 				assert.Nil(t, err, "should not get error on vm renewal")
 				assert.Equal(t, 1, len(vms), "there should be a single entry in values")
-				vals, _ := cache.Get("/banzaicloud.com/recommender/dummy/dummyRegion/vms")
+				vals, _ := cache.Get("/banzaicloud.com/productinfo/providers/dummy/services/dummyService/regions/dummyRegion/vms")
 
 				for _, val := range vals.([]VmInfo) {
 					assert.Equal(t, float64(32), val.Mem, "the value in the cache is not as expected")
@@ -301,7 +301,7 @@ func TestCachingProductInfo_renewVms(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, test.Cache, test.ProductInfoer)
-			values, err := productInfo.renewVms(context.Background(), "dummy", "dummyRegion")
+			values, err := productInfo.renewVms(context.Background(), "dummy", "dummyService", "dummyRegion")
 			test.checker(test.Cache, values, err)
 		})
 	}
@@ -576,7 +576,7 @@ func TestCachingProductInfo_GetRegions(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			test.checker(productInfo.GetRegions(context.Background(), "dummy"))
+			test.checker(productInfo.GetRegions(context.Background(), "dummy", "compute"))
 		})
 	}
 }
@@ -624,14 +624,14 @@ func TestCachingProductInfo_GetProductDetails(t *testing.T) {
 			cache: &DummyProductInfoer{},
 			checker: func(details []ProductDetails, err error) {
 				assert.Nil(t, details, "the details should be nil")
-				assert.EqualError(t, err, "vms not yet cached for the key: /banzaicloud.com/recommender/dummy/dummyRegion/vms")
+				assert.EqualError(t, err, "vms not yet cached for the key: /banzaicloud.com/productinfo/providers/dummy/services/dummyService/regions/dummyRegion/vms")
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, test.cache, test.ProductInfoer)
-			test.checker(productInfo.GetProductDetails(context.Background(), "dummy", "dummyRegion"))
+			test.checker(productInfo.GetProductDetails(context.Background(), "dummy", "dummyService", "dummyRegion"))
 		})
 	}
 }

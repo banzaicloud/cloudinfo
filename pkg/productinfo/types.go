@@ -20,29 +20,29 @@ import (
 )
 
 const (
-	// Memory represents the memory attribute for the recommender
+	// Memory represents the memory attribute for the product info
 	Memory = "memory"
 
-	// Cpu represents the cpu attribute for the recommender
+	// Cpu represents the cpu attribute for the product info
 	Cpu = "cpu"
 
 	// VmKeyTemplate format for generating vm cache keys
-	VmKeyTemplate = "/banzaicloud.com/recommender/%s/%s/vms"
+	VmKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/regions/%s/vms"
 
 	// AttrKeyTemplate format for generating attribute cache keys
-	AttrKeyTemplate = "/banzaicloud.com/recommender/%s/attrValues/%s"
+	AttrKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/attrValues/%s"
 
 	// PriceKeyTemplate format for generating price cache keys
-	PriceKeyTemplate = "/banzaicloud.com/recommender/%s/%s/prices/%s"
+	PriceKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/regions/%s/prices/%s"
 
 	// ZoneKeyTemplate format for generating zone cache keys
-	ZoneKeyTemplate = "/banzaicloud.com/recommender/%s/%s/zones/"
+	ZoneKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/regions/%s/zones/"
 
 	// RegionKeyTemplate format for generating region cache keys
-	RegionKeyTemplate = "/banzaicloud.com/recommender/%s/regions/"
+	RegionKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/regions/"
 
 	// StatusKeyTemplate format for generating status cache keys
-	StatusKeyTemplate = "/banzaicloud.com/recommender/%s/status/"
+	StatusKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/status/"
 )
 
 // ProductInfoer lists operations for retrieving cloud provider information
@@ -56,13 +56,13 @@ type ProductInfoer interface {
 	GetAttributeValues(ctx context.Context, attribute string) (AttrValues, error)
 
 	// GetProducts gets product information based on the given arguments from an external system
-	GetProducts(ctx context.Context, regionId string) ([]VmInfo, error)
+	GetProducts(ctx context.Context, service, regionId string) ([]VmInfo, error)
 
 	// GetZones returns the availability zones in a region
 	GetZones(ctx context.Context, region string) ([]string, error)
 
 	// GetRegions retrieves the available regions form the external system
-	GetRegions(ctx context.Context) (map[string]string, error)
+	GetRegions(ctx context.Context, service string) (map[string]string, error)
 
 	// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
 	HasShortLivedPriceInfo() bool
@@ -199,7 +199,7 @@ type ProductDetails struct {
 // ProductDetailSource product details related set of operations
 type ProductDetailSource interface {
 	// GetProductDetails gathers the product details information known by telescope
-	GetProductDetails(cloud string, region string) ([]ProductDetails, error)
+	GetProductDetails(provider string, region string) ([]ProductDetails, error)
 }
 
 // newProductDetails creates a new ProductDetails struct and returns a pointer to it

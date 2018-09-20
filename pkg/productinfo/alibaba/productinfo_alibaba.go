@@ -156,7 +156,7 @@ func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, attribute string
 	values := make(productinfo.AttrValues, 0)
 	valueSet := make(map[productinfo.AttrValue]interface{})
 
-	regions, err := e.GetRegions(ctx)
+	regions, err := e.GetRegions(ctx, "compute")
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, attribute string
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (e *AlibabaInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
 	log.Debug("getting product info")
 	var vms []productinfo.VmInfo
@@ -231,7 +231,7 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, regionId string) ([]pro
 				if price.Period == "1" {
 					// The key structure is 'RegionId::InstanceType::NetworkType::OSType::IoOptimized'"
 					values := strings.Split(key, "::")
-					if values[0] == regionId && values[1] == instanceType.InstanceTypeId {
+					if values[0] == regionId && values[1] == instanceType.InstanceTypeId && values[3] == "linux" {
 						onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
 						if err != nil {
 							return nil, err
@@ -273,7 +273,7 @@ func (e *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, 
 }
 
 // GetRegions returns a map with available regions
-func (e *AlibabaInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
+func (e *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	var RegionIdMap = make(map[string]string)
 	request := ecs.CreateDescribeRegionsRequest()
 	request.AcceptLanguage = "en-US"

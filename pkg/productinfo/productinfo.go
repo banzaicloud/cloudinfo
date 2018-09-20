@@ -89,7 +89,7 @@ var (
 		Name:      "region_duration_seconds",
 		Help:      "Cloud provider scrape region duration in seconds",
 	},
-		[]string{"provider", "region"},
+		[]string{"provider", "service", "region"},
 	)
 	// ScrapeFailuresTotalCounter collects metrics for the prometheus
 	ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -97,7 +97,7 @@ var (
 		Name:      "failures_total",
 		Help:      "Total number of scrape failures, partitioned by provider and region",
 	},
-		[]string{"provider", "region"},
+		[]string{"provider", "service", "region"},
 	)
 	// ScrapeShortLivedCompleteDurationGauge collects metrics for the prometheus
 	ScrapeShortLivedCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -191,7 +191,7 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 
 	log.Info("renewing product info")
 	if _, err := cpi.Initialize(ctx, provider); err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
+		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
 		log.WithError(err).Error("failed to renew product info")
 		return
 	}
@@ -201,7 +201,7 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 	for _, attr := range attributes {
 		_, err := cpi.renewAttrValues(ctx, provider, attr)
 		if err != nil {
-			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
+			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
 			log.WithError(err).Errorf("failed to renew %s attribute values", attr)
 			return
 		}
@@ -209,25 +209,37 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 	log.Info("finished to renew attribute values")
 
 	log.Info("start to renew products (vm-s)")
-	regions, err := pi.GetRegions(ctx)
+	services, err := pi.GetServices()
 	if err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A").Inc()
+		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
 		log.WithError(err).Error("failed to renew products")
 		return
 	}
-
-	for regionId := range regions {
-		c := logger.ToContext(ctx,
+	for _, service := range services {
+		ctxLog := logger.ToContext(ctx,
 			logger.NewLogCtxBuilder().
-				WithRegion(regionId).
+				WithService(service.ServiceName()).
 				Build())
+		regions, err := pi.GetRegions(ctx, service.ServiceName())
+		if err != nil {
+			ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), "N/A").Inc()
+			logger.Extract(ctxLog).Error("failed to renew products")
+			return
+		}
 
-		start := time.Now()
-		if _, err := cpi.renewVms(c, provider, regionId); err != nil {
-			ScrapeFailuresTotalCounter.WithLabelValues(provider, regionId).Inc()
-			logger.Extract(c).WithError(err).Error("failed to renew products")
-		} else {
-			ScrapeRegionDurationGauge.WithLabelValues(provider, regionId).Set(time.Since(start).Seconds())
+		for regionId := range regions {
+			c := logger.ToContext(ctxLog,
+				logger.NewLogCtxBuilder().
+					WithRegion(regionId).
+					Build())
+
+			start := time.Now()
+			if _, err := cpi.renewVms(c, provider, service.ServiceName(), regionId); err != nil {
+				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				logger.Extract(c).WithError(err).Error("failed to renew products")
+			} else {
+				ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
+			}
 		}
 	}
 	log.Info("finished to renew products (vm-s)")
@@ -279,7 +291,7 @@ func (cpi *CachingProductInfo) renewShortLived(ctx context.Context) {
 			logger.Extract(c).Info("renewing short lived product info")
 			start := time.Now()
 
-			regions, err := i.GetRegions(c)
+			regions, err := i.GetRegions(c, "compute")
 			if err != nil {
 				ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
 				logger.Extract(c).WithError(err).Error("couldn't renew attribute values in cache")
@@ -470,16 +482,16 @@ func (cpi *CachingProductInfo) toProviderAttribute(provider string, attr string)
 	return "", fmt.Errorf("unsupported attribute: %s", attr)
 }
 
-func (cpi *CachingProductInfo) getVmKey(provider string, region string) string {
-	return fmt.Sprintf(VmKeyTemplate, provider, region)
+func (cpi *CachingProductInfo) getVmKey(provider, service, region string) string {
+	return fmt.Sprintf(VmKeyTemplate, provider, service, region)
 }
 
-func (cpi *CachingProductInfo) renewVms(ctx context.Context, provider, regionId string) ([]VmInfo, error) {
-	values, err := cpi.productInfoers[provider].GetProducts(ctx, regionId)
+func (cpi *CachingProductInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {
+	values, err := cpi.productInfoers[provider].GetProducts(ctx, service, regionId)
 	if err != nil {
 		return nil, err
 	}
-	cpi.vmAttrStore.Set(cpi.getVmKey(provider, regionId), values, cpi.renewalInterval)
+	cpi.vmAttrStore.Set(cpi.getVmKey(provider, service, regionId), values, cpi.renewalInterval)
 	return values, nil
 }
 
@@ -519,9 +531,9 @@ func (cpi *CachingProductInfo) GetNetworkPerfMapper(provider string) (NetworkPer
 }
 
 // GetRegions gets the regions for the provided provider
-func (cpi *CachingProductInfo) GetRegions(ctx context.Context, provider string) (map[string]string, error) {
+func (cpi *CachingProductInfo) GetRegions(ctx context.Context, provider, service string) (map[string]string, error) {
 	log := logger.Extract(ctx)
-	regionCacheKey := cpi.getRegionsKey(provider)
+	regionCacheKey := cpi.getRegionsKey(provider, service)
 
 	// check the cache
 	if cachedVal, ok := cpi.vmAttrStore.Get(regionCacheKey); ok {
@@ -531,7 +543,7 @@ func (cpi *CachingProductInfo) GetRegions(ctx context.Context, provider string) 
 	}
 
 	// retrieve regions from the provider
-	regions, err := cpi.productInfoers[provider].GetRegions(ctx)
+	regions, err := cpi.productInfoers[provider].GetRegions(ctx, service)
 	if err != nil {
 		log.WithError(err).Error("could not retrieve regions.")
 		return nil, err
@@ -542,17 +554,17 @@ func (cpi *CachingProductInfo) GetRegions(ctx context.Context, provider string) 
 	return regions, nil
 }
 
-func (cpi *CachingProductInfo) getRegionsKey(provider string) string {
-	return fmt.Sprintf(RegionKeyTemplate, provider)
+func (cpi *CachingProductInfo) getRegionsKey(provider, service string) string {
+	return fmt.Sprintf(RegionKeyTemplate, provider, service)
 }
 
 // GetProductDetails retrieves product details form the given provider and region
-func (cpi *CachingProductInfo) GetProductDetails(ctx context.Context, cloud string, region string) ([]ProductDetails, error) {
+func (cpi *CachingProductInfo) GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error) {
 	log := logger.Extract(ctx)
 	log.Debug("getting product details")
-	cachedVms, ok := cpi.vmAttrStore.Get(cpi.getVmKey(cloud, region))
+	cachedVms, ok := cpi.vmAttrStore.Get(cpi.getVmKey(provider, service, region))
 	if !ok {
-		return nil, fmt.Errorf("vms not yet cached for the key: %s", cpi.getVmKey(cloud, region))
+		return nil, fmt.Errorf("vms not yet cached for the key: %s", cpi.getVmKey(provider, service, region))
 	}
 
 	vms := cachedVms.([]VmInfo)
@@ -561,8 +573,8 @@ func (cpi *CachingProductInfo) GetProductDetails(ctx context.Context, cloud stri
 	var pr Price
 	for _, vm := range vms {
 		pd := newProductDetails(vm)
-		pdWithNtwPerfCat := cpi.decorateNtwPerfCat(cloud, pd)
-		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(cloud, region, vm.Type)); ok {
+		pdWithNtwPerfCat := cpi.decorateNtwPerfCat(provider, pd)
+		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, vm.Type)); ok {
 			pr = cachedVal.(Price)
 			// fill the on demand price if appropriate
 			if pr.OnDemandPrice > 0 {
@@ -572,7 +584,7 @@ func (cpi *CachingProductInfo) GetProductDetails(ctx context.Context, cloud stri
 				pdWithNtwPerfCat.SpotInfo = append(pdWithNtwPerfCat.SpotInfo, *newZonePrice(zone, price))
 			}
 		} else {
-			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(cloud, region, vm.Type))
+			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(provider, region, vm.Type))
 		}
 
 		if pdWithNtwPerfCat.OnDemandPrice != 0 {

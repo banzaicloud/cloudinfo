@@ -145,7 +145,7 @@ func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]pro
 	log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]productinfo.Price)
 
-	regions, err := a.GetRegions(ctx)
+	regions, err := a.GetRegions(ctx, "compute")
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +307,7 @@ func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) 
 	values := make(productinfo.AttrValues, 0)
 	valueSet := make(map[productinfo.AttrValue]interface{})
 
-	regions, err := a.GetRegions(ctx)
+	regions, err := a.GetRegions(ctx, "compute")
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +343,7 @@ func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) 
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AzureInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+func (a *AzureInfoer) GetProducts(ctx context.Context, service, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
 	log.Debug("getting product info")
 	var vms []productinfo.VmInfo
@@ -370,49 +370,68 @@ func (a *AzureInfoer) GetZones(ctx context.Context, region string) ([]string, er
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (a *AzureInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
-	log := logger.Extract(ctx)
+func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+	switch service {
+	case "aks":
+		regions := make(map[string]string)
+		regions["australiaeast"] = "Australia East"
+		regions["canadacentral"] = "Canada Central"
+		regions["canadaeast"] = "Canada East"
+		regions["centralus"] = "Central US"
+		regions["eastus"] = "East US"
+		regions["eastus2"] = "East US 2"
+		regions["japaneast"] = "Japan East"
+		regions["northeurope"] = "North Europe"
+		regions["southeastasia"] = "Southeast Asia"
+		regions["uksouth"] = "UK South"
+		regions["westeurope"] = "West Europe"
+		regions["westus"] = "West US"
+		regions["westus2"] = "West US 2"
+		return regions, nil
+	default:
+		log := logger.Extract(ctx)
 
-	allLocations := make(map[string]string)
-	supLocations := make(map[string]string)
+		allLocations := make(map[string]string)
+		supLocations := make(map[string]string)
 
-	// retrieve all locations for the subscription id (some of them may not be supported by the required provider
-	if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
-		// fill up the map: DisplayName - > Name
-		for _, loc := range *locations.Value {
-			allLocations[*loc.DisplayName] = *loc.Name
-		}
-	} else {
-		log.WithError(err).Error("error while retrieving azure locations")
-		return nil, err
-	}
-
-	// identify supported locations for the namespace and resource type
-	const (
-		providerNamespace = "Microsoft.Compute"
-		resourceType      = "locations/vmSizes"
-	)
-
-	if providers, err := a.providersClient.Get(context.TODO(), providerNamespace, ""); err == nil {
-		for _, pr := range *providers.ResourceTypes {
-			if *pr.ResourceType == resourceType {
-				for _, displName := range *pr.Locations {
-					if loc, ok := allLocations[displName]; ok {
-						log.WithField("region", loc).Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
-						supLocations[loc] = displName
-					} else {
-						log.Debugf("unsupported location. [name, display name] = [%s, %s]", loc, displName)
-					}
-				}
-				break
+		// retrieve all locations for the subscription id (some of them may not be supported by the required provider
+		if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
+			// fill up the map: DisplayName - > Name
+			for _, loc := range *locations.Value {
+				allLocations[*loc.DisplayName] = *loc.Name
 			}
+		} else {
+			log.WithError(err).Error("error while retrieving azure locations")
+			return nil, err
 		}
-	} else {
-		log.WithError(err).Errorf("error while retrieving supported locations for provider: %s.", providerNamespace)
-		return nil, err
-	}
 
-	return supLocations, nil
+		// identify supported locations for the namespace and resource type
+		const (
+			providerNamespace = "Microsoft.Compute"
+			resourceType      = "locations/vmSizes"
+		)
+
+		if providers, err := a.providersClient.Get(context.TODO(), providerNamespace, ""); err == nil {
+			for _, pr := range *providers.ResourceTypes {
+				if *pr.ResourceType == resourceType {
+					for _, displName := range *pr.Locations {
+						if loc, ok := allLocations[displName]; ok {
+							log.WithField("region", loc).Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
+							supLocations[loc] = displName
+						} else {
+							log.Debugf("unsupported location. [name, display name] = [%s, %s]", loc, displName)
+						}
+					}
+					break
+				}
+			}
+		} else {
+			log.WithError(err).Errorf("error while retrieving supported locations for provider: %s.", providerNamespace)
+			return nil, err
+		}
+
+		return supLocations, nil
+	}
 }
 
 // HasShortLivedPriceInfo - Azure doesn't have frequently changing prices

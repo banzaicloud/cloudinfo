@@ -67,7 +67,7 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 	}
 
 	router.Use(logger.MiddlewareCorrelationId())
-	router.Use(logger.Middleware(ctx))
+	router.Use(logger.Middleware())
 	router.Use(cors.New(getCorsConfig()))
 	router.Use(static.Serve(basePath, static.LocalFile("./web/dist/ui", true)))
 

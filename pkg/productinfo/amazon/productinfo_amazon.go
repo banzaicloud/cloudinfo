@@ -134,7 +134,7 @@ func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, attribute string) (p
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
 
 	var vms []productinfo.VmInfo
@@ -182,7 +182,7 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]product
 			continue
 		}
 
-		var currGen bool = true
+		var currGen = true
 		if currentGenStr, err := pd.GetDataForKey("currentGeneration"); err == nil {
 			if strings.ToLower(currentGenStr) == "no" {
 				currGen = false
@@ -206,6 +206,14 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, regionId string) ([]product
 	}
 	if vms == nil {
 		log.Debug("couldn't find any virtual machines to recommend")
+	}
+
+	if service == "eks" {
+		vm := productinfo.VmInfo{
+			Type:          "EKS Control Plane",
+			OnDemandPrice: 0.2,
+		}
+		vms = append(vms, vm)
 	}
 
 	log.Debugf("found vms: %#v", vms)
@@ -336,12 +344,21 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
-func (e *Ec2Infoer) GetRegions(ctx context.Context) (map[string]string, error) {
-	regionIdMap := make(map[string]string)
-	for key, region := range endpoints.AwsPartition().Regions() {
-		regionIdMap[key] = region.Description()
+func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+	switch service {
+	case "eks":
+		eksRegions := make(map[string]string)
+		eksRegions["us-west-2"] = "US West (Oregon)"
+		eksRegions["us-east-1"] = "US East (N. Virginia)"
+		eksRegions["eu-west-1"] = "EU (Ireland)"
+		return eksRegions, nil
+	default:
+		regionIdMap := make(map[string]string)
+		for key, region := range endpoints.AwsPartition().Regions() {
+			regionIdMap[key] = region.Description()
+		}
+		return regionIdMap, nil
 	}
-	return regionIdMap, nil
 }
 
 // GetZones returns the availability zones in a region

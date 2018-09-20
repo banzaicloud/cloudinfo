@@ -15,15 +15,15 @@
 package logger
 
 import (
-	"context"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 // Middleware returns a gin compatible handler.
-func Middleware(ctx context.Context, notlogged ...string) gin.HandlerFunc {
+func Middleware(notlogged ...string) gin.HandlerFunc {
 	var skip map[string]struct{}
 
 	if length := len(notlogged); length > 0 {

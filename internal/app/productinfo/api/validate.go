@@ -114,39 +114,22 @@ func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.Han
 
 }
 
-// todo remove this struct
-// regionData struct encapsulating data for region validation in the request path
-type regionData struct {
-	// Cloud the cloud provider from the request path
-	Cloud string `binding:"required"`
-	// Region the region in the request path
-	Region string `binding:"region"`
-}
-
-// String representation of the path data
-func (rd *regionData) String() string {
-	return fmt.Sprintf("Cloud: %s, Region: %s", rd.Cloud, rd.Region)
-}
-
-// newRegionData constructs a new struct
-func newRegionData(cloud string, region string) regionData {
-	return regionData{Cloud: cloud, Region: region}
-}
-
 // validationFn validation logic for the region data to be registered with the validator
 func regionValidator(ctx context.Context, cpi *productinfo.CachingProductInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
+		currentService := digValueForName(currentStruct, "Service")
 		currentRegion := digValueForName(currentStruct, "Region")
 
 		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(currentProvider).
+			WithService(currentService).
 			WithRegion(currentRegion).
 			Build())
 
 		log := logger.Extract(ctx)
-		regions, err := cpi.GetRegions(ctx, currentProvider)
+		regions, err := cpi.GetRegions(ctx, currentProvider, currentService)
 		if err != nil {
 			log.WithError(err).Error("could not get regions")
 		}
