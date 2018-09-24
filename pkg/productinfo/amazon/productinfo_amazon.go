@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"

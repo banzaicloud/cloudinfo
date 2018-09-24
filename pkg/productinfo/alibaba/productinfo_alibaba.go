@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"

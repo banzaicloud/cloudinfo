@@ -24,7 +24,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

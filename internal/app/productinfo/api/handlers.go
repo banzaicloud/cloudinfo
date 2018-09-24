@@ -16,7 +16,7 @@ package api
 
 import (
 	"context"
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"net/http"
 
 	"fmt"

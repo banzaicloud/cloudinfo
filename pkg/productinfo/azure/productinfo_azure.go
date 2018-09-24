@@ -18,10 +18,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/banzaicloud/productinfo/logger"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"

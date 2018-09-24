@@ -17,10 +17,11 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/banzaicloud/productinfo/logger"
-	"github.com/mitchellh/mapstructure"
 	"net/http"
 	"reflect"
+
+	"github.com/banzaicloud/productinfo/pkg/logger"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-gonic/gin"

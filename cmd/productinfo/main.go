@@ -34,7 +34,7 @@ import (
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/patrickmn/go-cache"
 	"github.com/spf13/viper"

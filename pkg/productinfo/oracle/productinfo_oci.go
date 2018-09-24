@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/oracle/client"

@@ -16,10 +16,9 @@ package api
 
 import (
 	"context"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"net/http"
 	"os"
-
-	"github.com/banzaicloud/productinfo/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-contrib/cors"

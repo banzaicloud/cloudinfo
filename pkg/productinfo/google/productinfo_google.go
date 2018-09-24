@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"golang.org/x/oauth2/google"
