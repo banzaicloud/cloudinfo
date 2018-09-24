@@ -22,13 +22,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/productinfo/pkg/logger"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
@@ -38,6 +37,10 @@ import (
 const (
 	// Cpu represents the cpu attribute for the recommender
 	Cpu = "vcpu"
+)
+
+var (
+	eksRegionIds = []string{"us-west-2", "us-east-1", "eu-west-1"}
 )
 
 // PricingSource list of operations for retrieving pricing information
@@ -347,11 +350,12 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	switch service {
 	case "eks":
-		eksRegions := make(map[string]string)
-		eksRegions["us-west-2"] = "US West (Oregon)"
-		eksRegions["us-east-1"] = "US East (N. Virginia)"
-		eksRegions["eu-west-1"] = "EU (Ireland)"
-		return eksRegions, nil
+		eksRegionMap := make(map[string]string)
+		awsRegions := endpoints.AwsPartition().Regions()
+		for _, regId := range eksRegionIds {
+			eksRegionMap[regId] = awsRegions[regId].Description()
+		}
+		return eksRegionMap, nil
 	default:
 		regionIdMap := make(map[string]string)
 		for key, region := range endpoints.AwsPartition().Regions() {

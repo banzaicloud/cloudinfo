@@ -21,11 +21,10 @@ import (
 	"reflect"
 
 	"github.com/banzaicloud/productinfo/pkg/logger"
-	"github.com/mitchellh/mapstructure"
-
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/mitchellh/mapstructure"
 	"gopkg.in/go-playground/validator.v8"
 )
 
