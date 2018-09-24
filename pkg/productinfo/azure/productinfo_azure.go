@@ -374,21 +374,22 @@ func (a *AzureInfoer) GetZones(ctx context.Context, region string) ([]string, er
 func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	switch service {
 	case "aks":
-		regions := make(map[string]string)
-		regions["australiaeast"] = "Australia East"
-		regions["canadacentral"] = "Canada Central"
-		regions["canadaeast"] = "Canada East"
-		regions["centralus"] = "Central US"
-		regions["eastus"] = "East US"
-		regions["eastus2"] = "East US 2"
-		regions["japaneast"] = "Japan East"
-		regions["northeurope"] = "North Europe"
-		regions["southeastasia"] = "Southeast Asia"
-		regions["uksouth"] = "UK South"
-		regions["westeurope"] = "West Europe"
-		regions["westus"] = "West US"
-		regions["westus2"] = "West US 2"
-		return regions, nil
+		aksRegionKeys := []string{"australiaeast", "canadacentral", "canadaeast", "centralus", "eastus", "eastus2", "japaneast", "northeurope", "southeastasia", "uksouth", "westeurope", "westus", "westus2"}
+		aksRegionMap := make(map[string]string)
+
+		if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
+			// fill up the map: DisplayName - > Name
+			for _, loc := range *locations.Value {
+				for _, key := range aksRegionKeys {
+					if key == *loc.Name {
+						aksRegionMap[*loc.Name] = *loc.DisplayName
+					}
+				}
+
+			}
+		}
+
+		return aksRegionMap, nil
 	default:
 		log := logger.Extract(ctx)
 
