@@ -149,14 +149,14 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (productinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
 	log.Debugf("getting %s values", attribute)
 
 	values := make(productinfo.AttrValues, 0)
 	valueSet := make(map[productinfo.AttrValue]interface{})
 
-	regions, err := e.GetRegions(ctx, "compute")
+	regions, err := e.GetRegions(ctx, service)
 	if err != nil {
 		return nil, err
 	}

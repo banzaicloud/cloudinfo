@@ -10,10 +10,11 @@
   version = "v0.23.0"
 
 [[projects]]
-  digest = "1:14348b1a1b99011407b18d48a4cd7570e6925e87052239fcc440c7c463cb3748"
+  digest = "1:1613cade09be59d058f446da7e49e3cc3449cb6e3bc510d31df74cb8df1dc744"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "services/compute/mgmt/2018-04-01/compute",
+    "services/containerservice/mgmt/2018-03-31/containerservice",
     "services/preview/commerce/mgmt/2015-06-01-preview/commerce",
     "services/resources/mgmt/2016-06-01/subscriptions",
     "services/resources/mgmt/2018-05-01/resources",
@@ -710,6 +711,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute",
+    "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
     "github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources",

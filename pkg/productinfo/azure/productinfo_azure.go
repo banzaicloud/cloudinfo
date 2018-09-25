@@ -22,6 +22,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+
 	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
@@ -300,7 +302,7 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+func (a *AzureInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (productinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
 
 	log.Debugf("getting %s values", attribute)
@@ -308,7 +310,7 @@ func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) 
 	values := make(productinfo.AttrValues, 0)
 	valueSet := make(map[productinfo.AttrValue]interface{})
 
-	regions, err := a.GetRegions(ctx, "compute")
+	regions, err := a.GetRegions(ctx, service)
 	if err != nil {
 		return nil, err
 	}
@@ -319,18 +321,41 @@ func (a *AzureInfoer) GetAttributeValues(ctx context.Context, attribute string) 
 			log.WithField("region", region).WithError(err).Warn("couldn't get VM sizes")
 			continue
 		}
-		for _, v := range *vmSizes.Value {
-			switch attribute {
-			case productinfo.Cpu:
-				valueSet[productinfo.AttrValue{
-					Value:    float64(*v.NumberOfCores),
-					StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
-				}] = ""
-			case productinfo.Memory:
-				valueSet[productinfo.AttrValue{
-					Value:    float64(*v.MemoryInMB) / 1024,
-					StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
-				}] = ""
+		switch service {
+		case "aks":
+			possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
+			for _, v := range *vmSizes.Value {
+				for _, vm := range possibleVmTypes {
+					if string(vm) == *v.Name {
+						switch attribute {
+						case productinfo.Cpu:
+							valueSet[productinfo.AttrValue{
+								Value:    float64(*v.NumberOfCores),
+								StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
+							}] = ""
+						case productinfo.Memory:
+							valueSet[productinfo.AttrValue{
+								Value:    float64(*v.MemoryInMB) / 1024,
+								StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
+							}] = ""
+						}
+					}
+				}
+			}
+		default:
+			for _, v := range *vmSizes.Value {
+				switch attribute {
+				case productinfo.Cpu:
+					valueSet[productinfo.AttrValue{
+						Value:    float64(*v.NumberOfCores),
+						StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
+					}] = ""
+				case productinfo.Memory:
+					valueSet[productinfo.AttrValue{
+						Value:    float64(*v.MemoryInMB) / 1024,
+						StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
+					}] = ""
+				}
 			}
 		}
 	}
@@ -352,13 +377,30 @@ func (a *AzureInfoer) GetProducts(ctx context.Context, service, regionId string)
 	if err != nil {
 		return nil, err
 	}
-	for _, v := range *vmSizes.Value {
-		vms = append(vms, productinfo.VmInfo{
-			Type: *v.Name,
-			Cpus: float64(*v.NumberOfCores),
-			Mem:  float64(*v.MemoryInMB) / 1024,
-			// TODO: netw perf
-		})
+	switch service {
+	case "aks":
+		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
+		for _, v := range *vmSizes.Value {
+			for _, vm := range possibleVmTypes {
+				if string(vm) == *v.Name {
+					vms = append(vms, productinfo.VmInfo{
+						Type: *v.Name,
+						Cpus: float64(*v.NumberOfCores),
+						Mem:  float64(*v.MemoryInMB) / 1024,
+						// TODO: netw perf
+					})
+				}
+			}
+		}
+	default:
+		for _, v := range *vmSizes.Value {
+			vms = append(vms, productinfo.VmInfo{
+				Type: *v.Name,
+				Cpus: float64(*v.NumberOfCores),
+				Mem:  float64(*v.MemoryInMB) / 1024,
+				// TODO: netw perf
+			})
+		}
 	}
 
 	log.Debugf("found vms: %#v", vms)

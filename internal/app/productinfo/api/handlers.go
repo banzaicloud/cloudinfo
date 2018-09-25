@@ -367,7 +367,7 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 		log := logger.Extract(ctxLog)
 		log.Infof("getting %s attribute values", pathParams.Attribute)
 
-		attributes, err := r.prod.GetAttrValues(ctxLog, pathParams.Provider, pathParams.Attribute)
+		attributes, err := r.prod.GetAttrValues(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Attribute)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 			return
