@@ -414,50 +414,35 @@ func (a *AzureInfoer) GetZones(ctx context.Context, region string) ([]string, er
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+	log := logger.Extract(ctx)
+
+	allLocations := make(map[string]string)
+	supLocations := make(map[string]string)
+
+	// retrieve all locations for the subscription id (some of them may not be supported by the required provider)
+	if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
+		// fill up the map: DisplayName - > Name
+		for _, loc := range *locations.Value {
+			allLocations[*loc.DisplayName] = *loc.Name
+		}
+	} else {
+		log.WithError(err).Error("error while retrieving azure locations")
+		return nil, err
+	}
+
+	// identify supported locations for the namespace and resource type
+	const (
+		providerNamespaceForCompute = "Microsoft.Compute"
+		resourceTypeForCompute      = "locations/vmSizes"
+		providerNamespaceForAks     = "Microsoft.ContainerService"
+		resourceTypeForAks          = "managedClusters"
+	)
+
 	switch service {
 	case "aks":
-		aksRegionKeys := []string{"australiaeast", "canadacentral", "canadaeast", "centralus", "eastus", "eastus2", "japaneast", "northeurope", "southeastasia", "uksouth", "westeurope", "westus", "westus2"}
-		aksRegionMap := make(map[string]string)
-
-		if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
-			// fill up the map: DisplayName - > Name
-			for _, loc := range *locations.Value {
-				for _, key := range aksRegionKeys {
-					if key == *loc.Name {
-						aksRegionMap[*loc.Name] = *loc.DisplayName
-					}
-				}
-
-			}
-		}
-
-		return aksRegionMap, nil
-	default:
-		log := logger.Extract(ctx)
-
-		allLocations := make(map[string]string)
-		supLocations := make(map[string]string)
-
-		// retrieve all locations for the subscription id (some of them may not be supported by the required provider
-		if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
-			// fill up the map: DisplayName - > Name
-			for _, loc := range *locations.Value {
-				allLocations[*loc.DisplayName] = *loc.Name
-			}
-		} else {
-			log.WithError(err).Error("error while retrieving azure locations")
-			return nil, err
-		}
-
-		// identify supported locations for the namespace and resource type
-		const (
-			providerNamespace = "Microsoft.Compute"
-			resourceType      = "locations/vmSizes"
-		)
-
-		if providers, err := a.providersClient.Get(context.TODO(), providerNamespace, ""); err == nil {
+		if providers, err := a.providersClient.Get(context.TODO(), providerNamespaceForAks, ""); err == nil {
 			for _, pr := range *providers.ResourceTypes {
-				if *pr.ResourceType == resourceType {
+				if *pr.ResourceType == resourceTypeForAks {
 					for _, displName := range *pr.Locations {
 						if loc, ok := allLocations[displName]; ok {
 							log.WithField("region", loc).Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
@@ -470,7 +455,28 @@ func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[strin
 				}
 			}
 		} else {
-			log.WithError(err).Errorf("error while retrieving supported locations for provider: %s.", providerNamespace)
+			log.WithError(err).Errorf("error while retrieving supported locations for provider: %s.", resourceTypeForAks)
+			return nil, err
+		}
+
+		return supLocations, nil
+	default:
+		if providers, err := a.providersClient.Get(context.TODO(), providerNamespaceForCompute, ""); err == nil {
+			for _, pr := range *providers.ResourceTypes {
+				if *pr.ResourceType == resourceTypeForCompute {
+					for _, displName := range *pr.Locations {
+						if loc, ok := allLocations[displName]; ok {
+							log.WithField("region", loc).Debugf("found supported location. [name, display name] = [%s, %s]", loc, displName)
+							supLocations[loc] = displName
+						} else {
+							log.Debugf("unsupported location. [name, display name] = [%s, %s]", loc, displName)
+						}
+					}
+					break
+				}
+			}
+		} else {
+			log.WithError(err).Errorf("error while retrieving supported locations for provider: %s.", resourceTypeForCompute)
 			return nil, err
 		}
 
