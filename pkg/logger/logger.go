@@ -138,6 +138,7 @@ type ContextLogger interface {
 	Debugf(format string, args ...interface{})
 	Infof(format string, args ...interface{})
 	Fatal(args ...interface{})
+	Error(args ...interface{})
 }
 
 // logCtxBuilder helper struct to build the context for logging purposes

@@ -16,7 +16,7 @@ package api
 
 import (
 	"context"
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"net/http"
 
 	"fmt"
@@ -198,7 +198,7 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 			WithCorrelationId(logger.GetCorrelationId(c)).
 			Build())
 
-		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider)
+		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider, pathParams.Service)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 			return
@@ -236,7 +236,7 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 			WithCorrelationId(logger.GetCorrelationId(c)).
 			Build())
 
-		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider)
+		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider, pathParams.Service)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 			return
@@ -283,7 +283,7 @@ func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 			return
 		}
-		details, err := r.prod.GetProductDetails(ctxLog, pathParams.Provider, pathParams.Region)
+		details, err := r.prod.GetProductDetails(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 			return

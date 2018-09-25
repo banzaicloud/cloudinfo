@@ -16,10 +16,9 @@ package api
 
 import (
 	"context"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"net/http"
 	"os"
-
-	"github.com/banzaicloud/productinfo/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-contrib/cors"
@@ -67,7 +66,7 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 	}
 
 	router.Use(logger.MiddlewareCorrelationId())
-	router.Use(logger.Middleware(ctx))
+	router.Use(logger.Middleware())
 	router.Use(cors.New(getCorsConfig()))
 	router.Use(static.Serve(basePath, static.LocalFile("./web/dist/ui", true)))
 

@@ -270,13 +270,25 @@ func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 
 func TestEc2Infoer_GetRegions(t *testing.T) {
 	tests := []struct {
-		name  string
-		check func(regionId map[string]string, err error)
+		name    string
+		service string
+		check   func(regionId map[string]string, err error)
 	}{
 		{
-			name: "receive all regions",
+			name:    "receive all regions for compute service",
+			service: "compute",
 			check: func(regionId map[string]string, err error) {
+				assert.Equal(t, 15, len(regionId))
 				assert.Contains(t, regionId, "us-west-1")
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:    "receive all regions for eks service",
+			service: "eks",
+			check: func(regionId map[string]string, err error) {
+				assert.Equal(t, 3, len(regionId))
+				assert.Contains(t, regionId, "us-east-1")
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},
@@ -287,7 +299,7 @@ func TestEc2Infoer_GetRegions(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
-			regions, err := productInfoer.GetRegions(context.Background())
+			regions, err := productInfoer.GetRegions(context.Background(), test.service)
 			test.check(regions, err)
 		})
 	}
@@ -297,20 +309,34 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 	tests := []struct {
 		name           string
 		regionId       string
+		service        string
 		pricingService PricingSource
 		check          func(vm []productinfo.VmInfo, err error)
 	}{
 		{
-			name:           "successful - retrieves the available virtual machines",
+			name:           "retrieves the available virtual machines for compute service",
+			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 4},
 			check: func(vm []productinfo.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
+				assert.Equal(t, 1, len(vm))
 				assert.Equal(t, []productinfo.VmInfo{{Type: "t2.small", OnDemandPrice: 5, SpotPrice: productinfo.SpotPriceInfo(nil), Cpus: 1, Mem: 2, Gpus: 0, NtwPerf: "Low to Moderate", NtwPerfCat: "", CurrentGen: true}}, vm)
 			},
 		},
 		{
+			name:           "retrieves the available virtual machines for eks service",
+			service:        "eks",
+			regionId:       "eu-central-1",
+			pricingService: &testStruct{TcId: 4},
+			check: func(vm []productinfo.VmInfo, err error) {
+				assert.Nil(t, err, "the error should be nil")
+				assert.Equal(t, 2, len(vm))
+			},
+		},
+		{
 			name:           "error - GetProducts",
+			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 5},
 			check: func(vm []productinfo.VmInfo, err error) {
@@ -320,6 +346,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:           "error - on demand price",
+			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 6},
 			check: func(vm []productinfo.VmInfo, err error) {
@@ -329,6 +356,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:           "error - memory",
+			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 7},
 			check: func(vm []productinfo.VmInfo, err error) {
@@ -338,6 +366,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:           "error - cpu",
+			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 8},
 			check: func(vm []productinfo.VmInfo, err error) {
@@ -347,6 +376,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:           "error - instance type",
+			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 9},
 			check: func(vm []productinfo.VmInfo, err error) {
@@ -364,7 +394,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.GetProducts(context.Background(), test.regionId))
+			test.check(productInfoer.GetProducts(context.Background(), test.service, test.regionId))
 		})
 	}
 }

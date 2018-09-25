@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"golang.org/x/oauth2/google"
@@ -114,7 +114,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 	log.Debugf("google compute engine service id: %s", compEngId)
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := g.GetRegions(ctx)
+	regions, err := g.GetRegions(ctx, "compute")
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, attribute string) (p
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
-func (g *GceInfoer) GetProducts(ctx context.Context, regionId string) ([]productinfo.VmInfo, error) {
+func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
 	log.Debugf("getting product info")
 	var vmsMap = make(map[string]productinfo.VmInfo)
@@ -236,32 +236,30 @@ func (g *GceInfoer) GetProducts(ctx context.Context, regionId string) ([]product
 	if err != nil {
 		return nil, err
 	}
-	for _, zone := range zones {
-		err = g.computeSvc.MachineTypes.List(g.projectId, zone).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
-			for _, mt := range allMts.Items {
-				if _, ok := vmsMap[mt.Name]; !ok {
-					switch {
-					case mt.GuestCpus < 1:
-						// minimum 1 Gbps network performance for each virtual machine
-						ntwPerf = 1
-					case mt.GuestCpus > 8:
-						// theoretical maximum of 16 Gbps for each virtual machine
-						ntwPerf = 16
-					default:
-						// each vCPU has a 2 Gbps egress cap for peak performance
-						ntwPerf = uint(mt.GuestCpus * 2)
-					}
-					vmsMap[mt.Name] = productinfo.VmInfo{
-						Type:    mt.Name,
-						Cpus:    float64(mt.GuestCpus),
-						Mem:     float64(mt.MemoryMb) / 1024,
-						NtwPerf: fmt.Sprintf("%d Gbit/s", ntwPerf),
-					}
+	err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
+		for _, mt := range allMts.Items {
+			if _, ok := vmsMap[mt.Name]; !ok {
+				switch {
+				case mt.GuestCpus < 1:
+					// minimum 1 Gbps network performance for each virtual machine
+					ntwPerf = 1
+				case mt.GuestCpus > 8:
+					// theoretical maximum of 16 Gbps for each virtual machine
+					ntwPerf = 16
+				default:
+					// each vCPU has a 2 Gbps egress cap for peak performance
+					ntwPerf = uint(mt.GuestCpus * 2)
+				}
+				vmsMap[mt.Name] = productinfo.VmInfo{
+					Type:    mt.Name,
+					Cpus:    float64(mt.GuestCpus),
+					Mem:     float64(mt.MemoryMb) / 1024,
+					NtwPerf: fmt.Sprintf("%d Gbit/s", ntwPerf),
 				}
 			}
-			return nil
-		})
-	}
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +272,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, regionId string) ([]product
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (g *GceInfoer) GetRegions(ctx context.Context) (map[string]string, error) {
+func (g *GceInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	log := logger.Extract(ctx)
 	log.Debugf("getting regions")
 	regionIdMap := make(map[string]string)

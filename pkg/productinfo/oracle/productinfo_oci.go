@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/oracle/client"
@@ -94,7 +94,7 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]p
 	prices = make(map[string]map[string]productinfo.Price)
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := i.GetRegions(ctx)
+	regions, err := i.GetRegions(ctx, "compute")
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]p
 	}
 
 	for region := range regions {
-		products, err := i.GetProducts(ctx, region)
+		products, err := i.GetProducts(ctx, "compute", region)
 		if err != nil {
 			return prices, err
 		}
@@ -216,7 +216,7 @@ func (i *Infoer) GetProductPrices(ctx context.Context) (prices map[string]float6
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(ctx context.Context, regionId string) (products []productinfo.VmInfo, err error) {
+func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (products []productinfo.VmInfo, err error) {
 
 	err = i.client.ChangeRegion(regionId)
 	if err != nil {
@@ -243,7 +243,7 @@ func (i *Infoer) GetProducts(ctx context.Context, regionId string) (products []p
 }
 
 // GetRegions returns a map with available regions
-func (i *Infoer) GetRegions(ctx context.Context) (regions map[string]string, err error) {
+func (i *Infoer) GetRegions(ctx context.Context, service string) (regions map[string]string, err error) {
 	logger.Extract(ctx).Debugf("getting regions")
 
 	c, err := i.client.NewIdentityClient()

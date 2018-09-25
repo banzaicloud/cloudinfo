@@ -34,7 +34,7 @@ import (
 
 	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
 
-	"github.com/banzaicloud/productinfo/logger"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 
 	"github.com/patrickmn/go-cache"
 	"github.com/spf13/viper"
@@ -104,7 +104,7 @@ func defineFlags() {
 	flag.String(alibabaRegionId, "", "alibaba region id")
 	flag.String(alibabaAccessKeyId, "", "alibaba access key id")
 	flag.String(alibabaAccessKeySecret, "", "alibaba access key secret")
-	flag.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.4/price/download/instancePrice.json", "Alibaba get price info from this file")
+	flag.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.5/price/download/instancePrice.json", "Alibaba get price info from this file")
 }
 
 // bindFlags binds parsed flags into viper
@@ -166,7 +166,7 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
-		p := ginprometheus.NewPrometheus("http", []string{"provider", "region"})
+		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 		p.SetListenAddress(viper.GetString(metricsAddressFlag))
 		p.Use(router)
 	}
