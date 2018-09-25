@@ -113,7 +113,7 @@ func (e *Ec2Infoer) Initialize(ctx context.Context) (map[string]map[string]produ
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 // Delegates to the underlying PricingSource instance and unifies (transforms) the response
-func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, service, attribute string) (productinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
 	apiValues, err := e.pricingSvc.GetAttributeValues(e.newAttributeValuesInput(attribute))
 	if err != nil {

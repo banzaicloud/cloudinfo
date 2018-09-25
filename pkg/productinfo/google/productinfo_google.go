@@ -187,7 +187,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 // Queries the Google Cloud Compute API's machine type list endpoint
-func (g *GceInfoer) GetAttributeValues(ctx context.Context, attribute string) (productinfo.AttrValues, error) {
+func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (productinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
 	log.Debugf("getting %s values", attribute)
 

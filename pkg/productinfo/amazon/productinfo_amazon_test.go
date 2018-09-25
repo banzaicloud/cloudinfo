@@ -262,7 +262,7 @@ func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 				t.Fatalf("failed to create productinfoer; [%s]", err.Error())
 			}
 
-			test.check(productInfoer.GetAttributeValues(context.Background(), test.attrName))
+			test.check(productInfoer.GetAttributeValues(context.Background(), "compute", test.attrName))
 
 		})
 	}

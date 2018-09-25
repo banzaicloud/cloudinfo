@@ -72,7 +72,7 @@ func (dpi *DummyProductInfoer) Initialize(ctx context.Context) (map[string]map[s
 	}
 }
 
-func (dpi *DummyProductInfoer) GetAttributeValues(ctx context.Context, attribute string) (AttrValues, error) {
+func (dpi *DummyProductInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (AttrValues, error) {
 	switch dpi.TcId {
 	case GetAttributeValuesError:
 		return nil, errors.New(GetAttributeValuesError)
@@ -364,7 +364,7 @@ func TestCachingProductInfo_GetAttrValues(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			productInfo, _ := NewCachingProductInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.ProductInfoer)
-			test.checker(productInfo.GetAttrValues(context.Background(), "dummy", test.Attribute))
+			test.checker(productInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
 		})
 	}
 }

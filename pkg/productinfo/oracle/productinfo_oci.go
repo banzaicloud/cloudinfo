@@ -138,7 +138,7 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]p
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (i *Infoer) GetAttributeValues(ctx context.Context, attribute string) (values productinfo.AttrValues, err error) {
+func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute string) (values productinfo.AttrValues, err error) {
 	log := logger.Extract(ctx)
 
 	log.Debugf("getting %s values", attribute)

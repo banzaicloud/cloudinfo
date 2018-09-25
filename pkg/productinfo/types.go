@@ -30,7 +30,7 @@ const (
 	VmKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/regions/%s/vms"
 
 	// AttrKeyTemplate format for generating attribute cache keys
-	AttrKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/attrValues/%s"
+	AttrKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/attrValues/%s"
 
 	// PriceKeyTemplate format for generating price cache keys
 	PriceKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/regions/%s/prices/%s"
@@ -53,7 +53,7 @@ type ProductInfoer interface {
 	Initialize(ctx context.Context) (map[string]map[string]Price, error)
 
 	// GetAttributeValues gets the attribute values for the given attribute from the external system
-	GetAttributeValues(ctx context.Context, attribute string) (AttrValues, error)
+	GetAttributeValues(ctx context.Context, service, attribute string) (AttrValues, error)
 
 	// GetProducts gets product information based on the given arguments from an external system
 	GetProducts(ctx context.Context, service, regionId string) ([]VmInfo, error)

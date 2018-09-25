@@ -196,25 +196,32 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 		return
 	}
 
-	log.Info("start to renew attribute values")
-	attributes := []string{Cpu, Memory}
-	for _, attr := range attributes {
-		_, err := cpi.renewAttrValues(ctx, provider, attr)
-		if err != nil {
-			ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
-			log.WithError(err).Errorf("failed to renew %s attribute values", attr)
-			return
-		}
-	}
-	log.Info("finished to renew attribute values")
-
-	log.Info("start to renew products (vm-s)")
 	services, err := pi.GetServices()
 	if err != nil {
 		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
 		log.WithError(err).Error("failed to renew products")
 		return
 	}
+
+	log.Info("start to renew attribute values")
+	for _, service := range services {
+		ctxLog := logger.ToContext(ctx,
+			logger.NewLogCtxBuilder().
+				WithService(service.ServiceName()).
+				Build())
+		attributes := []string{Cpu, Memory}
+		for _, attr := range attributes {
+			_, err := cpi.renewAttrValues(ctxLog, provider, service.ServiceName(), attr)
+			if err != nil {
+				ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+				logger.Extract(ctxLog).WithError(err).Errorf("failed to renew %s attribute values", attr)
+				return
+			}
+		}
+	}
+	log.Info("finished to renew attribute values")
+
+	log.Info("start to renew products (vm-s)")
 	for _, service := range services {
 		ctxLog := logger.ToContext(ctx,
 			logger.NewLogCtxBuilder().
@@ -381,8 +388,8 @@ func (cpi *CachingProductInfo) GetAttributes() []string {
 }
 
 // GetAttrValues returns a slice with the values for the given attribute name
-func (cpi *CachingProductInfo) GetAttrValues(ctx context.Context, provider string, attribute string) ([]float64, error) {
-	v, err := cpi.getAttrValues(ctx, provider, attribute)
+func (cpi *CachingProductInfo) GetAttrValues(ctx context.Context, provider, service, attribute string) ([]float64, error) {
+	v, err := cpi.getAttrValues(ctx, provider, service, attribute)
 	if err != nil {
 		return nil, err
 	}
@@ -391,34 +398,34 @@ func (cpi *CachingProductInfo) GetAttrValues(ctx context.Context, provider strin
 	return floatValues, nil
 }
 
-func (cpi *CachingProductInfo) getAttrValues(ctx context.Context, provider string, attribute string) (AttrValues, error) {
-	attrCacheKey := cpi.getAttrKey(provider, attribute)
+func (cpi *CachingProductInfo) getAttrValues(ctx context.Context, provider, service, attribute string) (AttrValues, error) {
+	attrCacheKey := cpi.getAttrKey(provider, service, attribute)
 	if cachedVal, ok := cpi.vmAttrStore.Get(attrCacheKey); ok {
 		logger.Extract(ctx).Debugf("Getting available %s values from cache.", attribute)
 		return cachedVal.(AttrValues), nil
 	}
-	values, err := cpi.renewAttrValues(ctx, provider, attribute)
+	values, err := cpi.renewAttrValues(ctx, provider, service, attribute)
 	if err != nil {
 		return nil, err
 	}
 	return values, nil
 }
 
-func (cpi *CachingProductInfo) getAttrKey(provider string, attribute string) string {
-	return fmt.Sprintf(AttrKeyTemplate, provider, attribute)
+func (cpi *CachingProductInfo) getAttrKey(provider, service, attribute string) string {
+	return fmt.Sprintf(AttrKeyTemplate, provider, service, attribute)
 }
 
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
-func (cpi *CachingProductInfo) renewAttrValues(ctx context.Context, provider string, attribute string) (AttrValues, error) {
+func (cpi *CachingProductInfo) renewAttrValues(ctx context.Context, provider, service, attribute string) (AttrValues, error) {
 	attr, err := cpi.toProviderAttribute(provider, attribute)
 	if err != nil {
 		return nil, err
 	}
-	values, err := cpi.productInfoers[provider].GetAttributeValues(ctx, attr)
+	values, err := cpi.productInfoers[provider].GetAttributeValues(ctx, service, attr)
 	if err != nil {
 		return nil, err
 	}
-	cpi.vmAttrStore.Set(cpi.getAttrKey(provider, attribute), values, cpi.renewalInterval)
+	cpi.vmAttrStore.Set(cpi.getAttrKey(provider, service, attribute), values, cpi.renewalInterval)
 	return values, nil
 }
 
