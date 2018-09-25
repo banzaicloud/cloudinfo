@@ -3,13 +3,14 @@ version: '3.1'
 services:
 
   productinfo:
-    image: banzaicloud/productinfo:${TAG:-names}
+    image: banzaicloud/productinfo:${TAG:-dev-local}
     restart: always
     environment:
     #    - AWS_ACCESS_KEY_ID = ${AWS_ACCESS_KEY_ID}
     #    - AWS_SECRET_ACCESS_KEY = ${AWS_SECRET_ACCESS_KEY}
     - PROVIDER=amazon
+    - LOG_LEVEL=debug
     ports:
     - 9090:9090
     volumes:
-    - ${HOME}/.amazon:/root/.amazon
+    - ${HOME}/.aws:/root/.aws

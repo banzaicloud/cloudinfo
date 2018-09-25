@@ -132,3 +132,21 @@ func NewErrorResponse(code, message string) ErrorResponse {
 		ErrorMessage: message,
 	}
 }
+
+// NewServiceResponse assembles a service response
+func NewServiceResponse(sd productinfo.ServiceDescriber) ServiceResponse {
+	return ServiceResponse{
+		Service: productinfo.NewService(sd.ServiceName()),
+	}
+}
+
+// NewServicesResponse assembles a new services response
+func NewServicesResponse(sds []productinfo.ServiceDescriber) ServicesResponse {
+	var services []productinfo.Service
+	for _, sd := range sds {
+		services = append(services, productinfo.NewService(sd.ServiceName()))
+	}
+	return ServicesResponse{
+		Services: services,
+	}
+}

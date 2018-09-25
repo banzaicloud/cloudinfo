@@ -125,7 +125,7 @@ func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, services)
+		c.JSON(http.StatusOK, NewServicesResponse(services))
 	}
 }
 
@@ -169,7 +169,7 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, service)
+		c.JSON(http.StatusOK, NewServiceResponse(service))
 	}
 }
 
