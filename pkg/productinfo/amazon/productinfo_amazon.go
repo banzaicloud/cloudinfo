@@ -211,14 +211,6 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		log.Debug("couldn't find any virtual machines to recommend")
 	}
 
-	if service == "eks" {
-		vm := productinfo.VmInfo{
-			Type:          "EKS Control Plane",
-			OnDemandPrice: 0.2,
-		}
-		vms = append(vms, vm)
-	}
-
 	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }
@@ -350,6 +342,7 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	switch service {
 	case "eks":
+		// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
 		eksRegionMap := make(map[string]string)
 		awsRegions := endpoints.AwsPartition().Regions()
 		for _, regId := range eksRegionIds {

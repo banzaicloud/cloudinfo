@@ -331,7 +331,7 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 			pricingService: &testStruct{TcId: 4},
 			check: func(vm []productinfo.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
-				assert.Equal(t, 2, len(vm))
+				assert.Equal(t, 1, len(vm))
 			},
 		},
 		{
