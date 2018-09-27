@@ -16,6 +16,7 @@ package logger
 
 import (
 	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -54,7 +55,7 @@ type Config struct {
 }
 
 func newLogger(config Config) *logrus.Logger {
-	logger := logrus.New()
+	logger = logrus.New()
 
 	level, err := logrus.ParseLevel(config.Level)
 	if err != nil {
@@ -119,26 +120,10 @@ func GetCorrelationId(c *gin.Context) string {
 	return id
 }
 
-// LogEntryWrapper wraps the logger entry implementation
-// By embedding the library specific entry (logrus here), we have the default implementation "out of the box"
-type LogEntryWrapper struct {
-	// the default logging library is logrus
-	*logrus.Entry
-}
-
 // ContextLogger gathers all the log operations used in the application, mainly operations implemented by "conventional" loggers
 // The interface is meant to decouple application dependency on logger libraries
 type ContextLogger interface {
-	WithError(err error) *logrus.Entry
-	WithField(key string, value interface{}) *logrus.Entry
-	WithFields(fields logrus.Fields) *logrus.Entry
-	Debug(args ...interface{})
-	Info(args ...interface{})
-	Warn(args ...interface{})
-	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Fatal(args ...interface{})
-	Error(args ...interface{})
+	logrus.FieldLogger
 }
 
 // logCtxBuilder helper struct to build the context for logging purposes
@@ -200,4 +185,19 @@ func (cb *logCtxBuilder) WithField(field string, value interface{}) *logCtxBuild
 func (cb *logCtxBuilder) Build() map[string]interface{} {
 	cb.init()
 	return cb.ctx
+}
+
+// Log returns a reference to the underlying logger implementation
+func Log() ContextLogger {
+	return logger
+}
+
+// Level returns the current logger level
+func Level() string {
+	return logger.Level.String()
+}
+
+// Formatter returns the current formatter
+func Formatter() logrus.Formatter {
+	return logger.Formatter
 }
