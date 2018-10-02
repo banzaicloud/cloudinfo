@@ -67,7 +67,6 @@ const (
 
 	//temporary flags
 	gceApiKeyFlag          = "gce-api-key"
-	azureSubscriptionId    = "azure-subscription-id"
 	alibabaRegionId        = "alibaba-region-id"
 	alibabaAccessKeyId     = "alibaba-access-key-id"
 	alibabaAccessKeySecret = "alibaba-access-key-secret"
@@ -97,7 +96,6 @@ func defineFlags() {
 		"advanced configuration: change the query used to query spot price info from Prometheus.")
 	flag.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
 	flag.StringSlice(providerFlag, []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the productinfo application.")
-	flag.String(azureSubscriptionId, "", "Azure subscription ID to use with the APIs")
 	flag.Bool(helpFlag, false, "print usage")
 	flag.Bool(metricsEnabledFlag, false, "internal metrics are exposed if enabled")
 	flag.String(metricsAddressFlag, ":9900", "the address where internal metrics are exposed")
@@ -191,7 +189,7 @@ func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 		case Google:
 			infoer, err = google.NewGceInfoer(viper.GetString(gceApiKeyFlag))
 		case Azure:
-			infoer, err = azure.NewAzureInfoer(viper.GetString(azureSubscriptionId))
+			infoer, err = azure.NewAzureInfoer()
 		case Oracle:
 			infoer, err = oracle.NewInfoer()
 		case Alibaba:
