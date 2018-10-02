@@ -146,7 +146,7 @@ func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute stri
 	values = make(productinfo.AttrValues, 0)
 	uniquemap := make(map[float64]bool)
 
-	shapesInRegions, err := i.client.GetSupportedShapes()
+	shapesInRegions, err := i.client.GetSupportedShapes(service)
 	if err != nil {
 		return
 	}
@@ -223,7 +223,7 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 		return
 	}
 
-	shapes, err := i.client.GetSupportedShapesInARegion(regionId)
+	shapes, err := i.client.GetSupportedShapesInARegion(regionId, service)
 	if err != nil {
 		return
 	}
@@ -329,8 +329,18 @@ func (i *Infoer) GetService(ctx context.Context, service string) (productinfo.Se
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (i *Infoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+func (i *Infoer) GetServiceImages(region, service string) (images []productinfo.ImageDescriber, err error) {
+
+	_images, err := i.client.GetSupportedImagesInARegion(region, service)
+	if err != nil {
+		return images, err
+	}
+
+	for _, image := range _images {
+		images = append(images, productinfo.NewImage(image))
+	}
+
+	return images, nil
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region

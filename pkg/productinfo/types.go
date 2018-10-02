@@ -43,6 +43,9 @@ const (
 
 	// StatusKeyTemplate format for generating status cache keys
 	StatusKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/status/"
+
+	// ImageKeyTemplate format for generating image cache keys
+	ImageKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/regions/%s/images"
 )
 
 // ProductInfoer lists operations for retrieving cloud provider information

@@ -75,3 +75,36 @@ func (c *Compute) GetShapes() (shapes []core.Shape, err error) {
 
 	return shapes, err
 }
+
+// GetImages gets all available Images within the Tenancy
+func (c *Compute) GetImages() (images []core.Image, err error) {
+
+	request := core.ListImagesRequest{
+		CompartmentId: c.oci.Tenancy.Id,
+	}
+	request.Limit = common.Int(20)
+
+	listFunc := func(request core.ListImagesRequest) (core.ListImagesResponse, error) {
+		return c.client.ListImages(context.Background(), request)
+	}
+
+	for response, err := listFunc(request); ; response, err = listFunc(request) {
+		if err != nil {
+			return images, err
+		}
+
+		for _, item := range response.Items {
+			images = append(images, item)
+		}
+
+		if response.OpcNextPage != nil {
+			// if there are more items in next page, fetch items from next page
+			request.Page = response.OpcNextPage
+		} else {
+			// no more result, break the loop
+			break
+		}
+	}
+
+	return images, err
+}

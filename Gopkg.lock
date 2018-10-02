@@ -413,6 +413,7 @@
   name = "github.com/oracle/oci-go-sdk"
   packages = [
     "common",
+    "containerengine",
     "core",
     "identity",
   ]

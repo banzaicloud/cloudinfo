@@ -16,13 +16,13 @@ package api
 
 import (
 	"context"
-	"github.com/banzaicloud/productinfo/pkg/logger"
-	"net/http"
-
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/productinfo/pkg/logger"
 )
 
 // swagger:route GET /providers providers getProviders
@@ -322,13 +322,7 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 		log := logger.Extract(ctxLog)
 		log.Info("getting image details")
 
-		infoer, err := r.prod.GetInfoer(pathParams.Provider)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
-			return
-		}
-
-		images, err := infoer.GetServiceImages(pathParams.Region, pathParams.Service)
+		images, err := r.prod.GetServiceImages(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
 			return
