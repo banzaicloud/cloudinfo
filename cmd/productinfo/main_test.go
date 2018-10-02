@@ -49,7 +49,7 @@ func Test_processFlags(t *testing.T) {
 			defineFlags()
 			// mock the input
 			setupInputs(test.args, nil)
-			test.check(viper.GetString("log-level"))
+			test.check(viper.GetString(logLevelFlag))
 
 		})
 	}
@@ -134,6 +134,15 @@ func Test_configurationStringDefaults(t *testing.T) {
 			},
 		},
 		{
+			name:     fmt.Sprintf("defaults for: %s", logFormatFlag),
+			viperKey: logFormatFlag,
+			args:     []string{}, // no flags provided
+			valType:  "",
+			check: func(val interface{}) {
+				assert.Equal(t, "", val, fmt.Sprintf("invalid default for %s", logFormatFlag))
+			},
+		},
+		{
 			name:     fmt.Sprintf("defaults for: %s", listenAddressFlag),
 			viperKey: listenAddressFlag,
 			args:     []string{}, // no flags provided
@@ -155,6 +164,30 @@ func Test_configurationStringDefaults(t *testing.T) {
 			args:     []string{}, // no flags provided
 			check: func(val interface{}) {
 				assert.Equal(t, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])", val, fmt.Sprintf("invalid default for %s", prometheusQueryFlag))
+			},
+		},
+		{
+			name:     fmt.Sprintf("defaults for: %s", metricsAddressFlag),
+			viperKey: metricsAddressFlag,
+			args:     []string{}, // no flags provided
+			check: func(val interface{}) {
+				assert.Equal(t, ":9900", val, fmt.Sprintf("invalid default for %s", metricsAddressFlag))
+			},
+		},
+		{
+			name:     fmt.Sprintf("defaults for: %s", metricsEnabledFlag),
+			viperKey: metricsEnabledFlag,
+			args:     []string{}, // no flags provided
+			check: func(val interface{}) {
+				assert.Equal(t, false, val, fmt.Sprintf("invalid default for %s", metricsEnabledFlag))
+			},
+		},
+		{
+			name:     fmt.Sprintf("defaults for: %s", alibabaPriceInfoUrl),
+			viperKey: alibabaPriceInfoUrl,
+			args:     []string{}, // no flags provided
+			check: func(val interface{}) {
+				assert.Equal(t, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.6/price/download/instancePrice.json", val, fmt.Sprintf("invalid default for %s", alibabaPriceInfoUrl))
 			},
 		},
 	}

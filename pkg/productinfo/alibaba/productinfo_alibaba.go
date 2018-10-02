@@ -30,8 +30,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// OnDemandPriceFromJson parses json file
-type OnDemandPriceFromJson struct {
+// OnDemandPrice contains price data from json
+type OnDemandPrice struct {
 	Currency        string                   `json:"currency"`
 	Version         string                   `json:"version"`
 	PublicationDate string                   `json:"publicationDate"`
@@ -59,7 +59,25 @@ var priceInfoUrl = "alibaba-price-info-url"
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
-	client *ecs.Client
+	ecsClient      EcsSource
+	priceRetriever PriceRetriever
+	spotClient     func(region string) EcsSource
+}
+
+// EcsSource list of operations for retrieving ecs information
+type EcsSource interface {
+	DescribeInstanceTypes(request *ecs.DescribeInstanceTypesRequest) (response *ecs.DescribeInstanceTypesResponse, err error)
+	DescribeSpotPriceHistory(request *ecs.DescribeSpotPriceHistoryRequest) (response *ecs.DescribeSpotPriceHistoryResponse, err error)
+	DescribeZones(request *ecs.DescribeZonesRequest) (response *ecs.DescribeZonesResponse, err error)
+	DescribeRegions(request *ecs.DescribeRegionsRequest) (response *ecs.DescribeRegionsResponse, err error)
+}
+
+type onDemandPrice struct{}
+
+// PriceRetriever collects on demand prices from a json file
+// TODO revisit this later when API starts supporting DescribePrice(request *DescribePriceRequest) (response *DescribePriceResponse, err error) method
+type PriceRetriever interface {
+	getOnDemandPrice(url string) (OnDemandPrice, error)
 }
 
 // NewAlibabaInfoer creates a new instance of the Alibaba infoer
@@ -83,7 +101,11 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 	}
 
 	return &AlibabaInfoer{
-		client: ecsClient,
+		ecsClient:      ecsClient,
+		priceRetriever: &onDemandPrice{},
+		spotClient: func(region string) EcsSource {
+			return ecsClient
+		},
 	}, nil
 }
 
@@ -97,15 +119,6 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 	log.Debug("start retrieving spot price data")
 	priceInfo := make(map[string]productinfo.SpotPriceInfo)
 
-	var (
-		alibabaAccessKeyId     = "alibaba-access-key-id"
-		alibabaAccessKeySecret = "alibaba-access-key-secret"
-	)
-
-	testCli, _ := ecs.NewClientWithAccessKey(
-		region, viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret),
-	)
-
 	request := ecs.CreateDescribeSpotPriceHistoryRequest()
 	request.RegionId = region
 	request.NetworkType = "vpc"
@@ -113,7 +126,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 
 	log.Debug("created new client")
 
-	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
+	dataFromJson, err := e.priceRetriever.getOnDemandPrice(viper.GetString(priceInfoUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +136,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 		if values[0] == region && values[3] == "linux" {
 			request.InstanceType = values[1]
 
-			prices, err := testCli.DescribeSpotPriceHistory(request)
+			prices, err := e.spotClient(region).DescribeSpotPriceHistory(request)
 			if err != nil {
 				log.WithField("region", region).WithError(err).Errorf("failed to get spot price history for instance type [%s].", values[1])
 				continue
@@ -164,12 +177,12 @@ func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 	request := ecs.CreateDescribeInstanceTypesRequest()
 	request.RegionId = "eu-central-1"
 
-	vmSizes, err := e.client.DescribeInstanceTypes(request)
+	vmSizes, err := e.ecsClient.DescribeInstanceTypes(request)
 	if err != nil {
 		return nil, err
 	}
 
-	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
+	dataFromJson, err := e.priceRetriever.getOnDemandPrice(viper.GetString(priceInfoUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -214,12 +227,12 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 	request := ecs.CreateDescribeInstanceTypesRequest()
 	request.RegionId = regionId
 
-	vmSizes, err := e.client.DescribeInstanceTypes(request)
+	vmSizes, err := e.ecsClient.DescribeInstanceTypes(request)
 	if err != nil {
 		return nil, err
 	}
 
-	dataFromJson, err := getJson(viper.GetString(priceInfoUrl))
+	dataFromJson, err := e.priceRetriever.getOnDemandPrice(viper.GetString(priceInfoUrl))
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +260,6 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 					}
 				}
 			}
-
 		}
 	}
 	log.Debugf("found vms: %#v", vms)
@@ -260,7 +272,7 @@ func (e *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, 
 
 	request := ecs.CreateDescribeZonesRequest()
 	request.RegionId = region
-	response, err := e.client.DescribeZones(request)
+	response, err := e.ecsClient.DescribeZones(request)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +289,7 @@ func (e *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[str
 	var RegionIdMap = make(map[string]string)
 	request := ecs.CreateDescribeRegionsRequest()
 	request.AcceptLanguage = "en-US"
-	response, err := e.client.DescribeRegions(request)
+	response, err := e.ecsClient.DescribeRegions(request)
 	if err != nil {
 		return nil, err
 	}
@@ -306,11 +318,11 @@ func (e *AlibabaInfoer) GetCurrentPrices(ctx context.Context, region string) (ma
 
 	log.WithField("region", region).Debug("getting current spot prices directly from the API")
 	spotPrices, err = e.getCurrentSpotPrices(ctx, region, zones)
-
 	if err != nil {
 		log.WithField("region", region).WithError(err).Error("could not retrieve current prices.")
 		return nil, err
 	}
+
 	prices := make(map[string]productinfo.Price)
 	for region, sp := range spotPrices {
 		prices[region] = productinfo.Price{
@@ -338,16 +350,19 @@ func (e *AlibabaInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMa
 	return nm, nil
 }
 
-func getJson(url string) (OnDemandPriceFromJson, error) {
+func (p *onDemandPrice) getOnDemandPrice(url string) (OnDemandPrice, error) {
 	var myClient = &http.Client{Timeout: 10 * time.Second}
-	var dataFromJson OnDemandPriceFromJson
+	var dataFromJson OnDemandPrice
 	r, err := myClient.Get(url)
 	if err != nil {
-		return OnDemandPriceFromJson{}, err
+		return OnDemandPrice{}, err
 	}
 	defer r.Body.Close()
 
-	json.NewDecoder(r.Body).Decode(&dataFromJson)
+	err = json.NewDecoder(r.Body).Decode(&dataFromJson)
+	if err != nil {
+		return OnDemandPrice{}, err
+	}
 
 	return dataFromJson, nil
 }
