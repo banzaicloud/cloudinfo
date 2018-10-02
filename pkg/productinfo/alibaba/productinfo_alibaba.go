@@ -225,7 +225,6 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 	var vms []productinfo.VmInfo
 
 	request := ecs.CreateDescribeInstanceTypesRequest()
-	request.RegionId = regionId
 
 	vmSizes, err := e.ecsClient.DescribeInstanceTypes(request)
 	if err != nil {
@@ -233,6 +232,14 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 	}
 
 	dataFromJson, err := e.priceRetriever.getOnDemandPrice(viper.GetString(priceInfoUrl))
+	if err != nil {
+		return nil, err
+	}
+
+	zoneRequest := ecs.CreateDescribeZonesRequest()
+	request.RegionId = regionId
+
+	zoneResponse, err := e.ecsClient.DescribeZones(zoneRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -245,6 +252,14 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 					// The key structure is 'RegionId::InstanceType::NetworkType::OSType::IoOptimized'"
 					values := strings.Split(key, "::")
 					if values[0] == regionId && values[1] == instanceType.InstanceTypeId && values[3] == "linux" {
+						var zones []string
+						for _, zone := range zoneResponse.Zones.Zone {
+							for _, availableVm := range zone.AvailableInstanceTypes.InstanceTypes {
+								if instanceType.InstanceTypeId == availableVm {
+									zones = append(zones, zone.ZoneId)
+								}
+							}
+						}
 						onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
 						if err != nil {
 							return nil, err
@@ -256,12 +271,14 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 							Mem:           instanceType.MemorySize,
 							Gpus:          float64(instanceType.GPUAmount),
 							NtwPerf:       fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000),
+							Zones:         zones,
 						})
 					}
 				}
 			}
 		}
 	}
+
 	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }

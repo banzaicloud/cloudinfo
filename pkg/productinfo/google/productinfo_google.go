@@ -255,6 +255,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 					Cpus:    float64(mt.GuestCpus),
 					Mem:     float64(mt.MemoryMb) / 1024,
 					NtwPerf: fmt.Sprintf("%d Gbit/s", ntwPerf),
+					Zones:   zones,
 				}
 			}
 		}

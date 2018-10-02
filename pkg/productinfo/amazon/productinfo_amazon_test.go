@@ -318,20 +318,13 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 			service:        "compute",
 			regionId:       "eu-central-1",
 			pricingService: &testStruct{TcId: 4},
-			check: func(vm []productinfo.VmInfo, err error) {
+			check: func(vms []productinfo.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
-				assert.Equal(t, 1, len(vm))
-				assert.Equal(t, []productinfo.VmInfo{{Type: "t2.small", OnDemandPrice: 5, SpotPrice: productinfo.SpotPriceInfo(nil), Cpus: 1, Mem: 2, Gpus: 0, NtwPerf: "Low to Moderate", NtwPerfCat: "", CurrentGen: true}}, vm)
-			},
-		},
-		{
-			name:           "retrieves the available virtual machines for eks service",
-			service:        "eks",
-			regionId:       "eu-central-1",
-			pricingService: &testStruct{TcId: 4},
-			check: func(vm []productinfo.VmInfo, err error) {
-				assert.Nil(t, err, "the error should be nil")
-				assert.Equal(t, 1, len(vm))
+				assert.Equal(t, 1, len(vms))
+				for _, vm := range vms {
+					assert.Equal(t, "t2.small", vm.Type)
+					assert.Equal(t, float64(5), vm.OnDemandPrice)
+				}
 			},
 		},
 		{

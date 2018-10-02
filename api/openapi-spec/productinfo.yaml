@@ -431,6 +431,11 @@ components:
         type:
           type: string
           x-go-name: Type
+        zones:
+          type: array
+          items:
+            type: string
+          x-go-name: Zones
       x-go-package: github.com/banzaicloud/productinfo/pkg/productinfo
     ProductDetailsResponse:
       description: ProductDetailsResponse Api object to be mapped to product info response
