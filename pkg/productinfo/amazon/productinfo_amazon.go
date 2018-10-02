@@ -144,7 +144,6 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 	log.Debug("Getting available instance types from AWS API.")
 
 	products, err := e.pricingSvc.GetProducts(e.newGetProductsInput(regionId))
-
 	if err != nil {
 		return nil, err
 	}

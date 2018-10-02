@@ -228,6 +228,11 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 		return
 	}
 
+	zones, err := i.GetZones(ctx, regionId)
+	if err != nil {
+		return
+	}
+
 	products = make([]productinfo.VmInfo, 0)
 	for _, shape := range shapes {
 		s := i.shapeSpecs[shape]
@@ -236,6 +241,7 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 			NtwPerf: s.NtwPerf,
 			Cpus:    s.Cpus,
 			Mem:     s.Mem,
+			Zones:   zones,
 		})
 	}
 
