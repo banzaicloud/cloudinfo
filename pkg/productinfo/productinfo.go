@@ -242,10 +242,17 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 					Build())
 
 			start := time.Now()
-			if _, err := cpi.renewVms(c, provider, service.ServiceName(), regionId); err != nil {
+			_, err := cpi.renewVms(c, provider, service.ServiceName(), regionId)
+			if err != nil {
 				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
 				logger.Extract(c).WithError(err).Error("failed to renew products")
-			} else {
+			}
+			_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
+			if imgErr != nil {
+				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				logger.Extract(c).WithError(imgErr).Error("failed to renew images")
+			}
+			if err == nil && imgErr == nil {
 				ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
 			}
 		}
@@ -644,4 +651,30 @@ func (cpi *CachingProductInfo) GetInfoer(provider string) (ProductInfoer, error)
 	}
 
 	return nil, fmt.Errorf("could not find infoer for: [ %s ]", provider)
+}
+
+func (cpi *CachingProductInfo) getImagesKey(provider, service, region string) string {
+	return fmt.Sprintf(ImageKeyTemplate, provider, service, region)
+}
+
+func (cpi *CachingProductInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
+	values, err := cpi.productInfoers[provider].GetServiceImages(regionId, service)
+	if err != nil {
+		return nil, err
+	}
+	cpi.vmAttrStore.Set(cpi.getImagesKey(provider, service, regionId), values, cpi.renewalInterval)
+	return values, nil
+}
+
+// GetServiceImages retrieves available images for the given provider, service and region
+func (cpi *CachingProductInfo) GetServiceImages(ctx context.Context, provider, service, region string) ([]ImageDescriber, error) {
+	log := logger.Extract(ctx)
+	log.Debug("getting available images")
+
+	cachedImages, ok := cpi.vmAttrStore.Get(cpi.getImagesKey(provider, service, region))
+	if !ok {
+		return nil, fmt.Errorf("images not yet cached for the key: %s", cpi.getImagesKey(provider, service, region))
+	}
+
+	return cachedImages.([]ImageDescriber), nil
 }
