@@ -530,6 +530,13 @@
       "description": "ProductDetails extended view of the virtual machine details",
       "type": "object",
       "properties": {
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Attributes"
+        },
         "burst": {
           "description": "Burst this is derived for now",
           "type": "boolean",

@@ -28,7 +28,7 @@ func MapperErrorSuit(t *testing.T, mapper productinfo.NetworkPerfMapper) {
 
 func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 
-	mapper := Ec2NetworkMapper{}
+	mapper := AmazonNetworkMapper{}
 	tests := []struct {
 		name  string
 		vm    productinfo.VmInfo
@@ -56,7 +56,7 @@ func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.check(mapper.MapNetworkPerf(test.vm))
+			test.check(mapper.MapNetworkPerf(test.vm.NtwPerf))
 		})
 	}
 }

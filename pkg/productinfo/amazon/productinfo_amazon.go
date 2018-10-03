@@ -189,6 +189,12 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 			}
 		}
 
+		ntwMapper := newAmazonNetworkMapper()
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
+		if err != nil {
+			log.WithError(err).Debug("could not get network performance category")
+		}
+
 		onDemandPrice, _ := strconv.ParseFloat(odPriceStr, 64)
 		cpus, _ := strconv.ParseFloat(cpusStr, 64)
 		mem, _ := strconv.ParseFloat(strings.Split(memStr, " ")[0], 64)
@@ -200,7 +206,9 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 			Mem:           mem,
 			Gpus:          gpus,
 			NtwPerf:       ntwPerf,
+			NtwPerfCat:    ntwPerfCat,
 			CurrentGen:    currGen,
+			Attributes:    productinfo.Attributes(cpusStr, strings.Split(memStr, " ")[0], ntwPerfCat),
 		}
 		vms = append(vms, vm)
 	}
@@ -483,7 +491,7 @@ func (e *Ec2Infoer) GetCpuAttrName() string {
 
 // GetNetworkPerformanceMapper gets the ec2 specific network performance mapper implementation
 func (e *Ec2Infoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
-	nm := newEc2NetworkMapper()
+	nm := newAmazonNetworkMapper()
 	return &nm, nil
 }
 

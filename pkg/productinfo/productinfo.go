@@ -57,15 +57,16 @@ type Price struct {
 
 // VmInfo representation of a virtual machine
 type VmInfo struct {
-	Type          string        `json:"type"`
-	OnDemandPrice float64       `json:"onDemandPrice"`
-	SpotPrice     SpotPriceInfo `json:"spotPrice"`
-	Cpus          float64       `json:"cpusPerVm"`
-	Mem           float64       `json:"memPerVm"`
-	Gpus          float64       `json:"gpusPerVm"`
-	NtwPerf       string        `json:"ntwPerf"`
-	NtwPerfCat    string        `json:"ntwPerfCategory"`
-	Zones         []string      `json:"zones"`
+	Type          string            `json:"type"`
+	OnDemandPrice float64           `json:"onDemandPrice"`
+	SpotPrice     SpotPriceInfo     `json:"spotPrice"`
+	Cpus          float64           `json:"cpusPerVm"`
+	Mem           float64           `json:"memPerVm"`
+	Gpus          float64           `json:"gpusPerVm"`
+	NtwPerf       string            `json:"ntwPerf"`
+	NtwPerfCat    string            `json:"ntwPerfCategory"`
+	Zones         []string          `json:"zones"`
+	Attributes    map[string]string `json:"attributes"`
 	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
 	CurrentGen bool `json:"currentGen"`
 }
@@ -590,33 +591,25 @@ func (cpi *CachingProductInfo) GetProductDetails(ctx context.Context, provider, 
 	var pr Price
 	for _, vm := range vms {
 		pd := newProductDetails(vm)
-		pdWithNtwPerfCat := cpi.decorateNtwPerfCat(provider, pd)
 		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, vm.Type)); ok {
 			pr = cachedVal.(Price)
 			// fill the on demand price if appropriate
 			if pr.OnDemandPrice > 0 {
-				pdWithNtwPerfCat.OnDemandPrice = pr.OnDemandPrice
+				pd.OnDemandPrice = pr.OnDemandPrice
 			}
 			for zone, price := range pr.SpotPrice {
-				pdWithNtwPerfCat.SpotInfo = append(pdWithNtwPerfCat.SpotInfo, *newZonePrice(zone, price))
+				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
 			}
 		} else {
 			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(provider, region, vm.Type))
 		}
 
-		if pdWithNtwPerfCat.OnDemandPrice != 0 {
-			details = append(details, *pdWithNtwPerfCat)
+		if pd.OnDemandPrice != 0 {
+			details = append(details, *pd)
 		}
 	}
 
 	return details, nil
-}
-
-// decorateNtwPerfCat returns ProductDetails with network performance category
-func (cpi *CachingProductInfo) decorateNtwPerfCat(provider string, pd *ProductDetails) *ProductDetails {
-	ntwMapper, _ := cpi.GetNetworkPerfMapper(provider)
-	pd.NtwPerfCat, _ = ntwMapper.MapNetworkPerf(pd.VmInfo)
-	return pd
 }
 
 // Contains is a helper function to check if a slice contains a string
@@ -679,4 +672,15 @@ func (cpi *CachingProductInfo) GetServiceImages(ctx context.Context, provider, s
 	}
 
 	return cachedImages.([]ImageDescriber), nil
+}
+
+// Attributes create a map with the specified parameters
+func Attributes(cpu, memory, ntwPerfCat string) map[string]string {
+	var attributes = make(map[string]string)
+
+	attributes[Cpu] = cpu
+	attributes[Memory] = memory
+	attributes["NetworkPerfCategory"] = ntwPerfCat
+
+	return attributes
 }

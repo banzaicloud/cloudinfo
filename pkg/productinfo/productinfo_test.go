@@ -44,7 +44,7 @@ func newDummyNetworkMapper() dummyNetworkMapper {
 type dummyNetworkMapper struct {
 }
 
-func (nm *dummyNetworkMapper) MapNetworkPerf(vm VmInfo) (string, error) {
+func (nm *dummyNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	return "high", nil
 }
 
