@@ -6,11 +6,13 @@ services:
     image: banzaicloud/productinfo:${TAG:-dev-local}
     restart: always
     environment:
-    #    - AWS_ACCESS_KEY_ID = ${AWS_ACCESS_KEY_ID}
-    #    - AWS_SECRET_ACCESS_KEY = ${AWS_SECRET_ACCESS_KEY}
-    - PROVIDER=amazon
+    - PROVIDER=amazon oracle
+    - AWS_ACCESS_KEY_ID=
+    - AWS_SECRET_ACCESS_KEY=
     - LOG_LEVEL=debug
+    - ORACLE_CLI_CONFIG_LOCATION=/root/.oci/config
     ports:
     - 9090:9090
     volumes:
     - ${HOME}/.aws:/root/.aws
+    - ${HOME}/.oci:/root/.oci
