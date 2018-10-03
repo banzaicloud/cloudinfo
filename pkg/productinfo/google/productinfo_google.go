@@ -250,12 +250,19 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 					// each vCPU has a 2 Gbps egress cap for peak performance
 					ntwPerf = uint(mt.GuestCpus * 2)
 				}
+				ntwMapper := newGceNetworkMapper()
+				ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(ntwPerf, " Gbit/s"))
+				if err != nil {
+					log.WithError(err).Debug("could not get network performance category")
+				}
 				vmsMap[mt.Name] = productinfo.VmInfo{
-					Type:    mt.Name,
-					Cpus:    float64(mt.GuestCpus),
-					Mem:     float64(mt.MemoryMb) / 1024,
-					NtwPerf: fmt.Sprintf("%d Gbit/s", ntwPerf),
-					Zones:   zones,
+					Type:       mt.Name,
+					Cpus:       float64(mt.GuestCpus),
+					Mem:        float64(mt.MemoryMb) / 1024,
+					NtwPerf:    fmt.Sprintf("%d Gbit/s", ntwPerf),
+					NtwPerfCat: ntwPerfCat,
+					Zones:      zones,
+					Attributes: productinfo.Attributes(fmt.Sprint(mt.GuestCpus), fmt.Sprint(float64(mt.MemoryMb)/1024), ntwPerfCat),
 				}
 			}
 		}

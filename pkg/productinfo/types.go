@@ -167,7 +167,7 @@ var (
 // NetworkPerfMapper operations related  to mapping between virtual machines to network performance categories
 type NetworkPerfMapper interface {
 	// MapNetworkPerf gets the network performance category for the given
-	MapNetworkPerf(vm VmInfo) (string, error)
+	MapNetworkPerf(ntwPerf string) (string, error)
 }
 
 // ProductStorer interface collects the necessary cache operations

@@ -430,9 +430,10 @@ func (a *AzureInfoer) GetProducts(ctx context.Context, service, regionId string)
 			for _, vm := range possibleVmTypes {
 				if string(vm) == *v.Name {
 					vms = append(vms, productinfo.VmInfo{
-						Type: *v.Name,
-						Cpus: float64(*v.NumberOfCores),
-						Mem:  float64(*v.MemoryInMB) / 1024,
+						Type:       *v.Name,
+						Cpus:       float64(*v.NumberOfCores),
+						Mem:        float64(*v.MemoryInMB) / 1024,
+						Attributes: productinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
 						// TODO: netw perf
 					})
 				}
@@ -441,9 +442,10 @@ func (a *AzureInfoer) GetProducts(ctx context.Context, service, regionId string)
 	default:
 		for _, v := range *vmSizes.Value {
 			vms = append(vms, productinfo.VmInfo{
-				Type: *v.Name,
-				Cpus: float64(*v.NumberOfCores),
-				Mem:  float64(*v.MemoryInMB) / 1024,
+				Type:       *v.Name,
+				Cpus:       float64(*v.NumberOfCores),
+				Mem:        float64(*v.MemoryInMB) / 1024,
+				Attributes: productinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
 				// TODO: netw perf
 			})
 		}

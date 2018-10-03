@@ -37,6 +37,6 @@ func newAzureNetworkMapper() *AzureNetworkMapper {
 }
 
 // MapNetworkPerf maps the network performance of the azure instance to the category supported by telescopes
-func (nm *AzureNetworkMapper) MapNetworkPerf(vm productinfo.VmInfo) (string, error) {
+func (nm *AzureNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	return ntwPerfMap[productinfo.NTW_MEDIUM][0], nil
 }

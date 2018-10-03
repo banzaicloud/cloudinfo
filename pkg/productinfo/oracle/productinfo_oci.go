@@ -236,12 +236,20 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 	products = make([]productinfo.VmInfo, 0)
 	for _, shape := range shapes {
 		s := i.shapeSpecs[shape]
+		ntwMapper := newNetworkMapper()
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
+		if err != nil {
+			logger.Extract(ctx).WithError(err).Debug("could not get network performance category")
+		}
+
 		products = append(products, productinfo.VmInfo{
-			Type:    shape,
-			NtwPerf: s.NtwPerf,
-			Cpus:    s.Cpus,
-			Mem:     s.Mem,
-			Zones:   zones,
+			Type:       shape,
+			NtwPerf:    s.NtwPerf,
+			NtwPerfCat: ntwPerfCat,
+			Cpus:       s.Cpus,
+			Mem:        s.Mem,
+			Zones:      zones,
+			Attributes: productinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat),
 		})
 	}
 

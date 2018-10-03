@@ -260,6 +260,13 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 								}
 							}
 						}
+						ntwMapper := newAlibabaNetworkMapper()
+						ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
+						ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
+						if err != nil {
+							log.WithError(err).Debug("could not get network performance category")
+						}
+
 						onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
 						if err != nil {
 							return nil, err
@@ -270,8 +277,10 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 							Cpus:          float64(instanceType.CpuCoreCount),
 							Mem:           instanceType.MemorySize,
 							Gpus:          float64(instanceType.GPUAmount),
-							NtwPerf:       fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000),
+							NtwPerf:       ntwPerf,
+							NtwPerfCat:    ntwPerfCat,
 							Zones:         zones,
+							Attributes:    productinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat),
 						})
 					}
 				}

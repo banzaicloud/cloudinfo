@@ -39,11 +39,11 @@ func newGceNetworkMapper() *GceNetworkMapper {
 }
 
 // MapNetworkPerf maps the network performance of the google instance to the category supported by telescopes
-func (nm *GceNetworkMapper) MapNetworkPerf(vm productinfo.VmInfo) (string, error) {
+func (nm *GceNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if productinfo.Contains(strVals, vm.NtwPerf) {
+		if productinfo.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}
-	return "", fmt.Errorf("could not determine network performance for: [%s]", vm.NtwPerf)
+	return "", fmt.Errorf("could not determine network performance for: [%s]", ntwPerf)
 }
