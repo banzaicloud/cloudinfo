@@ -210,6 +210,13 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		log.Debug("couldn't find any virtual machines to recommend")
 	}
 
+	if service == "eks" {
+		vms = append(vms, productinfo.VmInfo{
+			Type:          "EKS Control Plane",
+			OnDemandPrice: 0.2,
+		})
+	}
+
 	log.Debugf("found vms: %#v", vms)
 	return vms, nil
 }
