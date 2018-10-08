@@ -81,10 +81,30 @@ type authentication struct {
 // AzureInfoer encapsulates the data and operations needed to access external Azure resources
 type AzureInfoer struct {
 	subscriptionId      string
-	subscriptionsClient subscriptions.Client
-	vmSizesClient       compute.VirtualMachineSizesClient
-	rateCardClient      commerce.RateCardClient
-	providersClient     resources.ProvidersClient
+	subscriptionsClient LocationRetriever
+	vmSizesClient       VmSizesRetriever
+	rateCardClient      PriceRetriever
+	providersClient     ProviderSource
+}
+
+// VmSizesRetriever list of operations for retrieving virtual machines information
+type VmSizesRetriever interface {
+	List(ctx context.Context, location string) (result compute.VirtualMachineSizeListResult, err error)
+}
+
+// LocationRetriever collects regions
+type LocationRetriever interface {
+	ListLocations(ctx context.Context, subscriptionID string) (result subscriptions.LocationListResult, err error)
+}
+
+// ProviderSource returns the available location per provider
+type ProviderSource interface {
+	Get(ctx context.Context, resourceProviderNamespace string, expand string) (result resources.Provider, err error)
+}
+
+// PriceRetriever collects prices
+type PriceRetriever interface {
+	Get(ctx context.Context, filter string) (result commerce.ResourceRateCardInfo, err error)
 }
 
 // NewAzureInfoer creates a new instance of the Azure infoer

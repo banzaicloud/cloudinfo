@@ -15,10 +15,168 @@
 package azure
 
 import (
+	"context"
+	"fmt"
 	"testing"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
+
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/banzaicloud/productinfo/pkg/productinfo"
 
 	"github.com/stretchr/testify/assert"
 )
+
+//testStruct helps to mock external calls
+type testStruct struct {
+	TcId string
+}
+
+//test helps to mock external calls
+type test struct {
+	TcId string
+}
+
+const (
+	GetVmsError      = "could not get virtual machines"
+	GetRegionsError  = "could not get regions"
+	GetLocationError = "could not get location"
+	GetPriceError    = "could not get prices"
+)
+
+func (dps *testStruct) List(ctx context.Context, location string) (result compute.VirtualMachineSizeListResult, err error) {
+	switch dps.TcId {
+	case GetVmsError:
+		return compute.VirtualMachineSizeListResult{}, fmt.Errorf(GetVmsError)
+	default:
+		return compute.VirtualMachineSizeListResult{
+			Value: &[]compute.VirtualMachineSize{
+				{
+					Name:                 strPointer("Standard_B1ms"),
+					NumberOfCores:        intPointer(1),
+					MemoryInMB:           intPointer(2048),
+					ResourceDiskSizeInMB: intPointer(4096),
+				},
+				{
+					Name:                 strPointer("Standard_A4m_v2"),
+					NumberOfCores:        intPointer(4),
+					MemoryInMB:           intPointer(32768),
+					ResourceDiskSizeInMB: intPointer(40960),
+				},
+				{
+					Name:                 strPointer("Standard_D8s_v3"),
+					NumberOfCores:        intPointer(8),
+					MemoryInMB:           intPointer(32768),
+					ResourceDiskSizeInMB: intPointer(65536),
+				},
+			},
+		}, nil
+	}
+}
+
+func (dps *testStruct) ListLocations(ctx context.Context, subscriptionID string) (result subscriptions.LocationListResult, err error) {
+	switch dps.TcId {
+	case GetRegionsError:
+		return subscriptions.LocationListResult{}, fmt.Errorf(GetRegionsError)
+	default:
+		return subscriptions.LocationListResult{
+			Value: &[]subscriptions.Location{
+				{
+					Name:        strPointer("eastasia"),
+					DisplayName: strPointer("East Asia"),
+				},
+				{
+					Name:        strPointer("centralus"),
+					DisplayName: strPointer("Central US"),
+				},
+				{
+					Name:        strPointer("westeurope"),
+					DisplayName: strPointer("West Europe"),
+				},
+			},
+		}, nil
+	}
+}
+
+func (dps *testStruct) Get(ctx context.Context, resourceProviderNamespace string, expand string) (result resources.Provider, err error) {
+	switch dps.TcId {
+	case GetLocationError:
+		return resources.Provider{}, fmt.Errorf(GetLocationError)
+	default:
+		return resources.Provider{
+			ResourceTypes: &[]resources.ProviderResourceType{
+				{
+					ResourceType: strPointer("locations/vmSizes"),
+					Locations:    &[]string{"West Europe", "Central US", "East Asia"},
+				},
+				{
+					ResourceType: strPointer("managedClusters"),
+					Locations:    &[]string{"West Europe", "East Asia"},
+				},
+			},
+		}, nil
+	}
+}
+
+func (dps *test) Get(ctx context.Context, filter string) (result commerce.ResourceRateCardInfo, err error) {
+	switch dps.TcId {
+	case GetPriceError:
+		return commerce.ResourceRateCardInfo{}, fmt.Errorf(GetPriceError)
+	default:
+		return commerce.ResourceRateCardInfo{
+			Meters: &[]commerce.MeterInfo{
+				{
+					MeterName:        strPointer("F2/F2s Low Priority"),
+					MeterCategory:    strPointer("Virtual Machines"),
+					MeterSubCategory: strPointer("F/FS Series"),
+					MeterRegion:      strPointer("EU West"),
+					MeterRates: map[string]*float64{
+						"0": floatPointer(0.077),
+					},
+					MeterTags: &[]string{},
+				},
+				{
+					MeterName:        strPointer("F2/F2s"),
+					MeterCategory:    strPointer("Virtual Machines"),
+					MeterSubCategory: strPointer("F/FS Series"),
+					MeterRegion:      strPointer("EU West"),
+					MeterRates: map[string]*float64{
+						"0": floatPointer(0.332),
+					},
+					MeterTags: &[]string{},
+				},
+				{
+					MeterName:        strPointer("F2/F2s"),
+					MeterCategory:    strPointer("Virtual Machines"),
+					MeterSubCategory: strPointer("F/FS Series"),
+					MeterRegion:      strPointer("US Central"),
+					MeterRates: map[string]*float64{
+						"0": floatPointer(0.132),
+					},
+					MeterTags: &[]string{},
+				},
+			},
+		}, nil
+	}
+}
+
+// strPointer gets the pointer to the passed string
+func strPointer(str string) *string {
+	return &str
+}
+
+// intPointer gets the pointer to the passed int32
+func intPointer(i int32) *int32 {
+	return &i
+}
+
+// floatPointer gets the pointer to the passed float64
+func floatPointer(i float64) *float64 {
+	return &i
+}
 
 func TestAzureInfoer_toRegionID(t *testing.T) {
 
@@ -375,6 +533,291 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			azureInfoer := AzureInfoer{}
 			test.check(azureInfoer.getMachineTypeVariants(test.sourceMt))
+		})
+	}
+}
+
+func TestAzureInfoer_GetProducts(t *testing.T) {
+	tests := []struct {
+		name    string
+		service string
+		vmSizes VmSizesRetriever
+		check   func(vms []productinfo.VmInfo, err error)
+	}{
+		{
+			name:    "retrieve the available virtual machines for compute service",
+			service: "compute",
+			vmSizes: &testStruct{},
+			check: func(vms []productinfo.VmInfo, err error) {
+				assert.Nil(t, err, "the error should be nil")
+				var cpus []float64
+				var mems []float64
+
+				for _, vm := range vms {
+					cpus = append(cpus, vm.Cpus)
+					mems = append(mems, vm.Mem)
+				}
+				assert.ElementsMatch(t, cpus, []float64{1, 4, 8})
+				assert.ElementsMatch(t, mems, []float64{2, 32, 32})
+			},
+		},
+		{
+			name:    "retrieve the available virtual machines for aks service",
+			service: "aks",
+			vmSizes: &testStruct{},
+			check: func(vms []productinfo.VmInfo, err error) {
+				assert.Nil(t, err, "the error should be nil")
+				var cpus []float64
+				var mems []float64
+
+				for _, vm := range vms {
+					cpus = append(cpus, vm.Cpus)
+					mems = append(mems, vm.Mem)
+				}
+				assert.ElementsMatch(t, cpus, []float64{4, 8})
+				assert.ElementsMatch(t, mems, []float64{32, 32})
+			},
+		},
+		{
+			name:    "could not retrieve virtual machines",
+			service: "compute",
+			vmSizes: &testStruct{GetVmsError},
+			check: func(vms []productinfo.VmInfo, err error) {
+				assert.Nil(t, vms, "the vms should be nil")
+				assert.EqualError(t, err, GetVmsError)
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			azureInfoer := AzureInfoer{}
+
+			azureInfoer.vmSizesClient = test.vmSizes
+			test.check(azureInfoer.GetProducts(context.TODO(), test.service, "dummyRegion"))
+		})
+	}
+}
+
+func TestAzureInfoer_GetRegions(t *testing.T) {
+	tests := []struct {
+		name      string
+		service   string
+		vmSizes   VmSizesRetriever
+		location  LocationRetriever
+		providers ProviderSource
+		check     func(regions map[string]string, err error)
+	}{
+		{
+			name:      "receive all regions for compute service",
+			service:   "compute",
+			location:  &testStruct{},
+			providers: &testStruct{},
+			check: func(regions map[string]string, err error) {
+				assert.Equal(t, map[string]string{"westeurope": "West Europe", "centralus": "Central US", "eastasia": "East Asia"}, regions)
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "receive all regions for aks service",
+			service:   "aks",
+			location:  &testStruct{},
+			providers: &testStruct{},
+			check: func(regions map[string]string, err error) {
+				assert.Equal(t, map[string]string{"westeurope": "West Europe", "eastasia": "East Asia"}, regions)
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "could not retrieve regions",
+			service:   "compute",
+			location:  &testStruct{GetRegionsError},
+			providers: &testStruct{},
+			check: func(regions map[string]string, err error) {
+				assert.Nil(t, regions, "the regions should be nil")
+				assert.EqualError(t, err, GetRegionsError)
+			},
+		},
+		{
+			name:      "invalid location for compute service",
+			service:   "compute",
+			location:  &testStruct{},
+			providers: &testStruct{GetLocationError},
+			check: func(regions map[string]string, err error) {
+				assert.Nil(t, regions, "the regions should be nil")
+				assert.EqualError(t, err, GetLocationError)
+			},
+		},
+		{
+			name:      "invalid location for aks service",
+			service:   "aks",
+			location:  &testStruct{},
+			providers: &testStruct{GetLocationError},
+			check: func(regions map[string]string, err error) {
+				assert.Nil(t, regions, "the regions should be nil")
+				assert.EqualError(t, err, GetLocationError)
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			azureInfoer := AzureInfoer{}
+
+			azureInfoer.subscriptionsClient = test.location
+			azureInfoer.providersClient = test.providers
+			test.check(azureInfoer.GetRegions(context.TODO(), test.service))
+		})
+	}
+}
+
+func TestAzureInfoer_GetAttributeValues(t *testing.T) {
+	tests := []struct {
+		name      string
+		service   string
+		attribute string
+		vmSizes   VmSizesRetriever
+		location  LocationRetriever
+		providers ProviderSource
+		check     func(attrVals productinfo.AttrValues, err error)
+	}{
+		{
+			name:      "retrieve memory for compute service",
+			service:   "compute",
+			attribute: "memory",
+			vmSizes:   &testStruct{},
+			location:  &testStruct{},
+			providers: &testStruct{},
+			check: func(attrVals productinfo.AttrValues, err error) {
+				var mems []float64
+				for _, attrVal := range attrVals {
+					mems = append(mems, attrVal.Value)
+				}
+				assert.ElementsMatch(t, mems, []float64{2, 32})
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "retrieve memory for aks service",
+			service:   "aks",
+			attribute: "memory",
+			vmSizes:   &testStruct{},
+			location:  &testStruct{},
+			providers: &testStruct{},
+			check: func(attrVals productinfo.AttrValues, err error) {
+				assert.Equal(t, productinfo.AttrValues(productinfo.AttrValues{productinfo.AttrValue{StrValue: "32768", Value: 32}}), attrVals)
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "retrieve cpu for compute service",
+			service:   "compute",
+			attribute: "cpu",
+			vmSizes:   &testStruct{},
+			location:  &testStruct{},
+			providers: &testStruct{},
+			check: func(attrVals productinfo.AttrValues, err error) {
+				var cpus []float64
+				for _, attrVal := range attrVals {
+					cpus = append(cpus, attrVal.Value)
+				}
+				assert.ElementsMatch(t, cpus, []float64{1, 4, 8})
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "could not retrieve virtual machines",
+			service:   "compute",
+			attribute: "cpu",
+			vmSizes:   &testStruct{GetVmsError},
+			location:  &testStruct{},
+			providers: &testStruct{},
+			check: func(attrVals productinfo.AttrValues, err error) {
+				assert.Equal(t, productinfo.AttrValues{}, attrVals)
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "could not retrieve regions",
+			service:   "compute",
+			attribute: "cpu",
+			vmSizes:   &testStruct{},
+			location:  &testStruct{GetRegionsError},
+			providers: &testStruct{},
+			check: func(attrVals productinfo.AttrValues, err error) {
+				assert.Nil(t, attrVals, "the attribute values should be nil")
+				assert.EqualError(t, err, GetRegionsError)
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			azureInfoer := AzureInfoer{}
+
+			azureInfoer.vmSizesClient = test.vmSizes
+			azureInfoer.subscriptionsClient = test.location
+			azureInfoer.providersClient = test.providers
+			test.check(azureInfoer.GetAttributeValues(context.TODO(), test.service, test.attribute))
+		})
+	}
+}
+
+func TestAzureInfoer_Initialize(t *testing.T) {
+	tests := []struct {
+		name      string
+		location  LocationRetriever
+		providers ProviderSource
+		price     PriceRetriever
+		check     func(prices map[string]map[string]productinfo.Price, err error)
+	}{
+		{
+			name:      "success",
+			location:  &testStruct{},
+			providers: &testStruct{},
+			price:     &test{},
+			check: func(prices map[string]map[string]productinfo.Price, err error) {
+				var onDemandPrice []float64
+				var spotPrice []float64
+				for _, allPrices := range prices {
+					for _, price := range allPrices {
+						onDemandPrice = append(onDemandPrice, price.OnDemandPrice)
+						for _, spot := range price.SpotPrice {
+							spotPrice = append(spotPrice, spot)
+						}
+					}
+				}
+				assert.ElementsMatch(t, onDemandPrice, []float64{0.332, 0.332, 0.132, 0.132})
+				assert.ElementsMatch(t, spotPrice, []float64{0.077, 0.077})
+				assert.Nil(t, err, "the error should be nil")
+			},
+		},
+		{
+			name:      "could not retrieve regions",
+			location:  &testStruct{GetRegionsError},
+			providers: &testStruct{},
+			price:     &test{},
+			check: func(prices map[string]map[string]productinfo.Price, err error) {
+				assert.EqualError(t, err, GetRegionsError)
+				assert.Nil(t, prices, "the prices should be nil")
+			},
+		},
+		{
+			name:      "could not retrieve prices",
+			location:  &testStruct{},
+			providers: &testStruct{},
+			price:     &test{GetPriceError},
+			check: func(prices map[string]map[string]productinfo.Price, err error) {
+				assert.EqualError(t, err, GetPriceError)
+				assert.Nil(t, prices, "the prices should be nil")
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			azureInfoer := AzureInfoer{}
+
+			azureInfoer.subscriptionsClient = test.location
+			azureInfoer.providersClient = test.providers
+			azureInfoer.rateCardClient = test.price
+			test.check(azureInfoer.Initialize(context.TODO()))
 		})
 	}
 }
