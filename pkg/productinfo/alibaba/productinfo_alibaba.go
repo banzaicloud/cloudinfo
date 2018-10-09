@@ -407,6 +407,11 @@ func (e *AlibabaInfoer) GetService(ctx context.Context, service string) (product
 	return nil, fmt.Errorf("the service [%s] is not supported", service)
 }
 
+// HasImages - Alibaba doesn't support images
+func (e *AlibabaInfoer) HasImages() bool {
+	return false
+}
+
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (e *AlibabaInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
 	return nil, fmt.Errorf("GetServiceImages - not yet implemented")

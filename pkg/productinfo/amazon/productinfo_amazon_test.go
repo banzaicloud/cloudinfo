@@ -338,36 +338,6 @@ func TestEc2Infoer_GetProducts(t *testing.T) {
 			},
 		},
 		{
-			name:           "error - on demand price",
-			service:        "compute",
-			regionId:       "eu-central-1",
-			pricingService: &testStruct{TcId: 6},
-			check: func(vm []productinfo.VmInfo, err error) {
-				assert.Nil(t, err, "the error should be nil")
-				assert.Nil(t, vm, "the vm should be nil")
-			},
-		},
-		{
-			name:           "error - memory",
-			service:        "compute",
-			regionId:       "eu-central-1",
-			pricingService: &testStruct{TcId: 7},
-			check: func(vm []productinfo.VmInfo, err error) {
-				assert.Nil(t, err, "the error should be nil")
-				assert.Nil(t, vm, "the vm should be nil")
-			},
-		},
-		{
-			name:           "error - cpu",
-			service:        "compute",
-			regionId:       "eu-central-1",
-			pricingService: &testStruct{TcId: 8},
-			check: func(vm []productinfo.VmInfo, err error) {
-				assert.Nil(t, err, "the error should be nil")
-				assert.Nil(t, vm, "the vm should be nil")
-			},
-		},
-		{
 			name:           "error - instance type",
 			service:        "compute",
 			regionId:       "eu-central-1",

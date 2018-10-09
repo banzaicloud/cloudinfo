@@ -247,13 +247,15 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
 				logger.Extract(c).WithError(err).Error("failed to renew products")
 			}
-			_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
-			if imgErr != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
-				logger.Extract(c).WithError(imgErr).Error("failed to renew images")
-			}
-			if err == nil && imgErr == nil {
-				ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
+			if pi.HasImages() {
+				_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
+				if imgErr != nil {
+					ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+					logger.Extract(c).WithError(imgErr).Error("failed to renew images")
+				}
+				if err == nil && imgErr == nil {
+					ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
+				}
 			}
 		}
 	}

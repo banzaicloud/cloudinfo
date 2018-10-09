@@ -140,6 +140,8 @@ func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, service, attribute s
 func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) ([]productinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
 
+	missingAttributes := make(map[string][]string)
+	var missingGpu []string
 	var vms []productinfo.VmInfo
 	log.Debug("Getting available instance types from AWS API.")
 
@@ -161,27 +163,23 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		}
 		cpusStr, err := pd.GetDataForKey(Cpu)
 		if err != nil {
-			log.WithError(err).Warnf("could not retrieve vcpu [%s]", cpusStr)
-			continue
+			missingAttributes[instanceType] = append(missingAttributes[instanceType], "cpu")
 		}
 		memStr, err := pd.GetDataForKey(productinfo.Memory)
 		if err != nil {
-			log.WithError(err).Warnf("could not retrieve memory [%s]", memStr)
-			continue
+			missingAttributes[instanceType] = append(missingAttributes[instanceType], "memory")
 		}
 		gpu, err := pd.GetDataForKey("gpu")
 		if err != nil {
-			log.WithError(err).Warnf("could not retrieve gpu [%s]", gpu)
+			missingGpu = append(missingGpu, instanceType)
 		}
 		odPriceStr, err := pd.GetOnDemandPrice()
 		if err != nil {
-			log.WithError(err).Warnf("could not retrieve on demand price [%s]", odPriceStr)
-			continue
+			missingAttributes[instanceType] = append(missingAttributes[instanceType], "onDemandPrice")
 		}
 		ntwPerf, err := pd.GetDataForKey("networkPerformance")
 		if err != nil {
-			log.WithError(err).Warnf("could not parse network performance [%s]", ntwPerf)
-			continue
+			missingAttributes[instanceType] = append(missingAttributes[instanceType], "networkPerformance")
 		}
 
 		var currGen = true
@@ -206,6 +204,8 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		}
 		vms = append(vms, vm)
 	}
+	log.Warnf("instance types with missing attributes %s", missingAttributes)
+	log.Debugf("instance types with missing gpu %s", missingGpu)
 	if vms == nil {
 		log.Debug("couldn't find any virtual machines to recommend")
 	}
@@ -509,6 +509,11 @@ func (e *Ec2Infoer) GetService(ctx context.Context, service string) (productinfo
 	}
 	return nil, fmt.Errorf("the service [%s] is not supported", service)
 
+}
+
+// HasImages - Amazon doesn't support images
+func (e *Ec2Infoer) HasImages() bool {
+	return false
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
