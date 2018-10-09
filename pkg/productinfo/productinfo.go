@@ -540,14 +540,6 @@ func (cpi *CachingProductInfo) getZonesKey(provider string, region string) strin
 	return fmt.Sprintf(ZoneKeyTemplate, provider, region)
 }
 
-// GetNetworkPerfMapper returns the provider specific network performance mapper
-func (cpi *CachingProductInfo) GetNetworkPerfMapper(provider string) (NetworkPerfMapper, error) {
-	if infoer, ok := cpi.productInfoers[provider]; ok {
-		return infoer.GetNetworkPerformanceMapper() // this also can return with err!
-	}
-	return nil, fmt.Errorf("could not retrieve network perf mapper for provider: [%s]", provider)
-}
-
 // GetRegions gets the regions for the provided provider
 func (cpi *CachingProductInfo) GetRegions(ctx context.Context, provider, service string) (map[string]string, error) {
 	log := logger.Extract(ctx)

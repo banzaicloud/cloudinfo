@@ -552,11 +552,6 @@ func (a *AzureInfoer) GetCpuAttrName() string {
 	return productinfo.Cpu
 }
 
-// GetNetworkPerformanceMapper returns the network performance mapper implementation for this provider
-func (a *AzureInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
-	return newAzureNetworkMapper(), nil
-}
-
 // GetServices returns the available services on the  provider
 func (a *AzureInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 	services := []productinfo.ServiceDescriber{

@@ -198,11 +198,6 @@ func (i *Infoer) GetCpuAttrName() string {
 	return cpu
 }
 
-// GetNetworkPerformanceMapper returns the network performance mappier implementation for this provider
-func (i *Infoer) GetNetworkPerformanceMapper() (mapper productinfo.NetworkPerfMapper, err error) {
-	return newNetworkMapper(), nil
-}
-
 // GetProductPrices gets prices for available shapes from ITRA
 func (i *Infoer) GetProductPrices(ctx context.Context) (prices map[string]float64, err error) {
 
