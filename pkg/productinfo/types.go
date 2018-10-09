@@ -79,9 +79,6 @@ type ProductInfoer interface {
 	// GetCpuAttrName returns the provider representation of the cpu attribute
 	GetCpuAttrName() string
 
-	// GetNetworkPerformanceMapper returns the provider specific network performance mapper
-	GetNetworkPerformanceMapper() (NetworkPerfMapper, error)
-
 	// GetServices returns the available services on the given provider
 	GetServices() ([]ServiceDescriber, error)
 
@@ -134,9 +131,6 @@ type ProductInfo interface {
 
 	// GetPrice returns the on demand price and the zone averaged computed spot price for a given instance type in a given region
 	GetPrice(provider string, region string, instanceType string, zones []string) (float64, float64, error)
-
-	// GetNetworkPerfMapper retrieves the network performance mapper implementation
-	GetNetworkPerfMapper(provider string) (NetworkPerfMapper, error)
 
 	// GetInfoer gets the cloud provider specific Infoer implementation (discriminator for cloud providers)
 	GetInfoer(provider string) (ProductInfoer, error)

@@ -370,12 +370,6 @@ func (e *AlibabaInfoer) GetCpuAttrName() string {
 	return productinfo.Cpu
 }
 
-// GetNetworkPerformanceMapper returns the network performance mapper implementation for this provider
-func (e *AlibabaInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
-	nm := newAlibabaNetworkMapper()
-	return nm, nil
-}
-
 func (p *onDemandPrice) getOnDemandPrice(url string) (OnDemandPrice, error) {
 	var myClient = &http.Client{Timeout: 10 * time.Second}
 	var dataFromJson OnDemandPrice

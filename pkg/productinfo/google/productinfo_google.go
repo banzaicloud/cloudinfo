@@ -341,11 +341,6 @@ func (g *GceInfoer) GetCpuAttrName() string {
 	return productinfo.Cpu
 }
 
-// GetNetworkPerformanceMapper returns the network performance mapper implementation for this provider
-func (g *GceInfoer) GetNetworkPerformanceMapper() (productinfo.NetworkPerfMapper, error) {
-	return newGceNetworkMapper(), nil
-}
-
 // GetServices returns the available services on the  provider
 func (g *GceInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 	services := []productinfo.ServiceDescriber{
