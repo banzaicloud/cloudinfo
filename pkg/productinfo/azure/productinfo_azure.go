@@ -579,6 +579,11 @@ func (a *AzureInfoer) GetService(ctx context.Context, service string) (productin
 
 }
 
+// HasImages - Azure doesn't support images
+func (a *AzureInfoer) HasImages() bool {
+	return false
+}
+
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (a *AzureInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
 	return nil, fmt.Errorf("GetServiceImages - not yet implemented")

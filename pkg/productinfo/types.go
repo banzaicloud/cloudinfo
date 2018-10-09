@@ -88,6 +88,9 @@ type ProductInfoer interface {
 	// GetServices returns the available services on the  given region
 	GetService(ctx context.Context, service string) (ServiceDescriber, error)
 
+	// HasImages signals if a product info provider has image support
+	HasImages() bool
+
 	// GetServiceImages retrieves the images supported by the given service in the given region
 	GetServiceImages(region, service string) ([]ImageDescriber, error)
 

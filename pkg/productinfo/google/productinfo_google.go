@@ -363,6 +363,11 @@ func (g *GceInfoer) GetService(ctx context.Context, service string) (productinfo
 
 }
 
+// HasImages - Google doesn't support images
+func (g *GceInfoer) HasImages() bool {
+	return false
+}
+
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (g *GceInfoer) GetServiceImages(region, service string) ([]productinfo.ImageDescriber, error) {
 	return nil, fmt.Errorf("GetServiceImages - not yet implemented")

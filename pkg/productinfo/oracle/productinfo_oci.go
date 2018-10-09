@@ -328,6 +328,11 @@ func (i *Infoer) GetService(ctx context.Context, service string) (productinfo.Se
 	return nil, fmt.Errorf("the service [%s] is not supported", service)
 }
 
+// HasImages - Oracle support images
+func (i *Infoer) HasImages() bool {
+	return true
+}
+
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (i *Infoer) GetServiceImages(region, service string) (images []productinfo.ImageDescriber, err error) {
 
