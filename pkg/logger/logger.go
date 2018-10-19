@@ -98,11 +98,13 @@ func Extract(ctx context.Context) ContextLogger {
 // ToContext adds
 func ToContext(ctx context.Context, fields map[string]interface{}) context.Context {
 
-	var mergedFields map[string]interface{}
+	mergedFields := make(map[string]interface{})
 
 	// retrieving the "parent" context
 	if parentVals, ok := ctx.Value(ctxKey).(map[string]interface{}); ok {
-		mergedFields = parentVals
+		for k, v := range parentVals {
+			mergedFields[k] = v
+		}
 	}
 
 	if mergedFields == nil {
