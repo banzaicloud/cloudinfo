@@ -81,13 +81,14 @@ func newLogger(config Config) *logrus.Logger {
 // Extract assembles the entry with the fields extracted from the context
 func Extract(ctx context.Context) ContextLogger {
 
-	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
-	if !ok || fds == nil {
-		return logrus.NewEntry(logger)
+	var ctxFields map[string]interface{}
+
+	if fds, ok := ctx.Value(ctxKey).(map[string]interface{}); ok {
+		ctxFields = fds
 	}
 
 	fields := logrus.Fields{}
-	for k, v := range fds {
+	for k, v := range ctxFields {
 		fields[k] = v
 	}
 

@@ -181,11 +181,11 @@ func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 	for _, p := range providers {
 		var infoer productinfo.ProductInfoer
 		var err error
-		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
+		pctx := logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
 
 		switch p {
 		case Amazon:
-			infoer, err = amazon.NewEc2Infoer(ctx, viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
+			infoer, err = amazon.NewEc2Infoer(pctx, viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
 		case Google:
 			infoer, err = google.NewGceInfoer(viper.GetString(gceApiKeyFlag))
 		case Azure:
@@ -195,13 +195,13 @@ func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 		case Alibaba:
 			infoer, err = alibaba.NewAlibabaInfoer(viper.GetString(alibabaRegionId), viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret))
 		default:
-			logger.Extract(ctx).Fatal("provider is not supported")
+			logger.Extract(pctx).Fatal("provider is not supported")
 		}
 
-		quitOnError(ctx, "could not initialize product info provider", err)
+		quitOnError(pctx, "could not initialize product info provider", err)
 
 		infoers[p] = infoer
-		logger.Extract(ctx).Infof("Configured '%s' product info provider", p)
+		logger.Extract(pctx).Infof("Configured '%s' product info provider", p)
 	}
 	return infoers
 }
