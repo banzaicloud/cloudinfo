@@ -101,7 +101,7 @@ test:
 install-golint:
 	GOLINT_CMD=$(shell command -v golint 2> /dev/null)
 ifndef GOLINT_CMD
-	go get github.com/golang/lint/golint
+	go get -u golang.org/x/lint/golint
 endif
 
 install-misspell:
