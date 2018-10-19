@@ -113,7 +113,7 @@ func ToContext(ctx context.Context, fields map[string]interface{}) context.Conte
 	for k, v := range fields { // copy parent context values into the current context
 		mergedFields[k] = v
 	}
-	
+
 	return context.WithValue(ctx, ctxKey, mergedFields)
 }
 
