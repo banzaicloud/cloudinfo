@@ -81,13 +81,14 @@ func newLogger(config Config) *logrus.Logger {
 // Extract assembles the entry with the fields extracted from the context
 func Extract(ctx context.Context) ContextLogger {
 
-	fds, ok := ctx.Value(ctxKey).(map[string]interface{})
-	if !ok || fds == nil {
-		return logrus.NewEntry(logger)
+	var ctxFields map[string]interface{}
+
+	if fds, ok := ctx.Value(ctxKey).(map[string]interface{}); ok {
+		ctxFields = fds
 	}
 
 	fields := logrus.Fields{}
-	for k, v := range fds {
+	for k, v := range ctxFields {
 		fields[k] = v
 	}
 
@@ -97,21 +98,26 @@ func Extract(ctx context.Context) ContextLogger {
 // ToContext adds
 func ToContext(ctx context.Context, fields map[string]interface{}) context.Context {
 
-	// retrieving the "parent" context
-	parentVals, ok := ctx.Value(ctxKey).(map[string]interface{})
+	mergedFields := make(map[string]interface{})
 
-	if parentVals == nil && ok {
+	// retrieving the "parent" context
+	if parentVals, ok := ctx.Value(ctxKey).(map[string]interface{}); ok {
+		for k, v := range parentVals {
+			mergedFields[k] = v
+		}
+	}
+
+	if mergedFields == nil {
 		// there is no logger context set in the parent
 		return context.WithValue(ctx, ctxKey, fields)
 	}
 
-	if ok { // the parent context is successfully retrieved
-		for k, v := range parentVals { // copy parent context values into the current context
-			fields[k] = v
-		}
+	// the parent context is successfully retrieved
+	for k, v := range fields { // copy parent context values into the current context
+		mergedFields[k] = v
 	}
 
-	return context.WithValue(ctx, ctxKey, fields)
+	return context.WithValue(ctx, ctxKey, mergedFields)
 }
 
 // GetCorrelationId get correlation id from gin context
