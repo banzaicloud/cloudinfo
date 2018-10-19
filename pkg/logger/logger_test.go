@@ -95,3 +95,48 @@ func TestInitLogger(t *testing.T) {
 		})
 	}
 }
+
+func TestToContext(t *testing.T) {
+	tests := []struct {
+		name           string
+		initialContext context.Context
+		fields         map[string]interface{}
+		check          func(lCtx context.Context, fields map[string]interface{})
+	}{
+		{
+			name:           "no parent logging context",
+			initialContext: context.Background(),
+			fields:         NewLogCtxBuilder().WithProvider("prv1").WithService("srvc1").WithRegion("reg").Build(),
+			check: func(lCtx context.Context, fields map[string]interface{}) {
+				assert.Equal(t, lCtx.Value(ctxKey), fields)
+			},
+		},
+		{
+			name:           "parent logging context should be kept",
+			initialContext: context.WithValue(context.TODO(), ctxKey, NewLogCtxBuilder().WithProvider("pr1").Build()),
+			fields:         nil,
+			check: func(lCtx context.Context, fields map[string]interface{}) {
+				val := lCtx.Value(ctxKey).(map[string]interface{})
+				assert.Equal(t, "pr1", val["provider"])
+			},
+		},
+		{
+			name:           "parent logging context value should be overwritten",
+			initialContext: context.WithValue(context.Background(), ctxKey, NewLogCtxBuilder().WithProvider("pr1")),
+			fields:         NewLogCtxBuilder().WithProvider("pr2").Build(),
+			check: func(lCtx context.Context, fields map[string]interface{}) {
+				val, _ := lCtx.Value(ctxKey).(map[string]interface{})
+				assert.Equal(t, "pr2", val["provider"])
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			InitLogger("debug", "json")
+
+			ctx := ToContext(test.initialContext, test.fields)
+
+			test.check(ctx, test.fields)
+		})
+	}
+}

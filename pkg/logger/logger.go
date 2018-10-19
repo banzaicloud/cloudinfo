@@ -97,21 +97,24 @@ func Extract(ctx context.Context) ContextLogger {
 // ToContext adds
 func ToContext(ctx context.Context, fields map[string]interface{}) context.Context {
 
-	// retrieving the "parent" context
-	parentVals, ok := ctx.Value(ctxKey).(map[string]interface{})
+	var mergedFields map[string]interface{}
 
-	if parentVals == nil && ok {
+	// retrieving the "parent" context
+	if parentVals, ok := ctx.Value(ctxKey).(map[string]interface{}); ok {
+		mergedFields = parentVals
+	}
+
+	if mergedFields == nil {
 		// there is no logger context set in the parent
 		return context.WithValue(ctx, ctxKey, fields)
 	}
 
-	if ok { // the parent context is successfully retrieved
-		for k, v := range parentVals { // copy parent context values into the current context
-			fields[k] = v
-		}
+	// the parent context is successfully retrieved
+	for k, v := range fields { // copy parent context values into the current context
+		mergedFields[k] = v
 	}
-
-	return context.WithValue(ctx, ctxKey, fields)
+	
+	return context.WithValue(ctx, ctxKey, mergedFields)
 }
 
 // GetCorrelationId get correlation id from gin context
