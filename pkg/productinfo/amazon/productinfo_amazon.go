@@ -532,3 +532,13 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]productinfo.Pr
 func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
 	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
 }
+
+// GetVersions retrieves the kubernetes versions supported by the given service in the given region
+func (e *Ec2Infoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+	switch service {
+	case "eks":
+		return []string{"1.10"}, nil
+	default:
+		return []string{}, nil
+	}
+}

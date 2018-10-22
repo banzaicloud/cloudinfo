@@ -333,6 +333,32 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 	}
 }
 
+func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetRegionPathParams{}
+		mapstructure.Decode(getPathParamMap(c), &pathParams)
+
+		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(pathParams.Provider).
+			WithService(pathParams.Service).
+			WithRegion(pathParams.Region).
+			WithCorrelationId(logger.GetCorrelationId(c)).
+			Build())
+
+		log := logger.Extract(ctxLog)
+		log.Info("getting versions")
+
+		versions, err := r.prod.GetVersions(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+
+		log.Debug("successfully retrieved version details")
+		c.JSON(http.StatusOK, versions)
+	}
+}
+
 // swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attributes getAttrValues
 //
 // Provides a list of available attribute values in a provider's region.

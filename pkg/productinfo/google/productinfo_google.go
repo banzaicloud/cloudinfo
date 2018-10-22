@@ -27,6 +27,7 @@ import (
 	"golang.org/x/oauth2/google"
 	billing "google.golang.org/api/cloudbilling/v1"
 	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi/transport"
 )
 
@@ -54,6 +55,7 @@ var regionNames = map[string]string{
 type GceInfoer struct {
 	cbSvc              *billing.APIService
 	computeSvc         *compute.Service
+	containerSvc       *container.Service
 	projectId          string
 	cpuRegex           *regexp.Regexp
 	resourceGroupRegex *regexp.Regexp
@@ -80,6 +82,10 @@ func NewGceInfoer(apiKey string) (*GceInfoer, error) {
 	if err != nil {
 		return nil, err
 	}
+	containerSvc, err := container.New(client)
+	if err != nil {
+		return nil, err
+	}
 
 	cpuReg, _ := regexp.Compile("\\d+ VCPU")
 	rgReg, _ := regexp.Compile("^[a-z]+\\d+")
@@ -87,6 +93,7 @@ func NewGceInfoer(apiKey string) (*GceInfoer, error) {
 	return &GceInfoer{
 		cbSvc:              billingSvc,
 		computeSvc:         computeSvc,
+		containerSvc:       containerSvc,
 		projectId:          defaultCredential.ProjectID,
 		cpuRegex:           cpuReg,
 		resourceGroupRegex: rgReg,
@@ -383,4 +390,23 @@ func (g *GceInfoer) GetServiceProducts(region, service string) ([]productinfo.Pr
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
 	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}
+
+// GetVersions retrieves the kubernetes versions supported by the given service in the given region
+func (g *GceInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+	switch service {
+	case "gke":
+		zones, err := g.GetZones(ctx, region)
+		if err != nil {
+			return nil, err
+		}
+		serverConf, err := g.containerSvc.Projects.Zones.GetServerconfig(g.projectId, zones[0]).Context(context.Background()).Do()
+		if err != nil {
+			return nil, err
+		}
+		defaultKubernetesVersion := serverConf.DefaultClusterVersion
+		return []string{defaultKubernetesVersion}, nil
+	default:
+		return []string{}, nil
+	}
 }

@@ -46,6 +46,9 @@ const (
 
 	// ImageKeyTemplate format for generating image cache keys
 	ImageKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/regions/%s/images"
+
+	// VersionKeyTemplate format for generating kubernetes version cache keys
+	VersionKeyTemplate = "/banzaicloud.com/productinfo/providers/%s/services/%s/regions/%s/versions"
 )
 
 // ProductInfoer lists operations for retrieving cloud provider information
@@ -90,6 +93,9 @@ type ProductInfoer interface {
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
 	GetServiceImages(region, service string) ([]ImageDescriber, error)
+
+	// GetVersions retrieves the  versions supported by the given service in the given region
+	GetVersions(ctx context.Context, service, region string) ([]string, error)
 
 	// GetServiceProducts retrieves the products supported by the given service in the given region
 	GetServiceProducts(region, service string) ([]ProductDetails, error)
