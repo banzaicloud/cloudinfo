@@ -409,7 +409,7 @@
   version = "1.0.0"
 
 [[projects]]
-  digest = "1:0d390a546f17133ff8442a4ed4e1b5c66a1e4d65bb310417d97ccee70e01125f"
+  digest = "1:1fe9bdbdacbcc5a35443c8be16dbf6940079d74c35aa712d1ea7058cd590698b"
   name = "github.com/oracle/oci-go-sdk"
   packages = [
     "common",
@@ -648,11 +648,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:12f6803951b47fe3e45acf1e1919e3355a081e6e8f3d422b36773ec91f6399a5"
+  digest = "1:26427aa330e64e505290d33d9042abfec8c7ff72be8c24871af8266a3f564265"
   name = "google.golang.org/api"
   packages = [
     "cloudbilling/v1",
     "compute/v1",
+    "container/v1",
     "gensupport",
     "googleapi",
     "googleapi/internal/uritemplates",
@@ -736,6 +737,7 @@
     "github.com/go-openapi/swag",
     "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",
+    "github.com/oracle/oci-go-sdk/containerengine",
     "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
     "github.com/patrickmn/go-cache",
@@ -752,6 +754,7 @@
     "golang.org/x/oauth2/google",
     "google.golang.org/api/cloudbilling/v1",
     "google.golang.org/api/compute/v1",
+    "google.golang.org/api/container/v1",
     "google.golang.org/api/googleapi/transport",
     "gopkg.in/go-playground/validator.v8",
   ]

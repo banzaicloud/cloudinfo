@@ -254,9 +254,14 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 					ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
 					logger.Extract(c).WithError(imgErr).Error("failed to renew images")
 				}
-				if err == nil && imgErr == nil {
-					ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
-				}
+			}
+			_, versionErr := cpi.renewVersions(c, provider, service.ServiceName(), regionId)
+			if versionErr != nil {
+				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				logger.Extract(c).WithError(versionErr).Error("failed to renew versions")
+			}
+			if err == nil && versionErr == nil {
+				ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
 			}
 		}
 	}
@@ -378,7 +383,6 @@ func (cpi *CachingProductInfo) Initialize(ctx context.Context, provider string) 
 	log := logger.Extract(ctx)
 	log.Info("start initializing product information")
 	allPrices, err := cpi.productInfoers[provider].Initialize(ctx)
-
 	if err != nil {
 		log.WithError(err).Warn("failed to initialize product information")
 		return nil, err
@@ -664,6 +668,33 @@ func (cpi *CachingProductInfo) GetServiceImages(ctx context.Context, provider, s
 	}
 
 	return cachedImages.([]ImageDescriber), nil
+}
+
+func (cpi *CachingProductInfo) getVersionsKey(provider, service, region string) string {
+	return fmt.Sprintf(VersionKeyTemplate, provider, service, region)
+}
+
+func (cpi *CachingProductInfo) renewVersions(ctx context.Context, provider, service, region string) ([]string, error) {
+	values, err := cpi.productInfoers[provider].GetVersions(ctx, service, region)
+	if err != nil {
+		return nil, err
+	}
+	cpi.vmAttrStore.Set(cpi.getVersionsKey(provider, service, region), values, cpi.renewalInterval)
+	return values, nil
+
+}
+
+// GetVersions retrieves available versions for the given provider, service and region
+func (cpi *CachingProductInfo) GetVersions(ctx context.Context, provider, service, region string) ([]string, error) {
+	log := logger.Extract(ctx)
+	log.Debug("getting available versions")
+
+	cachedVersions, ok := cpi.vmAttrStore.Get(cpi.getVersionsKey(provider, service, region))
+	if !ok {
+		return nil, fmt.Errorf("versions not yet cached for the key: %s", cpi.getVersionsKey(provider, service, region))
+	}
+
+	return cachedVersions.([]string), nil
 }
 
 // Attributes create a map with the specified parameters

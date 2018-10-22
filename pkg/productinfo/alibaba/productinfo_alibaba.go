@@ -429,3 +429,13 @@ func (e *AlibabaInfoer) GetServiceProducts(region, service string) ([]productinf
 func (e *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
 	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
 }
+
+// GetVersions retrieves the kubernetes versions supported by the given service in the given region
+func (e *AlibabaInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+	switch service {
+	case "acsk":
+		return []string{"1.11.2"}, nil
+	default:
+		return []string{}, nil
+	}
+}

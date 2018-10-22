@@ -87,6 +87,7 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 		providerGroup.GET("/:provider/services/:service/regions", r.getRegions(ctx)).Use(ValidatePathData(ctx, v))
 		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages(ctx))
+		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues(ctx)).
 			Use(ValidatePathParam(ctx, attributeParam, v, "attribute"))

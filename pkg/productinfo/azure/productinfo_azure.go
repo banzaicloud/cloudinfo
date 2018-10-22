@@ -85,6 +85,7 @@ type AzureInfoer struct {
 	vmSizesClient       VmSizesRetriever
 	rateCardClient      PriceRetriever
 	providersClient     ProviderSource
+	containerSvcClient  *containerservice.ContainerServicesClient
 }
 
 // VmSizesRetriever list of operations for retrieving virtual machines information
@@ -136,12 +137,16 @@ func NewAzureInfoer() (*AzureInfoer, error) {
 	providersClient := resources.NewProvidersClient(auth.SubscriptionID)
 	providersClient.Authorizer = authorizer
 
+	containerServiceClient := containerservice.NewContainerServicesClient(auth.SubscriptionID)
+	containerServiceClient.Authorizer = authorizer
+
 	return &AzureInfoer{
 		subscriptionId:      auth.SubscriptionID,
 		subscriptionsClient: sClient,
 		vmSizesClient:       vmClient,
 		rateCardClient:      rcClient,
 		providersClient:     providersClient,
+		containerSvcClient:  &containerServiceClient,
 	}, nil
 }
 
@@ -594,4 +599,42 @@ func (a *AzureInfoer) GetServiceProducts(region, service string) ([]productinfo.
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (a *AzureInfoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
 	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+}
+
+// GetVersions retrieves the kubernetes versions supported by the given service in the given region
+func (a *AzureInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+	switch service {
+	case "aks":
+		const resourceTypeForAks = "managedClusters"
+		var versions []string
+		resp, err := a.containerSvcClient.ListOrchestrators(ctx, region, resourceTypeForAks)
+		if err != nil {
+			return nil, err
+		}
+		if resp.OrchestratorVersionProfileProperties != nil && resp.OrchestratorVersionProfileProperties.Orchestrators != nil {
+			for _, v := range *resp.OrchestratorVersionProfileProperties.Orchestrators {
+				if v.OrchestratorType != nil && *v.OrchestratorType == string(containerservice.Kubernetes) {
+					versions = appendIfMissing(versions, *v.OrchestratorVersion)
+					if v.Upgrades != nil {
+						for _, up := range *v.Upgrades {
+							versions = appendIfMissing(versions, *up.OrchestratorVersion)
+						}
+					}
+				}
+			}
+		}
+		return versions, nil
+	default:
+		return []string{}, nil
+	}
+}
+
+// appendIfMissing appends string to a slice if it's not contains it
+func appendIfMissing(slice []string, s string) []string {
+	for _, e := range slice {
+		if e == s {
+			return slice
+		}
+	}
+	return append(slice, s)
 }

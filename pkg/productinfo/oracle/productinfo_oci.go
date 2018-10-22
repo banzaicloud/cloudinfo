@@ -360,3 +360,28 @@ func (i *Infoer) GetServiceProducts(region, service string) ([]productinfo.Produ
 func (i *Infoer) GetServiceAttributes(region, service, attribute string) (productinfo.AttrValues, error) {
 	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
 }
+
+// GetVersions retrieves the kubernetes versions supported by the given service in the given region
+func (i *Infoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+	switch service {
+	case "oke":
+		err := i.client.ChangeRegion(region)
+		if err != nil {
+			return nil, err
+		}
+
+		ce, err := i.client.NewContainerEngineClient()
+		if err != nil {
+			return nil, err
+		}
+
+		options, err := ce.GetDefaultNodePoolOptions()
+		if err != nil {
+			return nil, err
+		}
+
+		return options.KubernetesVersions.Get(), nil
+	default:
+		return []string{}, nil
+	}
+}
