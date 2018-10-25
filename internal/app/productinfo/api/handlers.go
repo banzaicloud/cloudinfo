@@ -333,6 +333,19 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 	}
 }
 
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/versions versions getVersions
+//
+// Provides a list of available versions on a given provider in a specific region for a service.
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: VersionsResponse
 func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
