@@ -39,7 +39,7 @@ type GetServicesPathParams struct {
 }
 
 // GetRegionPathParams is a placeholder for the regions related route path parameters
-// swagger:parameters getRegion getImages getProducts
+// swagger:parameters getRegion getImages getProducts getVersions
 type GetRegionPathParams struct {
 	GetServicesPathParams `mapstructure:",squash"`
 	// in:path
@@ -118,14 +118,20 @@ type ImagesResponse struct {
 	Images []productinfo.Image `json:"images"`
 }
 
+// VersionsResponse holds the list of available versions
+// swagger:model VersionsResponse
+type VersionsResponse struct {
+	Versions []productinfo.Version `json:"versions"`
+}
+
 // ErrorResponse struct for error responses
-// // swagger:model ErrorResponse
+// swagger:model ErrorResponse
 type ErrorResponse struct {
 	ErrorCode    string `json:"code,omitempty"`
 	ErrorMessage string `json:"message,omitempty"`
 }
 
-// NewErrorResponse creates a new ERrorResponse struct
+// NewErrorResponse creates a new ErrorResponse struct
 func NewErrorResponse(code, message string) ErrorResponse {
 	return ErrorResponse{
 		ErrorCode:    code,

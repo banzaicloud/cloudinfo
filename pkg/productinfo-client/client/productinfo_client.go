@@ -19,6 +19,7 @@ import (
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/regions"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/service"
 	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/services"
+	"github.com/banzaicloud/productinfo/pkg/productinfo-client/client/versions"
 )
 
 // Default productinfo HTTP client.
@@ -80,6 +81,8 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Productinf
 
 	cli.Services = services.New(transport, formats)
 
+	cli.Versions = versions.New(transport, formats)
+
 	return cli
 }
 
@@ -140,6 +143,8 @@ type Productinfo struct {
 
 	Services *services.Client
 
+	Versions *versions.Client
+
 	Transport runtime.ClientTransport
 }
 
@@ -162,5 +167,7 @@ func (c *Productinfo) SetTransport(transport runtime.ClientTransport) {
 	c.Service.SetTransport(transport)
 
 	c.Services.SetTransport(transport)
+
+	c.Versions.SetTransport(transport)
 
 }

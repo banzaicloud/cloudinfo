@@ -386,6 +386,52 @@
           }
         }
       }
+    },
+    "/providers/{provider}/services/{service}/regions/{region}/versions": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "versions"
+        ],
+        "summary": "Provides a list of available versions on a given provider in a specific region for a service.",
+        "operationId": "getVersions",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Region",
+            "name": "region",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "VersionsResponse",
+            "schema": {
+              "$ref": "#/definitions/VersionsResponse"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -748,6 +794,31 @@
         "format": "double"
       },
       "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
+    },
+    "Version": {
+      "description": "Version represents a version",
+      "type": "object",
+      "properties": {
+        "versions": {
+          "type": "string",
+          "x-go-name": "Version"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/pkg/productinfo"
+    },
+    "VersionsResponse": {
+      "description": "VersionsResponse holds the list of available versions",
+      "type": "object",
+      "properties": {
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Version"
+          },
+          "x-go-name": "Versions"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/productinfo/internal/app/productinfo/api"
     },
     "ZonePrice": {
       "description": "ZonePrice struct for displaying price information per zone",

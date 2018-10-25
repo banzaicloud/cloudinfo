@@ -286,3 +286,13 @@ func NewImage(name string) *Image {
 		Image: name,
 	}
 }
+
+// Version represents a version
+type Version struct {
+	Version string `json:"versions"`
+}
+
+// VersionName returns the name of the version
+func (v Version) VersionName() string {
+	return v.Version
+}

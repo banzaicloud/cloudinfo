@@ -18,6 +18,9 @@ import (
 // swagger:model ProductDetails
 type ProductDetails struct {
 
+	// attributes
+	Attributes map[string]string `json:"attributes,omitempty"`
+
 	// Burst this is derived for now
 	Burst bool `json:"burst,omitempty"`
 
@@ -44,6 +47,9 @@ type ProductDetails struct {
 
 	// type
 	Type string `json:"type,omitempty"`
+
+	// zones
+	Zones []string `json:"zones"`
 
 	// spot price
 	SpotPrice []*ZonePrice `json:"spotPrice"`
