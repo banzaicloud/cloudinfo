@@ -36,7 +36,7 @@ SWAGGER_PI_TMP_FILE = ./api/openapi-spec/productinfo.json
 SWAGGER_PI_FILE = ./api/openapi-spec/productinfo.yaml
 
 ## include "generic" targets
-include Makefile-base
+include main-targets.mk
 
 
 deps-swagger:
