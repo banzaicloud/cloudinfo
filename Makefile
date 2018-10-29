@@ -1,48 +1,43 @@
-EXECUTABLE ?= productinfo
-IMAGE ?= banzaicloud/$(EXECUTABLE)
-TAG ?= dev-$(shell git log -1 --pretty=format:"%h")
+# A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
-LD_FLAGS = -X "main.version=$(TAG)"
-GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
-PKGS=$(shell go list ./... | grep -v /vendor)
+SHELL = /bin/bash
+OS = $(shell uname -s)
+
+# Project variables
+PACKAGE = github.com/banzaicloud/productinfo
+BINARY_NAME = productinfo
+#OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
+
+# Build variables
+BUILD_DIR ?= build
+BUILD_PACKAGE = ${PACKAGE}/cmd/productinfo
+VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
+BUILD_DATE ?= $(shell date +%FT%T%z)
+LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
+export CGO_ENABLED ?= 0
+ifeq (${VERBOSE}, 1)
+	GOARGS += -v
+endif
+
+DEP_VERSION = 0.5.0
+GOLANGCI_VERSION = 1.10.2
+MISSPELL_VERSION = 0.3.4
+JQ_VERSION = 1.5
+LICENSEI_VERSION = 0.0.7
+OPENAPI_GENERATOR_VERSION = 3.3.0
+
+GOLANG_VERSION = 1.11
+
+GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
+
 
 SWAGGER_PI_TMP_FILE = ./api/openapi-spec/productinfo.json
 SWAGGER_PI_FILE = ./api/openapi-spec/productinfo.yaml
 
-.PHONY: _no-target-specified
-_no-target-specified:
-	$(error Please specify the target to make - `make list` shows targets.)
+## include "generic" targets
+include Makefile-base
 
-.PHONY: list
-list:
-	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
-
-LICENSEI_VERSION = 0.0.7
-bin/licensei: ## Install license checker
-	@mkdir -p ./bin/
-	curl -sfL https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v${LICENSEI_VERSION}
-
-.PHONY: license-check
-license-check: bin/licensei ## Run license check
-	@bin/licensei check
-
-.PHONY: license-cache
-license-cache: bin/licensei ## Generate license cache
-	@bin/licensei cache
-
-DEP_VERSION = 0.5.0
-bin/dep:
-	@mkdir -p ./bin/
-	@curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=./bin DEP_RELEASE_TAG=v${DEP_VERSION} sh
-
-.PHONY: vendor
-vendor: bin/dep ## Install dependencies
-	bin/dep ensure -vendor-only
-
-all: clean deps fmt vet docker push
-
-clean:
-	go clean -i ./...
 
 deps-swagger:
 ifeq ($(shell which swagger),)
@@ -55,21 +50,6 @@ endif
 deps: deps-swagger
 	go get ./...
 
-fmt:
-	@gofmt -w ${GOFILES_NOVENDOR}
-
-vet:
-	@go vet -composites=false ./...
-
-docker:
-	docker build --rm -t $(IMAGE):$(TAG) .
-
-push:
-	docker push $(IMAGE):$(TAG)
-
-run-dev:
-	. .env
-	go run $(wildcard *.go)
 
 swagger:
 	swagger generate spec -m -b ./cmd/productinfo -o $(SWAGGER_PI_TMP_FILE)
@@ -77,67 +57,6 @@ swagger:
 
 generate-pi-client:
 	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A productinfo -t pkg/productinfo-client/
-
-build:
-	go build ./cmd/productinfo/
-
-build-all: check-fmt check-misspell lint vet test swagger build
-
-check-fmt:
-	PKGS="${GOFILES_NOVENDOR}" GOFMT="gofmt" ./scripts/fmt-check.sh
-
-check-misspell: install-misspell
-	PKGS="${GOFILES_NOVENDOR}" MISSPELL="misspell" ./scripts/misspell-check.sh
-
-misspell: install-misspell
-	misspell -w ${GOFILES_NOVENDOR}
-
-lint: install-golint
-	golint -min_confidence 0.9 -set_exit_status $(PKGS)
-
-test:
-	@go test -v -cover ./...  > test.txt
-
-install-golint:
-	GOLINT_CMD=$(shell command -v golint 2> /dev/null)
-ifndef GOLINT_CMD
-	go get -u golang.org/x/lint/golint
-endif
-
-install-misspell:
-	MISSPELL_CMD=$(shell command -v misspell 2> /dev/null)
-ifndef MISSPELL_CMD
-	go get -u github.com/client9/misspell/cmd/misspell
-endif
-
-install-ineffassign:
-	INEFFASSIGN_CMD=$(shell command -v ineffassign 2> /dev/null)
-ifndef INEFFASSIGN_CMD
-	go get -u github.com/gordonklaus/ineffassign
-endif
-
-install-gocyclo:
-	GOCYCLO_CMD=$(shell command -v gocyclo 2> /dev/null)
-ifndef GOCYCLO_CMD
-	go get -u github.com/fzipp/gocyclo
-endif
-
-ineffassign: install-ineffassign
-	ineffassign ${GOFILES_NOVENDOR}
-
-gocyclo: install-gocyclo
-	gocyclo -over 19 ${GOFILES_NOVENDOR}
-
-install-go-junit-report:
-	GOLINT_CMD=$(shell command -v go-junit-report 2> /dev/null)
-ifndef GOLINT_CMD
-	go get -u github.com/jstemmer/go-junit-report
-endif
-
-
-go-junit-report: install-go-junit-report
-	$(shell mkdir -p test-results)
-	cat test.txt | go-junit-report > test-results/report.xml
 
 
 ## starts the productinfo app with docker-compose
