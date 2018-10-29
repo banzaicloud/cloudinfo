@@ -86,7 +86,7 @@ func (i *Identity) GetSubscribedRegionNames() (regions map[string]string, err er
 		TenancyId: i.oci.Tenancy.Id,
 	})
 
-	regions = make(map[string]string, 0)
+	regions = make(map[string]string)
 	for _, item := range response.Items {
 		regions[*item.RegionName] = *item.RegionName
 	}

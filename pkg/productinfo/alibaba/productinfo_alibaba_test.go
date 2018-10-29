@@ -413,7 +413,6 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 		ecsClient      EcsSource
 		priceRetriever PriceRetriever
 		spotClient     func(region string) EcsSource
-		region         string
 		check          func(prices map[string]productinfo.Price, err error)
 	}{
 		{

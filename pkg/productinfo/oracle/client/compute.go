@@ -60,9 +60,7 @@ func (c *Compute) GetShapes() (shapes []core.Shape, err error) {
 			return shapes, err
 		}
 
-		for _, item := range response.Items {
-			shapes = append(shapes, item)
-		}
+		shapes = append(shapes, response.Items...)
 
 		if response.OpcNextPage != nil {
 			// if there are more items in next page, fetch items from next page
@@ -93,9 +91,7 @@ func (c *Compute) GetImages() (images []core.Image, err error) {
 			return images, err
 		}
 
-		for _, item := range response.Items {
-			images = append(images, item)
-		}
+		images = append(images, response.Items...)
 
 		if response.OpcNextPage != nil {
 			// if there are more items in next page, fetch items from next page

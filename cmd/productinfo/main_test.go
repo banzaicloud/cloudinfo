@@ -105,8 +105,13 @@ func setupInputs(args []string, file *os.File) {
 	if args != nil {
 		a = args
 	}
-	pflag.CommandLine.Parse(a)
-	viper.BindPFlags(pflag.CommandLine)
+	if err := pflag.CommandLine.Parse(a); err != nil {
+		panic(err)
+	}
+
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		panic(err)
+	}
 
 	// This enables stdin to be mocked for testing.
 	if file != nil {

@@ -72,7 +72,10 @@ func (r *RouteHandler) getProviders(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProviderPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -109,7 +112,10 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProviderPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		infoer, err := r.prod.GetInfoer(pathParams.Provider)
 		if err != nil {
@@ -147,7 +153,10 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// bind the path parameters
 		pathParams := GetServicesPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -190,7 +199,10 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetServicesPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -227,7 +239,10 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -266,7 +281,10 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -310,7 +328,10 @@ func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -349,7 +370,10 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -388,7 +412,10 @@ func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetAttributeValuesPathParams{}
-		mapstructure.Decode(getPathParamMap(c), &pathParams)
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).

@@ -201,7 +201,7 @@ func (i *Infoer) GetCpuAttrName() string {
 // GetProductPrices gets prices for available shapes from ITRA
 func (i *Infoer) GetProductPrices(ctx context.Context) (prices map[string]float64, err error) {
 
-	prices = make(map[string]float64, 0)
+	prices = make(map[string]float64)
 	for shape, specs := range i.shapeSpecs {
 		info, _ := i.GetProductInfoFromITRA(ctx, specs.PartNumber)
 		prices[shape] = info.GetPrice("PAY_AS_YOU_GO") * specs.Cpus
@@ -265,7 +265,7 @@ func (i *Infoer) GetRegions(ctx context.Context, service string) (regions map[st
 		return
 	}
 
-	regions = make(map[string]string, 0)
+	regions = make(map[string]string)
 	for _, region := range _regions {
 		description := region
 		if displayName, ok := regionNames[region]; ok {

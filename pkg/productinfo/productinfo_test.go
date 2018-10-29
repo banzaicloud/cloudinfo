@@ -31,7 +31,7 @@ type DummyProductInfoer struct {
 	AttrValues         AttrValues
 	Vms                []VmInfo
 	TcId               string
-	dummyNetworkMapper NetworkPerfMapper
+	//dummyNetworkMapper NetworkPerfMapper
 	// implement the interface
 	ProductInfoer
 	ProductStorer
@@ -482,7 +482,6 @@ func TestCachingProductInfo_renewShortLivedInfo(t *testing.T) {
 func TestCachingProductInfo_GetPrice(t *testing.T) {
 	tests := []struct {
 		name          string
-		p             Price
 		zones         []string
 		ProductInfoer map[string]ProductInfoer
 		checker       func(i float64, f float64, err error)

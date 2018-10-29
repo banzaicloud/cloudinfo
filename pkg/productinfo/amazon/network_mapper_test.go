@@ -20,12 +20,6 @@ import (
 	"testing"
 )
 
-// MapperSuit test suite for a network performance mapper implementation
-func MapperErrorSuit(t *testing.T, mapper productinfo.NetworkPerfMapper) {
-	// todo design meaningful suite(s) for testing mapper implementations
-	// todo eg: testing all the categories for a given impl, errors, etc ...
-}
-
 func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 
 	mapper := AmazonNetworkMapper{}

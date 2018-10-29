@@ -68,7 +68,10 @@ func (i *Infoer) GetProductInfoFromITRA(ctx context.Context, partNumber string) 
 	defer resp.Body.Close()
 	var response ITRAResponse
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
+	if _, e := buf.ReadFrom(resp.Body); e != nil {
+		return info, e
+	}
+
 	respByte := buf.Bytes()
 	if err := json.Unmarshal(respByte, &response); err != nil {
 		return info, err
