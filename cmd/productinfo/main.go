@@ -28,7 +28,7 @@ package main
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -110,7 +110,7 @@ func defineFlags() {
 func bindFlags() {
 	flag.Parse()
 	if err := viper.BindPFlags(flag.CommandLine); err != nil {
-		panic(errors.Wrap(err, "could not parse flags"))
+		panic(fmt.Errorf("could not parse flags. error: %s", err))
 	}
 
 }
@@ -178,7 +178,7 @@ func main() {
 	routeHandler.ConfigureRoutes(ctx, router)
 	logger.Extract(ctx).Info("Configured routes")
 	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
-		panic(errors.Wrap(err, "could not run router"))
+		panic(fmt.Errorf("could not run router. eroor: %s", err))
 	}
 }
 

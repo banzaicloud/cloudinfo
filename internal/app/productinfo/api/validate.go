@@ -17,7 +17,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"reflect"
 
@@ -42,7 +41,7 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *productinfo
 		}
 		return false
 	}); err != nil {
-		return errors.Wrap(err, "could not register provider validator")
+		return fmt.Errorf("could not register provider validator. error: %s", err)
 	}
 
 	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -53,17 +52,17 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *productinfo
 		}
 		return false
 	}); err != nil {
-		return errors.Wrap(err, "could not register attribute validator")
+		return fmt.Errorf("could not register attribute validator. error: %s", err)
 	}
 
 	// register validator for the service parameter in the request path
 	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
-		return errors.Wrap(err, "could not register service validator")
+		return fmt.Errorf("could not register service validator. error: %s", err)
 	}
 
 	// register validator for the region parameter in the request path
 	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
-		return errors.Wrap(err, "could not register provider validator")
+		return fmt.Errorf("could not register provider validator. . error: %s", err)
 	}
 	return nil
 }
