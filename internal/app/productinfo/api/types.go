@@ -15,6 +15,9 @@
 package api
 
 import (
+	"fmt"
+	"runtime"
+
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 )
 
@@ -154,5 +157,24 @@ func NewServicesResponse(sds []productinfo.ServiceDescriber) ServicesResponse {
 	}
 	return ServicesResponse{
 		Services: services,
+	}
+}
+
+type BuildInfo struct {
+	Version    string `json:"version"`
+	CommitHash string `json:"commit_hash"`
+	BuildDate  string `json:"build_date"`
+	GoVersion  string `json:"go_version"`
+	OsArch     string `json:"os_arch"`
+}
+
+// NewBuildInfo creates a new build info reference
+func NewBuildInfo(version, hash, date string) *BuildInfo {
+	return &BuildInfo{
+		Version:    version,
+		CommitHash: hash,
+		BuildDate:  date,
+		GoVersion:  runtime.Version(),
+		OsArch:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
 }

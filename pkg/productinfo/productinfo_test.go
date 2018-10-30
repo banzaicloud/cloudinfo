@@ -28,9 +28,9 @@ import (
 // DummyProductInfoer type implements the ProductInfoer interface for mockig of external calls
 // the struct is to be extended according to the needs of test cases
 type DummyProductInfoer struct {
-	AttrValues         AttrValues
-	Vms                []VmInfo
-	TcId               string
+	AttrValues AttrValues
+	Vms        []VmInfo
+	TcId       string
 	//dummyNetworkMapper NetworkPerfMapper
 	// implement the interface
 	ProductInfoer

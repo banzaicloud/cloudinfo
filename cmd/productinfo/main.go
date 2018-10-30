@@ -150,6 +150,8 @@ func main() {
 
 	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", "productinfo").Build())
 
+	logger.Extract(ctx).WithField("version", Version).WithField("commit_hash", CommitHash).WithField("build_date", BuildDate).Info("Productinfo initialization")
+
 	prodInfo, err := productinfo.NewCachingProductInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
 		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx))
 	quitOnError(ctx, "error encountered", err)
@@ -162,7 +164,7 @@ func main() {
 	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
 	quitOnError(ctx, "error encountered", err)
 
-	routeHandler := api.NewRouteHandler(prodInfo)
+	routeHandler := api.NewRouteHandler(prodInfo, api.NewBuildInfo(Version, CommitHash, BuildDate))
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()

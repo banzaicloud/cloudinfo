@@ -16,10 +16,10 @@ package api
 
 import (
 	"context"
-	"github.com/banzaicloud/productinfo/pkg/logger"
 	"net/http"
 	"os"
 
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
@@ -30,13 +30,15 @@ import (
 
 // RouteHandler configures the REST API routes in the gin router
 type RouteHandler struct {
-	prod *productinfo.CachingProductInfo
+	prod      *productinfo.CachingProductInfo
+	buildInfo *BuildInfo
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
-func NewRouteHandler(p *productinfo.CachingProductInfo) *RouteHandler {
+func NewRouteHandler(p *productinfo.CachingProductInfo, bi *BuildInfo) *RouteHandler {
 	return &RouteHandler{
-		prod: p,
+		prod:      p,
+		buildInfo: bi,
 	}
 }
 
@@ -73,6 +75,7 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 	base := router.Group(basePath)
 	{
 		base.GET("/status", r.signalStatus)
+		base.GET("/version", r.versionHandler)
 	}
 
 	v1 := base.Group("/api/v1")
@@ -97,4 +100,8 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 
 func (r *RouteHandler) signalStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")
+}
+
+func (r *RouteHandler) versionHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, r.buildInfo)
 }
