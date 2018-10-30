@@ -43,10 +43,10 @@ func TestContextLogger(t *testing.T) {
 
 func TestInitLogger(t *testing.T) {
 	tests := []struct {
-		name      string
-		logLevel  string
-		fmtStr    string
-		checker   func(args ...interface{}) bool
+		name     string
+		logLevel string
+		fmtStr   string
+		checker  func(args ...interface{}) bool
 	}{
 		{
 			name:     "debug log level",
