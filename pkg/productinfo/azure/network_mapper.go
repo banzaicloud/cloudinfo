@@ -31,11 +31,6 @@ var (
 type AzureNetworkMapper struct {
 }
 
-// newAzureNetworkMapper initializes the network performance mapper struct
-func newAzureNetworkMapper() *AzureNetworkMapper {
-	return &AzureNetworkMapper{}
-}
-
 // MapNetworkPerf maps the network performance of the azure instance to the category supported by telescopes
 func (nm *AzureNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	return ntwPerfMap[productinfo.NTW_MEDIUM][0], nil

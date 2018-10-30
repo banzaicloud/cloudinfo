@@ -53,16 +53,16 @@ var (
 		"us": "us",
 	}
 
-	mtBasic, _     = regexp.Compile("^BASIC.A\\d+[_Promo]*$")
-	mtStandardA, _ = regexp.Compile("^A\\d+[_Promo]*$")
-	mtStandardB, _ = regexp.Compile("^Standard_B\\d+m?[_v\\d]*[_Promo]*$")
-	mtStandardD, _ = regexp.Compile("^Standard_D\\d[_v\\d]*[_Promo]*$")
-	mtStandardE, _ = regexp.Compile("^Standard_E\\d+i?[_v\\d]*[_Promo]*$")
-	mtStandardF, _ = regexp.Compile("^Standard_F\\d+[_v\\d]*[_Promo]*$")
-	mtStandardG, _ = regexp.Compile("^Standard_G\\d+[_v\\d]*[_Promo]*$")
-	mtStandardL, _ = regexp.Compile("^Standard_L\\d+[_v\\d]*[_Promo]*$")
-	mtStandardM, _ = regexp.Compile("^Standard_M\\d+[m|t|l]*s[_v\\d]*[_Promo]*$")
-	mtStandardN, _ = regexp.Compile("^Standard_N[C|D|V]\\d+r?[_v\\d]*[_Promo]*$")
+	//mtBasic, _     = regexp.Compile("^BASIC.A\\d+[_Promo]*$")
+	//mtStandardA, _ = regexp.Compile("^A\\d+[_Promo]*$")
+	mtStandardB, _ = regexp.Compile(`^Standard_B\d+m?[_v\d]*[_Promo]*$`)
+	mtStandardD, _ = regexp.Compile(`^Standard_D\d[_v\d]*[_Promo]*$`)
+	mtStandardE, _ = regexp.Compile(`^Standard_E\d+i?[_v\d]*[_Promo]*$`)
+	mtStandardF, _ = regexp.Compile(`^Standard_F\d+[_v\d]*[_Promo]*$`)
+	mtStandardG, _ = regexp.Compile(`^Standard_G\d+[_v\d]*[_Promo]*$`)
+	mtStandardL, _ = regexp.Compile(`^Standard_L\d+[_v\d]*[_Promo]*$`)
+	mtStandardM, _ = regexp.Compile(`^Standard_M\d+[m|t|l]*s[_v\d]*[_Promo]*$`)
+	mtStandardN, _ = regexp.Compile(`^Standard_N[C|D|V]\d+r?[_v\d]*[_Promo]*$`)
 )
 
 type authentication struct {
@@ -219,9 +219,8 @@ func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]pro
 					log.WithError(err).Debug()
 					continue
 				}
-				var instanceTypes []string
 
-				instanceTypes = a.machineType(*v.MeterName, *v.MeterSubCategory)
+				instanceTypes := a.machineType(*v.MeterName, *v.MeterSubCategory)
 
 				var priceInUsd float64
 
@@ -300,15 +299,11 @@ func (a *AzureInfoer) getMachineTypeVariants(mt string) []string {
 		result[0] = a.addSuffix(mt, "s")[0]
 		dsType := strings.Replace(mt, "Standard_D", "Standard_DS", -1)
 		result[1] = dsType
-		for i, s := range a.addSuffix(dsType, "-1", "-2", "-4", "-8") {
-			result[i+2] = s
-		}
+		copy(result, a.addSuffix(dsType, "-1", "-2", "-4", "-8"))
 		return result
 	case mtStandardE.MatchString(mt):
 		result := make([]string, 6)
-		for i, s := range a.addSuffix(mt, "s", "-2s", "-4s", "-8s", "-16s", "-32s") {
-			result[i] = s
-		}
+		copy(result, a.addSuffix(mt, "s", "-2s", "-4s", "-8s", "-16s", "-32s"))
 		return result
 	case mtStandardF.MatchString(mt):
 		return a.addSuffix(mt, "s")
@@ -316,9 +311,7 @@ func (a *AzureInfoer) getMachineTypeVariants(mt string) []string {
 		result := make([]string, 4)
 		gsType := strings.Replace(mt, "Standard_G", "Standard_GS", -1)
 		result[0] = gsType
-		for i, s := range a.addSuffix(gsType, "-4", "-8", "-16") {
-			result[i+1] = s
-		}
+		copy(result, a.addSuffix(gsType, "-4", "-8", "-16"))
 		return result
 	case mtStandardL.MatchString(mt):
 		return a.addSuffix(mt, "s")

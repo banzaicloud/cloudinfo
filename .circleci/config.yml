@@ -5,7 +5,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
 
     working_directory: /go/src/github.com/banzaicloud/productinfo
     steps:
@@ -63,50 +63,24 @@ jobs:
           name: Build
           command:
             make build
-          
-      - run:
-          name: Run go vet
-          command:
-            make vet
 
       - run:
-          name: Run fmt
-          command:
-            make check-fmt
-
-      - run:
-          name: Run golint
-          command:
-            make lint
-
-      - run:
-          name: Run misspell
-          command:
-            make check-misspell
-
-      - run:
-          name: Run ineffassign
-          command:
-            make ineffassign
-
-      - run:
-          name: Run gocyclo
-          command:
-            make gocyclo
-
-      - run:
-          name: Run tests
-          command:
-            make test
+          name: Run linter
+          command: make lint
 
       - run:
           name: Generate test reports
-          command:
-            make go-junit-report
+          command: make junit-report
           when: always
 
+      - save_cache:
+          name: Save build dependencies
+          key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+          paths:
+          - bin/
+
       - store_test_results:
-          path: test-results/
+          path: build/
       - store_artifacts:
-          path: test-results/
+          path: build/
 

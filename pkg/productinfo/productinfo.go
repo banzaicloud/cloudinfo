@@ -267,7 +267,10 @@ func (cpi *CachingProductInfo) renewProviderInfo(ctx context.Context, provider s
 	}
 	log.Info("finished to renew products (vm-s)")
 
-	cpi.renewStatus(provider)
+	if _, err := cpi.renewStatus(provider); err != nil {
+		log.Errorf("failed to renew status: %s", err)
+		return
+	}
 	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
 }
 

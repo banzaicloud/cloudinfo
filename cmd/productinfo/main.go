@@ -28,6 +28,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -108,7 +109,10 @@ func defineFlags() {
 // bindFlags binds parsed flags into viper
 func bindFlags() {
 	flag.Parse()
-	viper.BindPFlags(flag.CommandLine)
+	if err := viper.BindPFlags(flag.CommandLine); err != nil {
+		panic(fmt.Errorf("could not parse flags. error: %s", err))
+	}
+
 }
 
 func init() {
@@ -155,7 +159,8 @@ func main() {
 	quitOnError(ctx, "error encountered", err)
 
 	// configure the gin validator
-	api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
+	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
+	quitOnError(ctx, "error encountered", err)
 
 	routeHandler := api.NewRouteHandler(prodInfo)
 
@@ -172,7 +177,9 @@ func main() {
 	logger.Extract(ctx).Info("Initialized gin router")
 	routeHandler.ConfigureRoutes(ctx, router)
 	logger.Extract(ctx).Info("Configured routes")
-	router.Run(viper.GetString(listenAddressFlag))
+	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
+		panic(fmt.Errorf("could not run router. error: %s", err))
+	}
 }
 
 func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {

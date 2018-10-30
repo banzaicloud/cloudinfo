@@ -29,7 +29,7 @@ func (oci *OCI) GetSupportedShapes(service string) (shapes map[string][]string, 
 		return shapes, err
 	}
 
-	shapes = make(map[string][]string, 0)
+	shapes = make(map[string][]string)
 	for _, region := range regions {
 		_shapes, err := oci.GetSupportedShapesInARegion(region, service)
 		if err != nil {
@@ -101,7 +101,7 @@ func (oci *OCI) GetSupportedImages(service string) (images map[string][]string, 
 		return images, err
 	}
 
-	images = make(map[string][]string, 0)
+	images = make(map[string][]string)
 	for _, region := range regions {
 		_images, err := oci.GetSupportedImagesInARegion(region, service)
 		if err != nil {

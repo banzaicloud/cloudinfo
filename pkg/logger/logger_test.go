@@ -46,7 +46,6 @@ func TestInitLogger(t *testing.T) {
 		name      string
 		logLevel  string
 		fmtStr    string
-		formatter interface{}
 		checker   func(args ...interface{}) bool
 	}{
 		{

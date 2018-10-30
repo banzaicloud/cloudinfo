@@ -602,7 +602,6 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 	tests := []struct {
 		name      string
 		service   string
-		vmSizes   VmSizesRetriever
 		location  LocationRetriever
 		providers ProviderSource
 		check     func(regions map[string]string, err error)

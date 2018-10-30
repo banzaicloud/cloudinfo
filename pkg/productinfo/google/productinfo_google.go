@@ -87,8 +87,8 @@ func NewGceInfoer(apiKey string) (*GceInfoer, error) {
 		return nil, err
 	}
 
-	cpuReg, _ := regexp.Compile("\\d+ VCPU")
-	rgReg, _ := regexp.Compile("^[a-z]+\\d+")
+	cpuReg, _ := regexp.Compile(`\d+ VCPU`)
+	rgReg, _ := regexp.Compile(`^[a-z]+\d+`)
 
 	return &GceInfoer{
 		cbSvc:              billingSvc,

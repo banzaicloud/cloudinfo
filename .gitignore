@@ -7,6 +7,7 @@ test.txt
 /vendor/
 /.licensei.cache
 client_test.go
+/build/
 
 # IDE integration
 /.idea/*

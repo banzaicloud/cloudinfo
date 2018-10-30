@@ -29,33 +29,42 @@ import (
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(ctx context.Context, providers []string, pi *productinfo.CachingProductInfo) {
+func ConfigureValidator(ctx context.Context, providers []string, pi *productinfo.CachingProductInfo) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
-	v.RegisterValidation("provider", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+	if err := v.RegisterValidation("provider", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		for _, p := range providers {
 			if field.String() == p {
 				return true
 			}
 		}
 		return false
-	})
-	v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+	}); err != nil {
+		return fmt.Errorf("could not register provider validator. error: %s", err)
+	}
+
+	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		for _, p := range pi.GetAttributes() {
 			if field.String() == p {
 				return true
 			}
 		}
 		return false
-	})
+	}); err != nil {
+		return fmt.Errorf("could not register attribute validator. error: %s", err)
+	}
 
 	// register validator for the service parameter in the request path
-	v.RegisterValidation("service", serviceValidator(ctx, pi))
+	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
+		return fmt.Errorf("could not register service validator. error: %s", err)
+	}
 
 	// register validator for the region parameter in the request path
-	v.RegisterValidation("region", regionValidator(ctx, pi))
-
+	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
+		return fmt.Errorf("could not register provider validator. . error: %s", err)
+	}
+	return nil
 }
 
 // ValidatePathParam is a gin middleware handler function that validates a named path parameter with specific Validate tags
@@ -96,7 +105,10 @@ func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.Han
 			pathData = &GetServicesPathParams{}
 		}
 
-		mapstructure.Decode(getPathParamMap(c), pathData)
+		if err := mapstructure.Decode(getPathParamMap(c), pathData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		log.Debugf("path data is being validated: %s", pathData)
 		err := validate.Struct(pathData)
