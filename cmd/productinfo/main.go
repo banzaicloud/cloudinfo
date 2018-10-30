@@ -178,7 +178,7 @@ func main() {
 	routeHandler.ConfigureRoutes(ctx, router)
 	logger.Extract(ctx).Info("Configured routes")
 	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
-		panic(fmt.Errorf("could not run router. eroor: %s", err))
+		panic(fmt.Errorf("could not run router. error: %s", err))
 	}
 }
 

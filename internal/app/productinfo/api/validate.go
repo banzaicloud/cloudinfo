@@ -106,15 +106,8 @@ func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.Han
 		}
 
 		if err := mapstructure.Decode(getPathParamMap(c), pathData); err != nil {
-			log.WithError(err).Error("validation failed.")
-			c.Abort()
-			c.JSON(http.StatusBadRequest, gin.H{
-				"code":    "bad_params",
-				"message": fmt.Sprintf("invalid path parameter value: %s", pathData),
-				"params":  pathData,
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
 			return
-
 		}
 
 		log.Debugf("path data is being validated: %s", pathData)
