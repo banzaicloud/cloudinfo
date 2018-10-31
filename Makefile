@@ -6,7 +6,7 @@ OS = $(shell uname -s)
 # Project variables
 PACKAGE = github.com/banzaicloud/productinfo
 BINARY_NAME = productinfo
-#OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
+SHELL = /bin/bash
 
 # Build variables
 BUILD_DIR ?= build

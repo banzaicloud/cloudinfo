@@ -69,6 +69,11 @@ jobs:
           command: make lint
 
       - run:
+          name: Run unit tests
+          command: make test
+          when: always
+
+      - run:
           name: Generate test reports
           command: make junit-report
           when: always

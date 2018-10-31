@@ -295,24 +295,21 @@ func (a *AzureInfoer) getMachineTypeVariants(mt string) []string {
 	case mtStandardB.MatchString(mt):
 		return []string{mt + "s"}
 	case mtStandardD.MatchString(mt):
-		result := make([]string, 6)
-		result[0] = a.addSuffix(mt, "s")[0]
+		var result []string
+		result = append(result, a.addSuffix(mt, "s")[0])
 		dsType := strings.Replace(mt, "Standard_D", "Standard_DS", -1)
-		result[1] = dsType
-		copy(result, a.addSuffix(dsType, "-1", "-2", "-4", "-8"))
+		result = append(result, dsType)
+		result = append(result, a.addSuffix(dsType, "-1", "-2", "-4", "-8")...)
 		return result
 	case mtStandardE.MatchString(mt):
-		result := make([]string, 6)
-		copy(result, a.addSuffix(mt, "s", "-2s", "-4s", "-8s", "-16s", "-32s"))
-		return result
+		return a.addSuffix(mt, "s", "-2s", "-4s", "-8s", "-16s", "-32s")
 	case mtStandardF.MatchString(mt):
 		return a.addSuffix(mt, "s")
 	case mtStandardG.MatchString(mt):
-		result := make([]string, 4)
+		var result []string
 		gsType := strings.Replace(mt, "Standard_G", "Standard_GS", -1)
-		result[0] = gsType
-		copy(result, a.addSuffix(gsType, "-4", "-8", "-16"))
-		return result
+		result = append(result, gsType)
+		return append(result, a.addSuffix(gsType, "-4", "-8", "-16")...)
 	case mtStandardL.MatchString(mt):
 		return a.addSuffix(mt, "s")
 	case mtStandardM.MatchString(mt) && strings.HasSuffix(mt, "ms"):
