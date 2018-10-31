@@ -33,6 +33,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/productinfo/internal/platform/buildinfo"
+
 	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
 
 	"github.com/banzaicloud/productinfo/pkg/logger"
@@ -164,7 +166,8 @@ func main() {
 	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
 	quitOnError(ctx, "error encountered", err)
 
-	routeHandler := api.NewRouteHandler(prodInfo, api.NewBuildInfo(Version, CommitHash, BuildDate))
+	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
+	routeHandler := api.NewRouteHandler(prodInfo, buildInfo)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()

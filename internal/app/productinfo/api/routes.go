@@ -19,6 +19,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/banzaicloud/productinfo/internal/platform/buildinfo"
+
 	"github.com/banzaicloud/productinfo/pkg/logger"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/gin-contrib/cors"
@@ -31,11 +33,11 @@ import (
 // RouteHandler configures the REST API routes in the gin router
 type RouteHandler struct {
 	prod      *productinfo.CachingProductInfo
-	buildInfo *BuildInfo
+	buildInfo buildinfo.BuildInfo
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
-func NewRouteHandler(p *productinfo.CachingProductInfo, bi *BuildInfo) *RouteHandler {
+func NewRouteHandler(p *productinfo.CachingProductInfo, bi buildinfo.BuildInfo) *RouteHandler {
 	return &RouteHandler{
 		prod:      p,
 		buildInfo: bi,
