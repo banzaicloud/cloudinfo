@@ -39,7 +39,10 @@ export class ProductsComponent implements OnInit {
   products: MatTableDataSource<DisplayedProduct>;
   scrapingTime: Observable<number>;
 
+  currentURL='';
+
   constructor(private productService: ProductService) {
+    this.currentURL = window.location.href;
   }
 
   @ViewChild(MatSort) sort: MatSort;

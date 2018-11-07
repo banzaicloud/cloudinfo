@@ -31,7 +31,7 @@
   </div>
   <div class="col-10">
     <span class="mr-3">Get the same result with cURL:</span><code>curl -L -X GET
-    'https://banzaicloud.com/productinfo/api/v1/providers/{{selectedProvider}}/services/{{selectedService}}/regions/{{selectedRegion}}/products'</code> <br>
+    '{{ currentURL }}api/v1/providers/{{selectedProvider}}/services/{{selectedService}}/regions/{{selectedRegion}}/products'</code> <br>
     <span class="last-refreshed-title">Last refreshed: </span><code>{{ (scrapingTime | async) | date: 'medium' }}</code>
   </div>
   <div class="col-1">
