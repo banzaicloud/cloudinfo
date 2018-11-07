@@ -16,14 +16,17 @@ ADD ./web /web
 WORKDIR /web
 RUN npm install
 RUN npm install -g @angular/cli
-RUN ng build --configuration=production --base-href=/productinfo/
+RUN ng build --configuration=production --base-href=/
 
 FROM alpine:3.7
+RUN apk add --update --no-cache bash
+
 COPY --from=backend /usr/share/zoneinfo/ /usr/share/zoneinfo/
 COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=backend /go/src/github.com/banzaicloud/productinfo/build/productinfo /bin
 COPY --from=frontend /web/dist/ui /web/dist/ui
+ADD ./entrypoint.sh /entrypoint.sh
 
 ENV PRODUCTINFO_BASEPATH "/productinfo"
 
-ENTRYPOINT ["/bin/productinfo"]
+ENTRYPOINT ["/entrypoint.sh"]
