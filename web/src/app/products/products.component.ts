@@ -42,7 +42,7 @@ export class ProductsComponent implements OnInit {
   currentURL='';
 
   constructor(private productService: ProductService) {
-    this.currentURL = window.location.href;
+    this.currentURL = window.location.href.replace(/\/$/, '');
   }
 
   @ViewChild(MatSort) sort: MatSort;
