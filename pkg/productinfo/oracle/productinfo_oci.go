@@ -72,9 +72,9 @@ var shapeSpecs = map[string]ShapeSpecs{
 }
 
 // NewInfoer creates a new instance of the infoer
-func NewInfoer() (*Infoer, error) {
+func NewInfoer(configFileLocation string) (*Infoer, error) {
 
-	oci, err := client.NewOCI()
+	oci, err := client.NewOCI(configFileLocation)
 	if err != nil {
 		return nil, err
 	}

@@ -17,9 +17,6 @@ package client
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
-	"os"
-
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/identity"
 	"github.com/sirupsen/logrus"
@@ -33,13 +30,7 @@ type OCI struct {
 }
 
 // NewOCI creates a new OCI and gets and caches tenancy info
-func NewOCI() (oci *OCI, err error) {
-
-	configFileLocation := os.Getenv("ORACLE_CLI_CONFIG_LOCATION")
-	if configFileLocation == "" {
-		return nil, fmt.Errorf("Environment variable ORACLE_CLI_CONFIG_LOCATION is not set")
-	}
-
+func NewOCI(configFileLocation string) (oci *OCI, err error) {
 	config, err := common.ConfigurationProviderFromFile(configFileLocation, "")
 	if err != nil {
 		return

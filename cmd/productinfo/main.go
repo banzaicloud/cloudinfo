@@ -35,6 +35,8 @@ import (
 
 	"github.com/banzaicloud/productinfo/internal/platform/buildinfo"
 
+	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
+
 	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
 
 	"github.com/banzaicloud/productinfo/pkg/logger"
@@ -46,7 +48,6 @@ import (
 	"github.com/banzaicloud/productinfo/internal/app/productinfo/api"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/alibaba"
-	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/google"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/oracle"
 	"github.com/gin-gonic/gin"
@@ -70,10 +71,13 @@ const (
 
 	//temporary flags
 	gceApiKeyFlag          = "gce-api-key"
+	gceApplicationCred     = "google-application-credentials"
+	azureAuthLocation      = "azure-auth-location"
 	alibabaRegionId        = "alibaba-region-id"
 	alibabaAccessKeyId     = "alibaba-access-key-id"
 	alibabaAccessKeySecret = "alibaba-access-key-secret"
 	alibabaPriceInfoUrl    = "alibaba-price-info-url"
+	oracleConfigLocation   = "oracle-cli-config-location"
 
 	// Google is the identifier of the Google Cloud Engine provider
 	Google = "google"
@@ -98,13 +102,16 @@ func defineFlags() {
 	flag.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
 		"advanced configuration: change the query used to query spot price info from Prometheus.")
 	flag.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
+	flag.String(gceApplicationCred, "", "google application credentials location")
 	flag.StringSlice(providerFlag, []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the productinfo application.")
 	flag.Bool(helpFlag, false, "print usage")
 	flag.Bool(metricsEnabledFlag, false, "internal metrics are exposed if enabled")
 	flag.String(metricsAddressFlag, ":9900", "the address where internal metrics are exposed")
+	flag.String(azureAuthLocation, "", "azure authentication file location")
 	flag.String(alibabaRegionId, "", "alibaba region id")
 	flag.String(alibabaAccessKeyId, "", "alibaba access key id")
 	flag.String(alibabaAccessKeySecret, "", "alibaba access key secret")
+	flag.String(oracleConfigLocation, "", "oracle config file location")
 	flag.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.8/price/download/instancePrice.json", "Alibaba get price info from this file")
 }
 
@@ -199,11 +206,11 @@ func infoers(ctx context.Context) map[string]productinfo.ProductInfoer {
 		case Amazon:
 			infoer, err = amazon.NewEc2Infoer(pctx, viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
 		case Google:
-			infoer, err = google.NewGceInfoer(viper.GetString(gceApiKeyFlag))
+			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
 		case Azure:
-			infoer, err = azure.NewAzureInfoer()
+			infoer, err = azure.NewAzureInfoer(viper.GetString(azureAuthLocation))
 		case Oracle:
-			infoer, err = oracle.NewInfoer()
+			infoer, err = oracle.NewInfoer(viper.GetString(oracleConfigLocation))
 		case Alibaba:
 			infoer, err = alibaba.NewAlibabaInfoer(viper.GetString(alibabaRegionId), viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret))
 		default:
