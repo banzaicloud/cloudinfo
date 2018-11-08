@@ -33,26 +33,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/productinfo/internal/platform/buildinfo"
-
-	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
-
-	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
-
-	"github.com/banzaicloud/productinfo/pkg/logger"
-
-	"github.com/patrickmn/go-cache"
-	"github.com/spf13/viper"
-
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/productinfo/internal/app/productinfo/api"
+	"github.com/banzaicloud/productinfo/internal/platform/buildinfo"
+	"github.com/banzaicloud/productinfo/pkg/logger"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/alibaba"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/amazon"
+	"github.com/banzaicloud/productinfo/pkg/productinfo/azure"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/google"
 	"github.com/banzaicloud/productinfo/pkg/productinfo/oracle"
 	"github.com/gin-gonic/gin"
+	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 const (
