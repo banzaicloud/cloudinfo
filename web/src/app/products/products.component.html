@@ -3,7 +3,8 @@
   </div>
   <div class="col-6 mt-5">
     <mat-form-field class="mr-5">
-      <mat-select placeholder="Cloud Provider" [(value)]="selectedService">
+
+      <mat-select placeholder="Cloud Services" [(value)]="selectedService">
         <mat-optgroup *ngFor="let provider of providers" [label]="provider.name">
           <mat-option *ngFor="let service of provider.services" [value]="service.service" (click)="updateProducts(service.service, provider.provider)">
             {{ service.service }}
@@ -31,7 +32,7 @@
   </div>
   <div class="col-10">
     <span class="mr-3">Get the same result with cURL:</span><code>curl -L -X GET
-    '{{ currentURL }}api/v1/providers/{{selectedProvider}}/services/{{selectedService}}/regions/{{selectedRegion}}/products'</code> <br>
+    '{{ currentURL }}/api/v1/providers/{{selectedProvider}}/services/{{selectedService}}/regions/{{selectedRegion}}/products'</code> <br>
     <span class="last-refreshed-title">Last refreshed: </span><code>{{ (scrapingTime | async) | date: 'medium' }}</code>
   </div>
   <div class="col-1">
