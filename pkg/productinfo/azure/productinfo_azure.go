@@ -25,6 +25,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 
 	"github.com/banzaicloud/productinfo/pkg/logger"
@@ -33,7 +35,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/banzaicloud/productinfo/pkg/productinfo"
 )
@@ -109,13 +110,15 @@ type PriceRetriever interface {
 }
 
 // NewAzureInfoer creates a new instance of the Azure infoer
-func NewAzureInfoer() (*AzureInfoer, error) {
+func NewAzureInfoer(authLocation string) (*AzureInfoer, error) {
+	os.Setenv("AZURE_AUTH_LOCATION", authLocation)
+
 	authorizer, err := auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	contents, err := ioutil.ReadFile(os.Getenv("AZURE_AUTH_LOCATION"))
+	contents, err := ioutil.ReadFile(authLocation)
 	if err != nil {
 		return nil, err
 	}

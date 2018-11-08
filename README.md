@@ -27,16 +27,18 @@ The following options can be configured when starting the exporter (with default
 Usage of ./productinfo:
       --alibaba-access-key-id string             alibaba access key id
       --alibaba-access-key-secret string         alibaba access key secret
-      --alibaba-price-info-url string            Alibaba get price info from this file (default "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.4/price/download/instancePrice.json")
+      --alibaba-price-info-url string            Alibaba get price info from this file (default "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.8/price/download/instancePrice.json")
       --alibaba-region-id string                 alibaba region id
-      --azure-subscription-id string             Azure subscription ID to use with the APIs
+      --azure-auth-location string               azure authentication file location
       --gce-api-key string                       GCE API key to use for getting SKUs
+      --google-application-credentials string    google application credentials location
       --help                                     print usage
       --listen-address string                    the address the productinfo app listens to HTTP requests. (default ":9090")
       --log-format string                        log format
       --log-level string                         log level (default "info")
       --metrics-address string                   the address where internal metrics are exposed (default ":9900")
       --metrics-enabled                          internal metrics are exposed if enabled
+      --oracle-cli-config-location string        oracle config file location
       --product-info-renewal-interval duration   duration (in go syntax) between renewing the product information. Example: 2h30m (default 24h0m0s)
       --prometheus-address string                http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter. If empty, the productinfo app will use current spot prices queried directly from the AWS API.
       --prometheus-query string                  advanced configuration: change the query used to query spot price info from Prometheus. (default "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
@@ -88,7 +90,7 @@ and set an environment variable that points to the service account file:
 
 ```
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
-./productinfo --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb"
+./productinfo --provider azure
 ```
 
 ### Oracle
@@ -124,7 +126,7 @@ export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
 export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
 export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
 export ALIBABA_REGION_ID=<region-id>
-./productinfo --provider amazon --provider google --gce-api-key "<gce-api-key>" --provider azure --azure-subscription-id "ba96ef31-4a42-40f5-8740-03f7e3c439eb" --provider oracle --provider alibaba
+./productinfo --provider amazon --provider google --gce-api-key "<gce-api-key>" --provider azure --provider oracle --provider alibaba
 
 ```
 

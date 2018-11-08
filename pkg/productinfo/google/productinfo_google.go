@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -62,7 +63,12 @@ type GceInfoer struct {
 }
 
 // NewGceInfoer creates a new instance of the infoer
-func NewGceInfoer(apiKey string) (*GceInfoer, error) {
+func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
+	if appCredentials == "" {
+		return nil, fmt.Errorf("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
+	}
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", appCredentials)
+
 	defaultCredential, err := google.FindDefaultCredentials(context.Background(), compute.ComputeScope, billing.CloudPlatformScope)
 	if err != nil {
 		return nil, err
