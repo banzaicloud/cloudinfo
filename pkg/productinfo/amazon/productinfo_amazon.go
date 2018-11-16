@@ -40,7 +40,7 @@ const (
 )
 
 var (
-	eksRegionIds = []string{"us-west-2", "us-east-1", "eu-west-1"}
+	eksRegionIds = []string{"us-west-2", "us-east-1", "eu-west-1", "us-east-2"}
 )
 
 // PricingSource list of operations for retrieving pricing information

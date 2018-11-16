@@ -287,7 +287,7 @@ func TestEc2Infoer_GetRegions(t *testing.T) {
 			name:    "receive all regions for eks service",
 			service: "eks",
 			check: func(regionId map[string]string, err error) {
-				assert.Equal(t, 3, len(regionId))
+				assert.Equal(t, 4, len(regionId))
 				assert.Contains(t, regionId, "us-east-1")
 				assert.Nil(t, err, "the error should be nil")
 			},
