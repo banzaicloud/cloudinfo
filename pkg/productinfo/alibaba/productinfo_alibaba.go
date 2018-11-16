@@ -74,6 +74,11 @@ type EcsSource interface {
 
 type onDemandPrice struct{}
 
+const (
+	svcCompute = "compute"
+	svcAck     = "ack"
+)
+
 // PriceRetriever collects on demand prices from a json file
 // TODO revisit this later when API starts supporting DescribePrice(request *DescribePriceRequest) (response *DescribePriceResponse, err error) method
 type PriceRetriever interface {
@@ -390,8 +395,8 @@ func (p *onDemandPrice) getOnDemandPrice(url string) (OnDemandPrice, error) {
 // GetServices returns the available services on the provider
 func (e *AlibabaInfoer) GetServices() ([]productinfo.ServiceDescriber, error) {
 	services := []productinfo.ServiceDescriber{
-		productinfo.NewService("compute"),
-		productinfo.NewService("acsk")}
+		productinfo.NewService(svcCompute),
+		productinfo.NewService(svcAck)}
 	return services, nil
 }
 
@@ -433,7 +438,7 @@ func (e *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (e *AlibabaInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
 	switch service {
-	case "acsk":
+	case svcAck:
 		return []string{"1.11.2"}, nil
 	default:
 		return []string{}, nil
