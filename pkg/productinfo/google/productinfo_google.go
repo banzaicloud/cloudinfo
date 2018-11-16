@@ -34,6 +34,7 @@ import (
 
 var regionNames = map[string]string{
 	"asia-east1":              "Asia Pacific (Taiwan)",
+	"asia-east2":              "Asia Pacific (Hong Kong)",
 	"asia-northeast1":         "Asia Pacific (Tokyo)",
 	"asia-south1":             "Asia Pacific (Mumbai)",
 	"asia-southeast1":         "Asia Pacific (Singapore)",
