@@ -112,6 +112,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 	log := logger.Extract(ctx)
 	log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]productinfo.Price)
+	unsupportedInstanceType := []string{"n1-ultramem-80", "n1-megamem-96", "g1-small", "n1-ultramem-160", "n1-ultramem-40", "f1-micro"}
 
 	svcList, err := g.cbSvc.Services.List().Do()
 	if err != nil {
@@ -132,34 +133,63 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 	if err != nil {
 		return nil, err
 	}
+
+	pricePerRegion, err := g.getPrice(compEngId)
+	if err != nil {
+		return nil, err
+	}
 	for r := range regions {
 		zones, err := g.GetZones(ctx, r)
 		if err != nil {
 			return nil, err
 		}
 		zonesInRegions[r] = zones
+		err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
+			for region, pr := range pricePerRegion {
+				for _, mt := range allMts.Items {
+					if !contains(unsupportedInstanceType, mt.Name) {
+						if allPrices[region] == nil {
+							allPrices[region] = make(map[string]productinfo.Price)
+						}
+						price := allPrices[region][mt.Name]
+						price.OnDemandPrice = pr["cpu"]["OnDemand"]*float64(mt.GuestCpus) + pr["ram"]["OnDemand"]*float64(mt.MemoryMb)/1024
+						spotPrice := make(productinfo.SpotPriceInfo)
+						for _, z := range zonesInRegions[region] {
+							spotPrice[z] = pr["cpu"]["Preemptible"]*float64(mt.GuestCpus) + pr["ram"]["Preemptible"]*float64(mt.MemoryMb)/1024
+						}
+						price.SpotPrice = spotPrice
+
+						allPrices[region][mt.Name] = price
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	log.Debugf("queried zones and regions: %v", zonesInRegions)
+	log.Debug("finished initializing price info")
+	return allPrices, nil
+}
 
-	err = g.cbSvc.Services.Skus.List(compEngId).Pages(context.Background(), func(response *billing.ListSkusResponse) error {
+// contains is a helper function to check if a slice contains a string
+func contains(slice []string, s string) bool {
+	for _, e := range slice {
+		if e == s {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *GceInfoer) getPrice(parent string) (map[string]map[string]map[string]float64, error) {
+	price := make(map[string]map[string]map[string]float64)
+	err := g.cbSvc.Services.Skus.List(parent).Pages(context.Background(), func(response *billing.ListSkusResponse) error {
 		for _, sku := range response.Skus {
-			if sku.Category.ResourceFamily != "Compute" {
-				continue
-			} else {
-				if strings.Contains(sku.Description, "CPU") {
-
-					vcpus := strings.Split(g.cpuRegex.FindString(sku.Description), " ")[0]
-					resourceGroup := strings.ToLower(sku.Category.ResourceGroup)
-					prefix := g.resourceGroupRegex.FindString(resourceGroup)
-					instanceType := fmt.Sprintf("%s-%s", strings.Join(strings.SplitAfter(resourceGroup, prefix), "-"), vcpus)
-
-					switch instanceType {
-					case "f1-micro-":
-						instanceType = "f1-micro"
-					case "g1-small-1":
-						instanceType = "g1-small"
-					}
+			if sku.Category.ResourceGroup == "N1Standard" {
+				if !strings.Contains(sku.Description, "Upgrade Premium") {
 					if len(sku.PricingInfo) != 1 {
 						return fmt.Errorf("pricing info not parsable, %d pricing info entries are returned", len(sku.PricingInfo))
 					}
@@ -168,23 +198,25 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 					for _, tr := range pricingInfo.PricingExpression.TieredRates {
 						priceInUsd += float64(tr.UnitPrice.Units) + float64(tr.UnitPrice.Nanos)*1e-9
 					}
-
 					for _, region := range sku.ServiceRegions {
-						if allPrices[region] == nil {
-							allPrices[region] = make(map[string]productinfo.Price)
+						if price[region] == nil {
+							price[region] = make(map[string]map[string]float64)
 						}
-						price := allPrices[region][instanceType]
-						if sku.Category.UsageType == "OnDemand" {
-							price.OnDemandPrice = priceInUsd
-						} else {
-							spotPrice := make(productinfo.SpotPriceInfo)
-							for _, z := range zonesInRegions[region] {
-								spotPrice[z] = priceInUsd
+						if strings.Contains(sku.Description, "Instance Ram") {
+							pr := price[region]["ram"]
+							if pr == nil {
+								pr = make(map[string]float64)
 							}
-							price.SpotPrice = spotPrice
+							pr[sku.Category.UsageType] = priceInUsd
+							price[region]["ram"] = pr
+						} else {
+							pr := price[region]["cpu"]
+							if pr == nil {
+								pr = make(map[string]float64)
+							}
+							pr[sku.Category.UsageType] = priceInUsd
+							price[region]["cpu"] = pr
 						}
-						allPrices[region][instanceType] = price
-						log.WithField("region", region).Debugf("price info added: [machinetype=%s, price=%v]", instanceType, price)
 					}
 				}
 			}
@@ -194,9 +226,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 	if err != nil {
 		return nil, err
 	}
-
-	log.Debug("finished initializing price info")
-	return allPrices, nil
+	return price, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
