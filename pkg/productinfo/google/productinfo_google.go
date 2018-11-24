@@ -433,6 +433,7 @@ func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (pro
 func (g *GceInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
 	switch service {
 	case "gke":
+		var versions []string
 		zones, err := g.GetZones(ctx, region)
 		if err != nil {
 			return nil, err
@@ -441,8 +442,15 @@ func (g *GceInfoer) GetVersions(ctx context.Context, service, region string) ([]
 		if err != nil {
 			return nil, err
 		}
-		defaultKubernetesVersion := serverConf.DefaultClusterVersion
-		return []string{defaultKubernetesVersion}, nil
+		for _, masterVersion := range serverConf.ValidMasterVersions {
+			for _, nodeVersion := range serverConf.ValidNodeVersions {
+				if masterVersion == nodeVersion {
+					versions = append(versions, masterVersion)
+					break
+				}
+			}
+		}
+		return versions, nil
 	default:
 		return []string{}, nil
 	}
