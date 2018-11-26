@@ -112,7 +112,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 	log := logger.Extract(ctx)
 	log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]productinfo.Price)
-	unsupportedInstanceType := []string{"n1-ultramem-80", "n1-megamem-96", "g1-small", "n1-ultramem-160", "n1-ultramem-40", "f1-micro"}
+	unsupportedInstanceTypes := []string{"n1-ultramem-40", "n1-ultramem-80", "n1-megamem-96", "n1-ultramem-160"}
 
 	svcList, err := g.cbSvc.Services.List().Do()
 	if err != nil {
@@ -145,21 +145,30 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 		}
 		zonesInRegions[r] = zones
 		err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
-			for region, pr := range pricePerRegion {
+			for region, price := range pricePerRegion {
 				for _, mt := range allMts.Items {
-					if !contains(unsupportedInstanceType, mt.Name) {
+					if !productinfo.Contains(unsupportedInstanceTypes, mt.Name) {
 						if allPrices[region] == nil {
 							allPrices[region] = make(map[string]productinfo.Price)
 						}
-						price := allPrices[region][mt.Name]
-						price.OnDemandPrice = pr["cpu"]["OnDemand"]*float64(mt.GuestCpus) + pr["ram"]["OnDemand"]*float64(mt.MemoryMb)/1024
+						prices := allPrices[region][mt.Name]
+
+						if mt.Name == "f1-micro" || mt.Name == "g1-small" {
+							prices.OnDemandPrice = price[mt.Name]["OnDemand"]
+						} else {
+							prices.OnDemandPrice = price[productinfo.Cpu]["OnDemand"]*float64(mt.GuestCpus) + price[productinfo.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
+						}
 						spotPrice := make(productinfo.SpotPriceInfo)
 						for _, z := range zonesInRegions[region] {
-							spotPrice[z] = pr["cpu"]["Preemptible"]*float64(mt.GuestCpus) + pr["ram"]["Preemptible"]*float64(mt.MemoryMb)/1024
+							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
+								spotPrice[z] = price[mt.Name]["Preemptible"]
+							} else {
+								spotPrice[z] = price[productinfo.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[productinfo.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+							}
 						}
-						price.SpotPrice = spotPrice
+						prices.SpotPrice = spotPrice
 
-						allPrices[region][mt.Name] = price
+						allPrices[region][mt.Name] = prices
 					}
 				}
 			}
@@ -174,48 +183,43 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]produ
 	return allPrices, nil
 }
 
-// contains is a helper function to check if a slice contains a string
-func contains(slice []string, s string) bool {
-	for _, e := range slice {
-		if e == s {
-			return true
-		}
-	}
-	return false
-}
-
 func (g *GceInfoer) getPrice(parent string) (map[string]map[string]map[string]float64, error) {
 	price := make(map[string]map[string]map[string]float64)
 	err := g.cbSvc.Services.Skus.List(parent).Pages(context.Background(), func(response *billing.ListSkusResponse) error {
 		for _, sku := range response.Skus {
+			if sku.Category.ResourceGroup == "G1Small" || sku.Category.ResourceGroup == "F1Micro" {
+				priceInUsd, err := g.priceInUsd(sku.PricingInfo)
+				if err != nil {
+					return err
+				}
+
+				for _, region := range sku.ServiceRegions {
+					if price[region] == nil {
+						price[region] = make(map[string]map[string]float64)
+					}
+					if sku.Category.ResourceGroup == "G1Small" {
+						price[region]["g1-small"] = g.priceFromSku(price, region, "g1-small", sku.Category.UsageType, priceInUsd)
+					} else {
+						price[region]["f1-micro"] = g.priceFromSku(price, region, "f1-micro", sku.Category.UsageType, priceInUsd)
+					}
+				}
+			}
 			if sku.Category.ResourceGroup == "N1Standard" {
 				if !strings.Contains(sku.Description, "Upgrade Premium") {
-					if len(sku.PricingInfo) != 1 {
-						return fmt.Errorf("pricing info not parsable, %d pricing info entries are returned", len(sku.PricingInfo))
+					priceInUsd, err := g.priceInUsd(sku.PricingInfo)
+					if err != nil {
+						return err
 					}
-					pricingInfo := sku.PricingInfo[0]
-					var priceInUsd float64
-					for _, tr := range pricingInfo.PricingExpression.TieredRates {
-						priceInUsd += float64(tr.UnitPrice.Units) + float64(tr.UnitPrice.Nanos)*1e-9
-					}
+
 					for _, region := range sku.ServiceRegions {
 						if price[region] == nil {
 							price[region] = make(map[string]map[string]float64)
 						}
 						if strings.Contains(sku.Description, "Instance Ram") {
-							pr := price[region]["ram"]
-							if pr == nil {
-								pr = make(map[string]float64)
-							}
-							pr[sku.Category.UsageType] = priceInUsd
-							price[region]["ram"] = pr
+							price[region][productinfo.Memory] = g.priceFromSku(price, region, productinfo.Memory, sku.Category.UsageType, priceInUsd)
+
 						} else {
-							pr := price[region]["cpu"]
-							if pr == nil {
-								pr = make(map[string]float64)
-							}
-							pr[sku.Category.UsageType] = priceInUsd
-							price[region]["cpu"] = pr
+							price[region][productinfo.Cpu] = g.priceFromSku(price, region, productinfo.Cpu, sku.Category.UsageType, priceInUsd)
 						}
 					}
 				}
@@ -227,6 +231,28 @@ func (g *GceInfoer) getPrice(parent string) (map[string]map[string]map[string]fl
 		return nil, err
 	}
 	return price, nil
+}
+
+func (g *GceInfoer) priceInUsd(pricingInfos []*billing.PricingInfo) (float64, error) {
+	if len(pricingInfos) != 1 {
+		return 0, fmt.Errorf("pricing info not parsable, %d pricing info entries are returned", len(pricingInfos))
+	}
+	pricingInfo := pricingInfos[0]
+	var priceInUsd float64
+	for _, tr := range pricingInfo.PricingExpression.TieredRates {
+		priceInUsd += float64(tr.UnitPrice.Units) + float64(tr.UnitPrice.Nanos)*1e-9
+	}
+	return priceInUsd, nil
+}
+
+func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64, region, device, priceType string, priceInUsd float64) map[string]float64 {
+	pr := price[region][device]
+	if pr == nil {
+		pr = make(map[string]float64)
+	}
+	pr[priceType] = priceInUsd
+
+	return pr
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
