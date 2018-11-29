@@ -143,6 +143,7 @@ func init() {
 	prometheus.MustRegister(productinfo.ScrapeShortLivedCompleteDurationGauge)
 	prometheus.MustRegister(productinfo.ScrapeShortLivedRegionDurationGauge)
 	prometheus.MustRegister(productinfo.ScrapeShortLivedFailuresTotalCounter)
+	prometheus.MustRegister(productinfo.OnDemandPriceGauge)
 }
 
 func main() {

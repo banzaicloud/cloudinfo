@@ -125,6 +125,14 @@ var (
 	},
 		[]string{"provider", "region"},
 	)
+	// OnDemandPriceGauge collects metrics for the prometheus
+	OnDemandPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "productinfo",
+		Name:      "on_demand_price",
+		Help:      "On demand price for each instance type",
+	},
+		[]string{"provider", "region", "instanceType"},
+	)
 )
 
 // IsBurst returns true if the EC2 instance vCPU is burst type
@@ -394,6 +402,7 @@ func (cpi *CachingProductInfo) Initialize(ctx context.Context, provider string) 
 	for region, ap := range allPrices {
 		for instType, p := range ap {
 			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
+			OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
 		}
 	}
 	log.Info("finished to initialize product information")
@@ -515,6 +524,12 @@ func (cpi *CachingProductInfo) renewVms(ctx context.Context, provider, service, 
 	values, err := cpi.productInfoers[provider].GetProducts(ctx, service, regionId)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, vm := range values {
+		if vm.OnDemandPrice > 0 {
+			OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
+		}
 	}
 	cpi.vmAttrStore.Set(cpi.getVmKey(provider, service, regionId), values, cpi.renewalInterval)
 	return values, nil
