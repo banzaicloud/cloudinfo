@@ -133,6 +133,14 @@ var (
 	},
 		[]string{"provider", "region", "instanceType"},
 	)
+	// SpotPriceGauge collects metrics for the prometheus
+	SpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "productinfo",
+		Name:      "spot_price",
+		Help:      "spot price for each instance type",
+	},
+		[]string{"provider", "region", "instanceType"},
+	)
 )
 
 // IsBurst returns true if the EC2 instance vCPU is burst type
@@ -403,6 +411,10 @@ func (cpi *CachingProductInfo) Initialize(ctx context.Context, provider string) 
 		for instType, p := range ap {
 			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
 			OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
+			for _, spotPrice := range p.SpotPrice {
+				SpotPriceGauge.WithLabelValues(provider, region, instType).Set(spotPrice)
+				break
+			}
 		}
 	}
 	log.Info("finished to initialize product information")
@@ -502,6 +514,10 @@ func (cpi *CachingProductInfo) renewShortLivedInfo(ctx context.Context, provider
 	}
 	for instType, p := range prices {
 		cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, 8*time.Minute)
+		for _, spotPrice := range p.SpotPrice {
+			SpotPriceGauge.WithLabelValues(provider, region, instType).Set(spotPrice)
+			break
+		}
 	}
 	return prices, nil
 }
