@@ -143,7 +143,6 @@ func init() {
 	prometheus.MustRegister(productinfo.ScrapeShortLivedCompleteDurationGauge)
 	prometheus.MustRegister(productinfo.ScrapeShortLivedRegionDurationGauge)
 	prometheus.MustRegister(productinfo.ScrapeShortLivedFailuresTotalCounter)
-	prometheus.MustRegister(productinfo.OnDemandPriceGauge)
 }
 
 func main() {
@@ -177,9 +176,13 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
+		reg := prometheus.NewRegistry()
+		reg.MustRegister(productinfo.OnDemandPriceGauge, productinfo.SpotPriceGauge)
 		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 		p.SetListenAddress(viper.GetString(metricsAddressFlag))
 		p.Use(router)
+		p.MetricsPath = "/metrics/price"
+		p.UseWithCustomMetrics(router, prometheus.Gatherers{reg})
 	}
 
 	logger.Extract(ctx).Info("Initialized gin router")
