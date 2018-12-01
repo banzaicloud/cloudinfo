@@ -7,7 +7,7 @@ jobs:
     docker:
       - image: circleci/golang:1.11
 
-    working_directory: /go/src/github.com/banzaicloud/productinfo
+    working_directory: /go/src/github.com/banzaicloud/cloudinfo
     steps:
       - checkout
 

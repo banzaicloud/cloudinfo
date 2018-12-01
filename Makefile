@@ -4,13 +4,13 @@ SHELL = /bin/bash
 OS = $(shell uname -s)
 
 # Project variables
-PACKAGE = github.com/banzaicloud/productinfo
-BINARY_NAME = productinfo
+PACKAGE = github.com/banzaicloud/cloudinfo
+BINARY_NAME = cloudinfo
 SHELL = /bin/bash
 
 # Build variables
 BUILD_DIR ?= build
-BUILD_PACKAGE = ${PACKAGE}/cmd/productinfo
+BUILD_PACKAGE = ${PACKAGE}/cmd/cloudinfo
 VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -32,8 +32,8 @@ GOLANG_VERSION = 1.11
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 
-SWAGGER_PI_TMP_FILE = ./api/openapi-spec/productinfo.json
-SWAGGER_PI_FILE = ./api/openapi-spec/productinfo.yaml
+SWAGGER_PI_TMP_FILE = ./api/openapi-spec/cloudinfo.json
+SWAGGER_PI_FILE = ./api/openapi-spec/cloudinfo.yaml
 
 ## include "generic" targets
 include main-targets.mk
@@ -52,17 +52,17 @@ deps: deps-swagger
 
 
 swagger:
-	swagger generate spec -m -b ./cmd/productinfo -o $(SWAGGER_PI_TMP_FILE)
+	swagger generate spec -m -b ./cmd/cloudinfo -o $(SWAGGER_PI_TMP_FILE)
 	swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
 
 generate-pi-client:
-	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A productinfo -t pkg/productinfo-client/
+	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A cloudinfo -t pkg/cloudinfo-client/
 
 
-## starts the productinfo app with docker-compose
+## starts the cloudinfo app with docker-compose
 pi-start:
 	docker-compose -f docker-compose.yml up -d
 
-## stops the productinfo app with docker-compose
+## stops the cloudinfo app with docker-compose
 pi-stop:
 	docker-compose -f docker-compose.yml stop

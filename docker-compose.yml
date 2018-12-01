@@ -2,13 +2,11 @@ version: '3.1'
 
 services:
 
-  productinfo:
-    image: banzaicloud/productinfo:${TAG:-dev-local}
+  cloudinfo:
+    image: banzaicloud/cloudinfo:${TAG:-test}
     restart: always
     environment:
     - PROVIDER=amazon oracle
-    - AWS_ACCESS_KEY_ID=
-    - AWS_SECRET_ACCESS_KEY=
     - LOG_LEVEL=debug
     - ORACLE_CLI_CONFIG_LOCATION=/root/.oci/config
     ports:
