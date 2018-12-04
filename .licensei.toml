@@ -12,6 +12,11 @@ ignored = [
   "github.com/gogo/protobuf",
   "github.com/golang/protobuf",
   "github.com/stretchr/testify",
+  "github.com/jmespath/go-jmespath",
+  "github.com/go-openapi/spec",
+  "github.com/magiconair/properties",
+  "github.com/pmezard/go-difflib",
+  "github.com/shopspring/decimal",
 
   "github.com/davecgh/go-spew", # ISC license
   "github.com/howeyc/gopass", # ISC license
