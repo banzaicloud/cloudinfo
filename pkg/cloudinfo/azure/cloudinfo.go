@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -37,6 +38,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+)
+
+// SpotPriceGauge collects metrics for the prometheus
+var SpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "cloudinfo",
+	Name:      "azure_spot_price",
+	Help:      "spot price for each instance type",
+},
+	[]string{"region", "instanceType"},
 )
 
 var (
@@ -245,6 +255,7 @@ func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]clo
 						spotPrice := make(cloudinfo.SpotPriceInfo)
 						spotPrice[region] = priceInUsd
 						price.SpotPrice = spotPrice
+						SpotPriceGauge.WithLabelValues(region, instanceType).Set(priceInUsd)
 					}
 
 					allPrices[region][instanceType] = price
