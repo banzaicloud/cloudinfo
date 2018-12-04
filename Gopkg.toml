@@ -29,7 +29,7 @@
 
 [[constraint]]
   name = "github.com/satori/go.uuid"
-  revision = "v1.2.0"
+  version = "v1.2.0"
 
 [[constraint]]
   name = "github.com/gin-contrib/cors"
