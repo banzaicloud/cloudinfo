@@ -177,12 +177,14 @@ func main() {
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
 		reg := prometheus.NewRegistry()
-		reg.MustRegister(cloudinfo.OnDemandPriceGauge, cloudinfo.SpotPriceGauge)
+		reg.MustRegister(cloudinfo.OnDemandPriceGauge, google.SpotPriceGauge, azure.SpotPriceGauge)
+		spotReg := prometheus.NewRegistry()
+		spotReg.MustRegister(amazon.SpotPriceGauge, alibaba.SpotPriceGauge)
 		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 		p.SetListenAddress(viper.GetString(metricsAddressFlag))
-		p.Use(router)
-		p.MetricsPath = "/metrics/price"
-		p.UseWithCustomMetrics(router, prometheus.Gatherers{reg})
+		p.Use(router, "metrics")
+		p.UseWithCustomMetrics(router, prometheus.Gatherers{reg}, "/metrics/price")
+		p.UseWithCustomMetrics(router, prometheus.Gatherers{spotReg}, "/metrics/spotprice")
 	}
 
 	logger.Extract(ctx).Info("Initialized gin router")
