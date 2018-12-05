@@ -16,8 +16,6 @@ package amazon
 
 import (
 	"errors"
-	"sync"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/pricing"
@@ -34,47 +32,25 @@ type PricingSource interface {
 type pricingDetails struct {
 	// embedded pricing client
 	pricing.Pricing
-
-	// temporary price list, this only is to workaround the pagination results
-	tmpPl []aws.JSONValue
-
-	// used for locking access to the tmpPl during paginated retrievals
-	mtx sync.Mutex
 }
 
 func NewPricingSource(s *session.Session, cfg *aws.Config) *pricingDetails {
 	return &pricingDetails{
 		*pricing.New(s, cfg),
-		nil,
-		sync.Mutex{},
 	}
 }
 
 func (pd *pricingDetails) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSONValue, error) {
 
-	pd.mtx.Lock()
-	defer pd.mtx.Unlock()
-	// clear the cached pricelist
-	pd.tmpPl = make([]aws.JSONValue, 0)
+	list := make([]aws.JSONValue, 0)
 
-	if err := pd.GetProductsPages(input, pd.collectorFn()); err != nil {
+	if err := pd.GetProductsPages(input, func(output *pricing.GetProductsOutput, b bool) bool {
+		list = append(list, output.PriceList...)
+		return !b
+	}); err != nil {
 		// todo use emperror and wrap the original error
 		return nil, errors.New("failed to retrieve pricelist")
 	}
 
-	// transfer values to the temp list
-	list := pd.tmpPl
-
-	// clear the cached pricelist
-	pd.tmpPl = nil
-
 	return list, nil
-}
-
-func (pd *pricingDetails) collectorFn() func(output *pricing.GetProductsOutput, b bool) bool {
-
-	return func(output *pricing.GetProductsOutput, b bool) bool {
-		pd.tmpPl = append(pd.tmpPl, output.PriceList...)
-		return !b
-	}
 }
