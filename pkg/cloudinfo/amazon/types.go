@@ -16,6 +16,8 @@ package amazon
 
 import (
 	"errors"
+	"sync"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/pricing"
@@ -34,19 +36,24 @@ type pricingDetails struct {
 	pricing.Pricing
 
 	// temporary price list, this only is to workaround the pagination results
-	// todo check concurrency
 	tmpPl []aws.JSONValue
+
+	// used for locking access to the tmpPl during paginated retrievals
+	mtx sync.Mutex
 }
 
 func NewPricingSource(s *session.Session, cfg *aws.Config) *pricingDetails {
 	return &pricingDetails{
 		*pricing.New(s, cfg),
 		nil,
+		sync.Mutex{},
 	}
 }
 
 func (pd *pricingDetails) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSONValue, error) {
 
+	pd.mtx.Lock()
+	defer pd.mtx.Unlock()
 	// clear the cached pricelist
 	pd.tmpPl = make([]aws.JSONValue, 0)
 
