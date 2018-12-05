@@ -32,6 +32,75 @@ type testStruct struct {
 	TcId int
 }
 
+func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSONValue, error) {
+	switch dps.TcId {
+	case 4:
+		return []aws.JSONValue{
+			{
+				"product": map[string]interface{}{
+					"attributes": map[string]interface{}{
+						"instanceType":       ec2.InstanceTypeT2Small,
+						Cpu:                  "1",
+						cloudinfo.Memory:     "2",
+						"networkPerformance": "Low to Moderate",
+					}},
+				"terms": map[string]interface{}{
+					"OnDemand": map[string]interface{}{
+						"randomNumber": map[string]interface{}{
+							"priceDimensions": map[string]interface{}{
+								"randomNumber": map[string]interface{}{
+									"pricePerUnit": map[string]interface{}{
+										"USD": "5",
+									}}}}}}},
+		}, nil
+	case 5:
+		return nil, errors.New("failed to retrieve values")
+	case 6:
+		return []aws.JSONValue{
+			{
+				"product": map[string]interface{}{
+					"attributes": map[string]interface{}{
+						"instanceType":   ec2.InstanceTypeT2Small,
+						Cpu:              "1",
+						cloudinfo.Memory: "2",
+					}},
+				"terms": map[string]interface{}{
+					"OnDemand": map[string]interface{}{
+						"randomNumber": map[string]interface{}{
+							"priceDimensions": map[string]interface{}{
+								"randomNumber": map[string]interface{}{
+									"pricePerUnit": map[string]interface{}{},
+								}}}}}},
+		}, nil
+	case 7:
+		return []aws.JSONValue{
+			{
+				"product": map[string]interface{}{
+					"attributes": map[string]interface{}{
+						"instanceType": ec2.InstanceTypeT2Small,
+						Cpu:            "1",
+					}}},
+		}, nil
+	case 8:
+		return []aws.JSONValue{
+			{
+				"product": map[string]interface{}{
+					"attributes": map[string]interface{}{
+						"instanceType": ec2.InstanceTypeT2Small,
+					}}},
+		}, nil
+	case 9:
+		return []aws.JSONValue{
+			{
+				"product": map[string]interface{}{
+					"attributes": map[string]interface{}{},
+				}},
+		}, nil
+
+	}
+	return nil, nil
+}
+
 func (dps *testStruct) GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error) {
 
 	// example json sequence

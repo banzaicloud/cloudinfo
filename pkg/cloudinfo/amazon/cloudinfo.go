@@ -53,13 +53,6 @@ var (
 	eksRegionIds = []string{"us-west-2", "us-east-1", "eu-west-1", "us-east-2"}
 )
 
-// PricingSource list of operations for retrieving pricing information
-// Decouples the pricing logic from the amazon api
-type PricingSource interface {
-	GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error)
-	GetProducts(input *pricing.GetProductsInput) (*pricing.GetProductsOutput, error)
-}
-
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {
 	pricingSvc   PricingSource
@@ -101,7 +94,7 @@ func NewEc2Infoer(ctx context.Context, promAddr string, pq string) (*Ec2Infoer, 
 
 	const defaultPricingRegion = "us-east-1"
 	return &Ec2Infoer{
-		pricingSvc: pricing.New(s, aws.NewConfig().WithRegion(defaultPricingRegion)),
+		pricingSvc: NewPricingSource(s, aws.NewConfig().WithRegion(defaultPricingRegion)),
 		session:    s,
 		prometheus: promApi,
 		promQuery:  pq,
@@ -151,15 +144,19 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 	log := logger.Extract(ctx)
 
 	missingAttributes := make(map[string][]string)
-	var missingGpu []string
-	var vms []cloudinfo.VmInfo
+	var (
+		missingGpu []string
+		vms        []cloudinfo.VmInfo
+		priceList  []aws.JSONValue
+		err        error
+	)
 	log.Debug("Getting available instance types from AWS API.")
 
-	products, err := e.pricingSvc.GetProducts(e.newGetProductsInput(regionId))
-	if err != nil {
+	if priceList, err = e.pricingSvc.GetPriceList(e.newGetProductsInput(regionId)); err != nil {
 		return nil, err
 	}
-	for i, price := range products.PriceList {
+
+	for i, price := range priceList {
 		pd, err := newPriceData(price)
 		if err != nil {
 			log.WithError(err).Warnf("could not extract pricing info for the item with index: [ %d ]", i)
@@ -356,6 +353,11 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 				Type:  aws.String(pricing.FilterTypeTermMatch),
 				Field: aws.String("preInstalledSw"),
 				Value: aws.String("NA"),
+			},
+			{
+				Type:  aws.String(pricing.FilterTypeTermMatch),
+				Field: aws.String("capacitystatus"),
+				Value: aws.String("Used"),
 			},
 		},
 	}
