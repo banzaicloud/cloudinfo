@@ -16,8 +16,9 @@ package azure
 
 import (
 	"context"
-	"fmt"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 
@@ -41,16 +42,17 @@ type test struct {
 }
 
 const (
-	GetVmsError      = "could not get virtual machines"
-	GetRegionsError  = "could not get regions"
-	GetLocationError = "could not get location"
-	GetPriceError    = "could not get prices"
+	externalApiError = "external API error"
+	getVmsError      = "could not get virtual machines"
+	getRegionsError  = "failed to get regions"
+	getLocationError = "could not get location"
+	getPriceError    = "could not get prices"
 )
 
 func (dps *testStruct) List(ctx context.Context, location string) (result compute.VirtualMachineSizeListResult, err error) {
 	switch dps.TcId {
-	case GetVmsError:
-		return compute.VirtualMachineSizeListResult{}, fmt.Errorf(GetVmsError)
+	case getVmsError:
+		return compute.VirtualMachineSizeListResult{}, errors.New(getVmsError)
 	default:
 		return compute.VirtualMachineSizeListResult{
 			Value: &[]compute.VirtualMachineSize{
@@ -79,8 +81,8 @@ func (dps *testStruct) List(ctx context.Context, location string) (result comput
 
 func (dps *testStruct) ListLocations(ctx context.Context, subscriptionID string) (result subscriptions.LocationListResult, err error) {
 	switch dps.TcId {
-	case GetRegionsError:
-		return subscriptions.LocationListResult{}, fmt.Errorf(GetRegionsError)
+	case getRegionsError:
+		return subscriptions.LocationListResult{}, errors.New(externalApiError)
 	default:
 		return subscriptions.LocationListResult{
 			Value: &[]subscriptions.Location{
@@ -103,8 +105,8 @@ func (dps *testStruct) ListLocations(ctx context.Context, subscriptionID string)
 
 func (dps *testStruct) Get(ctx context.Context, resourceProviderNamespace string, expand string) (result resources.Provider, err error) {
 	switch dps.TcId {
-	case GetLocationError:
-		return resources.Provider{}, fmt.Errorf(GetLocationError)
+	case getLocationError:
+		return resources.Provider{}, errors.New(externalApiError)
 	default:
 		return resources.Provider{
 			ResourceTypes: &[]resources.ProviderResourceType{
@@ -123,8 +125,8 @@ func (dps *testStruct) Get(ctx context.Context, resourceProviderNamespace string
 
 func (dps *test) Get(ctx context.Context, filter string) (result commerce.ResourceRateCardInfo, err error) {
 	switch dps.TcId {
-	case GetPriceError:
-		return commerce.ResourceRateCardInfo{}, fmt.Errorf(GetPriceError)
+	case getPriceError:
+		return commerce.ResourceRateCardInfo{}, errors.New(getPriceError)
 	default:
 		return commerce.ResourceRateCardInfo{
 			Meters: &[]commerce.MeterInfo{
@@ -581,10 +583,10 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		{
 			name:    "could not retrieve virtual machines",
 			service: "compute",
-			vmSizes: &testStruct{GetVmsError},
+			vmSizes: &testStruct{getVmsError},
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
-				assert.EqualError(t, err, GetVmsError)
+				assert.EqualError(t, err, getVmsError)
 			},
 		},
 	}
@@ -629,31 +631,31 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 		{
 			name:      "could not retrieve regions",
 			service:   "compute",
-			location:  &testStruct{GetRegionsError},
+			location:  &testStruct{getRegionsError},
 			providers: &testStruct{},
 			check: func(regions map[string]string, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
-				assert.EqualError(t, err, GetRegionsError)
+				assert.EqualError(t, err, "error while retrieving azure locations: "+externalApiError)
 			},
 		},
 		{
 			name:      "invalid location for compute service",
 			service:   "compute",
 			location:  &testStruct{},
-			providers: &testStruct{GetLocationError},
+			providers: &testStruct{getLocationError},
 			check: func(regions map[string]string, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
-				assert.EqualError(t, err, GetLocationError)
+				assert.EqualError(t, err, "error while retrieving supported locations for provider: locations/vmSizes: "+externalApiError)
 			},
 		},
 		{
 			name:      "invalid location for aks service",
 			service:   "aks",
 			location:  &testStruct{},
-			providers: &testStruct{GetLocationError},
+			providers: &testStruct{getLocationError},
 			check: func(regions map[string]string, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
-				assert.EqualError(t, err, GetLocationError)
+				assert.EqualError(t, err, "error while retrieving supported locations for provider: managedClusters: "+externalApiError)
 			},
 		},
 	}
@@ -726,7 +728,7 @@ func TestAzureInfoer_GetAttributeValues(t *testing.T) {
 			name:      "could not retrieve virtual machines",
 			service:   "compute",
 			attribute: "cpu",
-			vmSizes:   &testStruct{GetVmsError},
+			vmSizes:   &testStruct{getVmsError},
 			location:  &testStruct{},
 			providers: &testStruct{},
 			check: func(attrVals cloudinfo.AttrValues, err error) {
@@ -739,11 +741,11 @@ func TestAzureInfoer_GetAttributeValues(t *testing.T) {
 			service:   "compute",
 			attribute: "cpu",
 			vmSizes:   &testStruct{},
-			location:  &testStruct{GetRegionsError},
+			location:  &testStruct{getRegionsError},
 			providers: &testStruct{},
 			check: func(attrVals cloudinfo.AttrValues, err error) {
 				assert.Nil(t, attrVals, "the attribute values should be nil")
-				assert.EqualError(t, err, GetRegionsError)
+				assert.EqualError(t, err, "failed to get regions: error while retrieving azure locations: "+externalApiError)
 			},
 		},
 	}
@@ -790,11 +792,11 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 		},
 		{
 			name:      "could not retrieve regions",
-			location:  &testStruct{GetRegionsError},
+			location:  &testStruct{getRegionsError},
 			providers: &testStruct{},
 			price:     &test{},
 			check: func(prices map[string]map[string]cloudinfo.Price, err error) {
-				assert.EqualError(t, err, GetRegionsError)
+				assert.EqualError(t, err, "failed to get regions: error while retrieving azure locations: "+externalApiError)
 				assert.Nil(t, prices, "the prices should be nil")
 			},
 		},
@@ -802,9 +804,9 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 			name:      "could not retrieve prices",
 			location:  &testStruct{},
 			providers: &testStruct{},
-			price:     &test{GetPriceError},
+			price:     &test{getPriceError},
 			check: func(prices map[string]map[string]cloudinfo.Price, err error) {
-				assert.EqualError(t, err, GetPriceError)
+				assert.EqualError(t, err, getPriceError)
 				assert.Nil(t, prices, "the prices should be nil")
 			},
 		},

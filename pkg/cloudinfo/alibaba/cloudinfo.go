@@ -18,6 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"strconv"
@@ -186,7 +188,7 @@ func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 
 	regions, err := e.GetRegions(ctx, service)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get regions")
 	}
 
 	request := ecs.CreateDescribeInstanceTypesRequest()
@@ -354,14 +356,13 @@ func (e *AlibabaInfoer) GetCurrentPrices(ctx context.Context, region string) (ma
 
 	zones, err := e.GetZones(ctx, region)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get zones")
 	}
 
 	log.WithField("region", region).Debug("getting current spot prices directly from the API")
 	spotPrices, err = e.getCurrentSpotPrices(ctx, region, zones)
 	if err != nil {
-		log.WithField("region", region).WithError(err).Error("could not retrieve current prices.")
-		return nil, err
+		return nil, emperror.WrapWith(err, "could not retrieve current prices", "region", region)
 	}
 
 	prices := make(map[string]cloudinfo.Price)
@@ -406,26 +407,24 @@ func (p *onDemandPrice) getOnDemandPrice(url string) (OnDemandPrice, error) {
 }
 
 // GetServices returns the available services on the provider
-func (e *AlibabaInfoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
+func (e *AlibabaInfoer) GetServices() []cloudinfo.ServiceDescriber {
 	services := []cloudinfo.ServiceDescriber{
 		cloudinfo.NewService(svcCompute),
 		cloudinfo.NewService(svcAck)}
-	return services, nil
+	return services
 }
 
 // GetService returns the given service description
 func (e *AlibabaInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := e.GetServices()
-	if err != nil {
-		return nil, err
-	}
+	svcs := e.GetServices()
+
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
 			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
+	return nil, errors.Errorf("the service [%s] is not supported", service)
 }
 
 // HasImages - Alibaba doesn't support images
@@ -435,17 +434,17 @@ func (e *AlibabaInfoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (e *AlibabaInfoer) GetServiceImages(region, service string) ([]cloudinfo.ImageDescriber, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (e *AlibabaInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (e *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region

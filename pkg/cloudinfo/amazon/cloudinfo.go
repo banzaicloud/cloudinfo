@@ -16,8 +16,9 @@ package amazon
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"strconv"
 	"strings"
@@ -73,8 +74,7 @@ func NewEc2Infoer(ctx context.Context, promAddr string, pq string) (*Ec2Infoer, 
 	log := logger.Extract(ctx)
 	s, err := session.NewSession()
 	if err != nil {
-		log.WithError(err).Error("Error creating AWS session")
-		return nil, err
+		return nil, emperror.Wrap(err, "error creating AWS session")
 	}
 	var promApi v1.API
 	if promAddr == "" {
@@ -163,34 +163,34 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 			continue
 		}
 
-		instanceType, err := pd.GetDataForKey("instanceType")
+		instanceType, err := pd.getDataForKey("instanceType")
 		if err != nil {
 			log.WithError(err).Warnf("could not retrieve instance type [%s]", instanceType)
 			continue
 		}
-		cpusStr, err := pd.GetDataForKey(Cpu)
+		cpusStr, err := pd.getDataForKey(Cpu)
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "cpu")
 		}
-		memStr, err := pd.GetDataForKey(cloudinfo.Memory)
+		memStr, err := pd.getDataForKey(cloudinfo.Memory)
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "memory")
 		}
-		gpu, err := pd.GetDataForKey("gpu")
+		gpu, err := pd.getDataForKey("gpu")
 		if err != nil {
 			missingGpu = append(missingGpu, instanceType)
 		}
-		odPriceStr, err := pd.GetOnDemandPrice()
+		odPriceStr, err := pd.getOnDemandPrice()
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "onDemandPrice")
 		}
-		ntwPerf, err := pd.GetDataForKey("networkPerformance")
+		ntwPerf, err := pd.getDataForKey("networkPerformance")
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "networkPerformance")
 		}
 
 		var currGen = true
-		if currentGenStr, err := pd.GetDataForKey("currentGeneration"); err == nil {
+		if currentGenStr, err := pd.getDataForKey("currentGeneration"); err == nil {
 			if strings.ToLower(currentGenStr) == "no" {
 				currGen = false
 			}
@@ -222,7 +222,7 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 	log.Warnf("instance types with missing attributes %s", missingAttributes)
 	log.Debugf("instance types with missing gpu %s", missingGpu)
 	if vms == nil {
-		log.Debug("couldn't find any virtual machines to recommend")
+		return nil, errors.New("couldn't find any virtual machines to recommend")
 	}
 
 	if service == "eks" {
@@ -259,14 +259,14 @@ func newPriceData(prData aws.JSONValue) (*priceData, error) {
 
 	return &pd, nil
 }
-func (pd *priceData) GetDataForKey(attr string) (string, error) {
+func (pd *priceData) getDataForKey(attr string) (string, error) {
 	if value, ok := pd.attrMap[attr].(string); ok {
 		return value, nil
 	}
-	return "", fmt.Errorf("could not get %s or could not cast %s to string", attr, attr)
+	return "", errors.Errorf("could not get %s or could not cast %s to string", attr, attr)
 }
 
-func (pd *priceData) GetOnDemandPrice() (string, error) {
+func (pd *priceData) getOnDemandPrice() (string, error) {
 	termsMap, err := getMapForKey("terms", pd.awsData)
 	if err != nil {
 		return "", err
@@ -299,12 +299,12 @@ func (pd *priceData) GetOnDemandPrice() (string, error) {
 func getMapForKey(key string, srcMap map[string]interface{}) (map[string]interface{}, error) {
 	rawMap, ok := srcMap[key]
 	if !ok {
-		return nil, fmt.Errorf("could not get map for key: [ %s ]", key)
+		return nil, errors.Errorf("could not get map for key: [ %s ]", key)
 	}
 
 	remap, ok := rawMap.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("the value for key: [ %s ] could not be cast to map[string]interface{}", key)
+		return nil, errors.Errorf("the value for key: [ %s ] could not be cast to map[string]interface{}", key)
 	}
 	return remap, nil
 }
@@ -366,17 +366,16 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
 func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+	regionIdMap := make(map[string]string)
 	switch service {
 	case "eks":
 		// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
-		eksRegionMap := make(map[string]string)
 		awsRegions := endpoints.AwsPartition().Regions()
 		for _, regId := range eksRegionIds {
-			eksRegionMap[regId] = awsRegions[regId].Description()
+			regionIdMap[regId] = awsRegions[regId].Description()
 		}
-		return eksRegionMap, nil
+		return regionIdMap, nil
 	default:
-		regionIdMap := make(map[string]string)
 		for key, region := range endpoints.AwsPartition().Regions() {
 			regionIdMap[key] = region.Description()
 		}
@@ -386,8 +385,7 @@ func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]
 
 // GetZones returns the availability zones in a region
 func (e *Ec2Infoer) GetZones(ctx context.Context, region string) ([]string, error) {
-
-	var zones []string
+	zones := make([]string, 0)
 	azs, err := e.ec2Describer(region).DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
 	if err != nil {
 		return nil, err
@@ -476,8 +474,7 @@ func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[st
 		log.Debug("getting current spot prices directly from the AWS API")
 		spotPrices, err = e.getCurrentSpotPrices(ctx, region)
 		if err != nil {
-			log.WithError(err).Error("could not retrieve current prices")
-			return nil, err
+			return nil, emperror.Wrap(err, "could not retrieve current prices")
 		}
 	}
 
@@ -505,27 +502,24 @@ func (e *Ec2Infoer) GetCpuAttrName() string {
 }
 
 // GetServices returns the available services on the provider
-func (e *Ec2Infoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
+func (e *Ec2Infoer) GetServices() []cloudinfo.ServiceDescriber {
 	services := []cloudinfo.ServiceDescriber{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("eks")}
-	return services, nil
+	return services
 }
 
 // GetService returns the given service description
 func (e *Ec2Infoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := e.GetServices()
-	if err != nil {
-		return nil, err
-	}
+	svcs := e.GetServices()
+
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
 			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
-
+	return nil, errors.Errorf("the service [%s] is not supported", service)
 }
 
 // HasImages - Amazon doesn't support images
@@ -535,17 +529,17 @@ func (e *Ec2Infoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (e *Ec2Infoer) GetServiceImages(region, service string) ([]cloudinfo.ImageDescriber, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region

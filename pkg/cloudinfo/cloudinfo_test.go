@@ -16,7 +16,7 @@ package cloudinfo
 
 import (
 	"context"
-	"errors"
+	"github.com/pkg/errors"
 	"testing"
 	"time"
 
@@ -49,20 +49,21 @@ func (nm *dummyNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 }
 
 const (
-	GetRegionsError         = "could not get regions"
-	GetCurrentPricesError   = "could not get current prices"
-	GetAttributeValuesError = "could not get attribute values"
-	GetProductsError        = "could not get products"
-	InitializeError         = "initialization failed"
-	GetZonesError           = "could not get zones"
-	ProductDetailsOK        = "successfully get product details"
-	GetProductDetail        = "returns a product detail"
+	externalApiError        = "external API error"
+	getRegionsError         = "failed to get regions"
+	getCurrentPricesError   = "could not get current prices"
+	getAttributeValuesError = "could not get attribute values"
+	getProductsError        = "could not get products"
+	initializeError         = "failed to initialize product information"
+	getZonesError           = "could not get zones"
+	productDetailsOK        = "successfully get product details"
+	getProductDetail        = "returns a product detail"
 )
 
 func (dpi *DummyCloudInfoer) Initialize(ctx context.Context) (map[string]map[string]Price, error) {
 	switch dpi.TcId {
-	case InitializeError:
-		return nil, errors.New(InitializeError)
+	case initializeError:
+		return nil, errors.New(externalApiError)
 	default:
 		return map[string]map[string]Price{
 			"c1.xlarge":  {"dummy": {OnDemandPrice: 0.52, SpotPrice: SpotPriceInfo{"dummyZone1": 0.164}}},
@@ -74,16 +75,16 @@ func (dpi *DummyCloudInfoer) Initialize(ctx context.Context) (map[string]map[str
 
 func (dpi *DummyCloudInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (AttrValues, error) {
 	switch dpi.TcId {
-	case GetAttributeValuesError:
-		return nil, errors.New(GetAttributeValuesError)
+	case getAttributeValuesError:
+		return nil, errors.New(getAttributeValuesError)
 	}
 	return dpi.AttrValues, nil
 }
 
 func (dpi *DummyCloudInfoer) GetProducts(ctx context.Context, service, regionId string) ([]VmInfo, error) {
 	switch dpi.TcId {
-	case GetProductsError:
-		return nil, errors.New(GetProductsError)
+	case getProductsError:
+		return nil, errors.New(getProductsError)
 	default:
 		return dpi.Vms, nil
 	}
@@ -91,8 +92,8 @@ func (dpi *DummyCloudInfoer) GetProducts(ctx context.Context, service, regionId 
 
 func (dpi *DummyCloudInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
 	switch dpi.TcId {
-	case GetZonesError:
-		return nil, errors.New(GetZonesError)
+	case getZonesError:
+		return nil, errors.New(getZonesError)
 	default:
 		return []string{"dummyZone1", "dummyZone2"}, nil
 	}
@@ -104,8 +105,8 @@ func (dpi *DummyCloudInfoer) GetRegion(id string) *endpoints.Region {
 
 func (dpi *DummyCloudInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	switch dpi.TcId {
-	case GetRegionsError:
-		return nil, errors.New(GetRegionsError)
+	case getRegionsError:
+		return nil, errors.New(externalApiError)
 	default:
 		return map[string]string{
 			"EU (Frankfurt)":   "eu-central-1",
@@ -121,8 +122,8 @@ func (dpi *DummyCloudInfoer) HasShortLivedPriceInfo() bool {
 
 func (dpi *DummyCloudInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]Price, error) {
 	switch dpi.TcId {
-	case GetCurrentPricesError:
-		return nil, errors.New(GetCurrentPricesError)
+	case getCurrentPricesError:
+		return nil, errors.New(getCurrentPricesError)
 	default:
 		return map[string]Price{
 			"c1.xlarge":  {OnDemandPrice: 0.52, SpotPrice: SpotPriceInfo{"dummyZone1": 0.164}},
@@ -143,7 +144,7 @@ func (dpi *DummyCloudInfoer) GetCpuAttrName() string {
 
 func (dpi *DummyCloudInfoer) Get(k string) (interface{}, bool) {
 	switch dpi.TcId {
-	case ProductDetailsOK:
+	case productDetailsOK:
 		switch k {
 		case "/banzaicloud.com/cloudinfo/providers/dummy/services/dummyService/regions/dummyRegion/vms":
 			return []VmInfo{
@@ -181,7 +182,7 @@ func (dpi *DummyCloudInfoer) Get(k string) (interface{}, bool) {
 		default:
 			return nil, false
 		}
-	case GetProductDetail:
+	case getProductDetail:
 		switch k {
 		case "/banzaicloud.com/cloudinfo/providers/dummy/services/dummyService/regions/dummyRegion/vms":
 			return []VmInfo{
@@ -239,7 +240,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 			CloudInfoer: nil,
 			checker: func(info *CachingCloudInfo, err error) {
 				assert.Nil(t, info, "the cloudinfo should be nil in case of error")
-				assert.EqualError(t, err, "could not create product infoer")
+				assert.EqualError(t, err, "could not create cloud infoer")
 			},
 		},
 	}
@@ -285,13 +286,13 @@ func TestCachingCloudInfo_renewVms(t *testing.T) {
 			attrValue: AttrValue{Value: float64(2), StrValue: Cpu},
 			CloudInfoer: map[string]CloudInfoer{
 				"dummy": &DummyCloudInfoer{
-					TcId: GetProductsError,
+					TcId: getProductsError,
 					Vms:  []VmInfo{{Cpus: float64(2), Mem: float64(32), OnDemandPrice: float64(0.32)}},
 				},
 			},
 			Cache: cache.New(5*time.Minute, 10*time.Minute),
 			checker: func(cache *cache.Cache, vms []VmInfo, err error) {
-				assert.EqualError(t, err, GetProductsError)
+				assert.EqualError(t, err, getProductsError)
 				assert.Nil(t, vms, "no vms expected")
 
 			},
@@ -343,19 +344,19 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 			name: "the specified attribute is not supported",
 			CloudInfoer: map[string]CloudInfoer{
 				"dummy": &DummyCloudInfoer{AttrValues: dummyAttrValues}},
-			Attribute: "invalidAttribute",
+			Attribute: "gpu",
 			checker: func(value []float64, err error) {
-				assert.EqualError(t, err, "unsupported attribute: invalidAttribute")
+				assert.EqualError(t, err, "failed to renew gpu attribute values: failed to get attribute name: unsupported attribute: gpu")
 				assert.Nil(t, value, "the retrieved values should be nil")
 			},
 		},
 		{
 			name: "could not retrieve attribute values",
 			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetAttributeValuesError, AttrValues: dummyAttrValues}},
+				"dummy": &DummyCloudInfoer{TcId: getAttributeValuesError, AttrValues: dummyAttrValues}},
 			Attribute: Cpu,
 			checker: func(value []float64, err error) {
-				assert.EqualError(t, err, GetAttributeValuesError)
+				assert.EqualError(t, err, "failed to renew cpu attribute values: failed to get vcpu values: "+getAttributeValuesError)
 				assert.Nil(t, value, "the retrieved values should be nil")
 			},
 		},
@@ -392,11 +393,11 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 		{
 			name: "could not retrieve zones",
 			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetZonesError},
+				"dummy": &DummyCloudInfoer{TcId: getZonesError},
 			},
 			checker: func(cpi *CachingCloudInfo, zones []string, err error) {
 				assert.Nil(t, zones, "the error should be nil")
-				assert.EqualError(t, err, GetZonesError)
+				assert.EqualError(t, err, "error while retrieving zones: "+getZonesError)
 			},
 		},
 	}
@@ -428,11 +429,11 @@ func TestCachingCloudInfo_Initialize(t *testing.T) {
 		{
 			name: "could not get the output of the Infoer's Initialize function",
 			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: InitializeError},
+				"dummy": &DummyCloudInfoer{TcId: initializeError},
 			},
 			checker: func(price map[string]map[string]Price, err error) {
 				assert.Nil(t, price, "the price should be nil")
-				assert.EqualError(t, err, InitializeError)
+				assert.EqualError(t, err, initializeError+": "+externalApiError)
 			},
 		},
 	}
@@ -463,18 +464,18 @@ func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
 		{
 			name: "could not retrieve current prices",
 			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetCurrentPricesError},
+				"dummy": &DummyCloudInfoer{TcId: getCurrentPricesError},
 			},
 			checker: func(price map[string]Price, err error) {
 				assert.Nil(t, price, "the price should be nil")
-				assert.EqualError(t, err, GetCurrentPricesError)
+				assert.EqualError(t, err, getCurrentPricesError)
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
-			test.checker(info.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			test.checker(cloudInfo.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
 }
@@ -526,19 +527,19 @@ func TestCachingCloudInfo_GetPrice(t *testing.T) {
 			name:  "could not retrieve current prices",
 			zones: []string{"dummyZone1"},
 			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetCurrentPricesError},
+				"dummy": &DummyCloudInfoer{TcId: getCurrentPricesError},
 			},
 			checker: func(i float64, f float64, err error) {
 				assert.Equal(t, float64(0), i)
 				assert.Equal(t, float64(0), f)
-				assert.EqualError(t, err, GetCurrentPricesError)
+				assert.EqualError(t, err, getCurrentPricesError)
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
-			values, value, err := info.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			values, value, err := cloudInfo.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
 			test.checker(values, value, err)
 		})
 	}
@@ -564,18 +565,18 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 		{
 			name: "could not retrieve regions",
 			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetRegionsError},
+				"dummy": &DummyCloudInfoer{TcId: getRegionsError},
 			},
 			checker: func(regions map[string]string, err error) {
 				assert.Nil(t, regions, "the error should be nil")
-				assert.EqualError(t, err, GetRegionsError)
+				assert.EqualError(t, err, getRegionsError+": "+externalApiError)
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
-			test.checker(info.GetRegions(context.Background(), "dummy", "compute"))
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			test.checker(cloudInfo.GetRegions(context.Background(), "dummy", "compute"))
 		})
 	}
 }
@@ -592,7 +593,7 @@ func TestCachingCloudInfo_GetProductDetails(t *testing.T) {
 			CloudInfoer: map[string]CloudInfoer{
 				"dummy": &DummyCloudInfoer{},
 			},
-			cache: &DummyCloudInfoer{TcId: ProductDetailsOK},
+			cache: &DummyCloudInfoer{TcId: productDetailsOK},
 			checker: func(details []ProductDetails, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				assert.Equal(t, 2, len(details))
@@ -603,7 +604,7 @@ func TestCachingCloudInfo_GetProductDetails(t *testing.T) {
 			CloudInfoer: map[string]CloudInfoer{
 				"dummy": &DummyCloudInfoer{},
 			},
-			cache: &DummyCloudInfoer{TcId: GetProductDetail},
+			cache: &DummyCloudInfoer{TcId: getProductDetail},
 			checker: func(details []ProductDetails, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				assert.Equal(t, 1, len(details))
@@ -629,8 +630,8 @@ func TestCachingCloudInfo_GetProductDetails(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, test.cache, test.CloudInfoer)
-			test.checker(info.GetProductDetails(context.Background(), "dummy", "dummyService", "dummyRegion"))
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, test.cache, test.CloudInfoer)
+			test.checker(cloudInfo.GetProductDetails(context.Background(), "dummy", "dummyService", "dummyRegion"))
 		})
 	}
 }

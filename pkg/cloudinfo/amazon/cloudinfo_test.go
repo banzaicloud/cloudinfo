@@ -16,7 +16,7 @@ package amazon
 
 import (
 	"context"
-	"errors"
+	"github.com/pkg/errors"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -177,7 +177,7 @@ func (dps *testStruct) DescribeAvailabilityZones(input *ec2.DescribeAvailability
 
 func (dps *testStruct) DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPriceHistoryInput, fn func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool) error {
 	if dps.TcId == 11 {
-		return errors.New("invalid")
+		return errors.New("external API error")
 	}
 	return nil
 }
@@ -359,7 +359,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 			},
 			check: func(data map[string]cloudinfo.SpotPriceInfo, err error) {
 				assert.Nil(t, data, "the data should be nil")
-				assert.EqualError(t, err, "invalid")
+				assert.EqualError(t, err, "external API error")
 			},
 		},
 	}
@@ -403,7 +403,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 			},
 			check: func(price map[string]cloudinfo.Price, err error) {
 				assert.Nil(t, price, "the zones should be nil")
-				assert.EqualError(t, err, "invalid")
+				assert.EqualError(t, err, "could not retrieve current prices: external API error")
 			},
 		},
 	}
@@ -618,7 +618,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			pricedata, _ := newPriceData(test.price.awsData)
-			test.check(pricedata.GetDataForKey(test.attr))
+			test.check(pricedata.getDataForKey(test.attr))
 		})
 	}
 }
@@ -736,7 +736,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.check(test.price.GetOnDemandPrice())
+			test.check(test.price.getOnDemandPrice())
 		})
 	}
 }

@@ -17,7 +17,7 @@ See the UI in action here: [https://banzaicloud.com/cloudinfo/](https://banzaicl
 Building the project is as simple as running a go build command. The result is a statically linked executable binary.
 
 ```
-make build ./cmd/cloudinfo
+make build
 ```
 
 The following options can be configured when starting the exporter (with defaults):

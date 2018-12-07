@@ -83,9 +83,9 @@ type CloudInfoer interface {
 	GetCpuAttrName() string
 
 	// GetServices returns the available services on the given provider
-	GetServices() ([]ServiceDescriber, error)
+	GetServices() []ServiceDescriber
 
-	// GetServices returns the available services on the  given region
+	// GetService returns the given service description
 	GetService(ctx context.Context, service string) (ServiceDescriber, error)
 
 	// HasImages signals if a product info provider has image support

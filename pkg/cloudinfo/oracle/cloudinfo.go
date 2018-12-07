@@ -17,6 +17,8 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 
@@ -96,13 +98,13 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]c
 	zonesInRegions := make(map[string][]string)
 	regions, err := i.GetRegions(ctx, "compute")
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get regions")
 	}
 
 	for r := range regions {
 		zones, err := i.GetZones(ctx, r)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "failed to get zones")
 		}
 		zonesInRegions[r] = zones
 	}
@@ -185,7 +187,7 @@ func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute stri
 
 // GetCurrentPrices retrieves all the spot prices in a region
 func (i *Infoer) GetCurrentPrices(ctx context.Context, region string) (prices map[string]cloudinfo.Price, err error) {
-	return nil, fmt.Errorf("oracle prices cannot be queried on the fly")
+	return nil, errors.Errorf("oracle prices cannot be queried on the fly")
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -309,26 +311,24 @@ func (i *Infoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetServices returns the available services on the  given region
-func (i *Infoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
+func (i *Infoer) GetServices() []cloudinfo.ServiceDescriber {
 	services := []cloudinfo.ServiceDescriber{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("oke")}
-	return services, nil
+	return services
 }
 
 // GetService returns the service on the  provider
 func (i *Infoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := i.GetServices()
-	if err != nil {
-		return nil, err
-	}
+	svcs := i.GetServices()
+
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
 			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
+	return nil, errors.Errorf("the service [%s] is not supported", service)
 }
 
 // HasImages - Oracle support images
@@ -353,12 +353,12 @@ func (i *Infoer) GetServiceImages(region, service string) (images []cloudinfo.Im
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (i *Infoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (i *Infoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region

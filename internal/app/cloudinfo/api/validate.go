@@ -17,6 +17,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"reflect"
 
@@ -41,7 +42,7 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.C
 		}
 		return false
 	}); err != nil {
-		return fmt.Errorf("could not register provider validator. error: %s", err)
+		return errors.Wrap(err, "failed to register provider validator")
 	}
 
 	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -52,17 +53,17 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.C
 		}
 		return false
 	}); err != nil {
-		return fmt.Errorf("could not register attribute validator. error: %s", err)
+		return errors.Wrap(err, "failed to register attribute validator")
 	}
 
 	// register validator for the service parameter in the request path
 	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
-		return fmt.Errorf("could not register service validator. error: %s", err)
+		return errors.Wrap(err, "failed to register service validator")
 	}
 
 	// register validator for the region parameter in the request path
 	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
-		return fmt.Errorf("could not register provider validator. . error: %s", err)
+		return errors.Wrap(err, "failed to register region validator")
 	}
 	return nil
 }
@@ -174,10 +175,7 @@ func serviceValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) vali
 		if err != nil {
 			log.WithError(err).Error("could not get information")
 		}
-		services, err := infoer.GetServices()
-		if err != nil {
-			log.WithError(err).Error("could not get services")
-		}
+		services := infoer.GetServices()
 
 		for _, svc := range services {
 			if svc.ServiceName() == currentService {

@@ -119,17 +119,12 @@ func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 
 		infoer, err := r.prod.GetInfoer(pathParams.Provider)
 		if err != nil {
-			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving services: %v", err))
+			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving infoer: %v", err))
 			c.JSON(http.StatusInternalServerError, er)
 			return
 		}
 
-		services, err := infoer.GetServices()
-		if err != nil {
-			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
-			c.JSON(http.StatusServiceUnavailable, er)
-			return
-		}
+		services := infoer.GetServices()
 
 		c.JSON(http.StatusOK, NewServicesResponse(services))
 	}

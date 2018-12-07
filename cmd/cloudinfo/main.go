@@ -28,7 +28,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"github.com/pkg/errors"
 	"os"
 	"strings"
 	"time"
@@ -53,16 +53,16 @@ import (
 const (
 	// the list of flags supported by the application
 	// these constants can be used to retrieve the passed in values or defaults via viper
-	logLevelFlag               = "log-level"
-	logFormatFlag              = "log-format"
-	listenAddressFlag          = "listen-address"
-	prodInfRenewalIntervalFlag = "product-info-renewal-interval"
-	prometheusAddressFlag      = "prometheus-address"
-	prometheusQueryFlag        = "prometheus-query"
-	providerFlag               = "provider"
-	helpFlag                   = "help"
-	metricsEnabledFlag         = "metrics-enabled"
-	metricsAddressFlag         = "metrics-address"
+	logLevelFlag                = "log-level"
+	logFormatFlag               = "log-format"
+	listenAddressFlag           = "listen-address"
+	cloudInfRenewalIntervalFlag = "cloud-info-renewal-interval"
+	prometheusAddressFlag       = "prometheus-address"
+	prometheusQueryFlag         = "prometheus-query"
+	providerFlag                = "provider"
+	helpFlag                    = "help"
+	metricsEnabledFlag          = "metrics-enabled"
+	metricsAddressFlag          = "metrics-address"
 
 	//temporary flags
 	gceApiKeyFlag          = "gce-api-key"
@@ -91,7 +91,7 @@ func defineFlags() {
 	flag.String(logLevelFlag, "info", "log level")
 	flag.String(logFormatFlag, "", "log format")
 	flag.String(listenAddressFlag, ":9090", "the address the cloudinfo app listens to HTTP requests.")
-	flag.Duration(prodInfRenewalIntervalFlag, 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
+	flag.Duration(cloudInfRenewalIntervalFlag, 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
 	flag.String(prometheusAddressFlag, "", "http address of a Prometheus instance that has AWS spot "+
 		"price metrics via banzaicloud/spot-price-exporter. If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.")
 	flag.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
@@ -114,7 +114,7 @@ func defineFlags() {
 func bindFlags() {
 	flag.Parse()
 	if err := viper.BindPFlags(flag.CommandLine); err != nil {
-		panic(fmt.Errorf("could not parse flags. error: %s", err))
+		panic(errors.Wrap(err, "failed to parse flags"))
 	}
 
 }
@@ -156,20 +156,20 @@ func main() {
 
 	logger.Extract(ctx).WithField("version", Version).WithField("commit_hash", CommitHash).WithField("build_date", BuildDate).Info("cloudinfo initialization")
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
+	cloudInfo, err := cloudinfo.NewCachingCloudInfo(viper.GetDuration(cloudInfRenewalIntervalFlag),
 		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx))
 	quitOnError(ctx, "error encountered", err)
 
-	go prodInfo.Start(ctx)
+	go cloudInfo.Start(ctx)
 
 	quitOnError(ctx, "error encountered", err)
 
 	// configure the gin validator
-	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
+	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), cloudInfo)
 	quitOnError(ctx, "error encountered", err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
-	routeHandler := api.NewRouteHandler(prodInfo, buildInfo)
+	routeHandler := api.NewRouteHandler(cloudInfo, buildInfo)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()
@@ -182,7 +182,7 @@ func main() {
 		spotReg.MustRegister(amazon.SpotPriceGauge, alibaba.SpotPriceGauge)
 		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 		p.SetListenAddress(viper.GetString(metricsAddressFlag))
-		p.Use(router, "metrics")
+		p.Use(router, "/metrics")
 		p.UseWithCustomMetrics(router, prometheus.Gatherers{reg}, "/metrics/price")
 		p.UseWithCustomMetrics(router, prometheus.Gatherers{spotReg}, "/metrics/spotprice")
 	}
@@ -191,7 +191,7 @@ func main() {
 	routeHandler.ConfigureRoutes(ctx, router)
 	logger.Extract(ctx).Info("Configured routes")
 	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
-		panic(fmt.Errorf("could not run router. error: %s", err))
+		panic(errors.Wrap(err, "failed to run router"))
 	}
 }
 
@@ -218,10 +218,10 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 			logger.Extract(pctx).Fatal("provider is not supported")
 		}
 
-		quitOnError(pctx, "could not initialize product info provider", err)
+		quitOnError(pctx, "could not initialize cloud info provider", err)
 
 		infoers[p] = infoer
-		logger.Extract(pctx).Infof("Configured '%s' product info provider", p)
+		logger.Extract(pctx).Infof("Configured '%s' cloud info provider", p)
 	}
 	return infoers
 }

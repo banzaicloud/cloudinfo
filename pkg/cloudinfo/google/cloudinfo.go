@@ -17,6 +17,8 @@ package google
 import (
 	"context"
 	"fmt"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"os"
@@ -76,9 +78,12 @@ type GceInfoer struct {
 // NewGceInfoer creates a new instance of the infoer
 func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
 	if appCredentials == "" {
-		return nil, fmt.Errorf("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
+		return nil, errors.New("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
 	}
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", appCredentials)
+
+	if err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", appCredentials); err != nil {
+		return nil, err
+	}
 
 	defaultCredential, err := google.FindDefaultCredentials(context.Background(), compute.ComputeScope, billing.CloudPlatformScope)
 	if err != nil {
@@ -141,17 +146,17 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloud
 	zonesInRegions := make(map[string][]string)
 	regions, err := g.GetRegions(ctx, "compute")
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get regions")
 	}
 
 	pricePerRegion, err := g.getPrice(compEngId)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get prices")
 	}
 	for r := range regions {
 		zones, err := g.GetZones(ctx, r)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "failed to get zones")
 		}
 		zonesInRegions[r] = zones
 		err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
@@ -247,7 +252,7 @@ func (g *GceInfoer) getPrice(parent string) (map[string]map[string]map[string]fl
 
 func (g *GceInfoer) priceInUsd(pricingInfos []*billing.PricingInfo) (float64, error) {
 	if len(pricingInfos) != 1 {
-		return 0, fmt.Errorf("pricing info not parsable, %d pricing info entries are returned", len(pricingInfos))
+		return 0, errors.Errorf("pricing info not parsable, %d pricing info entries are returned", len(pricingInfos))
 	}
 	pricingInfo := pricingInfos[0]
 	var priceInUsd float64
@@ -296,7 +301,7 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute s
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to list machine types: %v", err.Error())
+		return nil, emperror.Wrap(err, "unable to list machine types")
 	}
 
 	for attr := range valueSet {
@@ -316,7 +321,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 	var ntwPerf uint
 	zones, err := g.GetZones(ctx, regionId)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get zones")
 	}
 	err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
 		for _, mt := range allMts.Items {
@@ -410,7 +415,7 @@ func (g *GceInfoer) HasShortLivedPriceInfo() bool {
 
 // GetCurrentPrices retrieves all the spot prices in a region
 func (g *GceInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]cloudinfo.Price, error) {
-	return nil, fmt.Errorf("google prices cannot be queried on the fly")
+	return nil, errors.New("google prices cannot be queried on the fly")
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -424,27 +429,24 @@ func (g *GceInfoer) GetCpuAttrName() string {
 }
 
 // GetServices returns the available services on the  provider
-func (g *GceInfoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
+func (g *GceInfoer) GetServices() []cloudinfo.ServiceDescriber {
 	services := []cloudinfo.ServiceDescriber{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("gke")}
-	return services, nil
+	return services
 }
 
 // GetService returns the given service details on the provider
 func (g *GceInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := g.GetServices()
-	if err != nil {
-		return nil, err
-	}
+	svcs := g.GetServices()
+
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
 			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
-
+	return nil, errors.Errorf("the service [%s] is not supported", service)
 }
 
 // HasImages - Google doesn't support images
@@ -454,27 +456,27 @@ func (g *GceInfoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (g *GceInfoer) GetServiceImages(region, service string) ([]cloudinfo.ImageDescriber, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (g *GceInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (g *GceInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
-	switch service {
-	case "gke":
-		var versions []string
+	versions := make([]string, 0)
+
+	if service == "gke" {
 		zones, err := g.GetZones(ctx, region)
 		if err != nil {
-			return nil, err
+			return nil, emperror.Wrap(err, "failed to get zones")
 		}
 		serverConf, err := g.containerSvc.Projects.Zones.GetServerconfig(g.projectId, zones[0]).Context(context.Background()).Do()
 		if err != nil {
@@ -488,8 +490,7 @@ func (g *GceInfoer) GetVersions(ctx context.Context, service, region string) ([]
 				}
 			}
 		}
-		return versions, nil
-	default:
-		return []string{}, nil
 	}
+
+	return versions, nil
 }

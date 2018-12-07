@@ -16,11 +16,12 @@ package alibaba
 
 import (
 	"context"
-	"fmt"
+	"testing"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 //testStruct helps to mock external calls
@@ -29,17 +30,18 @@ type testStruct struct {
 }
 
 const (
-	GetRegionsError          = "could not get regions"
-	GetVmsError              = "could not get virtual machines"
-	GetZonesError            = "could not get zones"
-	GetUrlError              = "could not get url"
-	GetSpotPriceHistoryError = "could not get spot price"
+	externalApiError         = "external API error"
+	getRegionsError          = "failed to get regions"
+	getVmsError              = "failed to get virtual machines"
+	getZonesError            = "failed to get zones"
+	getPriceError            = "could not retrieve current prices"
+	getSpotPriceHistoryError = "failed to get spot price"
 )
 
 func (dps *testStruct) DescribeInstanceTypes(request *ecs.DescribeInstanceTypesRequest) (response *ecs.DescribeInstanceTypesResponse, err error) {
 	switch dps.TcId {
-	case GetVmsError:
-		return &ecs.DescribeInstanceTypesResponse{}, fmt.Errorf(GetVmsError)
+	case getVmsError:
+		return &ecs.DescribeInstanceTypesResponse{}, errors.New(externalApiError)
 	default:
 		return &ecs.DescribeInstanceTypesResponse{
 			InstanceTypes: ecs.InstanceTypesInDescribeInstanceTypes{
@@ -76,8 +78,8 @@ func (dps *testStruct) DescribeInstanceTypes(request *ecs.DescribeInstanceTypesR
 
 func (dps *testStruct) DescribeSpotPriceHistory(request *ecs.DescribeSpotPriceHistoryRequest) (response *ecs.DescribeSpotPriceHistoryResponse, err error) {
 	switch dps.TcId {
-	case GetSpotPriceHistoryError:
-		return &ecs.DescribeSpotPriceHistoryResponse{}, fmt.Errorf(GetSpotPriceHistoryError)
+	case getSpotPriceHistoryError:
+		return &ecs.DescribeSpotPriceHistoryResponse{}, errors.New(externalApiError)
 	default:
 		return &ecs.DescribeSpotPriceHistoryResponse{
 			Currency: "USD",
@@ -105,8 +107,8 @@ func (dps *testStruct) DescribeSpotPriceHistory(request *ecs.DescribeSpotPriceHi
 
 func (dps *testStruct) DescribeZones(request *ecs.DescribeZonesRequest) (response *ecs.DescribeZonesResponse, err error) {
 	switch dps.TcId {
-	case GetZonesError:
-		return &ecs.DescribeZonesResponse{}, fmt.Errorf(GetZonesError)
+	case getZonesError:
+		return &ecs.DescribeZonesResponse{}, errors.New(externalApiError)
 	default:
 		return &ecs.DescribeZonesResponse{
 			RequestId: "dummyRequestId",
@@ -130,8 +132,8 @@ func (dps *testStruct) DescribeZones(request *ecs.DescribeZonesRequest) (respons
 
 func (dps *testStruct) DescribeRegions(request *ecs.DescribeRegionsRequest) (response *ecs.DescribeRegionsResponse, err error) {
 	switch dps.TcId {
-	case GetRegionsError:
-		return &ecs.DescribeRegionsResponse{}, fmt.Errorf(GetRegionsError)
+	case getRegionsError:
+		return &ecs.DescribeRegionsResponse{}, errors.New(externalApiError)
 	default:
 		return &ecs.DescribeRegionsResponse{
 			RequestId: "dummyRequestId",
@@ -157,8 +159,8 @@ func (dps *testStruct) DescribeRegions(request *ecs.DescribeRegionsRequest) (res
 
 func (dps *testStruct) getOnDemandPrice(url string) (OnDemandPrice, error) {
 	switch dps.TcId {
-	case GetUrlError:
-		return OnDemandPrice{}, fmt.Errorf(GetUrlError)
+	case getPriceError:
+		return OnDemandPrice{}, errors.New(externalApiError)
 	default:
 		return OnDemandPrice{
 			Currency: "USD",
@@ -208,10 +210,10 @@ func TestAlibabaInfoer_GetRegions(t *testing.T) {
 		},
 		{
 			name:   "could not retrieve regions",
-			client: &testStruct{GetRegionsError},
+			client: &testStruct{getRegionsError},
 			check: func(regions map[string]string, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
-				assert.EqualError(t, err, GetRegionsError)
+				assert.EqualError(t, err, externalApiError)
 			},
 		},
 	}
@@ -247,11 +249,11 @@ func TestAlibabaInfoer_GetZones(t *testing.T) {
 		},
 		{
 			name:   "could not retrieve zones",
-			client: &testStruct{GetZonesError},
+			client: &testStruct{getZonesError},
 			region: "eu-central-1",
 			check: func(zones []string, err error) {
 				assert.Nil(t, zones, "the regions should be nil")
-				assert.EqualError(t, err, GetZonesError)
+				assert.EqualError(t, err, externalApiError)
 			},
 		},
 	}
@@ -289,22 +291,22 @@ func TestAlibabaInfoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:           "could not retrieve virtual machines",
-			ecsClient:      &testStruct{GetVmsError},
+			ecsClient:      &testStruct{getVmsError},
 			priceRetriever: &testStruct{},
 			region:         "us-east-1",
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
-				assert.EqualError(t, err, GetVmsError)
+				assert.EqualError(t, err, externalApiError)
 			},
 		},
 		{
 			name:           "could not retrieve url",
 			ecsClient:      &testStruct{},
-			priceRetriever: &testStruct{GetUrlError},
+			priceRetriever: &testStruct{getPriceError},
 			region:         "us-east-1",
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
-				assert.EqualError(t, err, GetUrlError)
+				assert.EqualError(t, err, externalApiError)
 			},
 		},
 	}
@@ -363,32 +365,32 @@ func TestAlibabaInfoer_GetAttributeValues(t *testing.T) {
 		},
 		{
 			name:           "could not retrieve regions",
-			ecsClient:      &testStruct{GetRegionsError},
+			ecsClient:      &testStruct{getRegionsError},
 			priceRetriever: &testStruct{},
 			attribute:      cloudinfo.Cpu,
 			check: func(attrVal cloudinfo.AttrValues, err error) {
 				assert.Nil(t, attrVal, "the attribute should be nil")
-				assert.EqualError(t, err, GetRegionsError)
+				assert.EqualError(t, err, getRegionsError+": "+externalApiError)
 			},
 		},
 		{
 			name:           "could not retrieve virtual machines",
-			ecsClient:      &testStruct{GetVmsError},
+			ecsClient:      &testStruct{getVmsError},
 			priceRetriever: &testStruct{},
 			attribute:      cloudinfo.Cpu,
 			check: func(attrVal cloudinfo.AttrValues, err error) {
 				assert.Nil(t, attrVal, "the attribute should be nil")
-				assert.EqualError(t, err, GetVmsError)
+				assert.EqualError(t, err, externalApiError)
 			},
 		},
 		{
 			name:           "could not retrieve url",
 			ecsClient:      &testStruct{},
-			priceRetriever: &testStruct{GetUrlError},
+			priceRetriever: &testStruct{getPriceError},
 			attribute:      cloudinfo.Cpu,
 			check: func(attrVal cloudinfo.AttrValues, err error) {
 				assert.Nil(t, attrVal, "the attribute should be nil")
-				assert.EqualError(t, err, GetUrlError)
+				assert.EqualError(t, err, externalApiError)
 			},
 		},
 	}
@@ -429,26 +431,26 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 		},
 		{
 			name:           "could not retrieve zones",
-			ecsClient:      &testStruct{GetZonesError},
+			ecsClient:      &testStruct{getZonesError},
 			priceRetriever: &testStruct{},
 			spotClient: func(region string) EcsSource {
 				return &testStruct{}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
 				assert.Nil(t, prices, "the prices should be nil")
-				assert.EqualError(t, err, GetZonesError)
+				assert.EqualError(t, err, getZonesError+": "+externalApiError)
 			},
 		},
 		{
 			name:           "could not retrieve url",
 			ecsClient:      &testStruct{},
-			priceRetriever: &testStruct{GetUrlError},
+			priceRetriever: &testStruct{getPriceError},
 			spotClient: func(region string) EcsSource {
 				return &testStruct{}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
 				assert.Nil(t, prices, "the prices should be nil")
-				assert.EqualError(t, err, GetUrlError)
+				assert.EqualError(t, err, getPriceError+": "+externalApiError)
 			},
 		},
 		{
@@ -456,7 +458,7 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 			ecsClient:      &testStruct{},
 			priceRetriever: &testStruct{},
 			spotClient: func(region string) EcsSource {
-				return &testStruct{GetSpotPriceHistoryError}
+				return &testStruct{getSpotPriceHistoryError}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
 				assert.Nil(t, err, "the err should be nil")
