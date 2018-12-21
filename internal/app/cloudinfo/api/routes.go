@@ -51,9 +51,7 @@ func getCorsConfig() cors.Config {
 		config.AllowOrigins = []string{"http://", "https://"}
 	}
 	config.AllowMethods = []string{http.MethodPut, http.MethodDelete, http.MethodGet, http.MethodPost, http.MethodOptions}
-	config.AllowHeaders = []string{"Origin", "Authorization", "Content-Type"}
-	config.ExposeHeaders = []string{"Content-Length"}
-	config.AllowCredentials = true
+
 	config.MaxAge = 12
 	return config
 }

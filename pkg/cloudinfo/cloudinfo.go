@@ -25,8 +25,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // CachingCloudInfo is the module struct, holds configuration and cache
@@ -74,65 +72,6 @@ type VmInfo struct {
 var (
 	scrapeCounterShortLived uint64
 	scrapeCounterComplete   uint64
-)
-
-var (
-	// ScrapeCompleteDurationGauge collects metrics for the prometheus
-	ScrapeCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "complete_duration_seconds",
-		Help:      "Cloud provider scrape complete duration in seconds",
-	},
-		[]string{"provider"},
-	)
-	// ScrapeRegionDurationGauge collects metrics for the prometheus
-	ScrapeRegionDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "region_duration_seconds",
-		Help:      "Cloud provider scrape region duration in seconds",
-	},
-		[]string{"provider", "service", "region"},
-	)
-	// ScrapeFailuresTotalCounter collects metrics for the prometheus
-	ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "scrape",
-		Name:      "failures_total",
-		Help:      "Total number of scrape failures, partitioned by provider and region",
-	},
-		[]string{"provider", "service", "region"},
-	)
-	// ScrapeShortLivedCompleteDurationGauge collects metrics for the prometheus
-	ScrapeShortLivedCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "short_lived_complete_duration_seconds",
-		Help:      "Cloud provider short lived scrape complete duration in seconds",
-	},
-		[]string{"provider"},
-	)
-	// ScrapeShortLivedRegionDurationGauge collects metrics for the prometheus
-	ScrapeShortLivedRegionDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "short_lived_region_duration_seconds",
-		Help:      "Cloud provider short lived scrape region duration in seconds",
-	},
-		[]string{"provider", "region"},
-	)
-	// ScrapeShortLivedFailuresTotalCounter collects metrics for the prometheus
-	ScrapeShortLivedFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "scrape",
-		Name:      "short_lived_failures_total",
-		Help:      "Total number of short lived scrape failures, partitioned by provider and region",
-	},
-		[]string{"provider", "region"},
-	)
-	// OnDemandPriceGauge collects metrics for the prometheus
-	OnDemandPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "cloudinfo",
-		Name:      "on_demand_price",
-		Help:      "On demand price for each instance type",
-	},
-		[]string{"provider", "region", "instanceType"},
-	)
 )
 
 // IsBurst returns true if the EC2 instance vCPU is burst type

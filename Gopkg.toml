@@ -86,3 +86,6 @@
 [[override]]
   revision = "0b12d6b5"
   name = "github.com/jmespath/go-jmespath"
+[[constraint]]
+  name = "go.opencensus.io"
+  version = "0.8.0"
