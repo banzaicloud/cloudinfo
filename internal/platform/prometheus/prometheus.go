@@ -6,9 +6,6 @@ import (
 	"go.opencensus.io/exporter/prometheus"
 )
 
-
-
-
 // NewExporter creates a new, configured Prometheus exporter.
 func NewExporter(config Config, errorHandler emperror.Handler) (*prometheus.Exporter, error) {
 	exporter, err := prometheus.NewExporter(prometheus.Options{

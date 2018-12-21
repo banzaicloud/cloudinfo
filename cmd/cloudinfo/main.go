@@ -40,6 +40,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/banzaicloud/go-gin-prometheus"
@@ -57,17 +58,6 @@ func bindFlags() {
 		panic(fmt.Errorf("could not parse flags. error: %s", err))
 	}
 
-}
-
-func init() {
-
-	// register prometheus custom metrics
-	prometheus.MustRegister(cloudinfo.ScrapeCompleteDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeRegionDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeFailuresTotalCounter)
-	prometheus.MustRegister(cloudinfo.ScrapeShortLivedCompleteDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeShortLivedRegionDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeShortLivedFailuresTotalCounter)
 }
 
 func main() {
@@ -108,8 +98,9 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
+		// todo revisit this
 		reg := prometheus.NewRegistry()
-		reg.MustRegister(cloudinfo.OnDemandPriceGauge, google.SpotPriceGauge, azure.SpotPriceGauge)
+		reg.MustRegister(metrics.OnDemandPriceGauge, google.SpotPriceGauge, azure.SpotPriceGauge)
 		spotReg := prometheus.NewRegistry()
 		spotReg.MustRegister(amazon.SpotPriceGauge, alibaba.SpotPriceGauge)
 		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})

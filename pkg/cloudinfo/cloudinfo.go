@@ -24,6 +24,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
 
@@ -34,6 +35,7 @@ type CachingCloudInfo struct {
 	cloudInfoers    map[string]CloudInfoer
 	renewalInterval time.Duration
 	vmAttrStore     ProductStorer
+	metrics         metrics.Reporter
 }
 
 func (v AttrValues) floatValues() []float64 {
@@ -90,6 +92,7 @@ func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[stri
 		cloudInfoers:    infoers,
 		vmAttrStore:     cache,
 		renewalInterval: ri,
+		metrics:         metrics.NewMetricsSource(),
 	}
 	return &pi, nil
 }
@@ -140,14 +143,14 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 
 	log.Info("renewing product info")
 	if _, err := cpi.Initialize(ctx, provider); err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 		log.WithError(err).Error("failed to renew product info")
 		return
 	}
 
 	services, err := pi.GetServices()
 	if err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 		log.WithError(err).Error("failed to renew products")
 		return
 	}
@@ -162,7 +165,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		for _, attr := range attributes {
 			_, err := cpi.renewAttrValues(ctxLog, provider, service.ServiceName(), attr)
 			if err != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+				cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 				logger.Extract(ctxLog).WithError(err).Errorf("failed to renew %s attribute values", attr)
 				return
 			}
@@ -178,7 +181,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 				Build())
 		regions, err := pi.GetRegions(ctx, service.ServiceName())
 		if err != nil {
-			ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), "N/A").Inc()
+			cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), "N/A")
 			logger.Extract(ctxLog).Error("failed to renew products")
 			return
 		}
@@ -192,23 +195,23 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			start := time.Now()
 			_, err := cpi.renewVms(c, provider, service.ServiceName(), regionId)
 			if err != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
 				logger.Extract(c).WithError(err).Error("failed to renew products")
 			}
 			if pi.HasImages() {
 				_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
 				if imgErr != nil {
-					ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+					cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
 					logger.Extract(c).WithError(imgErr).Error("failed to renew images")
 				}
 			}
 			_, versionErr := cpi.renewVersions(c, provider, service.ServiceName(), regionId)
 			if versionErr != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
 				logger.Extract(c).WithError(versionErr).Error("failed to renew versions")
 			}
 			if err == nil && versionErr == nil {
-				ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
+				cpi.metrics.ReportScrapeRegionCompleted(provider, service.ServiceName(), regionId, start)
 			}
 		}
 	}
@@ -218,7 +221,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		log.Errorf("failed to renew status: %s", err)
 		return
 	}
-	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
+	cpi.metrics.ReportScrapeProviderCompleted(provider, start)
 }
 
 func (cpi *CachingCloudInfo) renewStatus(provider string) (string, error) {
@@ -266,7 +269,7 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 			regions, err := i.GetRegions(c, "compute")
 			if err != nil {
-				ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
+				cpi.metrics.ReportScrapeShortLivedFailure(p, "N/A")
 				logger.Extract(c).WithError(err).Error("couldn't renew attribute values in cache")
 				return
 			}
@@ -281,15 +284,15 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 					defer wg.Done()
 					_, err := cpi.renewShortLivedInfo(c, p, r)
 					if err != nil {
-						ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
+						cpi.metrics.ReportScrapeShortLivedFailure(p, r)
 						logger.Extract(c).WithError(err).Error("couldn't renew short lived info in cache")
 						return
 					}
-					ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
+					cpi.metrics.ReportScrapeRegionShortLivedCompleted(p, r, start)
 				}(ctx, p, regionId)
 			}
 			wg.Wait()
-			ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())
+			cpi.metrics.ReportScrapeProviderShortLivedCompleted(p, start)
 
 		}(ctxWithFields, provider, infoer)
 	}
@@ -341,7 +344,7 @@ func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 	for region, ap := range allPrices {
 		for instType, p := range ap {
 			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
-			OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
+			metrics.OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
 		}
 	}
 	log.Info("finished to initialize product information")
@@ -467,7 +470,7 @@ func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, re
 
 	for _, vm := range values {
 		if vm.OnDemandPrice > 0 {
-			OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
+			metrics.OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
 		}
 	}
 	cpi.vmAttrStore.Set(cpi.getVmKey(provider, service, regionId), values, cpi.renewalInterval)
