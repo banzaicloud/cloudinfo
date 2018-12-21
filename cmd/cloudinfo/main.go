@@ -53,7 +53,7 @@ import (
 
 // bindFlags binds parsed flags into viper
 func bindFlags() {
-	flag.Parse()
+	pflag.Parse()
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		panic(fmt.Errorf("could not parse flags. error: %s", err))
 	}
