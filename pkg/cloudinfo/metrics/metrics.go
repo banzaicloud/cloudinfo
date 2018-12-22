@@ -145,7 +145,7 @@ func (ms *DefaultMetricsReporter) ReportScrapeShortLivedFailure(provider, region
 }
 
 // NewMetricsSource assembles a Reporter with custom collectors
-func NewMetricsSource() Reporter {
+func NewDefaultMetricsReporter() Reporter {
 
 	dms := &DefaultMetricsReporter{}
 	dms.addCollector(scrapeCompleteDurationGauge)
@@ -222,4 +222,26 @@ var googleSpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 
 func ReportGoogleSpotPrice(region, zone, instanceType string, price float64) {
 	googleSpotPriceGauge.WithLabelValues(region, zone, instanceType).Set(price)
+}
+
+type noOpReporter struct {
+}
+
+func (nor *noOpReporter) ReportScrapeProviderCompleted(provider string, startTime time.Time) {}
+
+func (nor *noOpReporter) ReportScrapeRegionCompleted(provider, service, region string, startTime time.Time) {
+}
+
+func (nor *noOpReporter) ReportScrapeFailure(provider, service, region string) {}
+
+func (nor *noOpReporter) ReportScrapeProviderShortLivedCompleted(provider string, startTime time.Time) {
+}
+
+func (nor *noOpReporter) ReportScrapeRegionShortLivedCompleted(provider, region string, startTime time.Time) {
+}
+
+func (nor *noOpReporter) ReportScrapeShortLivedFailure(provider, region string) {}
+
+func NewNoOpMetricsReporter() Reporter {
+	return &noOpReporter{}
 }

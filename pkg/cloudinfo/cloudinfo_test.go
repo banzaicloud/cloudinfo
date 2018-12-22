@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 )
@@ -246,7 +247,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer))
+			test.checker(NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter()))
 		})
 	}
 
@@ -300,7 +301,7 @@ func TestCachingCloudInfo_renewVms(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, test.Cache, test.CloudInfoer)
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, test.Cache, test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			values, err := cloudInfo.renewVms(context.Background(), "dummy", "dummyService", "dummyRegion")
 			test.checker(test.Cache, values, err)
 		})
@@ -363,7 +364,7 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(cloudInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
 		})
 	}
@@ -402,7 +403,7 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			values, err := cloudInfo.GetZones(context.Background(), "dummy", "dummyRegion")
 			test.checker(cloudInfo, values, err)
 		})
@@ -438,7 +439,7 @@ func TestCachingCloudInfo_Initialize(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(cloudInfo.Initialize(context.Background(), "dummy"))
 		})
 	}
@@ -473,7 +474,7 @@ func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(info.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
@@ -537,7 +538,7 @@ func TestCachingCloudInfo_GetPrice(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			values, value, err := info.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
 			test.checker(values, value, err)
 		})
@@ -574,7 +575,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer)
+			info, _ := NewCachingCloudInfo(10*time.Second, cache.New(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(info.GetRegions(context.Background(), "dummy", "compute"))
 		})
 	}
@@ -629,7 +630,7 @@ func TestCachingCloudInfo_GetProductDetails(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, test.cache, test.CloudInfoer)
+			info, _ := NewCachingCloudInfo(10*time.Second, test.cache, test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(info.GetProductDetails(context.Background(), "dummy", "dummyService", "dummyRegion"))
 		})
 	}

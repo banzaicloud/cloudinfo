@@ -83,7 +83,7 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new CachingCloudInfo instance
-func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[string]CloudInfoer) (*CachingCloudInfo, error) {
+func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[string]CloudInfoer, reporter metrics.Reporter) (*CachingCloudInfo, error) {
 	if infoers == nil || cache == nil {
 		return nil, errors.New("could not create product infoer")
 	}
@@ -92,7 +92,7 @@ func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[stri
 		cloudInfoers:    infoers,
 		vmAttrStore:     cache,
 		renewalInterval: ri,
-		metrics:         metrics.NewMetricsSource(),
+		metrics:         reporter,
 	}
 	return &pi, nil
 }
