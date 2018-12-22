@@ -30,7 +30,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
@@ -40,129 +39,37 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
-	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
-	"github.com/prometheus/client_golang/prometheus"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
-const (
-	// the list of flags supported by the application
-	// these constants can be used to retrieve the passed in values or defaults via viper
-	logLevelFlag               = "log-level"
-	logFormatFlag              = "log-format"
-	listenAddressFlag          = "listen-address"
-	prodInfRenewalIntervalFlag = "product-info-renewal-interval"
-	prometheusAddressFlag      = "prometheus-address"
-	prometheusQueryFlag        = "prometheus-query"
-	providerFlag               = "provider"
-	helpFlag                   = "help"
-	metricsEnabledFlag         = "metrics-enabled"
-	metricsAddressFlag         = "metrics-address"
+func main() {
 
-	//temporary flags
-	gceApiKeyFlag          = "gce-api-key"
-	gceApplicationCred     = "google-application-credentials"
-	azureAuthLocation      = "azure-auth-location"
-	alibabaRegionId        = "alibaba-region-id"
-	alibabaAccessKeyId     = "alibaba-access-key-id"
-	alibabaAccessKeySecret = "alibaba-access-key-secret"
-	alibabaPriceInfoUrl    = "alibaba-price-info-url"
-	oracleConfigLocation   = "oracle-cli-config-location"
+	// read configuration (commandline, env etc)
+	Configure(viper.GetViper(), pflag.CommandLine)
 
-	// Google is the identifier of the Google Cloud Engine provider
-	Google = "google"
-	// Amazon is the identifier of the Amazon provider
-	Amazon = "amazon"
-	// Azure is the identifier of the MS Azure provider
-	Azure = "azure"
-	// Oracle is the identifier of the Oracle Cloud Infrastructure provider
-	Oracle = "oracle"
-	// Alibaba is the identifier of the Alibaba Cloud provider
-	Alibaba = "alibaba"
-)
-
-// defineFlags defines supported flags and makes them available for viper
-func defineFlags() {
-	flag.String(logLevelFlag, "info", "log level")
-	flag.String(logFormatFlag, "", "log format")
-	flag.String(listenAddressFlag, ":9090", "the address the cloudinfo app listens to HTTP requests.")
-	flag.Duration(prodInfRenewalIntervalFlag, 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
-	flag.String(prometheusAddressFlag, "", "http address of a Prometheus instance that has AWS spot "+
-		"price metrics via banzaicloud/spot-price-exporter. If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.")
-	flag.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
-		"advanced configuration: change the query used to query spot price info from Prometheus.")
-	flag.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
-	flag.String(gceApplicationCred, "", "google application credentials location")
-	flag.StringSlice(providerFlag, []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the cloudinfo application.")
-	flag.Bool(helpFlag, false, "print usage")
-	flag.Bool(metricsEnabledFlag, false, "internal metrics are exposed if enabled")
-	flag.String(metricsAddressFlag, ":9900", "the address where internal metrics are exposed")
-	flag.String(azureAuthLocation, "", "azure authentication file location")
-	flag.String(alibabaRegionId, "", "alibaba region id")
-	flag.String(alibabaAccessKeyId, "", "alibaba access key id")
-	flag.String(alibabaAccessKeySecret, "", "alibaba access key secret")
-	flag.String(oracleConfigLocation, "", "oracle config file location")
-	flag.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.8/price/download/instancePrice.json", "Alibaba get price info from this file")
-}
-
-// bindFlags binds parsed flags into viper
-func bindFlags() {
-	flag.Parse()
-	if err := viper.BindPFlags(flag.CommandLine); err != nil {
-		panic(fmt.Errorf("could not parse flags. error: %s", err))
+	if viper.GetBool(helpFlag) {
+		pflag.Usage()
+		return
 	}
-
-}
-
-func init() {
-
-	// describe the flags for the application
-	defineFlags()
-
-	// all the flags should be referenced through viper after this call
-	// flags are available through the entire application via viper
-	bindFlags()
-
-	// Viper check for an environment variable
-	viper.AutomaticEnv()
-	replacer := strings.NewReplacer("-", "_")
-	viper.SetEnvKeyReplacer(replacer)
 
 	// initialize the logging framework
 	logger.InitLogger(viper.GetString(logLevelFlag), viper.GetString(logFormatFlag))
-
-	// register prometheus custom metrics
-	prometheus.MustRegister(cloudinfo.ScrapeCompleteDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeRegionDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeFailuresTotalCounter)
-	prometheus.MustRegister(cloudinfo.ScrapeShortLivedCompleteDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeShortLivedRegionDurationGauge)
-	prometheus.MustRegister(cloudinfo.ScrapeShortLivedFailuresTotalCounter)
-}
-
-func main() {
-
-	if viper.GetBool(helpFlag) {
-		flag.Usage()
-		return
-	}
 
 	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", "cloudinfo").Build())
 
 	logger.Extract(ctx).WithField("version", Version).WithField("commit_hash", CommitHash).WithField("build_date", BuildDate).Info("cloudinfo initialization")
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
-		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx))
+		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx), metrics.NewDefaultMetricsReporter())
 	quitOnError(ctx, "error encountered", err)
 
 	go prodInfo.Start(ctx)
-
-	quitOnError(ctx, "error encountered", err)
 
 	// configure the gin validator
 	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
@@ -176,20 +83,11 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
-		reg := prometheus.NewRegistry()
-		reg.MustRegister(cloudinfo.OnDemandPriceGauge, google.SpotPriceGauge, azure.SpotPriceGauge)
-		spotReg := prometheus.NewRegistry()
-		spotReg.MustRegister(amazon.SpotPriceGauge, alibaba.SpotPriceGauge)
-		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
-		p.SetListenAddress(viper.GetString(metricsAddressFlag))
-		p.Use(router, "metrics")
-		p.UseWithCustomMetrics(router, prometheus.Gatherers{reg}, "/metrics/price")
-		p.UseWithCustomMetrics(router, prometheus.Gatherers{spotReg}, "/metrics/spotprice")
+		routeHandler.EnableMetrics(ctx, router, viper.GetString(metricsAddressFlag))
 	}
 
-	logger.Extract(ctx).Info("Initialized gin router")
 	routeHandler.ConfigureRoutes(ctx, router)
-	logger.Extract(ctx).Info("Configured routes")
+
 	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
 		panic(fmt.Errorf("could not run router. error: %s", err))
 	}
@@ -205,7 +103,10 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 
 		switch p {
 		case Amazon:
-			infoer, err = amazon.NewEc2Infoer(pctx, viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
+			infoer, err = amazon.NewEc2Infoer(
+				pctx,
+				viper.GetString(prometheusAddressFlag),
+				viper.GetString(prometheusQueryFlag))
 		case Google:
 			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
 		case Azure:
@@ -213,7 +114,10 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 		case Oracle:
 			infoer, err = oracle.NewInfoer(viper.GetString(oracleConfigLocation))
 		case Alibaba:
-			infoer, err = alibaba.NewAlibabaInfoer(viper.GetString(alibabaRegionId), viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret))
+			infoer, err = alibaba.NewAlibabaInfoer(
+				viper.GetString(alibabaRegionId),
+				viper.GetString(alibabaAccessKeyId),
+				viper.GetString(alibabaAccessKeySecret))
 		default:
 			logger.Extract(pctx).Fatal("provider is not supported")
 		}
@@ -229,7 +133,7 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 func quitOnError(ctx context.Context, msg string, err error) {
 	if err != nil {
 		logger.Extract(ctx).WithError(err).Error(msg)
-		flag.Usage()
+		pflag.Usage()
 		os.Exit(-1)
 	}
 }

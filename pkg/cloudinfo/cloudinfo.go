@@ -24,9 +24,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // CachingCloudInfo is the module struct, holds configuration and cache
@@ -36,6 +35,7 @@ type CachingCloudInfo struct {
 	cloudInfoers    map[string]CloudInfoer
 	renewalInterval time.Duration
 	vmAttrStore     ProductStorer
+	metrics         metrics.Reporter
 }
 
 func (v AttrValues) floatValues() []float64 {
@@ -76,65 +76,6 @@ var (
 	scrapeCounterComplete   uint64
 )
 
-var (
-	// ScrapeCompleteDurationGauge collects metrics for the prometheus
-	ScrapeCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "complete_duration_seconds",
-		Help:      "Cloud provider scrape complete duration in seconds",
-	},
-		[]string{"provider"},
-	)
-	// ScrapeRegionDurationGauge collects metrics for the prometheus
-	ScrapeRegionDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "region_duration_seconds",
-		Help:      "Cloud provider scrape region duration in seconds",
-	},
-		[]string{"provider", "service", "region"},
-	)
-	// ScrapeFailuresTotalCounter collects metrics for the prometheus
-	ScrapeFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "scrape",
-		Name:      "failures_total",
-		Help:      "Total number of scrape failures, partitioned by provider and region",
-	},
-		[]string{"provider", "service", "region"},
-	)
-	// ScrapeShortLivedCompleteDurationGauge collects metrics for the prometheus
-	ScrapeShortLivedCompleteDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "short_lived_complete_duration_seconds",
-		Help:      "Cloud provider short lived scrape complete duration in seconds",
-	},
-		[]string{"provider"},
-	)
-	// ScrapeShortLivedRegionDurationGauge collects metrics for the prometheus
-	ScrapeShortLivedRegionDurationGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "scrape",
-		Name:      "short_lived_region_duration_seconds",
-		Help:      "Cloud provider short lived scrape region duration in seconds",
-	},
-		[]string{"provider", "region"},
-	)
-	// ScrapeShortLivedFailuresTotalCounter collects metrics for the prometheus
-	ScrapeShortLivedFailuresTotalCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "scrape",
-		Name:      "short_lived_failures_total",
-		Help:      "Total number of short lived scrape failures, partitioned by provider and region",
-	},
-		[]string{"provider", "region"},
-	)
-	// OnDemandPriceGauge collects metrics for the prometheus
-	OnDemandPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "cloudinfo",
-		Name:      "on_demand_price",
-		Help:      "On demand price for each instance type",
-	},
-		[]string{"provider", "region", "instanceType"},
-	)
-)
-
 // IsBurst returns true if the EC2 instance vCPU is burst type
 // the decision is made based on the instance type
 func (vm VmInfo) IsBurst() bool {
@@ -142,7 +83,7 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new CachingCloudInfo instance
-func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[string]CloudInfoer) (*CachingCloudInfo, error) {
+func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[string]CloudInfoer, reporter metrics.Reporter) (*CachingCloudInfo, error) {
 	if infoers == nil || cache == nil {
 		return nil, errors.New("could not create product infoer")
 	}
@@ -151,6 +92,7 @@ func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[stri
 		cloudInfoers:    infoers,
 		vmAttrStore:     cache,
 		renewalInterval: ri,
+		metrics:         reporter,
 	}
 	return &pi, nil
 }
@@ -201,14 +143,14 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 
 	log.Info("renewing product info")
 	if _, err := cpi.Initialize(ctx, provider); err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 		log.WithError(err).Error("failed to renew product info")
 		return
 	}
 
 	services, err := pi.GetServices()
 	if err != nil {
-		ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 		log.WithError(err).Error("failed to renew products")
 		return
 	}
@@ -223,7 +165,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		for _, attr := range attributes {
 			_, err := cpi.renewAttrValues(ctxLog, provider, service.ServiceName(), attr)
 			if err != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, "N/A", "N/A").Inc()
+				cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 				logger.Extract(ctxLog).WithError(err).Errorf("failed to renew %s attribute values", attr)
 				return
 			}
@@ -239,7 +181,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 				Build())
 		regions, err := pi.GetRegions(ctx, service.ServiceName())
 		if err != nil {
-			ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), "N/A").Inc()
+			cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), "N/A")
 			logger.Extract(ctxLog).Error("failed to renew products")
 			return
 		}
@@ -253,23 +195,23 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			start := time.Now()
 			_, err := cpi.renewVms(c, provider, service.ServiceName(), regionId)
 			if err != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
 				logger.Extract(c).WithError(err).Error("failed to renew products")
 			}
 			if pi.HasImages() {
 				_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
 				if imgErr != nil {
-					ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+					cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
 					logger.Extract(c).WithError(imgErr).Error("failed to renew images")
 				}
 			}
 			_, versionErr := cpi.renewVersions(c, provider, service.ServiceName(), regionId)
 			if versionErr != nil {
-				ScrapeFailuresTotalCounter.WithLabelValues(provider, service.ServiceName(), regionId).Inc()
+				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
 				logger.Extract(c).WithError(versionErr).Error("failed to renew versions")
 			}
 			if err == nil && versionErr == nil {
-				ScrapeRegionDurationGauge.WithLabelValues(provider, service.ServiceName(), regionId).Set(time.Since(start).Seconds())
+				cpi.metrics.ReportScrapeRegionCompleted(provider, service.ServiceName(), regionId, start)
 			}
 		}
 	}
@@ -279,7 +221,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		log.Errorf("failed to renew status: %s", err)
 		return
 	}
-	ScrapeCompleteDurationGauge.WithLabelValues(provider).Set(time.Since(start).Seconds())
+	cpi.metrics.ReportScrapeProviderCompleted(provider, start)
 }
 
 func (cpi *CachingCloudInfo) renewStatus(provider string) (string, error) {
@@ -327,7 +269,7 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 			regions, err := i.GetRegions(c, "compute")
 			if err != nil {
-				ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, "N/A").Inc()
+				cpi.metrics.ReportScrapeShortLivedFailure(p, "N/A")
 				logger.Extract(c).WithError(err).Error("couldn't renew attribute values in cache")
 				return
 			}
@@ -342,15 +284,15 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 					defer wg.Done()
 					_, err := cpi.renewShortLivedInfo(c, p, r)
 					if err != nil {
-						ScrapeShortLivedFailuresTotalCounter.WithLabelValues(p, r).Inc()
+						cpi.metrics.ReportScrapeShortLivedFailure(p, r)
 						logger.Extract(c).WithError(err).Error("couldn't renew short lived info in cache")
 						return
 					}
-					ScrapeShortLivedRegionDurationGauge.WithLabelValues(p, r).Set(time.Since(start).Seconds())
+					cpi.metrics.ReportScrapeRegionShortLivedCompleted(p, r, start)
 				}(ctx, p, regionId)
 			}
 			wg.Wait()
-			ScrapeShortLivedCompleteDurationGauge.WithLabelValues(p).Set(time.Since(start).Seconds())
+			cpi.metrics.ReportScrapeProviderShortLivedCompleted(p, start)
 
 		}(ctxWithFields, provider, infoer)
 	}
@@ -402,7 +344,7 @@ func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 	for region, ap := range allPrices {
 		for instType, p := range ap {
 			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
-			OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
+			metrics.OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
 		}
 	}
 	log.Info("finished to initialize product information")
@@ -528,7 +470,7 @@ func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, re
 
 	for _, vm := range values {
 		if vm.OnDemandPrice > 0 {
-			OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
+			metrics.OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
 		}
 	}
 	cpi.vmAttrStore.Set(cpi.getVmKey(provider, service, regionId), values, cpi.renewalInterval)

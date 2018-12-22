@@ -315,6 +315,14 @@
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:ac139dab09c6fc5e042ce8210d91c2cec106d9d20f24bdf9dba3874a98d79aa6"
+  name = "github.com/goph/emperror"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "b1b4a9b847ebc56299eb729faa942b89e9d8a562"
+  version = "v0.14.0"
+
+[[projects]]
   branch = "master"
   digest = "1:11c6c696067d3127ecf332b10f89394d386d9083f82baf71f40f2da31841a009"
   name = "github.com/hashicorp/hcl"
@@ -436,6 +444,14 @@
   pruneopts = "NUT"
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -572,6 +588,23 @@
   packages = ["codec"]
   pruneopts = "NUT"
   revision = "0e0d6e869525973a9b36093f6ddc9d91b9fc2d71"
+
+[[projects]]
+  digest = "1:3e71970e4d5275b40ccf34a6ae352747710186a6f2154f0826be347ebc68ddf9"
+  name = "go.opencensus.io"
+  packages = [
+    ".",
+    "exporter/prometheus",
+    "internal",
+    "internal/tagencoding",
+    "stats",
+    "stats/internal",
+    "stats/view",
+    "tag",
+  ]
+  pruneopts = "NUT"
+  revision = "0095aec66ae14801c6711210f6f0716411cefdd3"
+  version = "v0.8.0"
 
 [[projects]]
   branch = "master"
@@ -735,12 +768,14 @@
     "github.com/go-openapi/runtime/client",
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
+    "github.com/goph/emperror",
     "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",
     "github.com/oracle/oci-go-sdk/containerengine",
     "github.com/oracle/oci-go-sdk/core",
     "github.com/oracle/oci-go-sdk/identity",
     "github.com/patrickmn/go-cache",
+    "github.com/pkg/errors",
     "github.com/prometheus/client_golang/api",
     "github.com/prometheus/client_golang/api/prometheus/v1",
     "github.com/prometheus/client_golang/prometheus",
@@ -750,6 +785,8 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
+    "go.opencensus.io",
+    "go.opencensus.io/exporter/prometheus",
     "golang.org/x/net/context",
     "golang.org/x/oauth2/google",
     "google.golang.org/api/cloudbilling/v1",

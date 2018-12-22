@@ -46,7 +46,7 @@ func Test_processFlags(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 			// define flags
-			defineFlags()
+			defineFlags(pflag.CommandLine)
 			// mock the input
 			setupInputs(test.args, nil)
 			test.check(viper.GetString(logLevelFlag))
@@ -87,7 +87,7 @@ func Test_processProviderFlag(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 			// define flags
-			defineFlags()
+			defineFlags(pflag.CommandLine)
 			// mock the input
 			setupInputs(test.args, nil)
 			test.check(viper.GetStringSlice("provider"))
@@ -201,7 +201,7 @@ func Test_configurationStringDefaults(t *testing.T) {
 			// cleaning flags
 			pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 			// define flags
-			defineFlags()
+			defineFlags(pflag.CommandLine)
 			// mock the input
 			setupInputs(test.args, nil)
 

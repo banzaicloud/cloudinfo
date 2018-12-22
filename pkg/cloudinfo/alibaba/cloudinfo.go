@@ -18,26 +18,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
-
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/spf13/viper"
-)
-
-// SpotPriceGauge collects metrics for the prometheus
-var SpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Namespace: "cloudinfo",
-	Name:      "alibaba_spot_price",
-	Help:      "spot price for each instance type",
-},
-	[]string{"region", "zone", "instanceType"},
 )
 
 // OnDemandPrice contains price data from json
@@ -371,7 +361,7 @@ func (e *AlibabaInfoer) GetCurrentPrices(ctx context.Context, region string) (ma
 			OnDemandPrice: -1,
 		}
 		for zone, price := range sp {
-			SpotPriceGauge.WithLabelValues(region, zone, instanceType).Set(price)
+			metrics.ReportAlibabaSpotPrice(region, zone, instanceType, price)
 		}
 	}
 

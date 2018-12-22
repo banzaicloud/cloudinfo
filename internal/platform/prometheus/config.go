@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package prometheus
 
-// Provisioned by ldflags
-// nolint: gochecknoglobals
-var (
-	Version    string
-	CommitHash string
-	BuildDate  string
-)
+// Config holds information for configuring the Prometheus exporter
+type Config struct {
+	Namespace string
+}
+
+// Validate checks that the configuration is valid.
+func (c Config) Validate() error {
+	return nil
+}

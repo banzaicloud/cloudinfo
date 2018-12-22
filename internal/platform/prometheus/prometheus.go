@@ -11,13 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+package prometheus
 
-package main
-
-// Provisioned by ldflags
-// nolint: gochecknoglobals
-var (
-	Version    string
-	CommitHash string
-	BuildDate  string
+import (
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"go.opencensus.io/exporter/prometheus"
 )
+
+// NewExporter creates a new, configured Prometheus exporter.
+func NewExporter(config Config, errorHandler emperror.Handler) (*prometheus.Exporter, error) {
+	exporter, err := prometheus.NewExporter(prometheus.Options{
+		Namespace: config.Namespace,
+		OnError:   errorHandler.Handle,
+	})
+
+	return exporter, errors.Wrap(err, "failed to create prometheus exporter")
+}
