@@ -17,7 +17,7 @@ package main
 const (
 	// It identifies the service itself, the actual instance needs to be identified via environment
 	// and other details.
-	ServiceName = "cloudinfo.service"
+	//ServiceName = "cloudinfo.service"
 
 	// FriendlyServiceName is the visible name of the service.
 	FriendlyServiceName = "Banzai Cloud Cloudinfo Service"

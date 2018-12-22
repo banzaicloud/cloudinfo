@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
@@ -38,15 +38,6 @@ import (
 const (
 	// Cpu represents the cpu attribute for the recommender
 	Cpu = "vcpu"
-)
-
-// SpotPriceGauge collects metrics for the prometheus
-var SpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Namespace: "cloudinfo",
-	Name:      "amazon_spot_price",
-	Help:      "spot price for each instance type",
-},
-	[]string{"region", "zone", "instanceType"},
 )
 
 var (
@@ -488,7 +479,7 @@ func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[st
 			OnDemandPrice: -1,
 		}
 		for zone, price := range sp {
-			SpotPriceGauge.WithLabelValues(region, zone, instanceType).Set(price)
+			metrics.ReportAmazonSpotPrice(region, zone, instanceType, price)
 		}
 	}
 	return prices, nil

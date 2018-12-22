@@ -15,8 +15,9 @@
 package metrics
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
@@ -157,4 +158,68 @@ func NewMetricsSource() Reporter {
 	dms.registerCollectors()
 
 	return dms
+}
+
+func GetPriceGatherers() prometheus.Gatherers {
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(OnDemandPriceGauge, googleSpotPriceGauge, azureSpotPriceGauge)
+	return prometheus.Gatherers{reg}
+}
+
+func GetSpotPriceGatherers() prometheus.Gatherers {
+	spotReg := prometheus.NewRegistry()
+	spotReg.MustRegister(amazonSpotPriceGauge, alibabaSpotPriceGauge)
+	return prometheus.Gatherers{spotReg}
+}
+
+// SpotPriceGauge collects metrics for the prometheus
+var alibabaSpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "cloudinfo",
+	Name:      "alibaba_spot_price",
+	Help:      "spot price for each instance type",
+},
+	[]string{"region", "zone", "instanceType"},
+)
+
+func ReportAlibabaSpotPrice(region, zone, instanceType string, price float64) {
+	alibabaSpotPriceGauge.WithLabelValues(region, zone, instanceType).Set(price)
+}
+
+// SpotPriceGauge collects metrics for the prometheus
+var amazonSpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "cloudinfo",
+	Name:      "amazon_spot_price",
+	Help:      "spot price for each instance type",
+},
+	[]string{"region", "zone", "instanceType"},
+)
+
+func ReportAmazonSpotPrice(region, zone, instanceType string, price float64) {
+	amazonSpotPriceGauge.WithLabelValues(region, zone, instanceType).Set(price)
+}
+
+// SpotPriceGauge collects metrics for the prometheus
+var azureSpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "cloudinfo",
+	Name:      "azure_spot_price",
+	Help:      "spot price for each instance type",
+},
+	[]string{"region", "instanceType"},
+)
+
+func ReportAzureSpotPrice(region, instanceType string, price float64) {
+	azureSpotPriceGauge.WithLabelValues(region, instanceType).Set(price)
+}
+
+// SpotPriceGauge collects metrics for the prometheus
+var googleSpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: "cloudinfo",
+	Name:      "google_spot_price",
+	Help:      "spot price for each instance type",
+},
+	[]string{"region", "zone", "instanceType"},
+)
+
+func ReportGoogleSpotPrice(region, zone, instanceType string, price float64) {
+	googleSpotPriceGauge.WithLabelValues(region, zone, instanceType).Set(price)
 }

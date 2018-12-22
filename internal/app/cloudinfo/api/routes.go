@@ -20,9 +20,10 @@ import (
 	"os"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -104,4 +105,13 @@ func (r *RouteHandler) signalStatus(c *gin.Context) {
 
 func (r *RouteHandler) versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, r.buildInfo)
+}
+
+func (r *RouteHandler) EnableMetrics(ctx context.Context, router *gin.Engine, metricsAddr string) {
+	p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
+	p.SetListenAddress(metricsAddr)
+	p.Use(router, "metrics")
+	p.UseWithCustomMetrics(router, metrics.GetPriceGatherers(), "/metrics/price")
+	p.UseWithCustomMetrics(router, metrics.GetSpotPriceGatherers(), "/metrics/spotprice")
+
 }

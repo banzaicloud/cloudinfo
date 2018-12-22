@@ -17,29 +17,19 @@ package google
 import (
 	"context"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
 
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"golang.org/x/oauth2/google"
 	billing "google.golang.org/api/cloudbilling/v1"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi/transport"
-)
-
-// SpotPriceGauge collects metrics for the prometheus
-var SpotPriceGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-	Namespace: "cloudinfo",
-	Name:      "google_spot_price",
-	Help:      "spot price for each instance type",
-},
-	[]string{"region", "zone", "instanceType"},
 )
 
 var regionNames = map[string]string{
@@ -172,11 +162,13 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloud
 						for _, z := range zonesInRegions[region] {
 							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
 								spotPrice[z] = price[mt.Name]["Preemptible"]
-								SpotPriceGauge.WithLabelValues(region, z, mt.Name).Set(spotPrice[z])
+								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+
 							} else {
 								spotPrice[z] = price[cloudinfo.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
-								SpotPriceGauge.WithLabelValues(region, z, mt.Name).Set(spotPrice[z])
 							}
+
+							metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
 						}
 						prices.SpotPrice = spotPrice
 

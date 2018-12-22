@@ -39,19 +39,17 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
-	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func main() {
 
+	// read configuration (commandline, env etc)
 	Configure(viper.GetViper(), pflag.CommandLine)
 
 	if viper.GetBool(helpFlag) {
@@ -72,8 +70,6 @@ func main() {
 
 	go prodInfo.Start(ctx)
 
-	quitOnError(ctx, "error encountered", err)
-
 	// configure the gin validator
 	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
 	quitOnError(ctx, "error encountered", err)
@@ -86,18 +82,7 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
-
-		reg := prometheus.NewRegistry()
-		reg.MustRegister(metrics.OnDemandPriceGauge, google.SpotPriceGauge, azure.SpotPriceGauge)
-
-		spotReg := prometheus.NewRegistry()
-		spotReg.MustRegister(amazon.SpotPriceGauge, alibaba.SpotPriceGauge)
-
-		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
-		p.SetListenAddress(viper.GetString(metricsAddressFlag))
-		p.Use(router, "metrics")
-		p.UseWithCustomMetrics(router, prometheus.Gatherers{reg}, "/metrics/price")
-		p.UseWithCustomMetrics(router, prometheus.Gatherers{spotReg}, "/metrics/spotprice")
+		routeHandler.EnableMetrics(ctx, router, viper.GetString(metricsAddressFlag))
 	}
 
 	routeHandler.ConfigureRoutes(ctx, router)
