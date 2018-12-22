@@ -105,8 +105,8 @@ type DefaultMetricsReporter struct {
 	Collectors []*prometheus.Collector
 }
 
-// Register registers collectors held by this metrics source
-func (ms *DefaultMetricsReporter) RegisterCollectors() {
+// registerCollectors registers collectors held by this metrics source
+func (ms *DefaultMetricsReporter) registerCollectors() {
 	for _, collector := range ms.Collectors {
 		prometheus.MustRegister(*collector)
 	}
@@ -153,10 +153,8 @@ func NewMetricsSource() Reporter {
 	dms.addCollector(scrapeShortLivedCompleteDurationGauge)
 	dms.addCollector(scrapeShortLivedRegionDurationGauge)
 	dms.addCollector(scrapeShortLivedFailuresTotalCounter)
-	dms.addCollector(OnDemandPriceGauge)
 
-	// todo should this be called outside of this method?
-	dms.RegisterCollectors()
+	dms.registerCollectors()
 
 	return dms
 }

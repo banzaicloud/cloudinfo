@@ -28,7 +28,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -51,23 +50,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-// bindFlags binds parsed flags into viper
-func bindFlags() {
-	pflag.Parse()
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		panic(fmt.Errorf("could not parse flags. error: %s", err))
-	}
-
-}
-
 func main() {
 
 	Configure(viper.GetViper(), pflag.CommandLine)
 
-	bindFlags()
-
 	if viper.GetBool(helpFlag) {
-		flag.Usage()
+		pflag.Usage()
 		return
 	}
 
@@ -98,11 +86,13 @@ func main() {
 
 	// add prometheus metric endpoint
 	if viper.GetBool(metricsEnabledFlag) {
-		// todo revisit this
+
 		reg := prometheus.NewRegistry()
 		reg.MustRegister(metrics.OnDemandPriceGauge, google.SpotPriceGauge, azure.SpotPriceGauge)
+
 		spotReg := prometheus.NewRegistry()
 		spotReg.MustRegister(amazon.SpotPriceGauge, alibaba.SpotPriceGauge)
+
 		p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 		p.SetListenAddress(viper.GetString(metricsAddressFlag))
 		p.Use(router, "metrics")
@@ -110,9 +100,8 @@ func main() {
 		p.UseWithCustomMetrics(router, prometheus.Gatherers{spotReg}, "/metrics/spotprice")
 	}
 
-	logger.Extract(ctx).Info("Initialized gin router")
 	routeHandler.ConfigureRoutes(ctx, router)
-	logger.Extract(ctx).Info("Configured routes")
+
 	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
 		panic(fmt.Errorf("could not run router. error: %s", err))
 	}
@@ -128,7 +117,10 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 
 		switch p {
 		case Amazon:
-			infoer, err = amazon.NewEc2Infoer(pctx, viper.GetString(prometheusAddressFlag), viper.GetString(prometheusQueryFlag))
+			infoer, err = amazon.NewEc2Infoer(
+				pctx,
+				viper.GetString(prometheusAddressFlag),
+				viper.GetString(prometheusQueryFlag))
 		case Google:
 			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
 		case Azure:
@@ -136,7 +128,10 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 		case Oracle:
 			infoer, err = oracle.NewInfoer(viper.GetString(oracleConfigLocation))
 		case Alibaba:
-			infoer, err = alibaba.NewAlibabaInfoer(viper.GetString(alibabaRegionId), viper.GetString(alibabaAccessKeyId), viper.GetString(alibabaAccessKeySecret))
+			infoer, err = alibaba.NewAlibabaInfoer(
+				viper.GetString(alibabaRegionId),
+				viper.GetString(alibabaAccessKeyId),
+				viper.GetString(alibabaAccessKeySecret))
 		default:
 			logger.Extract(pctx).Fatal("provider is not supported")
 		}
@@ -152,7 +147,7 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 func quitOnError(ctx context.Context, msg string, err error) {
 	if err != nil {
 		logger.Extract(ctx).WithError(err).Error(msg)
-		flag.Usage()
+		pflag.Usage()
 		os.Exit(-1)
 	}
 }

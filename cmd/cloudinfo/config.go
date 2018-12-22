@@ -16,6 +16,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/banzaicloud/cloudinfo/internal/platform/prometheus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -120,6 +121,17 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
+	pf.Init(FriendlyServiceName, pflag.ExitOnError)
+
 	// define flags
 	defineFlags(pf)
+
+	// parse the command line
+	pflag.Parse()
+
+	// bind flags to viper
+	if err := viper.BindPFlags(pf); err != nil {
+		panic(fmt.Errorf("could not parse flags. error: %s", err))
+	}
+
 }
