@@ -17,6 +17,8 @@ package cloudinfo
 import (
 	"context"
 	"time"
+
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
 
 const (
@@ -293,4 +295,44 @@ type Version struct {
 // VersionName returns the name of the version
 func (v Version) VersionName() string {
 	return v.Version
+}
+
+// ScraperFunc function type for executing scraping logic
+type ScraperFunc func(c context.Context)
+
+// Scraper contract for scraping functionality
+type Scraper interface {
+	Scrape(ctx context.Context, sf ScraperFunc) error
+}
+
+// PeriodicScraper Scraper that periodically executes the passed in scraper function
+type PeriodicScraper struct {
+	interval time.Duration
+}
+
+// Scrape perioodically executes the scraping function in separate goroutines
+func (ps *PeriodicScraper) Scrape(ctx context.Context, sf ScraperFunc) error {
+	go sf(ctx)
+
+	ticker := time.NewTicker(ps.interval)
+
+	go func(c context.Context) {
+		for {
+			select {
+			case <-ticker.C:
+				sf(c)
+			case <-c.Done():
+				logger.Extract(c).Debug("closing ticker")
+				ticker.Stop()
+				return
+			}
+		}
+	}(ctx)
+
+	return nil
+}
+
+// NewPeriodicScraper creates a new Scraper witg the given time period
+func NewPeriodicScraper(period time.Duration) Scraper {
+	return &PeriodicScraper{interval: period}
 }
