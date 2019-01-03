@@ -24,6 +24,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
@@ -303,32 +305,18 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 // Start starts the information retrieval in a new goroutine
 func (cpi *CachingCloudInfo) Start(ctx context.Context) {
 
-	go cpi.renewAll(ctx)
-	ticker := time.NewTicker(cpi.renewalInterval)
-	go func(c context.Context) {
-		for {
-			select {
-			case <-ticker.C:
-				cpi.renewAll(c)
-			case <-c.Done():
-				logger.Extract(c).Debug("closing ticker")
-				ticker.Stop()
-				return
-			}
-		}
-	}(ctx)
-	go cpi.renewShortLived(ctx)
-	shortTicker := time.NewTicker(4 * time.Minute)
-	for {
-		select {
-		case <-shortTicker.C:
-			cpi.renewShortLived(ctx)
-		case <-ctx.Done():
-			logger.Extract(ctx).Debug("closing ticker")
-			shortTicker.Stop()
-			return
-		}
+	// start scraping providers for vm information
+	if err := NewPeriodicScraper(cpi.renewalInterval).Scrape(ctx, cpi.renewAll); err != nil {
+		logrus.Info("failed to scrape for vm information")
+		return
 	}
+
+	// start scraping providers for pricing information
+	if err := NewPeriodicScraper(4 * time.Minute).Scrape(ctx, cpi.renewShortLived); err != nil {
+		logrus.Info("failed to scrape for pricing information")
+		return
+	}
+
 }
 
 // Initialize stores the result of the Infoer's Initialize output in cache
