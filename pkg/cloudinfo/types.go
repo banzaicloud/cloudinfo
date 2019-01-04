@@ -17,8 +17,6 @@ package cloudinfo
 import (
 	"context"
 	"time"
-
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
 
 const (
@@ -295,44 +293,4 @@ type Version struct {
 // VersionName returns the name of the version
 func (v Version) VersionName() string {
 	return v.Version
-}
-
-// TaskFn function type for executing task logic
-type TaskFn func(c context.Context)
-
-// Executor
-type Executor interface {
-	Execute(ctx context.Context, sf TaskFn) error
-}
-
-// PeriodicExecutor Executor that periodically executes the passed in scraper function
-type PeriodicExecutor struct {
-	interval time.Duration
-}
-
-// Execute perioodically executes the scraping function in separate goroutines
-func (ps *PeriodicExecutor) Execute(ctx context.Context, sf TaskFn) error {
-	go sf(ctx)
-
-	ticker := time.NewTicker(ps.interval)
-
-	go func(c context.Context) {
-		for {
-			select {
-			case <-ticker.C:
-				sf(c)
-			case <-c.Done():
-				logger.Extract(c).Debug("stopping periodic execution")
-				ticker.Stop()
-				return
-			}
-		}
-	}(ctx)
-
-	return nil
-}
-
-// NewPeriodicExecutor creates a new Executor witg the given time period
-func NewPeriodicExecutor(period time.Duration) Executor {
-	return &PeriodicExecutor{interval: period}
 }
