@@ -73,11 +73,6 @@ jobs:
           command: make test
           when: always
 
-      - run:
-          name: Generate test reports
-          command: make junit-report
-          when: always
-
       - save_cache:
           name: Save build dependencies
           key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
