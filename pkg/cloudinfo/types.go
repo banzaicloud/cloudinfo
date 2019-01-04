@@ -297,21 +297,21 @@ func (v Version) VersionName() string {
 	return v.Version
 }
 
-// ScraperFunc function type for executing scraping logic
-type ScraperFunc func(c context.Context)
+// TaskFn function type for executing task logic
+type TaskFn func(c context.Context)
 
-// Scraper contract for scraping functionality
-type Scraper interface {
-	Scrape(ctx context.Context, sf ScraperFunc) error
+// Executor
+type Executor interface {
+	Execute(ctx context.Context, sf TaskFn) error
 }
 
-// PeriodicScraper Scraper that periodically executes the passed in scraper function
-type PeriodicScraper struct {
+// PeriodicExecutor Executor that periodically executes the passed in scraper function
+type PeriodicExecutor struct {
 	interval time.Duration
 }
 
-// Scrape perioodically executes the scraping function in separate goroutines
-func (ps *PeriodicScraper) Scrape(ctx context.Context, sf ScraperFunc) error {
+// Execute perioodically executes the scraping function in separate goroutines
+func (ps *PeriodicExecutor) Execute(ctx context.Context, sf TaskFn) error {
 	go sf(ctx)
 
 	ticker := time.NewTicker(ps.interval)
@@ -322,7 +322,7 @@ func (ps *PeriodicScraper) Scrape(ctx context.Context, sf ScraperFunc) error {
 			case <-ticker.C:
 				sf(c)
 			case <-c.Done():
-				logger.Extract(c).Debug("closing ticker")
+				logger.Extract(c).Debug("stopping periodic execution")
 				ticker.Stop()
 				return
 			}
@@ -332,7 +332,7 @@ func (ps *PeriodicScraper) Scrape(ctx context.Context, sf ScraperFunc) error {
 	return nil
 }
 
-// NewPeriodicScraper creates a new Scraper witg the given time period
-func NewPeriodicScraper(period time.Duration) Scraper {
-	return &PeriodicScraper{interval: period}
+// NewPeriodicExecutor creates a new Executor witg the given time period
+func NewPeriodicExecutor(period time.Duration) Executor {
+	return &PeriodicExecutor{interval: period}
 }

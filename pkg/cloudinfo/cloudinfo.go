@@ -24,8 +24,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
@@ -306,14 +304,14 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 func (cpi *CachingCloudInfo) Start(ctx context.Context) {
 
 	// start scraping providers for vm information
-	if err := NewPeriodicScraper(cpi.renewalInterval).Scrape(ctx, cpi.renewAll); err != nil {
-		logrus.Info("failed to scrape for vm information")
+	if err := NewPeriodicExecutor(cpi.renewalInterval).Execute(ctx, cpi.renewAll); err != nil {
+		logger.Extract(ctx).Info("failed to scrape for vm information")
 		return
 	}
 
 	// start scraping providers for pricing information
-	if err := NewPeriodicScraper(4 * time.Minute).Scrape(ctx, cpi.renewShortLived); err != nil {
-		logrus.Info("failed to scrape for pricing information")
+	if err := NewPeriodicExecutor(4 * time.Minute).Execute(ctx, cpi.renewShortLived); err != nil {
+		logger.Extract(ctx).Info("failed to scrape for pricing information")
 		return
 	}
 
