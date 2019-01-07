@@ -45,18 +45,6 @@ func NewRouteHandler(p *cloudinfo.CachingCloudInfo, bi buildinfo.BuildInfo) *Rou
 	}
 }
 
-func getCorsConfig() cors.Config {
-	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
-	if !config.AllowAllOrigins {
-		config.AllowOrigins = []string{"http://", "https://"}
-	}
-	config.AllowMethods = []string{http.MethodPut, http.MethodDelete, http.MethodGet, http.MethodPost, http.MethodOptions}
-
-	config.MaxAge = 12
-	return config
-}
-
 // ConfigureRoutes configures the gin engine, defines the rest API for this application
 func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) {
 	logger.Extract(ctx).Info("configuring routes")
@@ -70,7 +58,7 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 
 	router.Use(logger.MiddlewareCorrelationId())
 	router.Use(logger.Middleware())
-	router.Use(cors.New(getCorsConfig()))
+	router.Use(cors.Default())
 	router.Use(static.Serve(basePath, static.LocalFile("./web/dist/ui", true)))
 
 	base := router.Group(basePath)
