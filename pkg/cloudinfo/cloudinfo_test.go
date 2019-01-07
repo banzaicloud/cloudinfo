@@ -386,7 +386,7 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 				assert.Nil(t, err, "the error should be nil")
 
 				// get the values from the cache
-				cachedZones, _ := cpi.vmAttrStore.Get(cpi.getZonesKey("dummy", "dummyRegion"))
+				cachedZones, _ := cpi.cloudInfoStore.Get(cpi.getZonesKey("dummy", "dummyRegion"))
 				assert.EqualValues(t, []string{"dummyZone1", "dummyZone2"}, cachedZones, "zones not cached")
 			},
 		},

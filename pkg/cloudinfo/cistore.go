@@ -52,25 +52,109 @@ type ProductStorer interface {
 	Set(k string, x interface{}, d time.Duration)
 }
 
-type CacheKeyProvider interface {
-	getZonesKey(provider string, region string) string
+// Storage operations for cloud information
+type CloudInfoStore interface {
+	StoreRegion(provider, service string, val interface{})
+	GetRegion(provider, service string) (interface{}, bool)
 
+	StoreZone(provider string, region string, val interface{})
+	GetZone(provider string, region string) (interface{}, bool)
+
+	StorePrice(provider string, region string, instanceType string, val interface{})
+	GetPrice(provider string, region string, instanceType string) (interface{}, bool)
+
+	StoreAttribute(provider, service, attribute string, val interface{})
+	GetAttribute(provider, service, attribute string) (interface{}, bool)
+
+	StoreVm(provider, service, region string, val interface{})
+	GetVm(provider, service, region string) (interface{}, bool)
+
+	StoreImage(provider, service, regionId string, val interface{})
+	GetImage(provider, service, regionId string) (interface{}, bool)
+
+	StoreVersion(provider, service, region string, val interface{})
+	GetVersion(provider, service, region string) (interface{}, bool)
+
+	StoreStatus(provider string, val interface{})
+	GetStatus(provider string) (interface{}, bool)
 }
 
-// CacheProductStorer in memory cloud product information storer
-type CacheProductStorer struct {
+// CacheProductStore in memory cloud product information storer
+type CacheProductStore struct {
 	*cache.Cache
 }
 
-// NewCacheProductStorer creates a new ProductStorer instance backef by in memory cache imlementation
-func NewCacheProductStorer(cleanupInterval time.Duration) ProductStorer {
-	return CacheProductStorer{
+func (cis *CacheProductStore) StoreRegion(provider, service string, val interface{}) {
+	cis.Set(cis.getKey(RegionKeyTemplate, provider, service), val, 0)
+}
+
+func (cis *CacheProductStore) GetRegion(provider, service string) (interface{}, bool) {
+	return cis.Get(cis.getKey(RegionKeyTemplate, provider, service))
+}
+
+func (cis *CacheProductStore) StoreZone(provider string, region string, val interface{}) {
+	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, 0)
+}
+
+func (cis *CacheProductStore) GetZone(provider string, region string) (interface{}, bool) {
+	return cis.Get(cis.getKey(ZoneKeyTemplate))
+}
+
+func (cis *CacheProductStore) StorePrice(provider string, region string, instanceType string, val interface{}) {
+	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, 0)
+}
+
+func (cis *CacheProductStore) GetPrice(provider string, region string, instanceType string) (interface{}, bool) {
+	return cis.Get(cis.getKey(PriceKeyTemplate))
+}
+
+func (cis *CacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
+	cis.Set(cis.getKey(AttrKeyTemplate, provider, service, attribute), val, 0)
+}
+
+func (cis *CacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
+	return cis.Get(cis.getKey(AttrKeyTemplate))
+}
+
+func (cis *CacheProductStore) StoreVm(provider, service, region string, val interface{}) {
+	cis.Set(cis.getKey(VmKeyTemplate, provider, service, region), val, 0)
+}
+
+func (cis *CacheProductStore) GetVm(provider, service, region string) (interface{}, bool) {
+	return cis.Get(cis.getKey(VmKeyTemplate))
+}
+
+func (cis *CacheProductStore) StoreImage(provider, service, regionId string, val interface{}) {
+	cis.Set(cis.getKey(ImageKeyTemplate, provider, service, regionId), val, 0)
+}
+
+func (cis *CacheProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
+	return cis.Get(cis.getKey(ImageKeyTemplate))
+}
+
+func (cis *CacheProductStore) StoreVersion(provider, service, region string, val interface{}) {
+	cis.Set(cis.getKey(VersionKeyTemplate, provider, service, region), val, 0)
+}
+
+func (cis *CacheProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
+	return cis.Get(cis.getKey(VersionKeyTemplate))
+}
+
+func (cis *CacheProductStore) StoreStatus(provider string, val interface{}) {
+	cis.Set(cis.getKey(StatusKeyTemplate, provider), val, 0)
+}
+
+func (cis *CacheProductStore) GetStatus(provider string) (interface{}, bool) {
+	return cis.Get(cis.getKey(StatusKeyTemplate))
+}
+
+// todo default expiration!!!
+func NewCacheProductStorer(cleanupInterval time.Duration) CloudInfoStore {
+	return &CacheProductStore{
 		cache.New(cache.NoExpiration, cleanupInterval),
 	}
 }
 
-
-func (cpi *CacheProductStorer) getZonesKey(provider string, region string) string {
-	return fmt.Sprintf(ZoneKeyTemplate, provider, region)
+func (cis *CacheProductStore) getKey(keyTemplate string, args ... string) string {
+	return fmt.Sprintf(keyTemplate, args)
 }
-
