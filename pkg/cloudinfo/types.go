@@ -16,7 +16,6 @@ package cloudinfo
 
 import (
 	"context"
-	"time"
 )
 
 const (
@@ -25,30 +24,6 @@ const (
 
 	// Cpu represents the cpu attribute for the product info
 	Cpu = "cpu"
-
-	// VmKeyTemplate format for generating vm cache keys
-	VmKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/vms"
-
-	// AttrKeyTemplate format for generating attribute cache keys
-	AttrKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/attrValues/%s"
-
-	// PriceKeyTemplate format for generating price cache keys
-	PriceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
-
-	// ZoneKeyTemplate format for generating zone cache keys
-	ZoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/zones/"
-
-	// RegionKeyTemplate format for generating region cache keys
-	RegionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/"
-
-	// StatusKeyTemplate format for generating status cache keys
-	StatusKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/status/"
-
-	// ImageKeyTemplate format for generating image cache keys
-	ImageKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/images"
-
-	// VersionKeyTemplate format for generating kubernetes version cache keys
-	VersionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
 )
 
 // CloudInfo is the main entry point for retrieving vm type characteristics and pricing information on different cloud providers
@@ -113,12 +88,6 @@ var (
 type NetworkPerfMapper interface {
 	// MapNetworkPerf gets the network performance category for the given
 	MapNetworkPerf(ntwPerf string) (string, error)
-}
-
-// ProductStorer interface collects the necessary cache operations
-type ProductStorer interface {
-	Get(k string) (interface{}, bool)
-	Set(k string, x interface{}, d time.Duration)
 }
 
 // ZonePrice struct for displaying price information per zone

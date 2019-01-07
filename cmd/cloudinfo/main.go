@@ -43,7 +43,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"github.com/patrickmn/go-cache"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -66,7 +65,7 @@ func main() {
 	logger.Extract(ctx).WithField("version", Version).WithField("commit_hash", CommitHash).WithField("build_date", BuildDate).Info("cloudinfo initialization")
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
-		cache.New(cache.NoExpiration, 24.*time.Hour), infoers(ctx), metrics.NewDefaultMetricsReporter())
+		cloudinfo.NewCacheProductStorer(24*time.Hour), infoers(ctx), metrics.NewDefaultMetricsReporter())
 	quitOnError(ctx, "error encountered", err)
 
 	go prodInfo.Start(ctx)
