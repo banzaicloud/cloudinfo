@@ -34,7 +34,7 @@ func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 				NtwPerf: "Very Low",
 			},
 			check: func(cat string, err error) {
-				assert.Equal(t, cloudinfo.NTW_LOW, cat, "not mapped to the right category")
+				assert.Equal(t, cloudinfo.NetwLow, cat, "not mapped to the right category")
 			},
 		},
 		{

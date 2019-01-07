@@ -398,11 +398,6 @@ func (cpi *CachingCloudInfo) renewAttrValues(ctx context.Context, provider, serv
 	return values, nil
 }
 
-// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
-func (cpi *CachingCloudInfo) HasShortLivedPriceInfo(provider string) bool {
-	return cpi.cloudInfoers[provider].HasShortLivedPriceInfo()
-}
-
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
 func (cpi *CachingCloudInfo) GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error) {
 	var p Price
