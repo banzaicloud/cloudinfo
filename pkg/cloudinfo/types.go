@@ -74,13 +74,13 @@ type AttrValues []AttrValue
 var (
 	// telescope supported network performance of vm-s
 
-	// NTW_LOW the low network performance category
+	// NetwLow the low network performance category
 	NetwLow = "low"
-	// NTW_MEDIUM the medium network performance category
+	// NtwMedium the medium network performance category
 	NtwMedium = "medium"
-	// NTW_HIGH the high network performance category
+	// NtwHight the high network performance category
 	NtwHight = "high"
-	// NTW_EXTRA the highest network performance category
+	// NtwExtra the highest network performance category
 	NtwExtra = "extra"
 )
 

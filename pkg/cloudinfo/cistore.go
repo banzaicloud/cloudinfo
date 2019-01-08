@@ -152,6 +152,6 @@ func NewCacheProductStore(cleanupInterval, cloudInfoExpiration, priceExpiration 
 	}
 }
 
-func (cis *CacheProductStore) getKey(keyTemplate string, args ... string) string {
+func (cis *CacheProductStore) getKey(keyTemplate string, args ...string) string {
 	return fmt.Sprintf(keyTemplate, args)
 }

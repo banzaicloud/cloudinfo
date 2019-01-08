@@ -83,9 +83,8 @@ func (dpi *DummyCloudInfoer) GetProducts(ctx context.Context, service, regionId 
 	default:
 		return []VmInfo{
 			{Cpus: float64(2),
-				Mem: float64(32),
-				OnDemandPrice:
-				float64(0.32)},
+				Mem:           float64(32),
+				OnDemandPrice: float64(0.32)},
 		}, nil
 	}
 }
