@@ -324,7 +324,7 @@ func (cpi *CachingCloudInfo) Start(ctx context.Context) {
 	}
 
 	// start scraping providers for pricing information
-	if err := NewPeriodicExecutor(4 * time.Minute).Execute(ctx, cpi.renewShortLived); err != nil {
+	if err := NewPeriodicExecutor(4*time.Minute).Execute(ctx, cpi.renewShortLived); err != nil {
 		logger.Extract(ctx).Info("failed to scrape for pricing information")
 		return
 	}
