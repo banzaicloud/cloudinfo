@@ -1,0 +1,24 @@
+run:
+    skip-dirs:
+        - client
+
+linters-settings:
+    golint:
+        min-confidence: 0.9
+
+    gocyclo:
+        min-complexity: 15
+
+linters:
+    enable:
+        - misspell
+        - gofmt
+        - golint
+
+    disable:
+        - errcheck
+        - gas
+        - megacheck
+        - varcheck
+        - goimports
+    fast: false
