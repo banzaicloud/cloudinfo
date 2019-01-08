@@ -379,10 +379,6 @@ func (cpi *CachingCloudInfo) getAttrValues(ctx context.Context, provider, servic
 	return values, nil
 }
 
-func (cpi *CachingCloudInfo) getAttrKey(provider, service, attribute string) string {
-	return fmt.Sprintf(AttrKeyTemplate, provider, service, attribute)
-}
-
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
 func (cpi *CachingCloudInfo) renewAttrValues(ctx context.Context, provider, service, attribute string) (AttrValues, error) {
 	attr, err := cpi.toProviderAttribute(provider, attribute)
@@ -452,10 +448,6 @@ func (cpi *CachingCloudInfo) toProviderAttribute(provider string, attr string) (
 	return "", fmt.Errorf("unsupported attribute: %s", attr)
 }
 
-func (cpi *CachingCloudInfo) getVmKey(provider, service, region string) string {
-	return fmt.Sprintf(VmKeyTemplate, provider, service, region)
-}
-
 func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {
 	values, err := cpi.cloudInfoers[provider].GetProducts(ctx, service, regionId)
 	if err != nil {
@@ -493,10 +485,6 @@ func (cpi *CachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 	return zones, nil
 }
 
-func (cpi *CachingCloudInfo) getZonesKey(provider string, region string) string {
-	return fmt.Sprintf(ZoneKeyTemplate, provider, region)
-}
-
 // GetRegions gets the regions for the provided provider
 func (cpi *CachingCloudInfo) GetRegions(ctx context.Context, provider, service string) (map[string]string, error) {
 	log := logger.Extract(ctx)
@@ -520,17 +508,13 @@ func (cpi *CachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 	return regions, nil
 }
 
-func (cpi *CachingCloudInfo) getRegionsKey(provider, service string) string {
-	return fmt.Sprintf(RegionKeyTemplate, provider, service)
-}
-
 // GetProductDetails retrieves product details form the given provider and region
 func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error) {
 	log := logger.Extract(ctx)
 	log.Debug("getting product details")
 	cachedVms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("vms not yet cached for the key: %s", cpi.getVmKey(provider, service, region))
+		return nil, fmt.Errorf("vms not yet cached for the region: %s", region)
 	}
 
 	vms := cachedVms.([]VmInfo)
@@ -575,18 +559,13 @@ func (cpi *CachingCloudInfo) GetStatus(provider string) (string, error) {
 
 	cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider)
 	if !ok {
-		return "", fmt.Errorf("status not yet cached for the key: %s", cpi.getStatusKey(provider))
+		return "", fmt.Errorf("status not yet cached for the provider: %s", provider)
 	}
 	status := cachedStatus.(string)
 
 	return status, nil
 }
 
-func (cpi *CachingCloudInfo) getStatusKey(provider string) string {
-	return fmt.Sprintf(StatusKeyTemplate, provider)
-}
-
-// GetInfoer returns the provider specific infoer implementation. This method is the discriminator for cloud providers
 func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
 
 	if infoer, ok := cpi.cloudInfoers[provider]; ok {
@@ -594,10 +573,6 @@ func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
 	}
 
 	return nil, fmt.Errorf("could not find infoer for: [ %s ]", provider)
-}
-
-func (cpi *CachingCloudInfo) getImagesKey(provider, service, region string) string {
-	return fmt.Sprintf(ImageKeyTemplate, provider, service, region)
 }
 
 func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
@@ -616,7 +591,7 @@ func (cpi *CachingCloudInfo) GetServiceImages(ctx context.Context, provider, ser
 
 	cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("images not yet cached for the key: %s", cpi.getImagesKey(provider, service, region))
+		return nil, fmt.Errorf("images not yet cached for the region: %s", region)
 	}
 
 	return cachedImages.([]ImageDescriber), nil
