@@ -40,9 +40,17 @@ const (
 	Cpu = "vcpu"
 )
 
-var (
-	eksRegionIds = []string{"us-west-2", "us-east-1", "eu-west-1", "us-east-2"}
-)
+var eksRegionIds = []string{
+	endpoints.UsWest2RegionID,
+	endpoints.UsEast1RegionID,
+	endpoints.UsEast2RegionID,
+	endpoints.EuCentral1RegionID,
+	endpoints.EuWest1RegionID,
+	endpoints.ApNortheast1RegionID,
+	endpoints.ApSoutheast1RegionID,
+	endpoints.ApSoutheast2RegionID,
+	endpoints.EuNorth1RegionID,
+}
 
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {

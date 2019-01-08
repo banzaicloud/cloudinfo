@@ -98,7 +98,7 @@ func (r *RouteHandler) versionHandler(c *gin.Context) {
 func (r *RouteHandler) EnableMetrics(ctx context.Context, router *gin.Engine, metricsAddr string) {
 	p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 	p.SetListenAddress(metricsAddr)
-	p.Use(router, "metrics")
+	p.Use(router, "/metrics")
 	p.UseWithCustomMetrics(router, metrics.GetPriceGatherers(), "/metrics/price")
 	p.UseWithCustomMetrics(router, metrics.GetSpotPriceGatherers(), "/metrics/spotprice")
 

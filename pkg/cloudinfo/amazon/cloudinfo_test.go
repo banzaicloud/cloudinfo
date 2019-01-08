@@ -17,10 +17,10 @@ package amazon
 import (
 	"context"
 	"errors"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -269,7 +269,7 @@ func TestEc2Infoer_GetRegions(t *testing.T) {
 			name:    "receive all regions for compute service",
 			service: "compute",
 			check: func(regionId map[string]string, err error) {
-				assert.Equal(t, 15, len(regionId))
+				assert.Equal(t, 16, len(regionId))
 				assert.Contains(t, regionId, "us-west-1")
 				assert.Nil(t, err, "the error should be nil")
 			},
@@ -278,7 +278,7 @@ func TestEc2Infoer_GetRegions(t *testing.T) {
 			name:    "receive all regions for eks service",
 			service: "eks",
 			check: func(regionId map[string]string, err error) {
-				assert.Equal(t, 4, len(regionId))
+				assert.Equal(t, 9, len(regionId))
 				assert.Contains(t, regionId, "us-east-1")
 				assert.Nil(t, err, "the error should be nil")
 			},

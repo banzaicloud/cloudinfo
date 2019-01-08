@@ -43,7 +43,7 @@ func defineFlags(pf *pflag.FlagSet) {
 	pf.String(alibabaAccessKeyId, "", "alibaba access key id")
 	pf.String(alibabaAccessKeySecret, "", "alibaba access key secret")
 	pf.String(oracleConfigLocation, "", "oracle config file location")
-	pf.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.8/price/download/instancePrice.json", "Alibaba get price info from this file")
+	pf.String(alibabaPriceInfoUrl, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.9/price/download/instancePrice.json", "Alibaba get price info from this file")
 }
 
 // Configure configures some defaults in the Viper instance.

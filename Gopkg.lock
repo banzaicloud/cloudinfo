@@ -86,7 +86,7 @@
   version = "v9"
 
 [[projects]]
-  digest = "1:82c64ac5c8e725af02ef296313b941660a9c665787b95b908f4b189ea7379cfa"
+  digest = "1:b970304d6e8d5a72a7a2811dbb9bf8eeee01f1aca2549b381a266e3d604ebd07"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -98,15 +98,19 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
+    "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
     "aws/endpoints",
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/ec2query",
@@ -121,8 +125,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "bd40d9f476190b2bd95120911312160641dba41e"
-  version = "v1.13.35"
+  revision = "3991042237b45cf58c9d5f34295942d5533c28c6"
+  version = "v1.16.11"
 
 [[projects]]
   branch = "master"
@@ -208,14 +212,6 @@
   ]
   pruneopts = "NUT"
   revision = "caf3e350a548af1add9def68087ac53d1d000caa"
-
-[[projects]]
-  digest = "1:0c0eac431b07bd0da31ef684aa15b5b5eeeda8a820f666e6523d2bfb8ce868c4"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
-  version = "v1.32.0"
 
 [[projects]]
   branch = "master"
@@ -590,10 +586,9 @@
   revision = "0e0d6e869525973a9b36093f6ddc9d91b9fc2d71"
 
 [[projects]]
-  digest = "1:3e71970e4d5275b40ccf34a6ae352747710186a6f2154f0826be347ebc68ddf9"
+  digest = "1:84115d08598863ec249ac7367b991f38b094408a46e5a38b0840d261842e3765"
   name = "go.opencensus.io"
   packages = [
-    ".",
     "exporter/prometheus",
     "internal",
     "internal/tagencoding",
@@ -785,7 +780,6 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
-    "go.opencensus.io",
     "go.opencensus.io/exporter/prometheus",
     "golang.org/x/net/context",
     "golang.org/x/oauth2/google",
