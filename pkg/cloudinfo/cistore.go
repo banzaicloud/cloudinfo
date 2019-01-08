@@ -51,11 +51,11 @@ type CloudInfoStore interface {
 	StoreRegion(provider, service string, val interface{})
 	GetRegion(provider, service string) (interface{}, bool)
 
-	StoreZone(provider string, region string, val interface{})
-	GetZone(provider string, region string) (interface{}, bool)
+	StoreZone(provider, region string, val interface{})
+	GetZone(provider, region string) (interface{}, bool)
 
-	StorePrice(provider string, region string, instanceType string, val interface{})
-	GetPrice(provider string, region string, instanceType string) (interface{}, bool)
+	StorePrice(provider, region, instanceType string, val interface{})
+	GetPrice(provider, region, instanceType string) (interface{}, bool)
 
 	StoreAttribute(provider, service, attribute string, val interface{})
 	GetAttribute(provider, service, attribute string) (interface{}, bool)
@@ -88,20 +88,20 @@ func (cis *CacheProductStore) GetRegion(provider, service string) (interface{}, 
 	return cis.Get(cis.getKey(RegionKeyTemplate, provider, service))
 }
 
-func (cis *CacheProductStore) StoreZone(provider string, region string, val interface{}) {
+func (cis *CacheProductStore) StoreZone(provider, region string, val interface{}) {
 	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, cis.itemExpiry)
 }
 
-func (cis *CacheProductStore) GetZone(provider string, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(ZoneKeyTemplate))
+func (cis *CacheProductStore) GetZone(provider, region string) (interface{}, bool) {
+	return cis.Get(cis.getKey(ZoneKeyTemplate, provider, region))
 }
 
-func (cis *CacheProductStore) StorePrice(provider string, region string, instanceType string, val interface{}) {
+func (cis *CacheProductStore) StorePrice(provider, region, instanceType string, val interface{}) {
 	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, cis.itemExpiry)
 }
 
-func (cis *CacheProductStore) GetPrice(provider string, region string, instanceType string) (interface{}, bool) {
-	return cis.Get(cis.getKey(PriceKeyTemplate))
+func (cis *CacheProductStore) GetPrice(provider, region, instanceType string) (interface{}, bool) {
+	return cis.Get(cis.getKey(PriceKeyTemplate, provider, region, instanceType))
 }
 
 func (cis *CacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
@@ -109,7 +109,7 @@ func (cis *CacheProductStore) StoreAttribute(provider, service, attribute string
 }
 
 func (cis *CacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
-	return cis.Get(cis.getKey(AttrKeyTemplate))
+	return cis.Get(cis.getKey(AttrKeyTemplate, provider, service, attribute))
 }
 
 func (cis *CacheProductStore) StoreVm(provider, service, region string, val interface{}) {
@@ -117,7 +117,7 @@ func (cis *CacheProductStore) StoreVm(provider, service, region string, val inte
 }
 
 func (cis *CacheProductStore) GetVm(provider, service, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(VmKeyTemplate))
+	return cis.Get(cis.getKey(VmKeyTemplate, provider, service, region))
 }
 
 func (cis *CacheProductStore) StoreImage(provider, service, regionId string, val interface{}) {
@@ -125,7 +125,7 @@ func (cis *CacheProductStore) StoreImage(provider, service, regionId string, val
 }
 
 func (cis *CacheProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
-	return cis.Get(cis.getKey(ImageKeyTemplate))
+	return cis.Get(cis.getKey(ImageKeyTemplate, provider, service, regionId))
 }
 
 func (cis *CacheProductStore) StoreVersion(provider, service, region string, val interface{}) {
@@ -133,7 +133,7 @@ func (cis *CacheProductStore) StoreVersion(provider, service, region string, val
 }
 
 func (cis *CacheProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(VersionKeyTemplate))
+	return cis.Get(cis.getKey(VersionKeyTemplate, provider, service, region))
 }
 
 func (cis *CacheProductStore) StoreStatus(provider string, val interface{}) {
@@ -141,7 +141,7 @@ func (cis *CacheProductStore) StoreStatus(provider string, val interface{}) {
 }
 
 func (cis *CacheProductStore) GetStatus(provider string) (interface{}, bool) {
-	return cis.Get(cis.getKey(StatusKeyTemplate))
+	return cis.Get(cis.getKey(StatusKeyTemplate, provider))
 }
 
 // NewCacheProductStore creates a new store instance.

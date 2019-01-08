@@ -422,10 +422,6 @@ func (cpi *CachingCloudInfo) GetPrice(ctx context.Context, provider string, regi
 	return p.OnDemandPrice, sumPrice / float64(len(zones)), nil
 }
 
-func (cpi *CachingCloudInfo) getPriceKey(provider string, region string, instanceType string) string {
-	return fmt.Sprintf(PriceKeyTemplate, provider, region, instanceType)
-}
-
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
 func (cpi *CachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider string, region string) (map[string]Price, error) {
 	prices, err := cpi.cloudInfoers[provider].GetCurrentPrices(ctx, region)
@@ -533,7 +529,7 @@ func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
 			}
 		} else {
-			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(provider, region, vm.Type))
+			log.Debugf("price info not yet cached for vm: %s", vm.Type)
 		}
 
 		if pd.OnDemandPrice != 0 {
