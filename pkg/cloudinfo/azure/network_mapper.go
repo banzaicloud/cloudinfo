@@ -21,9 +21,9 @@ import (
 var (
 	// TODO
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NTW_LOW:    {"Low"},
-		cloudinfo.NTW_MEDIUM: {"Moderate"},
-		cloudinfo.NTW_HIGH:   {""},
+		cloudinfo.NetwLow:   {"Low"},
+		cloudinfo.NtwMedium: {"Moderate"},
+		cloudinfo.NtwHight:  {""},
 	}
 )
 
@@ -33,5 +33,5 @@ type AzureNetworkMapper struct {
 
 // MapNetworkPerf maps the network performance of the azure instance to the category supported by telescopes
 func (nm *AzureNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
-	return ntwPerfMap[cloudinfo.NTW_MEDIUM][0], nil
+	return ntwPerfMap[cloudinfo.NtwMedium][0], nil
 }

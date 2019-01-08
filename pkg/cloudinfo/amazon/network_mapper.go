@@ -34,10 +34,10 @@ var (
 		//"Up to 10 Gigabit"
 		//"Very Low"
 
-		cloudinfo.NTW_LOW:    {"Very Low", "Low", "Low to Moderate"},
-		cloudinfo.NTW_MEDIUM: {"Moderate", "High"},
-		cloudinfo.NTW_HIGH:   {"Up to 10 Gigabit", "10 Gigabit"},
-		cloudinfo.NTW_EXTRA:  {"20 Gigabit", "25 Gigabit"},
+		cloudinfo.NetwLow:   {"Very Low", "Low", "Low to Moderate"},
+		cloudinfo.NtwMedium: {"Moderate", "High"},
+		cloudinfo.NtwHight:  {"Up to 10 Gigabit", "10 Gigabit"},
+		cloudinfo.NtwExtra:  {"20 Gigabit", "25 Gigabit"},
 	}
 )
 

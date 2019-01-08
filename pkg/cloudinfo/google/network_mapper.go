@@ -22,10 +22,10 @@ import (
 
 var (
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NTW_LOW:    {"1 Gbit/s", "2 Gbit/s"},
-		cloudinfo.NTW_MEDIUM: {"4 Gbit/s", "6 Gbit/s", "8 Gbit/s"},
-		cloudinfo.NTW_HIGH:   {"10 Gbit/s", "12 Gbit/s", "14 Gbit/s"},
-		cloudinfo.NTW_EXTRA:  {"16 Gbit/s"},
+		cloudinfo.NetwLow:   {"1 Gbit/s", "2 Gbit/s"},
+		cloudinfo.NtwMedium: {"4 Gbit/s", "6 Gbit/s", "8 Gbit/s"},
+		cloudinfo.NtwHight:  {"10 Gbit/s", "12 Gbit/s", "14 Gbit/s"},
+		cloudinfo.NtwExtra:  {"16 Gbit/s"},
 	}
 )
 

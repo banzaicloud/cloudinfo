@@ -16,7 +16,6 @@ package cloudinfo
 
 import (
 	"context"
-	"time"
 )
 
 const (
@@ -25,84 +24,7 @@ const (
 
 	// Cpu represents the cpu attribute for the product info
 	Cpu = "cpu"
-
-	// VmKeyTemplate format for generating vm cache keys
-	VmKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/vms"
-
-	// AttrKeyTemplate format for generating attribute cache keys
-	AttrKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/attrValues/%s"
-
-	// PriceKeyTemplate format for generating price cache keys
-	PriceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
-
-	// ZoneKeyTemplate format for generating zone cache keys
-	ZoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/zones/"
-
-	// RegionKeyTemplate format for generating region cache keys
-	RegionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/"
-
-	// StatusKeyTemplate format for generating status cache keys
-	StatusKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/status/"
-
-	// ImageKeyTemplate format for generating image cache keys
-	ImageKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/images"
-
-	// VersionKeyTemplate format for generating kubernetes version cache keys
-	VersionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
 )
-
-// CloudInfoer lists operations for retrieving cloud provider information
-// Implementers are expected to know the cloud provider specific logic (eg.: cloud provider client usage etc ...)
-// This interface abstracts the cloud provider specifics to its clients
-type CloudInfoer interface {
-	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
-	Initialize(ctx context.Context) (map[string]map[string]Price, error)
-
-	// GetAttributeValues gets the attribute values for the given attribute from the external system
-	GetAttributeValues(ctx context.Context, service, attribute string) (AttrValues, error)
-
-	// GetProducts gets product information based on the given arguments from an external system
-	GetProducts(ctx context.Context, service, regionId string) ([]VmInfo, error)
-
-	// GetZones returns the availability zones in a region
-	GetZones(ctx context.Context, region string) ([]string, error)
-
-	// GetRegions retrieves the available regions form the external system
-	GetRegions(ctx context.Context, service string) (map[string]string, error)
-
-	// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
-	HasShortLivedPriceInfo() bool
-
-	// GetCurrentPrices retrieves all the spot prices in a region
-	GetCurrentPrices(ctx context.Context, region string) (map[string]Price, error)
-
-	// GetMemoryAttrName returns the provider representation of the memory attribute
-	GetMemoryAttrName() string
-
-	// GetCpuAttrName returns the provider representation of the cpu attribute
-	GetCpuAttrName() string
-
-	// GetServices returns the available services on the given provider
-	GetServices() ([]ServiceDescriber, error)
-
-	// GetServices returns the available services on the  given region
-	GetService(ctx context.Context, service string) (ServiceDescriber, error)
-
-	// HasImages signals if a product info provider has image support
-	HasImages() bool
-
-	// GetServiceImages retrieves the images supported by the given service in the given region
-	GetServiceImages(region, service string) ([]ImageDescriber, error)
-
-	// GetVersions retrieves the  versions supported by the given service in the given region
-	GetVersions(ctx context.Context, service, region string) ([]string, error)
-
-	// GetServiceProducts retrieves the products supported by the given service in the given region
-	GetServiceProducts(region, service string) ([]ProductDetails, error)
-
-	// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
-	GetServiceAttributes(region, service, attribute string) (AttrValues, error)
-}
 
 // CloudInfo is the main entry point for retrieving vm type characteristics and pricing information on different cloud providers
 type CloudInfo interface {
@@ -152,26 +74,20 @@ type AttrValues []AttrValue
 var (
 	// telescope supported network performance of vm-s
 
-	// NTW_LOW the low network performance category
-	NTW_LOW = "low"
-	// NTW_MEDIUM the medium network performance category
-	NTW_MEDIUM = "medium"
-	// NTW_HIGH the high network performance category
-	NTW_HIGH = "high"
-	// NTW_EXTRA the highest network performance category
-	NTW_EXTRA = "extra"
+	// NetwLow the low network performance category
+	NetwLow = "low"
+	// NtwMedium the medium network performance category
+	NtwMedium = "medium"
+	// NtwHight the high network performance category
+	NtwHight = "high"
+	// NtwExtra the highest network performance category
+	NtwExtra = "extra"
 )
 
 // NetworkPerfMapper operations related  to mapping between virtual machines to network performance categories
 type NetworkPerfMapper interface {
 	// MapNetworkPerf gets the network performance category for the given
 	MapNetworkPerf(ntwPerf string) (string, error)
-}
-
-// ProductStorer interface collects the necessary cache operations
-type ProductStorer interface {
-	Get(k string) (interface{}, bool)
-	Set(k string, x interface{}, d time.Duration)
 }
 
 // ZonePrice struct for displaying price information per zone

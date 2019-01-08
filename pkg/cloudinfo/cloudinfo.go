@@ -34,7 +34,7 @@ import (
 type CachingCloudInfo struct {
 	cloudInfoers    map[string]CloudInfoer
 	renewalInterval time.Duration
-	vmAttrStore     ProductStorer
+	cloudInfoStore  CloudInfoStore
 	metrics         metrics.Reporter
 }
 
@@ -83,14 +83,14 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new CachingCloudInfo instance
-func NewCachingCloudInfo(ri time.Duration, cache ProductStorer, infoers map[string]CloudInfoer, reporter metrics.Reporter) (*CachingCloudInfo, error) {
-	if infoers == nil || cache == nil {
+func NewCachingCloudInfo(ri time.Duration, ciStore CloudInfoStore, infoers map[string]CloudInfoer, reporter metrics.Reporter) (*CachingCloudInfo, error) {
+	if infoers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
 
 	pi := CachingCloudInfo{
 		cloudInfoers:    infoers,
-		vmAttrStore:     cache,
+		cloudInfoStore:  ciStore,
 		renewalInterval: ri,
 		metrics:         reporter,
 	}
@@ -241,7 +241,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 func (cpi *CachingCloudInfo) renewStatus(provider string) (string, error) {
 	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
 
-	cpi.vmAttrStore.Set(cpi.getStatusKey(provider), values, cpi.renewalInterval)
+	cpi.cloudInfoStore.StoreStatus(provider, values)
 	return values, nil
 }
 
@@ -343,7 +343,7 @@ func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 
 	for region, ap := range allPrices {
 		for instType, p := range ap {
-			cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, cpi.renewalInterval)
+			cpi.cloudInfoStore.StorePrice(provider, region, instType, p)
 			metrics.OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
 		}
 	}
@@ -368,8 +368,7 @@ func (cpi *CachingCloudInfo) GetAttrValues(ctx context.Context, provider, servic
 }
 
 func (cpi *CachingCloudInfo) getAttrValues(ctx context.Context, provider, service, attribute string) (AttrValues, error) {
-	attrCacheKey := cpi.getAttrKey(provider, service, attribute)
-	if cachedVal, ok := cpi.vmAttrStore.Get(attrCacheKey); ok {
+	if cachedVal, ok := cpi.cloudInfoStore.GetAttribute(provider, service, attribute); ok {
 		logger.Extract(ctx).Debugf("Getting available %s values from cache.", attribute)
 		return cachedVal.(AttrValues), nil
 	}
@@ -378,10 +377,6 @@ func (cpi *CachingCloudInfo) getAttrValues(ctx context.Context, provider, servic
 		return nil, err
 	}
 	return values, nil
-}
-
-func (cpi *CachingCloudInfo) getAttrKey(provider, service, attribute string) string {
-	return fmt.Sprintf(AttrKeyTemplate, provider, service, attribute)
 }
 
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
@@ -394,13 +389,8 @@ func (cpi *CachingCloudInfo) renewAttrValues(ctx context.Context, provider, serv
 	if err != nil {
 		return nil, err
 	}
-	cpi.vmAttrStore.Set(cpi.getAttrKey(provider, service, attribute), values, cpi.renewalInterval)
+	cpi.cloudInfoStore.StoreAttribute(provider, service, attribute, values)
 	return values, nil
-}
-
-// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
-func (cpi *CachingCloudInfo) HasShortLivedPriceInfo(provider string) bool {
-	return cpi.cloudInfoers[provider].HasShortLivedPriceInfo()
 }
 
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
@@ -411,7 +401,7 @@ func (cpi *CachingCloudInfo) GetPrice(ctx context.Context, provider string, regi
 		WithRegion(region).
 		Build())
 
-	if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, instanceType)); ok {
+	if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, instanceType); ok {
 		logger.Extract(ctx).Debugf("Getting price info from cache [instance type=%s].", instanceType)
 		p = cachedVal.(Price)
 	} else {
@@ -432,10 +422,6 @@ func (cpi *CachingCloudInfo) GetPrice(ctx context.Context, provider string, regi
 	return p.OnDemandPrice, sumPrice / float64(len(zones)), nil
 }
 
-func (cpi *CachingCloudInfo) getPriceKey(provider string, region string, instanceType string) string {
-	return fmt.Sprintf(PriceKeyTemplate, provider, region, instanceType)
-}
-
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
 func (cpi *CachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider string, region string) (map[string]Price, error) {
 	prices, err := cpi.cloudInfoers[provider].GetCurrentPrices(ctx, region)
@@ -443,7 +429,7 @@ func (cpi *CachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider s
 		return nil, err
 	}
 	for instType, p := range prices {
-		cpi.vmAttrStore.Set(cpi.getPriceKey(provider, region, instType), p, 8*time.Minute)
+		cpi.cloudInfoStore.StorePrice(provider, region, instType, p)
 	}
 	return prices, nil
 }
@@ -458,10 +444,6 @@ func (cpi *CachingCloudInfo) toProviderAttribute(provider string, attr string) (
 	return "", fmt.Errorf("unsupported attribute: %s", attr)
 }
 
-func (cpi *CachingCloudInfo) getVmKey(provider, service, region string) string {
-	return fmt.Sprintf(VmKeyTemplate, provider, service, region)
-}
-
 func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {
 	values, err := cpi.cloudInfoers[provider].GetProducts(ctx, service, regionId)
 	if err != nil {
@@ -473,17 +455,16 @@ func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, re
 			metrics.OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
 		}
 	}
-	cpi.vmAttrStore.Set(cpi.getVmKey(provider, service, regionId), values, cpi.renewalInterval)
+	cpi.cloudInfoStore.StoreVm(provider, service, regionId, values)
 	return values, nil
 }
 
 // GetZones returns the availability zones in a region
 func (cpi *CachingCloudInfo) GetZones(ctx context.Context, provider string, region string) ([]string, error) {
 	log := logger.Extract(ctx)
-	zoneCacheKey := cpi.getZonesKey(provider, region)
 
 	// check the cache
-	if cachedVal, ok := cpi.vmAttrStore.Get(zoneCacheKey); ok {
+	if cachedVal, ok := cpi.cloudInfoStore.GetZone(provider, region); ok {
 		log.Debug("Getting available zones from cache.")
 		return cachedVal.([]string), nil
 	}
@@ -496,21 +477,16 @@ func (cpi *CachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 	}
 
 	// cache the results / use the cache default expiry
-	cpi.vmAttrStore.Set(zoneCacheKey, zones, 0)
+	cpi.cloudInfoStore.StoreZone(provider, region, zones)
 	return zones, nil
-}
-
-func (cpi *CachingCloudInfo) getZonesKey(provider string, region string) string {
-	return fmt.Sprintf(ZoneKeyTemplate, provider, region)
 }
 
 // GetRegions gets the regions for the provided provider
 func (cpi *CachingCloudInfo) GetRegions(ctx context.Context, provider, service string) (map[string]string, error) {
 	log := logger.Extract(ctx)
-	regionCacheKey := cpi.getRegionsKey(provider, service)
 
 	// check the cache
-	if cachedVal, ok := cpi.vmAttrStore.Get(regionCacheKey); ok {
+	if cachedVal, ok := cpi.cloudInfoStore.GetRegion(provider, service); ok {
 
 		log.Debug("Getting available regions from cache.")
 		return cachedVal.(map[string]string), nil
@@ -524,21 +500,17 @@ func (cpi *CachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 	}
 
 	// cache the results / use the cache default expiry
-	cpi.vmAttrStore.Set(regionCacheKey, regions, 0)
+	cpi.cloudInfoStore.StoreRegion(provider, service, regions)
 	return regions, nil
-}
-
-func (cpi *CachingCloudInfo) getRegionsKey(provider, service string) string {
-	return fmt.Sprintf(RegionKeyTemplate, provider, service)
 }
 
 // GetProductDetails retrieves product details form the given provider and region
 func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error) {
 	log := logger.Extract(ctx)
 	log.Debug("getting product details")
-	cachedVms, ok := cpi.vmAttrStore.Get(cpi.getVmKey(provider, service, region))
+	cachedVms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("vms not yet cached for the key: %s", cpi.getVmKey(provider, service, region))
+		return nil, fmt.Errorf("vms not yet cached for the region: %s", region)
 	}
 
 	vms := cachedVms.([]VmInfo)
@@ -547,7 +519,7 @@ func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 	var pr Price
 	for _, vm := range vms {
 		pd := newProductDetails(vm)
-		if cachedVal, ok := cpi.vmAttrStore.Get(cpi.getPriceKey(provider, region, vm.Type)); ok {
+		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
 			pr = cachedVal.(Price)
 			// fill the on demand price if appropriate
 			if pr.OnDemandPrice > 0 {
@@ -557,7 +529,7 @@ func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
 			}
 		} else {
-			log.Debugf("price info not yet cached for key: %s", cpi.getPriceKey(provider, region, vm.Type))
+			log.Debugf("price info not yet cached for vm: %s", vm.Type)
 		}
 
 		if pd.OnDemandPrice != 0 {
@@ -581,20 +553,15 @@ func Contains(slice []string, s string) bool {
 // GetStatus retrieves status form the given provider
 func (cpi *CachingCloudInfo) GetStatus(provider string) (string, error) {
 
-	cachedStatus, ok := cpi.vmAttrStore.Get(cpi.getStatusKey(provider))
+	cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider)
 	if !ok {
-		return "", fmt.Errorf("status not yet cached for the key: %s", cpi.getStatusKey(provider))
+		return "", fmt.Errorf("status not yet cached for the provider: %s", provider)
 	}
 	status := cachedStatus.(string)
 
 	return status, nil
 }
 
-func (cpi *CachingCloudInfo) getStatusKey(provider string) string {
-	return fmt.Sprintf(StatusKeyTemplate, provider)
-}
-
-// GetInfoer returns the provider specific infoer implementation. This method is the discriminator for cloud providers
 func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
 
 	if infoer, ok := cpi.cloudInfoers[provider]; ok {
@@ -604,16 +571,12 @@ func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
 	return nil, fmt.Errorf("could not find infoer for: [ %s ]", provider)
 }
 
-func (cpi *CachingCloudInfo) getImagesKey(provider, service, region string) string {
-	return fmt.Sprintf(ImageKeyTemplate, provider, service, region)
-}
-
 func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
 	values, err := cpi.cloudInfoers[provider].GetServiceImages(regionId, service)
 	if err != nil {
 		return nil, err
 	}
-	cpi.vmAttrStore.Set(cpi.getImagesKey(provider, service, regionId), values, cpi.renewalInterval)
+	cpi.cloudInfoStore.StoreImage(provider, service, regionId, values)
 	return values, nil
 }
 
@@ -622,9 +585,9 @@ func (cpi *CachingCloudInfo) GetServiceImages(ctx context.Context, provider, ser
 	log := logger.Extract(ctx)
 	log.Debug("getting available images")
 
-	cachedImages, ok := cpi.vmAttrStore.Get(cpi.getImagesKey(provider, service, region))
+	cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("images not yet cached for the key: %s", cpi.getImagesKey(provider, service, region))
+		return nil, fmt.Errorf("images not yet cached for the region: %s", region)
 	}
 
 	return cachedImages.([]ImageDescriber), nil
@@ -639,7 +602,7 @@ func (cpi *CachingCloudInfo) renewVersions(ctx context.Context, provider, servic
 	if err != nil {
 		return nil, err
 	}
-	cpi.vmAttrStore.Set(cpi.getVersionsKey(provider, service, region), values, cpi.renewalInterval)
+	cpi.cloudInfoStore.StoreVersion(provider, service, region, values)
 	return values, nil
 
 }
@@ -649,7 +612,7 @@ func (cpi *CachingCloudInfo) GetVersions(ctx context.Context, provider, service,
 	log := logger.Extract(ctx)
 	log.Debug("getting available versions")
 
-	cachedVersions, ok := cpi.vmAttrStore.Get(cpi.getVersionsKey(provider, service, region))
+	cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region)
 	if !ok {
 		return nil, fmt.Errorf("versions not yet cached for the key: %s", cpi.getVersionsKey(provider, service, region))
 	}
