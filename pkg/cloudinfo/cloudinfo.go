@@ -241,7 +241,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 func (cpi *CachingCloudInfo) renewStatus(provider string) (string, error) {
 	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
 
-	cpi.cloudInfoStore.Set(cpi.getStatusKey(provider), values, cpi.renewalInterval)
+	cpi.cloudInfoStore.StoreStatus(provider, values)
 	return values, nil
 }
 
@@ -437,7 +437,6 @@ func (cpi *CachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider s
 		return nil, err
 	}
 	for instType, p := range prices {
-		// todo set expiration
 		cpi.cloudInfoStore.StorePrice(provider, region, instType, p)
 	}
 	return prices, nil
@@ -468,7 +467,6 @@ func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, re
 			metrics.OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
 		}
 	}
-	// todo expiration interval
 	cpi.cloudInfoStore.StoreVm(provider, service, regionId, values)
 	return values, nil
 }
@@ -607,7 +605,6 @@ func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service,
 	if err != nil {
 		return nil, err
 	}
-	// todo expiration
 	cpi.cloudInfoStore.StoreImage(provider, service, regionId, values)
 	return values, nil
 }
@@ -634,7 +631,6 @@ func (cpi *CachingCloudInfo) renewVersions(ctx context.Context, provider, servic
 	if err != nil {
 		return nil, err
 	}
-	// todo exp interval
 	cpi.cloudInfoStore.StoreVersion(provider, service, region, values)
 	return values, nil
 

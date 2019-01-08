@@ -64,8 +64,11 @@ func main() {
 
 	logger.Extract(ctx).WithField("version", Version).WithField("commit_hash", CommitHash).WithField("build_date", BuildDate).Info("cloudinfo initialization")
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(viper.GetDuration(prodInfRenewalIntervalFlag),
-		cloudinfo.NewCacheProductStorer(24*time.Hour), infoers(ctx), metrics.NewDefaultMetricsReporter())
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(
+		viper.GetDuration(prodInfRenewalIntervalFlag),
+		cloudinfo.NewCacheProductStore(24*time.Hour, viper.GetDuration(prodInfRenewalIntervalFlag),
+			8*time.Minute),
+		infoers(ctx), metrics.NewDefaultMetricsReporter())
 	quitOnError(ctx, "error encountered", err)
 
 	go prodInfo.Start(ctx)

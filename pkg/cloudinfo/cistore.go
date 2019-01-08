@@ -46,12 +46,6 @@ const (
 	VersionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
 )
 
-// ProductStorer contract for storing and retrieving cloud product information
-type ProductStorer interface {
-	Get(k string) (interface{}, bool)
-	Set(k string, x interface{}, d time.Duration)
-}
-
 // Storage operations for cloud information
 type CloudInfoStore interface {
 	StoreRegion(provider, service string, val interface{})
@@ -82,6 +76,8 @@ type CloudInfoStore interface {
 // CacheProductStore in memory cloud product information storer
 type CacheProductStore struct {
 	*cache.Cache
+	priceExpiration     time.Duration
+	cloudInfoExpiration time.Duration
 }
 
 func (cis *CacheProductStore) StoreRegion(provider, service string, val interface{}) {
@@ -101,7 +97,7 @@ func (cis *CacheProductStore) GetZone(provider string, region string) (interface
 }
 
 func (cis *CacheProductStore) StorePrice(provider string, region string, instanceType string, val interface{}) {
-	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, 0)
+	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, cis.cloudInfoExpiration)
 }
 
 func (cis *CacheProductStore) GetPrice(provider string, region string, instanceType string) (interface{}, bool) {
@@ -109,7 +105,7 @@ func (cis *CacheProductStore) GetPrice(provider string, region string, instanceT
 }
 
 func (cis *CacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
-	cis.Set(cis.getKey(AttrKeyTemplate, provider, service, attribute), val, 0)
+	cis.Set(cis.getKey(AttrKeyTemplate, provider, service, attribute), val, cis.cloudInfoExpiration)
 }
 
 func (cis *CacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
@@ -117,7 +113,7 @@ func (cis *CacheProductStore) GetAttribute(provider, service, attribute string) 
 }
 
 func (cis *CacheProductStore) StoreVm(provider, service, region string, val interface{}) {
-	cis.Set(cis.getKey(VmKeyTemplate, provider, service, region), val, 0)
+	cis.Set(cis.getKey(VmKeyTemplate, provider, service, region), val, cis.cloudInfoExpiration)
 }
 
 func (cis *CacheProductStore) GetVm(provider, service, region string) (interface{}, bool) {
@@ -125,7 +121,7 @@ func (cis *CacheProductStore) GetVm(provider, service, region string) (interface
 }
 
 func (cis *CacheProductStore) StoreImage(provider, service, regionId string, val interface{}) {
-	cis.Set(cis.getKey(ImageKeyTemplate, provider, service, regionId), val, 0)
+	cis.Set(cis.getKey(ImageKeyTemplate, provider, service, regionId), val, cis.cloudInfoExpiration)
 }
 
 func (cis *CacheProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
@@ -133,7 +129,7 @@ func (cis *CacheProductStore) GetImage(provider, service, regionId string) (inte
 }
 
 func (cis *CacheProductStore) StoreVersion(provider, service, region string, val interface{}) {
-	cis.Set(cis.getKey(VersionKeyTemplate, provider, service, region), val, 0)
+	cis.Set(cis.getKey(VersionKeyTemplate, provider, service, region), val, cis.cloudInfoExpiration)
 }
 
 func (cis *CacheProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
@@ -141,17 +137,18 @@ func (cis *CacheProductStore) GetVersion(provider, service, region string) (inte
 }
 
 func (cis *CacheProductStore) StoreStatus(provider string, val interface{}) {
-	cis.Set(cis.getKey(StatusKeyTemplate, provider), val, 0)
+	cis.Set(cis.getKey(StatusKeyTemplate, provider), val, cis.cloudInfoExpiration)
 }
 
 func (cis *CacheProductStore) GetStatus(provider string) (interface{}, bool) {
 	return cis.Get(cis.getKey(StatusKeyTemplate))
 }
 
-// todo default expiration!!!
-func NewCacheProductStorer(cleanupInterval time.Duration) CloudInfoStore {
+func NewCacheProductStore(cleanupInterval, cloudInfoExpiration, priceExpiration time.Duration) CloudInfoStore {
 	return &CacheProductStore{
 		cache.New(cache.NoExpiration, cleanupInterval),
+		priceExpiration,
+		cloudInfoExpiration,
 	}
 }
 
