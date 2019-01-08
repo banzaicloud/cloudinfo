@@ -178,7 +178,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCachingCloudInfo(10*time.Second, NewCacheProductStore(10*time.Minute, 5*time.Minute, 3*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter()))
+			test.checker(NewCachingCloudInfo(10*time.Second, NewCacheProductStore(10*time.Minute, 5*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter()))
 		})
 	}
 
@@ -240,7 +240,7 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, 3*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(cloudInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
 		})
 	}
@@ -275,7 +275,7 @@ func TestCachingCloudInfo_Initialize(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, 3*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(cloudInfo.Initialize(context.Background(), "dummy"))
 		})
 	}
@@ -310,7 +310,7 @@ func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, 3*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(info.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
@@ -374,7 +374,7 @@ func TestCachingCloudInfo_GetPrice(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, 3*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			values, value, err := info.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
 			test.checker(values, value, err)
 		})
@@ -411,7 +411,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, 3*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(info.GetRegions(context.Background(), "dummy", "compute"))
 		})
 	}

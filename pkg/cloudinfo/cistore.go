@@ -76,12 +76,12 @@ type CloudInfoStore interface {
 // CacheProductStore in memory cloud product information storer
 type CacheProductStore struct {
 	*cache.Cache
-	priceExpiration     time.Duration
-	cloudInfoExpiration time.Duration
+	// all items are cached with this expiry
+	itemExpiry time.Duration
 }
 
 func (cis *CacheProductStore) StoreRegion(provider, service string, val interface{}) {
-	cis.Set(cis.getKey(RegionKeyTemplate, provider, service), val, 0)
+	cis.Set(cis.getKey(RegionKeyTemplate, provider, service), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetRegion(provider, service string) (interface{}, bool) {
@@ -89,7 +89,7 @@ func (cis *CacheProductStore) GetRegion(provider, service string) (interface{}, 
 }
 
 func (cis *CacheProductStore) StoreZone(provider string, region string, val interface{}) {
-	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, 0)
+	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetZone(provider string, region string) (interface{}, bool) {
@@ -97,7 +97,7 @@ func (cis *CacheProductStore) GetZone(provider string, region string) (interface
 }
 
 func (cis *CacheProductStore) StorePrice(provider string, region string, instanceType string, val interface{}) {
-	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, cis.cloudInfoExpiration)
+	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetPrice(provider string, region string, instanceType string) (interface{}, bool) {
@@ -105,7 +105,7 @@ func (cis *CacheProductStore) GetPrice(provider string, region string, instanceT
 }
 
 func (cis *CacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
-	cis.Set(cis.getKey(AttrKeyTemplate, provider, service, attribute), val, cis.cloudInfoExpiration)
+	cis.Set(cis.getKey(AttrKeyTemplate, provider, service, attribute), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
@@ -113,7 +113,7 @@ func (cis *CacheProductStore) GetAttribute(provider, service, attribute string) 
 }
 
 func (cis *CacheProductStore) StoreVm(provider, service, region string, val interface{}) {
-	cis.Set(cis.getKey(VmKeyTemplate, provider, service, region), val, cis.cloudInfoExpiration)
+	cis.Set(cis.getKey(VmKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetVm(provider, service, region string) (interface{}, bool) {
@@ -121,7 +121,7 @@ func (cis *CacheProductStore) GetVm(provider, service, region string) (interface
 }
 
 func (cis *CacheProductStore) StoreImage(provider, service, regionId string, val interface{}) {
-	cis.Set(cis.getKey(ImageKeyTemplate, provider, service, regionId), val, cis.cloudInfoExpiration)
+	cis.Set(cis.getKey(ImageKeyTemplate, provider, service, regionId), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
@@ -129,7 +129,7 @@ func (cis *CacheProductStore) GetImage(provider, service, regionId string) (inte
 }
 
 func (cis *CacheProductStore) StoreVersion(provider, service, region string, val interface{}) {
-	cis.Set(cis.getKey(VersionKeyTemplate, provider, service, region), val, cis.cloudInfoExpiration)
+	cis.Set(cis.getKey(VersionKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
@@ -137,18 +137,19 @@ func (cis *CacheProductStore) GetVersion(provider, service, region string) (inte
 }
 
 func (cis *CacheProductStore) StoreStatus(provider string, val interface{}) {
-	cis.Set(cis.getKey(StatusKeyTemplate, provider), val, cis.cloudInfoExpiration)
+	cis.Set(cis.getKey(StatusKeyTemplate, provider), val, cis.itemExpiry)
 }
 
 func (cis *CacheProductStore) GetStatus(provider string) (interface{}, bool) {
 	return cis.Get(cis.getKey(StatusKeyTemplate))
 }
 
-func NewCacheProductStore(cleanupInterval, cloudInfoExpiration, priceExpiration time.Duration) CloudInfoStore {
+// NewCacheProductStore creates a new store instance.
+// the backing cache is initialized with the defaultExpiration and cleanupInterval
+func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration) CloudInfoStore {
 	return &CacheProductStore{
-		cache.New(cache.NoExpiration, cleanupInterval),
-		priceExpiration,
-		cloudInfoExpiration,
+		cache.New(cloudInfoExpiration, cleanupInterval),
+		cleanupInterval,
 	}
 }
 

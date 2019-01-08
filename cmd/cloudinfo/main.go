@@ -66,8 +66,7 @@ func main() {
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
 		viper.GetDuration(prodInfRenewalIntervalFlag),
-		cloudinfo.NewCacheProductStore(24*time.Hour, viper.GetDuration(prodInfRenewalIntervalFlag),
-			8*time.Minute),
+		cloudinfo.NewCacheProductStore(24*time.Hour, viper.GetDuration(prodInfRenewalIntervalFlag)),
 		infoers(ctx), metrics.NewDefaultMetricsReporter())
 	quitOnError(ctx, "error encountered", err)
 
