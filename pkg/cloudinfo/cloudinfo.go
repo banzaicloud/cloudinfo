@@ -120,11 +120,25 @@ func (cpi *CachingCloudInfo) GetProviders(ctx context.Context) []Provider {
 	return providers
 }
 
-// GetProvider returns the supported providers
+// GetProvider returns the supported provider
 func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (Provider, error) {
-	for p := range cpi.cloudInfoers {
-		if provider == p {
-			return NewProvider(provider), nil
+	for name, infoer := range cpi.cloudInfoers {
+		if provider == name {
+			services, err := infoer.GetServices()
+			if err != nil {
+				logger.Extract(ctx).WithField("provider", name).WithError(err).Error("could not retrieve services")
+			}
+
+			// decorate the provider with service information
+			svcs := make([]Service, 0)
+			for _, s := range services {
+				svcs = append(svcs, NewService(s.ServiceName()))
+			}
+
+			p := NewProvider(name)
+			p.Services = svcs
+
+			return p, nil
 		}
 	}
 	return Provider{}, fmt.Errorf("unsupported provider: [%s]", provider)
