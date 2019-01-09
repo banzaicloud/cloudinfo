@@ -40,18 +40,6 @@ const (
 	Cpu = "vcpu"
 )
 
-var eksRegionIds = []string{
-	endpoints.UsWest2RegionID,
-	endpoints.UsEast1RegionID,
-	endpoints.UsEast2RegionID,
-	endpoints.EuCentral1RegionID,
-	endpoints.EuWest1RegionID,
-	endpoints.ApNortheast1RegionID,
-	endpoints.ApSoutheast1RegionID,
-	endpoints.ApSoutheast2RegionID,
-	endpoints.EuNorth1RegionID,
-}
-
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {
 	pricingSvc   PricingSource
@@ -64,6 +52,7 @@ type Ec2Infoer struct {
 // Ec2Describer interface for operations describing EC2 artifacts. (a subset of the Ec2 cli operations used by this app)
 type Ec2Describer interface {
 	DescribeAvailabilityZones(input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error)
+	DescribeImages(*ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error)
 	DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPriceHistoryInput, fn func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool) error
 }
 
@@ -365,20 +354,43 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
 func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+	regionIdMap := make(map[string]string)
+	for key, region := range endpoints.AwsPartition().Regions() {
+		regionIdMap[key] = region.Description()
+	}
+
 	switch service {
 	case "eks":
-		// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
-		eksRegionMap := make(map[string]string)
-		awsRegions := endpoints.AwsPartition().Regions()
-		for _, regId := range eksRegionIds {
-			eksRegionMap[regId] = awsRegions[regId].Description()
+		input := &ec2.DescribeImagesInput{
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("name"),
+					Values: []*string{aws.String("amazon-eks-node-1.10-v*")},
+				},
+				{
+					Name:   aws.String("is-public"),
+					Values: []*string{aws.String("true")},
+				},
+				{
+					Name:   aws.String("state"),
+					Values: []*string{aws.String("available")},
+				},
+			},
 		}
-		return eksRegionMap, nil
+
+		eksRegionIdMap := make(map[string]string)
+
+		for key, value := range regionIdMap {
+			images, err := e.ec2Describer(key).DescribeImages(input)
+			if err != nil {
+				return nil, err
+			}
+			if len(images.Images) != 0 {
+				eksRegionIdMap[key] = value
+			}
+		}
+		return eksRegionIdMap, nil
 	default:
-		regionIdMap := make(map[string]string)
-		for key, region := range endpoints.AwsPartition().Regions() {
-			regionIdMap[key] = region.Description()
-		}
 		return regionIdMap, nil
 	}
 }

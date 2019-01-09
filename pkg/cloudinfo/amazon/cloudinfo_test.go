@@ -175,6 +175,10 @@ func (dps *testStruct) DescribeAvailabilityZones(input *ec2.DescribeAvailability
 	}, nil
 }
 
+func (dps *testStruct) DescribeImages(*ec2.DescribeImagesInput) (*ec2.DescribeImagesOutput, error) {
+	return nil, nil
+}
+
 func (dps *testStruct) DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPriceHistoryInput, fn func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool) error {
 	if dps.TcId == 11 {
 		return errors.New("invalid")
@@ -255,43 +259,6 @@ func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 
 			test.check(cloudinfoer.GetAttributeValues(context.Background(), "compute", test.attrName))
 
-		})
-	}
-}
-
-func TestEc2Infoer_GetRegions(t *testing.T) {
-	tests := []struct {
-		name    string
-		service string
-		check   func(regionId map[string]string, err error)
-	}{
-		{
-			name:    "receive all regions for compute service",
-			service: "compute",
-			check: func(regionId map[string]string, err error) {
-				assert.Equal(t, 16, len(regionId))
-				assert.Contains(t, regionId, "us-west-1")
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:    "receive all regions for eks service",
-			service: "eks",
-			check: func(regionId map[string]string, err error) {
-				assert.Equal(t, 9, len(regionId))
-				assert.Contains(t, regionId, "us-east-1")
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			cloudinfoer, err := NewEc2Infoer(context.Background(), "", "")
-			if err != nil {
-				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
-			}
-			regions, err := cloudinfoer.GetRegions(context.Background(), test.service)
-			test.check(regions, err)
 		})
 	}
 }
