@@ -17,7 +17,6 @@ package cloudinfo
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -142,7 +141,7 @@ func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 			return p, nil
 		}
 	}
-	return Provider{}, fmt.Errorf("unsupported provider: [%s]", provider)
+	return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
 }
 
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
@@ -441,7 +440,7 @@ func (cpi *CachingCloudInfo) toProviderAttribute(provider string, attr string) (
 	case Memory:
 		return cpi.cloudInfoers[provider].GetMemoryAttrName(), nil
 	}
-	return "", fmt.Errorf("unsupported attribute: %s", attr)
+	return "", emperror.With(errors.New("unsupported attribute"), "attribute", attr)
 }
 
 func (cpi *CachingCloudInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {
@@ -510,7 +509,7 @@ func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 	log.Debug("getting product details")
 	cachedVms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("vms not yet cached for the region: %s", region)
+		return nil, emperror.With(errors.New("vms not yet cached for the region"), "region", region)
 	}
 
 	vms := cachedVms.([]VmInfo)
@@ -555,7 +554,7 @@ func (cpi *CachingCloudInfo) GetStatus(provider string) (string, error) {
 
 	cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider)
 	if !ok {
-		return "", fmt.Errorf("status not yet cached for the provider: %s", provider)
+		return "", emperror.With(errors.New("status not yet cached for the provider"), "provider", provider)
 	}
 	status := cachedStatus.(string)
 
@@ -568,7 +567,7 @@ func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
 		return infoer, nil
 	}
 
-	return nil, fmt.Errorf("could not find infoer for: [ %s ]", provider)
+	return nil, emperror.With(errors.New("could not find infoer for provider"), "provider", provider)
 }
 
 func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
@@ -587,14 +586,10 @@ func (cpi *CachingCloudInfo) GetServiceImages(ctx context.Context, provider, ser
 
 	cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("images not yet cached for the region: %s", region)
+		return nil, emperror.With(errors.New("images not yet cached for the region"), "region", region)
 	}
 
 	return cachedImages.([]ImageDescriber), nil
-}
-
-func (cpi *CachingCloudInfo) getVersionsKey(provider, service, region string) string {
-	return fmt.Sprintf(VersionKeyTemplate, provider, service, region)
 }
 
 func (cpi *CachingCloudInfo) renewVersions(ctx context.Context, provider, service, region string) ([]string, error) {
@@ -614,7 +609,8 @@ func (cpi *CachingCloudInfo) GetVersions(ctx context.Context, provider, service,
 
 	cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region)
 	if !ok {
-		return nil, fmt.Errorf("versions not yet cached for the key: %s", cpi.getVersionsKey(provider, service, region))
+		return nil, emperror.With(errors.New("versions not yet cached"),
+			"provider", provider, "service", service, "region", region)
 	}
 
 	return cachedVersions.([]string), nil
