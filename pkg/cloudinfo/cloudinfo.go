@@ -26,6 +26,7 @@ import (
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
 )
 
 // CachingCloudInfo is the module struct, holds configuration and cache
@@ -334,10 +335,10 @@ func (cpi *CachingCloudInfo) Start(ctx context.Context) {
 // Initialize stores the result of the Infoer's Initialize output in cache
 func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error) {
 	log := logger.Extract(ctx)
-	log.Info("start initializing product information")
+	log.Info("initializing cloud product information")
 	allPrices, err := cpi.cloudInfoers[provider].Initialize(ctx)
 	if err != nil {
-		log.WithError(err).Warn("failed to initialize product information")
+		log.WithError(err).Warn("failed to initialize cloud product information")
 		return nil, err
 	}
 
@@ -347,7 +348,7 @@ func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 			metrics.OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
 		}
 	}
-	log.Info("finished to initialize product information")
+	log.Info("finished initializing cloud product information")
 	return allPrices, nil
 }
 
@@ -358,25 +359,24 @@ func (cpi *CachingCloudInfo) GetAttributes() []string {
 
 // GetAttrValues returns a slice with the values for the given attribute name
 func (cpi *CachingCloudInfo) GetAttrValues(ctx context.Context, provider, service, attribute string) ([]float64, error) {
-	v, err := cpi.getAttrValues(ctx, provider, service, attribute)
-	if err != nil {
-		return nil, err
-	}
-	floatValues := v.floatValues()
-	logger.Extract(ctx).Debugf("%s attribute values: %v", attribute, floatValues)
-	return floatValues, nil
-}
-
-func (cpi *CachingCloudInfo) getAttrValues(ctx context.Context, provider, service, attribute string) (AttrValues, error) {
+	var (
+		err    error
+		values AttrValues
+	)
+	// check the cache
 	if cachedVal, ok := cpi.cloudInfoStore.GetAttribute(provider, service, attribute); ok {
-		logger.Extract(ctx).Debugf("Getting available %s values from cache.", attribute)
-		return cachedVal.(AttrValues), nil
+		logger.Extract(ctx).Debug("returning attribute values from cache")
+		return cachedVal.(AttrValues).floatValues(), nil
 	}
-	values, err := cpi.renewAttrValues(ctx, provider, service, attribute)
-	if err != nil {
-		return nil, err
+
+	// scrape provider for attribute values
+	if values, err = cpi.renewAttrValues(ctx, provider, service, attribute); err == nil {
+		logger.Extract(ctx).Debug("returning freshly scraped attribute values")
+		return values.floatValues(), nil
 	}
-	return values, nil
+
+	return nil, emperror.Wrap(err, "failed to get attribute values")
+
 }
 
 // renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
