@@ -333,7 +333,7 @@ func (e *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[str
 
 // HasShortLivedPriceInfo - Spot Prices are changing continuously on Alibaba
 func (e *AlibabaInfoer) HasShortLivedPriceInfo() bool {
-	return true
+	return false
 }
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
