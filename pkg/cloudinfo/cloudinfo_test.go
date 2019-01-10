@@ -17,6 +17,7 @@ package cloudinfo
 import (
 	"context"
 	"errors"
+	"github.com/goph/emperror"
 	"testing"
 	"time"
 
@@ -222,7 +223,9 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 				"dummy": &DummyCloudInfoer{AttrValues: dummyAttrValues}},
 			Attribute: "invalidAttribute",
 			checker: func(value []float64, err error) {
-				assert.EqualError(t, err, "unsupported attribute: invalidAttribute")
+				assert.Equal(t, emperror.Context(err)[0], "attribute", "unexpected context")
+				assert.Equal(t, emperror.Context(err)[1], "invalidAttribute", "unexpected context")
+				assert.EqualError(t, err, "failed to get attribute values: unsupported attribute")
 				assert.Nil(t, value, "the retrieved values should be nil")
 			},
 		},
@@ -232,7 +235,7 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 				"dummy": &DummyCloudInfoer{TcId: GetAttributeValuesError, AttrValues: dummyAttrValues}},
 			Attribute: Cpu,
 			checker: func(value []float64, err error) {
-				assert.EqualError(t, err, GetAttributeValuesError)
+				assert.EqualError(t, err, "failed to get attribute values: "+GetAttributeValuesError)
 				assert.Nil(t, value, "the retrieved values should be nil")
 			},
 		},
