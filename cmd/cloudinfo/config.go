@@ -33,6 +33,8 @@ func defineFlags(pf *pflag.FlagSet) {
 		"price metrics via banzaicloud/spot-price-exporter. If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.")
 	pf.String(prometheusQueryFlag, "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
 		"advanced configuration: change the query used to query spot price info from Prometheus.")
+	pf.String(awsAccessKeyId, "", "aws access key id")
+	pf.String(awsSecretAccessKey, "", "aws secret access key")
 	pf.String(gceApiKeyFlag, "", "GCE API key to use for getting SKUs")
 	pf.String(gceApplicationCred, "", "google application credentials location")
 	pf.StringSlice(providerFlag, []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the cloudinfo application.")

@@ -36,6 +36,8 @@ const (
 	metricsAddressFlag         = "metrics-address"
 
 	//temporary flags
+	awsAccessKeyId         = "aws-access-key-id"
+	awsSecretAccessKey     = "aws-secret-access-key"
 	gceApiKeyFlag          = "gce-api-key"
 	gceApplicationCred     = "google-application-credentials"
 	azureAuthLocation      = "azure-auth-location"

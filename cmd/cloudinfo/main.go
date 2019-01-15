@@ -107,7 +107,9 @@ func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
 			infoer, err = amazon.NewEc2Infoer(
 				pctx,
 				viper.GetString(prometheusAddressFlag),
-				viper.GetString(prometheusQueryFlag))
+				viper.GetString(prometheusQueryFlag),
+				viper.GetString(awsAccessKeyId),
+				viper.GetString(awsSecretAccessKey))
 		case Google:
 			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
 		case Azure:
