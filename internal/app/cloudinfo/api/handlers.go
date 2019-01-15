@@ -77,6 +77,11 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			return
+		}
+
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
 			WithCorrelationId(logger.GetCorrelationId(c)).
@@ -117,7 +122,12 @@ func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		infoer, err := r.prod.GetInfoer(pathParams.Provider)
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			return
+		}
+
+		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
 		if err != nil {
 			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving services: %v", err))
 			c.JSON(http.StatusInternalServerError, er)
@@ -158,13 +168,18 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			return
+		}
+
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
 			WithService(pathParams.Service).
 			WithCorrelationId(logger.GetCorrelationId(c)).
 			Build())
 
-		infoer, err := r.prod.GetInfoer(pathParams.Provider)
+		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
 		if err != nil {
 			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving service: %v", err))
 			c.JSON(http.StatusInternalServerError, er)
@@ -201,6 +216,11 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetServicesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
 			return
 		}
 
@@ -244,6 +264,11 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			return
+		}
+
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
 			WithService(pathParams.Service).
@@ -283,6 +308,11 @@ func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
 			return
 		}
 
@@ -335,6 +365,11 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 		queryParams := GetImagesQueryParams{}
 		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version"), &queryParams); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
 			return
 		}
 
@@ -395,6 +430,11 @@ func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			return
+		}
+
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
 			WithService(pathParams.Service).
@@ -434,6 +474,11 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 		pathParams := GetAttributeValuesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
 			return
 		}
 

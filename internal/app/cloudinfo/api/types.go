@@ -22,31 +22,31 @@ import (
 // swagger:parameters getServices getProvider
 type GetProviderPathParams struct {
 	// in:path
-	Provider string `json:"provider"`
+	Provider string `binding:"required,provider" json:"provider"`
 }
 
 // GetServicesPathParams is a placeholder for the services related route path parameters
 // swagger:parameters getRegions getService
 type GetServicesPathParams struct {
-	GetProviderPathParams `mapstructure:",squash"`
+	GetProviderPathParams `binding:"required,structonly" mapstructure:",squash"`
 	// in:path
-	Service string `binding:"service" json:"service"`
+	Service string `binding:"required,service" json:"service"`
 }
 
 // GetRegionPathParams is a placeholder for the regions related route path parameters
 // swagger:parameters getRegion getImages getProducts getVersions
 type GetRegionPathParams struct {
-	GetServicesPathParams `mapstructure:",squash"`
+	GetServicesPathParams `binding:"required,structonly" mapstructure:",squash"`
 	// in:path
-	Region string `binding:"region" json:"region"`
+	Region string `binding:"required,region" json:"region"`
 }
 
 // GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
 // swagger:parameters getAttrValues
 type GetAttributeValuesPathParams struct {
-	GetRegionPathParams `mapstructure:",squash"`
+	GetRegionPathParams `binding:"required,structonly" mapstructure:",squash"`
 	// in:path
-	Attribute string `json:"attribute"`
+	Attribute string `binding:"required,attribute" json:"attribute"`
 }
 
 // GetImagesQueryParams is a placeholder for the get images query parameters

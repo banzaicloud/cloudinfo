@@ -38,6 +38,13 @@ type CachingCloudInfo struct {
 	metrics         metrics.Reporter
 }
 
+func (cpi *CachingCloudInfo) HasShortLivedPriceInfo(ctx context.Context, provider string) bool {
+	if cier, err := cpi.GetInfoer(ctx, provider); err != nil {
+		return cier.HasShortLivedPriceInfo()
+	}
+	return false
+}
+
 func (v AttrValues) floatValues() []float64 {
 	floatValues := make([]float64, len(v))
 	for i, av := range v {
@@ -352,7 +359,7 @@ func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 }
 
 // GetAttributes returns the supported attribute names
-func (cpi *CachingCloudInfo) GetAttributes() []string {
+func (cpi *CachingCloudInfo) GetAttributes(ctx context.Context) []string {
 	return []string{Cpu, Memory}
 }
 
@@ -585,7 +592,7 @@ func (cpi *CachingCloudInfo) GetStatus(provider string) (string, error) {
 	return "", emperror.With(errors.New("status not yet cached"), "provider", provider)
 }
 
-func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
+func (cpi *CachingCloudInfo) GetInfoer(ctx context.Context, provider string) (CloudInfoer, error) {
 	if infoer, ok := cpi.cloudInfoers[provider]; ok {
 		return infoer, nil
 	}

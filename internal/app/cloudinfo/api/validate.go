@@ -26,23 +26,16 @@ import (
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.CachingCloudInfo) error {
+func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.CloudInfo) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
-	if err := v.RegisterValidation("provider", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range providers {
-			if field.String() == p {
-				return true
-			}
-		}
-		return false
-	}); err != nil {
+	if err := v.RegisterValidation("provider", providerValidator(providers)); err != nil {
 		return fmt.Errorf("could not register provider validator. error: %s", err)
 	}
 
 	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range pi.GetAttributes() {
+		for _, p := range pi.GetAttributes(ctx) {
 			if field.String() == p {
 				return true
 			}
@@ -65,7 +58,7 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.C
 }
 
 // validationFn validation logic for the region data to be registered with the validator
-func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) validator.Func {
+func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
@@ -79,9 +72,16 @@ func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) valid
 			Build())
 
 		log := logger.Extract(ctx)
-		regions, err := cpi.GetRegions(ctx, currentProvider, currentService)
+		ci, err := cpi.GetInfoer(ctx, currentProvider)
+		if err != nil {
+			log.WithError(err).Error("could not get infoer")
+			return false
+		}
+
+		regions, err := ci.GetRegions(ctx, currentService)
 		if err != nil {
 			log.WithError(err).Error("could not get regions")
+			return false
 		}
 
 		log.Debugf("current region: %s, regions: %#v", currentRegion, regions)
@@ -95,7 +95,7 @@ func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) valid
 }
 
 // serviceValidator validates the `service` path parameter
-func serviceValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) validator.Func {
+func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 
@@ -108,13 +108,15 @@ func serviceValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) vali
 			Build())
 
 		log := logger.Extract(ctx)
-		infoer, err := cpi.GetInfoer(currentProvider)
+		infoer, err := cpi.GetInfoer(ctx, currentProvider)
 		if err != nil {
-			log.WithError(err).Error("could not get information")
+			log.WithError(err).Error("could not get infoer")
+			return false
 		}
 		services, err := infoer.GetServices()
 		if err != nil {
 			log.WithError(err).Error("could not get services")
+			return false
 		}
 
 		for _, svc := range services {
@@ -135,4 +137,24 @@ func digValueForName(value reflect.Value, field string) string {
 		ret = value.Elem().FieldByName(field).String()
 	}
 	return ret
+}
+
+// serviceValidator validates the `provider` path parameter
+func providerValidator(providers []string) validator.Func {
+
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+		for _, p := range providers {
+			if field.String() == p {
+				return true
+			}
+		}
+		return false
+
+	}
+}
+
+// ValidatePthData explicitly calls validation on the parsed path data structss
+func ValidatePathData(pathParams interface{}) error {
+	v := binding.Validator.Engine().(*validator.Validate)
+	return v.Struct(pathParams)
 }
