@@ -34,9 +34,9 @@ type pricingDetails struct {
 	pricing.Pricing
 }
 
-func NewPricingSource(s *session.Session, cfg *aws.Config) *pricingDetails {
+func NewPricingSource(s *session.Session, cfg ...*aws.Config) *pricingDetails {
 	return &pricingDetails{
-		*pricing.New(s, cfg),
+		*pricing.New(s, cfg...),
 	}
 }
 

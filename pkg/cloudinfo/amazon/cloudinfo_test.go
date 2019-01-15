@@ -211,7 +211,7 @@ func TestNewEc2Infoer(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.check(NewEc2Infoer(context.Background(), test.prom, ""))
+			test.check(NewEc2Infoer(context.Background(), test.prom, "", "", ""))
 		})
 	}
 }
@@ -250,7 +250,7 @@ func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudinfoer, err := NewEc2Infoer(context.Background(), "", "")
+			cloudinfoer, err := NewEc2Infoer(context.Background(), "", "", "", "")
 			// override pricingSvc
 			cloudinfoer.pricingSvc = test.pricingService
 			if err != nil {
@@ -290,7 +290,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "", "")
+			cloudInfoer, err := NewEc2Infoer(context.Background(), "", "", "", "")
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -332,7 +332,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "", "")
+			cloudInfoer, err := NewEc2Infoer(context.Background(), "", "", "", "")
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
@@ -376,7 +376,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "")
+			cloudInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "", "", "")
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
@@ -421,7 +421,7 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "")
+			cloudInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "", "", "")
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {

@@ -749,6 +749,7 @@
     "github.com/Azure/go-autorest/autorest/azure/auth",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
     "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/endpoints",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/ec2",

@@ -1,7 +1,5 @@
 .DS_Store
 bin/*
-/cloudinfo
-conf/config.toml
 *.swp
 test.txt
 /vendor/

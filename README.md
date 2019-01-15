@@ -17,18 +17,20 @@ See the UI in action here: [https://banzaicloud.com/cloudinfo/](https://banzaicl
 Building the project is as simple as running a go build command. The result is a statically linked executable binary.
 
 ```
-make build ./cmd/cloudinfo
+make build
 ```
 
 The following options can be configured when starting the exporter (with defaults):
 
 ```
-./cloudinfo --help
-Usage of ./cloudinfo:
+./build/cloudinfo --help
+Usage of ./build/cloudinfo:
       --alibaba-access-key-id string             alibaba access key id
       --alibaba-access-key-secret string         alibaba access key secret
-      --alibaba-price-info-url string            Alibaba get price info from this file (default "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.8/price/download/instancePrice.json")
+      --alibaba-price-info-url string            Alibaba get price info from this file (default "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.9/price/download/instancePrice.json")
       --alibaba-region-id string                 alibaba region id
+      --aws-access-key-id string                 aws access key id
+      --aws-secret-access-key string             aws secret access key
       --azure-auth-location string               azure authentication file location
       --gce-api-key string                       GCE API key to use for getting SKUs
       --google-application-credentials string    google application credentials location
@@ -58,9 +60,9 @@ environment variables, shared credential files and via AWS instance profiles. To
 The easiest way is through environment variables:
 
 ```
-export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 export AWS_ACCESS_KEY_ID=<your-access-key-id>
-./cloudinfo --provider amazon
+export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
+./build/cloudinfo --provider amazon
 ```
 
 ### Google Cloud
@@ -74,7 +76,8 @@ Once you have a service account, download the JSON credentials file from the Goo
 
 ```
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
-./cloudinfo --provider google --gce-api-key "<gce-api-key>"
+export GCE_API_KEY=<gce-api-key>
+./build/cloudinfo --provider google
 
 ```
 
@@ -90,7 +93,7 @@ and set an environment variable that points to the service account file:
 
 ```
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
-./cloudinfo --provider azure
+./build/cloudinfo --provider azure
 ```
 
 ### Oracle
@@ -99,7 +102,7 @@ Authentication is done via CLI configuration file. Follow [this](https://docs.cl
 
 ```
 export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
-./cloudinfo --provider oracle
+./build/cloudinfo --provider oracle
 ```
 
 ### Alibaba
@@ -110,7 +113,7 @@ The easiest way to authenticate is through environment variables:
 export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
 export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
 export ALIBABA_REGION_ID=<region-id>
-./cloudinfo --provider alibaba
+./build/cloudinfo --provider alibaba
 ```
 
 ### Configuring multiple providers
@@ -121,12 +124,13 @@ Here's an example of how to configure all three providers:
 export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 export AWS_ACCESS_KEY_ID=<your-access-key-id>
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
+export GCE_API_KEY=<gce-api-key>
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
 export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
 export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
 export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
 export ALIBABA_REGION_ID=<region-id>
-./cloudinfo --provider amazon --provider google --gce-api-key "<gce-api-key>" --provider azure --provider oracle --provider alibaba
+./build/cloudinfo
 
 ```
 
@@ -137,7 +141,7 @@ export ALIBABA_REGION_ID=<region-id>
 Here's a few `cURL` examples to get started:
 
 ```
-curl  -ksL -X GET "http://localhost:9091/api/v1/providers/azure/services/compute/regions/" | jq .
+curl  -ksL -X GET "http://localhost:9090/api/v1/providers/azure/services/compute/regions/" | jq .
 [
   {
     "id": "centralindia",
@@ -156,7 +160,7 @@ curl  -ksL -X GET "http://localhost:9091/api/v1/providers/azure/services/compute
 ```
 
 ```
-curl  -ksL -X GET "http://localhost:9091/api/v1/providers/amazon/services/compute/regions/eu-west-1/products" | jq .
+curl  -ksL -X GET "http://localhost:9090/api/v1/providers/amazon/services/compute/regions/eu-west-1/products" | jq .
 {
   "products": [
     {

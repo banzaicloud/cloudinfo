@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -43,7 +44,6 @@ const (
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {
 	pricingSvc   PricingSource
-	session      *session.Session
 	prometheus   v1.API
 	promQuery    string
 	ec2Describer func(region string) Ec2Describer
@@ -57,13 +57,24 @@ type Ec2Describer interface {
 }
 
 // NewEc2Infoer creates a new instance of the infoer
-func NewEc2Infoer(ctx context.Context, promAddr string, pq string) (*Ec2Infoer, error) {
+func NewEc2Infoer(ctx context.Context, promAddr, pq, awsAccessKeyId, awsSecretAccessKey string) (*Ec2Infoer, error) {
 	log := logger.Extract(ctx)
-	s, err := session.NewSession()
+
+	const defaultPricingRegion = "us-east-1"
+
+	s, err := session.NewSession(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(
+			awsAccessKeyId,
+			awsSecretAccessKey,
+			"",
+		),
+		Region: aws.String(defaultPricingRegion),
+	})
 	if err != nil {
 		log.WithError(err).Error("Error creating AWS session")
 		return nil, err
 	}
+
 	var promApi v1.API
 	if promAddr == "" {
 		log.Warn("Prometheus API address is not set, fallback to direct API access.")
@@ -80,21 +91,14 @@ func NewEc2Infoer(ctx context.Context, promAddr string, pq string) (*Ec2Infoer, 
 		}
 	}
 
-	const defaultPricingRegion = "us-east-1"
 	return &Ec2Infoer{
-		pricingSvc: NewPricingSource(s, aws.NewConfig().WithRegion(defaultPricingRegion)),
-		session:    s,
+		pricingSvc: NewPricingSource(s),
 		prometheus: promApi,
 		promQuery:  pq,
 		ec2Describer: func(region string) Ec2Describer {
-			return ec2.New(s, aws.NewConfig().WithRegion(region))
+			return ec2.New(s, s.Config.WithRegion(region))
 		},
 	}, nil
-}
-
-// NewConfig creates a new  Config instance and returns a pointer to it
-func NewConfig() *aws.Config {
-	return aws.NewConfig()
 }
 
 // Initialize is not needed on EC2 because price info is changing frequently
