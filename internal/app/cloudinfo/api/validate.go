@@ -64,7 +64,6 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.C
 	return nil
 }
 
-
 // validationFn validation logic for the region data to be registered with the validator
 func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) validator.Func {
 

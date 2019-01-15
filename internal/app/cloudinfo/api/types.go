@@ -18,11 +18,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-const (
-	providerParam  = "provider"
-	attributeParam = "attribute"
-)
-
 // GetProviderPathParams is a placeholder for the providers related route path parameters
 // swagger:parameters getServices getProvider
 type GetProviderPathParams struct {

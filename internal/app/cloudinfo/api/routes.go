@@ -27,8 +27,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"gopkg.in/go-playground/validator.v8"
 )
 
 // RouteHandler configures the REST API routes in the gin router
@@ -48,8 +46,6 @@ func NewRouteHandler(p *cloudinfo.CachingCloudInfo, bi buildinfo.BuildInfo) *Rou
 // ConfigureRoutes configures the gin engine, defines the rest API for this application
 func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) {
 	logger.Extract(ctx).Info("configuring routes")
-
-	v := binding.Validator.Engine().(*validator.Validate)
 
 	basePath := "/"
 	if basePathFromEnv := os.Getenv("CLOUDINFO_BASEPATH"); basePathFromEnv != "" {
