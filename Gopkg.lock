@@ -413,6 +413,14 @@
   version = "1.0.0"
 
 [[projects]]
+  digest = "1:05c51df2ae64391776460b8dd36b3fa36665ef2a9d5dca279ca98e837c50c123"
+  name = "github.com/moogar0880/problems"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "33afcba6336a8edeaa9ceeef7659ed96a85016f2"
+  version = "0.1.0"
+
+[[projects]]
   digest = "1:1fe9bdbdacbcc5a35443c8be16dbf6940079d74c35aa712d1ea7058cd590698b"
   name = "github.com/oracle/oci-go-sdk"
   packages = [
@@ -766,6 +774,7 @@
     "github.com/go-openapi/swag",
     "github.com/goph/emperror",
     "github.com/mitchellh/mapstructure",
+    "github.com/moogar0880/problems",
     "github.com/oracle/oci-go-sdk/common",
     "github.com/oracle/oci-go-sdk/containerengine",
     "github.com/oracle/oci-go-sdk/core",

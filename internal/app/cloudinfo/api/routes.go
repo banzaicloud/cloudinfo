@@ -72,17 +72,16 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 	providerGroup := v1.Group("/providers")
 	{
 
-		providerGroup.GET("/", r.getProviders(ctx)).Use(ValidatePathParam(ctx, providerParam, v, "provider"))
+		providerGroup.GET("/", r.getProviders(ctx))
 		providerGroup.GET("/:provider", r.getProvider(ctx))
-		providerGroup.GET("/:provider/services", r.getServices(ctx)).Use(ValidatePathData(ctx, v))
+		providerGroup.GET("/:provider/services", r.getServices(ctx))
 		providerGroup.GET("/:provider/services/:service", r.getService(ctx))
-		providerGroup.GET("/:provider/services/:service/regions", r.getRegions(ctx)).Use(ValidatePathData(ctx, v))
+		providerGroup.GET("/:provider/services/:service/regions", r.getRegions(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions(ctx))
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts(ctx))
-		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues(ctx)).
-			Use(ValidatePathParam(ctx, attributeParam, v, "attribute"))
+		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues(ctx))
 	}
 
 }

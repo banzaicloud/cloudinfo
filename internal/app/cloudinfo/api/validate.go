@@ -17,14 +17,11 @@ package api
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"reflect"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/mitchellh/mapstructure"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -67,64 +64,6 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.C
 	return nil
 }
 
-// ValidatePathParam is a gin middleware handler function that validates a named path parameter with specific Validate tags
-func ValidatePathParam(ctx context.Context, name string, validate *validator.Validate, tags ...string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		p := c.Param(name)
-		for _, tag := range tags {
-			err := validate.Field(p, tag)
-			if err != nil {
-				logger.Extract(ctx).WithError(err).Error("validation failed.")
-				c.Abort()
-				c.JSON(http.StatusBadRequest, gin.H{
-					"code":    "bad_params",
-					"message": fmt.Sprintf("invalid %s parameter", name),
-					"params":  map[string]string{name: p},
-				})
-				return
-			}
-		}
-	}
-}
-
-// ValidatePathData middleware function to validate region information in the request path.
-func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.HandlerFunc {
-	const (
-		regionParam = "region"
-	)
-	log := logger.Extract(ctx)
-	return func(c *gin.Context) {
-
-		var pathData interface{}
-		// build the appropriate internal struct based on the path params
-		_, hasRegion := c.Params.Get(regionParam)
-
-		if hasRegion {
-			pathData = &GetRegionPathParams{}
-		} else {
-			pathData = &GetServicesPathParams{}
-		}
-
-		if err := mapstructure.Decode(getPathParamMap(c), pathData); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
-			return
-		}
-
-		log.Debugf("path data is being validated: %s", pathData)
-		err := validate.Struct(pathData)
-		if err != nil {
-			log.WithError(err).Error("validation failed.")
-			c.Abort()
-			c.JSON(http.StatusBadRequest, gin.H{
-				"code":    "bad_params",
-				"message": fmt.Sprintf("invalid path parameter value: %s", pathData),
-				"params":  pathData,
-			})
-			return
-		}
-	}
-
-}
 
 // validationFn validation logic for the region data to be registered with the validator
 func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) validator.Func {
