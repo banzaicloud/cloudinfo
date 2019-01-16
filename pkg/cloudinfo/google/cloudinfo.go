@@ -17,9 +17,9 @@ package google
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -55,26 +55,27 @@ var regionNames = map[string]string{
 
 // GceInfoer encapsulates the data and operations needed to access external resources
 type GceInfoer struct {
-	cbSvc              *billing.APIService
-	computeSvc         *compute.Service
-	containerSvc       *container.Service
-	projectId          string
-	cpuRegex           *regexp.Regexp
-	resourceGroupRegex *regexp.Regexp
+	cbSvc        *billing.APIService
+	computeSvc   *compute.Service
+	containerSvc *container.Service
+	projectId    string
 }
 
 // NewGceInfoer creates a new instance of the infoer
 func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
 	if appCredentials == "" {
-		return nil, fmt.Errorf("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
+		return nil, errors.New("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
 	}
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", appCredentials)
-
-	defaultCredential, err := google.FindDefaultCredentials(context.Background(), compute.ComputeScope, billing.CloudPlatformScope)
+	err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", appCredentials)
 	if err != nil {
 		return nil, err
 	}
-	client, err := google.DefaultClient(context.Background(), compute.ComputeScope, billing.CloudPlatformScope)
+
+	defaultCredential, err := google.FindDefaultCredentials(context.Background(), compute.ComputeReadonlyScope, container.CloudPlatformScope)
+	if err != nil {
+		return nil, err
+	}
+	client, err := google.DefaultClient(context.Background(), compute.ComputeReadonlyScope, container.CloudPlatformScope)
 	if err != nil {
 		return nil, err
 	}
@@ -94,16 +95,11 @@ func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
 		return nil, err
 	}
 
-	cpuReg, _ := regexp.Compile(`\d+ VCPU`)
-	rgReg, _ := regexp.Compile(`^[a-z]+\d+`)
-
 	return &GceInfoer{
-		cbSvc:              billingSvc,
-		computeSvc:         computeSvc,
-		containerSvc:       containerSvc,
-		projectId:          defaultCredential.ProjectID,
-		cpuRegex:           cpuReg,
-		resourceGroupRegex: rgReg,
+		cbSvc:        billingSvc,
+		computeSvc:   computeSvc,
+		containerSvc: containerSvc,
+		projectId:    defaultCredential.ProjectID,
 	}, nil
 }
 
