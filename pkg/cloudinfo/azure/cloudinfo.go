@@ -109,7 +109,10 @@ type PriceRetriever interface {
 
 // NewAzureInfoer creates a new instance of the Azure infoer
 func NewAzureInfoer(authLocation string) (*AzureInfoer, error) {
-	os.Setenv("AZURE_AUTH_LOCATION", authLocation)
+	err := os.Setenv("AZURE_AUTH_LOCATION", authLocation)
+	if err != nil {
+		return nil, err
+	}
 
 	authorizer, err := auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
 	if err != nil {

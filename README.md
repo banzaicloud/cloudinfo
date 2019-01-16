@@ -65,6 +65,14 @@ export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
 ./build/cloudinfo --provider amazon
 ```
 
+Create AWS credentials with aws command-line tool:
+
+```
+aws iam create-user --user-name cloudinfo
+aws iam put-user-policy --user-name cloudinfo --policy-name cloudinfo_policy --policy-document file://credentials/amazon_cloudinfo_role.json
+aws iam create-access-key --user-name cloudinfo
+```
+
 ### Google Cloud
 
 On Google Cloud the project is using two different APIs to collect the full product information: the Cloud Billing API and the Compute Engine API.
@@ -78,7 +86,16 @@ Once you have a service account, download the JSON credentials file from the Goo
 export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
 export GCE_API_KEY=<gce-api-key>
 ./build/cloudinfo --provider google
+```
 
+Create service account key with gcloud command-line tool:
+
+```
+gcloud services enable container.googleapis.com compute.googleapis.com cloudbilling.googleapis.com cloudresourcemanager.googleapis.com
+gcloud iam service-accounts create cloudinfoSA --display-name "Service account used for managing Cloudinfo”
+gcloud iam roles create cloudinfo --project [PROJECT-ID] --title cloudinfo --description "cloudinfo roles" --permissions compute.machineTypes.list,compute.regions.list,compute.zones.list
+gcloud projects add-iam-policy-binding [PROJECT-ID] --member='serviceAccount:cloudinfoSA@[PROJECT-ID].iam.gserviceaccount.com' --role='projects/[PROJECT-ID]/roles/cloudinfo'
+gcloud iam service-accounts keys create cloudinfo.gcloud.json --iam-account=cloudinfoSA@[PROJECT-ID].iam.gserviceaccount.com
 ```
 
 ### Azure
@@ -94,6 +111,18 @@ and set an environment variable that points to the service account file:
 ```
 export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
 ./build/cloudinfo --provider azure
+```
+
+Create service principal with azure command-line tool:
+
+```
+cd credentials
+az provider register --namespace Microsoft.Compute
+az provider register --namespace Microsoft.Resources
+az provider register --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.Commerce
+az role definition create --verbose --role-definition @azure_cloudinfo_role.json
+az ad sp create-for-rbac --name "CloudinfoSP" --role “Cloudinfo” --sdk-auth true > azure_cloudinfo.auth
 ```
 
 ### Oracle
