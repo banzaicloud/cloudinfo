@@ -543,14 +543,72 @@ func (e *Ec2Infoer) GetService(ctx context.Context, service string) (cloudinfo.S
 
 }
 
-// HasImages - Amazon doesn't support images
+// HasImages - Amazon support images
 func (e *Ec2Infoer) HasImages() bool {
-	return false
+	return true
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (e *Ec2Infoer) GetServiceImages(region, service string) ([]cloudinfo.ImageDescriber, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.ImageDescriber, error) {
+	imageDescribers := make([]cloudinfo.ImageDescriber, 0)
+
+	if service == "eks" {
+		for _, version := range []string{"1.10", "1.11"} {
+			input := &ec2.DescribeImagesInput{
+				Filters: []*ec2.Filter{
+					{
+						Name:   aws.String("name"),
+						Values: []*string{aws.String("amazon-eks-gpu-node-" + version + "-v*")},
+					},
+					{
+						Name:   aws.String("is-public"),
+						Values: []*string{aws.String("true")},
+					},
+					{
+						Name:   aws.String("state"),
+						Values: []*string{aws.String("available")},
+					},
+				},
+			}
+
+			gpuImages, err := e.ec2Describer(region).DescribeImages(input)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, image := range gpuImages.Images {
+				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*image.ImageId, version, true))
+			}
+
+			input = &ec2.DescribeImagesInput{
+				Filters: []*ec2.Filter{
+					{
+						Name:   aws.String("name"),
+						Values: []*string{aws.String("amazon-eks-node-" + version + "-v*")},
+					},
+					{
+						Name:   aws.String("is-public"),
+						Values: []*string{aws.String("true")},
+					},
+					{
+						Name:   aws.String("state"),
+						Values: []*string{aws.String("available")},
+					},
+				},
+			}
+
+			images, err := e.ec2Describer(region).DescribeImages(input)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, image := range images.Images {
+				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*image.ImageId, version, false))
+			}
+		}
+	}
+
+	return imageDescribers, nil
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region

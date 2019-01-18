@@ -579,7 +579,7 @@ func (a *AzureInfoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (a *AzureInfoer) GetServiceImages(region, service string) ([]cloudinfo.ImageDescriber, error) {
+func (a *AzureInfoer) GetServiceImages(service, region string) ([]cloudinfo.ImageDescriber, error) {
 	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
 }
 

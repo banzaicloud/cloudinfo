@@ -57,7 +57,7 @@ type CloudInfoer interface {
 	HasImages() bool
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
-	GetServiceImages(region, service string) ([]ImageDescriber, error)
+	GetServiceImages(service, region string) ([]ImageDescriber, error)
 
 	// GetVersions retrieves the  versions supported by the given service in the given region
 	GetVersions(ctx context.Context, service, region string) ([]string, error)

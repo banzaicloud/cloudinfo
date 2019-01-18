@@ -142,6 +142,10 @@ type ServiceDescriber interface {
 type ImageDescriber interface {
 	// ImageName returns the image name
 	ImageName() string
+	// VersionName returns the k8s version
+	VersionName() string
+	// GpuAvailability returns true, if gpu is available
+	GpuAvailability() bool
 }
 
 // Service represents a service supported by a given provider.
@@ -186,7 +190,9 @@ func NewProvider(name string) Provider {
 
 // Image represents an image
 type Image struct {
-	Image string `json:"image"`
+	Image        string `json:"image"`
+	Version      string `json:"version,omitempty"`
+	GpuAvailable bool   `json:"gpu,omitempty"`
 }
 
 // ImageName returns the name of the image
@@ -194,10 +200,22 @@ func (i Image) ImageName() string {
 	return i.Image
 }
 
+// VersionName returns the name of the k8s version
+func (i Image) VersionName() string {
+	return i.Version
+}
+
+// GpuAvailability returns true, if gpu is available
+func (i Image) GpuAvailability() bool {
+	return i.GpuAvailable
+}
+
 // NewImage create new provider describer struct
-func NewImage(name string) *Image {
+func NewImage(name, version string, gpu bool) *Image {
 	return &Image{
-		Image: name,
+		Image:        name,
+		Version:      version,
+		GpuAvailable: gpu,
 	}
 }
 

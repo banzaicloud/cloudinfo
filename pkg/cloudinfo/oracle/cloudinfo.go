@@ -337,15 +337,15 @@ func (i *Infoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (i *Infoer) GetServiceImages(region, service string) (images []cloudinfo.ImageDescriber, err error) {
+func (i *Infoer) GetServiceImages(service, region string) (images []cloudinfo.ImageDescriber, err error) {
 
-	_images, err := i.client.GetSupportedImagesInARegion(region, service)
+	_images, err := i.client.GetSupportedImagesInARegion(service, region)
 	if err != nil {
 		return images, err
 	}
 
 	for _, image := range _images {
-		images = append(images, cloudinfo.NewImage(image))
+		images = append(images, cloudinfo.NewImage(image, "", false))
 	}
 
 	return images, nil

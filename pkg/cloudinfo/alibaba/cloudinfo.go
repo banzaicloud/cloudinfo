@@ -424,7 +424,7 @@ func (e *AlibabaInfoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (e *AlibabaInfoer) GetServiceImages(region, service string) ([]cloudinfo.ImageDescriber, error) {
+func (e *AlibabaInfoer) GetServiceImages(service, region string) ([]cloudinfo.ImageDescriber, error) {
 	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
 }
 

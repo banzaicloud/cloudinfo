@@ -103,7 +103,7 @@ func (oci *OCI) GetSupportedImages(service string) (images map[string][]string, 
 
 	images = make(map[string][]string)
 	for _, region := range regions {
-		_images, err := oci.GetSupportedImagesInARegion(region, service)
+		_images, err := oci.GetSupportedImagesInARegion(service, region)
 		if err != nil {
 			return images, err
 		}
@@ -115,7 +115,7 @@ func (oci *OCI) GetSupportedImages(service string) (images map[string][]string, 
 
 // GetSupportedImagesInARegion gives back supported node images in the given region and service
 // currently only 'compute' and 'oke' services are supported
-func (oci *OCI) GetSupportedImagesInARegion(region, service string) (images []string, err error) {
+func (oci *OCI) GetSupportedImagesInARegion(service, region string) (images []string, err error) {
 	uniquemap := make(map[string]bool)
 
 	err = oci.ChangeRegion(region)
