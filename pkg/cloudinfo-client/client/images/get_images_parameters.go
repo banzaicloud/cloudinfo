@@ -62,12 +62,16 @@ for the get images operation typically these are written to a http.Request
 */
 type GetImagesParams struct {
 
+	/*Gpu*/
+	Gpu *string
 	/*Provider*/
 	Provider string
 	/*Region*/
 	Region string
 	/*Service*/
 	Service string
+	/*Version*/
+	Version *string
 
 	timeout    time.Duration
 	Context    context.Context
@@ -107,6 +111,17 @@ func (o *GetImagesParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithGpu adds the gpu to the get images params
+func (o *GetImagesParams) WithGpu(gpu *string) *GetImagesParams {
+	o.SetGpu(gpu)
+	return o
+}
+
+// SetGpu adds the gpu to the get images params
+func (o *GetImagesParams) SetGpu(gpu *string) {
+	o.Gpu = gpu
+}
+
 // WithProvider adds the provider to the get images params
 func (o *GetImagesParams) WithProvider(provider string) *GetImagesParams {
 	o.SetProvider(provider)
@@ -140,6 +155,17 @@ func (o *GetImagesParams) SetService(service string) {
 	o.Service = service
 }
 
+// WithVersion adds the version to the get images params
+func (o *GetImagesParams) WithVersion(version *string) *GetImagesParams {
+	o.SetVersion(version)
+	return o
+}
+
+// SetVersion adds the version to the get images params
+func (o *GetImagesParams) SetVersion(version *string) {
+	o.Version = version
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetImagesParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -147,6 +173,22 @@ func (o *GetImagesParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Reg
 		return err
 	}
 	var res []error
+
+	if o.Gpu != nil {
+
+		// query param gpu
+		var qrGpu string
+		if o.Gpu != nil {
+			qrGpu = *o.Gpu
+		}
+		qGpu := qrGpu
+		if qGpu != "" {
+			if err := r.SetQueryParam("gpu", qGpu); err != nil {
+				return err
+			}
+		}
+
+	}
 
 	// path param provider
 	if err := r.SetPathParam("provider", o.Provider); err != nil {
@@ -161,6 +203,22 @@ func (o *GetImagesParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Reg
 	// path param service
 	if err := r.SetPathParam("service", o.Service); err != nil {
 		return err
+	}
+
+	if o.Version != nil {
+
+		// query param version
+		var qrVersion string
+		if o.Version != nil {
+			qrVersion = *o.Version
+		}
+		qVersion := qrVersion
+		if qVersion != "" {
+			if err := r.SetQueryParam("version", qVersion); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	if len(res) > 0 {

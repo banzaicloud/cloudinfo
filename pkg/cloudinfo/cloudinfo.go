@@ -572,7 +572,7 @@ func (cpi *CachingCloudInfo) GetInfoer(provider string) (CloudInfoer, error) {
 }
 
 func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
-	values, err := cpi.cloudInfoers[provider].GetServiceImages(regionId, service)
+	values, err := cpi.cloudInfoers[provider].GetServiceImages(service, regionId)
 	if err != nil {
 		return nil, err
 	}

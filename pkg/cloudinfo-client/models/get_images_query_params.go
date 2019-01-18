@@ -11,27 +11,24 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// Image Image represents an image
-// swagger:model Image
-type Image struct {
+// GetImagesQueryParams GetImagesQueryParams is a placeholder for the get images query parameters
+// swagger:model GetImagesQueryParams
+type GetImagesQueryParams struct {
 
-	// gpu available
-	GpuAvailable bool `json:"gpu,omitempty"`
+	// in:query
+	Gpu string `json:"gpu,omitempty"`
 
-	// image
-	Image string `json:"image,omitempty"`
-
-	// version
+	// in:query
 	Version string `json:"version,omitempty"`
 }
 
-// Validate validates this image
-func (m *Image) Validate(formats strfmt.Registry) error {
+// Validate validates this get images query params
+func (m *GetImagesQueryParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *Image) MarshalBinary() ([]byte, error) {
+func (m *GetImagesQueryParams) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -39,8 +36,8 @@ func (m *Image) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *Image) UnmarshalBinary(b []byte) error {
-	var res Image
+func (m *GetImagesQueryParams) UnmarshalBinary(b []byte) error {
+	var res GetImagesQueryParams
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -332,6 +332,11 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
 			return
 		}
+		queryParams := GetImagesQueryParams{}
+		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version"), &queryParams); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			return
+		}
 
 		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
 			WithProvider(pathParams.Provider).
@@ -349,8 +354,23 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		log.Debug("successfully retrieved image details")
-		c.JSON(http.StatusOK, images)
+		if queryParams.Gpu != "" && queryParams.Version != "" {
+			filteredImages := make([]string, 0)
+			for _, image := range images {
+				if queryParams.Version == image.VersionName() {
+					if queryParams.Gpu == "0" && !image.GpuAvailability() {
+						filteredImages = append(filteredImages, image.ImageName())
+					} else if queryParams.Gpu != "0" && image.GpuAvailability() {
+						filteredImages = append(filteredImages, image.ImageName())
+					}
+				}
+			}
+			log.Debug("successfully retrieved image details")
+			c.JSON(http.StatusOK, filteredImages)
+		} else {
+			log.Debug("successfully retrieved image details")
+			c.JSON(http.StatusOK, images)
+		}
 	}
 }
 
@@ -445,4 +465,15 @@ func getPathParamMap(c *gin.Context) map[string]string {
 		pm[p.Key] = p.Value
 	}
 	return pm
+}
+
+// getQueryParamMap transforms the query params into a map to be able to easily bind to param structs
+func getQueryParamMap(c *gin.Context, queries ...string) map[string]string {
+	queriesMap := make(map[string]string, 0)
+	for _, query := range queries {
+		if value, ok := c.GetQuery(query); ok {
+			queriesMap[query] = value
+		}
+	}
+	return queriesMap
 }

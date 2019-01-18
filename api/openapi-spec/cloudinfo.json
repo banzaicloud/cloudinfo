@@ -276,6 +276,18 @@
             "name": "region",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Gpu",
+            "name": "gpu",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Version",
+            "name": "version",
+            "in": "query"
           }
         ],
         "responses": {
@@ -496,6 +508,23 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
+    "GetImagesQueryParams": {
+      "description": "GetImagesQueryParams is a placeholder for the get images query parameters",
+      "type": "object",
+      "properties": {
+        "gpu": {
+          "description": "in:query",
+          "type": "string",
+          "x-go-name": "Gpu"
+        },
+        "version": {
+          "description": "in:query",
+          "type": "string",
+          "x-go-name": "Version"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
     "GetProviderPathParams": {
       "description": "GetProviderPathParams is a placeholder for the providers related route path parameters",
       "type": "object",
@@ -551,9 +580,17 @@
       "description": "Image represents an image",
       "type": "object",
       "properties": {
+        "gpu": {
+          "type": "boolean",
+          "x-go-name": "GpuAvailable"
+        },
         "image": {
           "type": "string",
           "x-go-name": "Image"
+        },
+        "version": {
+          "type": "string",
+          "x-go-name": "Version"
         }
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"

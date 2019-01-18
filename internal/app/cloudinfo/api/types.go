@@ -54,6 +54,15 @@ type GetAttributeValuesPathParams struct {
 	Attribute string `json:"attribute"`
 }
 
+// GetImagesQueryParams is a placeholder for the get images query parameters
+// swagger:parameters getImages
+type GetImagesQueryParams struct {
+	// in:query
+	Gpu string `json:"gpu"`
+	// in:query
+	Version string `json:"version"`
+}
+
 // ProductDetailsResponse Api object to be mapped to product info response
 // swagger:model ProductDetailsResponse
 type ProductDetailsResponse struct {
