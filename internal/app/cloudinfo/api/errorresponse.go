@@ -47,12 +47,11 @@ func (er *errorResponder) Respond(ginCtx *gin.Context, err error) {
 func (er *errorResponder) respond(ginCtx *gin.Context, d interface{}) {
 
 	if problems.IsDefaultProblem(d) {
-		ginCtx.JSON(problems.ProblemStatus(d), d)
-		ginCtx.Abort()
+		ginCtx.AbortWithStatusJSON(problems.ProblemStatus(d), d)
 		return
 	}
 
-	ginCtx.JSON(http.StatusInternalServerError, problems.NewUnknownProblem(d))
+	ginCtx.AbortWithStatusJSON(http.StatusInternalServerError, problems.NewUnknownProblem(d))
 }
 
 // NewErrorResponder configures a new error responder
