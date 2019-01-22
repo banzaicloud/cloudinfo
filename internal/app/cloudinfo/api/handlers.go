@@ -16,7 +16,7 @@ package api
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
@@ -47,12 +47,11 @@ func (r *RouteHandler) getProviders(ctx context.Context) gin.HandlerFunc {
 
 		providers := r.prod.GetProviders(ctxLog)
 		if len(providers) < 1 {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": "no providers are configured"})
+			r.errorResponder.Respond(c, emperror.With(errors.New("no providers are configured")))
+			return
 		}
 
-		c.JSON(http.StatusOK, ProvidersResponse{
-			Providers: providers,
-		})
+		c.JSON(http.StatusOK, ProvidersResponse{Providers: providers})
 	}
 }
 
@@ -112,31 +111,29 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 //
 //     Responses:
 //       200: ServicesResponse
-//       503: ErrorResponse
 func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProviderPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
 		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
 		if err != nil {
-			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving services: %v", err))
-			c.JSON(http.StatusInternalServerError, er)
+			r.errorResponder.Respond(c, emperror.Wrap(err, "could not retrieve cloud info provider"))
 			return
 		}
 
 		services, err := infoer.GetServices()
 		if err != nil {
-			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
-			c.JSON(http.StatusServiceUnavailable, er)
+			r.errorResponder.Respond(c, emperror.Wrapf(err,
+				"could not retrieve services for provider: %s", pathParams.Provider))
 			return
 		}
 
@@ -157,18 +154,17 @@ func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 //
 //     Responses:
 //       200: ServiceResponse
-//       503: ErrorResponse
 func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// bind the path parameters
 		pathParams := GetServicesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -180,15 +176,14 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 
 		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
 		if err != nil {
-			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusInternalServerError), fmt.Sprintf("error while retrieving service: %v", err))
-			c.JSON(http.StatusInternalServerError, er)
+			r.errorResponder.Respond(c, emperror.Wrap(err, "could not retrieve cloud info provider"))
 			return
 		}
 
 		service, err := infoer.GetService(ctxLog, pathParams.Service)
 		if err != nil {
-			er := NewErrorResponse(fmt.Sprintf("%d", http.StatusServiceUnavailable), fmt.Sprintf("error while retrieving service: %v", err))
-			c.JSON(http.StatusServiceUnavailable, er)
+			r.errorResponder.Respond(c, emperror.Wrapf(err,
+				"could not retrieve service [%s] for cloud info provider [%s]", pathParams.Service, pathParams.Provider))
 			return
 		}
 
@@ -214,12 +209,12 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetServicesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -231,7 +226,8 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 
 		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider, pathParams.Service)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retriev regions for service [%s], provider [%s]",
+				pathParams.Service, pathParams.Provider))
 			return
 		}
 		var response RegionsResponse
@@ -259,12 +255,12 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -277,12 +273,15 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 
 		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider, pathParams.Service)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err,
+				"failed to retrieve regions. service [%s], provider [%s]", pathParams.Service, pathParams.Service))
 			return
 		}
 		zones, err := r.prod.GetZones(ctxLog, pathParams.Provider, pathParams.Region)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err,
+				"failed to retrieve zones. service [%s], provider [%s], region [%s]", pathParams.Service, pathParams.Provider, pathParams.Region))
+
 			return
 		}
 		c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, regions[pathParams.Region], zones})
@@ -306,12 +305,12 @@ func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -327,12 +326,15 @@ func (r *RouteHandler) getProducts(ctx context.Context) gin.HandlerFunc {
 
 		scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err,
+				"failed to retrieve status. provider [%s]", pathParams.Provider))
 			return
 		}
 		details, err := r.prod.GetProductDetails(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err,
+				"failed to retrieve product details. service [%s], provider [%s], region [%s]", pathParams.Service,
+				pathParams.Service, pathParams.Region))
 			return
 		}
 
@@ -358,17 +360,17 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 		queryParams := GetImagesQueryParams{}
 		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version"), &queryParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -384,8 +386,10 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 
 		images, err := r.prod.GetServiceImages(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve service images details. "+
+				"service [%s], provider [%s], region [%s]", pathParams.Service, pathParams.Service, pathParams.Region))
 			return
+
 		}
 
 		if queryParams.Gpu != "" && queryParams.Version != "" {
@@ -425,12 +429,12 @@ func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -446,7 +450,8 @@ func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 
 		versions, err := r.prod.GetVersions(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve versions. service [%s], "+
+				"provider [%s], region [%s]", pathParams.Service, pathParams.Service, pathParams.Region))
 			return
 		}
 
@@ -472,12 +477,12 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetAttributeValuesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -493,7 +498,8 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 
 		attributes, err := r.prod.GetAttrValues(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Attribute)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"status": http.StatusInternalServerError, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve attribute values. service [%s], "+
+				"provider [%s], attributes [%s]", pathParams.Service, pathParams.Service, pathParams.Attribute))
 			return
 		}
 		log.Debugf("successfully retrieved %s attribute values", pathParams.Attribute)

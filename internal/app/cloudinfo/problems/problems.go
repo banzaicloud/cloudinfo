@@ -49,7 +49,7 @@ func NewProviderProblem(code int, details string) *ProblemWrapper {
 }
 
 func NewUnknownProblem(un interface{}) *ProblemWrapper {
-	return &ProblemWrapper{problems.NewDetailedProblem(http.StatusInternalServerError, fmt.Sprintf("error: %s", un))}
+	return &ProblemWrapper{problems.NewDetailedProblem(http.StatusInternalServerError, fmt.Sprintf("%s", un))}
 }
 
 func IsDefaultProblem(d interface{}) bool {
@@ -62,7 +62,7 @@ func NewDetailedProblem(status int, details string) *ProblemWrapper {
 }
 
 func ProblemStatus(d interface{}) int {
-	if pb, ok := d.(*problems.DefaultProblem); ok {
+	if pb, ok := d.(*ProblemWrapper); ok {
 		return pb.Status
 	}
 	return -1

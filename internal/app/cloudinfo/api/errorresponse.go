@@ -48,6 +48,7 @@ func (er *errorResponder) respond(ginCtx *gin.Context, d interface{}) {
 
 	if problems.IsDefaultProblem(d) {
 		ginCtx.JSON(problems.ProblemStatus(d), d)
+		ginCtx.Abort()
 		return
 	}
 

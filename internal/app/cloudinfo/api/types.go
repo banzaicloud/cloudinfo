@@ -128,21 +128,6 @@ type VersionsResponse struct {
 	Versions []cloudinfo.Version `json:"versions"`
 }
 
-// ErrorResponse struct for error responses
-// swagger:model ErrorResponse
-type ErrorResponse struct {
-	ErrorCode    string `json:"code,omitempty"`
-	ErrorMessage string `json:"message,omitempty"`
-}
-
-// NewErrorResponse creates a new ErrorResponse struct
-func NewErrorResponse(code, message string) ErrorResponse {
-	return ErrorResponse{
-		ErrorCode:    code,
-		ErrorMessage: message,
-	}
-}
-
 // NewServiceResponse assembles a service response
 func NewServiceResponse(sd cloudinfo.ServiceDescriber) ServiceResponse {
 	return ServiceResponse{
