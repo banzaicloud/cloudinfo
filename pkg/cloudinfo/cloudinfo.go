@@ -133,7 +133,7 @@ func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 		if provider == name {
 			services, err := infoer.GetServices()
 			if err != nil {
-				logger.Extract(ctx).WithField("provider", name).WithError(err).Error("could not retrieve services")
+				logger.Extract(ctx).WithError(err).Error("could not retrieve services")
 			}
 
 			// decorate the provider with service information

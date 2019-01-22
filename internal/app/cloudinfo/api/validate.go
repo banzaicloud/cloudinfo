@@ -153,7 +153,7 @@ func providerValidator(providers []string) validator.Func {
 	}
 }
 
-// ValidatePthData explicitly calls validation on the parsed path data structss
+// ValidatePthData explicitly calls validation on the parsed path data structs
 func ValidatePathData(pathParams interface{}) error {
 	v := binding.Validator.Engine().(*validator.Validate)
 	return v.Struct(pathParams)

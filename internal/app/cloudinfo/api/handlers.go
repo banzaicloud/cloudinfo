@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/mitchellh/mapstructure"
-
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
+	"github.com/mitchellh/mapstructure"
 )
 
 // swagger:route GET /providers providers getProviders
@@ -73,12 +73,12 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProviderPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", ve)})
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
 			return
 		}
 
@@ -89,14 +89,13 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 
 		provider, err := r.prod.GetProvider(ctxLog, pathParams.Provider)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": fmt.Sprintf("%s", err)})
+			// todo this code is unreachable, the validation catches the possible problems
+			r.errorResponder.Respond(c, emperror.With(err))
 			return
 
 		}
 
-		c.JSON(http.StatusOK, ProviderResponse{
-			Provider: provider,
-		})
+		c.JSON(http.StatusOK, ProviderResponse{Provider: provider})
 	}
 }
 

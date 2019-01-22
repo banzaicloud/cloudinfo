@@ -15,9 +15,11 @@
 package problems
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/moogar0880/problems"
 	"net/http"
+
+	"github.com/moogar0880/problems"
 )
 
 const (
@@ -25,19 +27,43 @@ const (
 	providerProblemTitle   = "cloud provider problem"
 )
 
-// NewValidationProblem identif
-func NewValidationProblem(code int, details string) *problems.DefaultProblem {
+type ProblemWrapper struct {
+	*problems.DefaultProblem
+}
+
+func (pw *ProblemWrapper) String() string {
+	str, _ := json.Marshal(pw.DefaultProblem)
+	return string(str)
+}
+
+func NewValidationProblem(code int, details string) *ProblemWrapper {
 	pb := problems.NewDetailedProblem(code, details)
 	pb.Title = validationProblemTitle
-	return pb
+	return &ProblemWrapper{pb}
 }
 
-func NewProviderProblem(code int, details string) *problems.DefaultProblem {
+func NewProviderProblem(code int, details string) *ProblemWrapper {
 	pb := problems.NewDetailedProblem(code, details)
 	pb.Title = providerProblemTitle
-	return pb
+	return &ProblemWrapper{pb}
 }
 
-func NewUnknownProblem(un interface{}) *problems.DefaultProblem {
-	return problems.NewDetailedProblem(http.StatusInternalServerError, fmt.Sprintf("error: %#v", un))
+func NewUnknownProblem(un interface{}) *ProblemWrapper {
+	return &ProblemWrapper{problems.NewDetailedProblem(http.StatusInternalServerError, fmt.Sprintf("error: %s", un))}
+}
+
+func IsDefaultProblem(d interface{}) bool {
+	_, ok := d.(*ProblemWrapper)
+	return ok
+}
+
+func NewDetailedProblem(status int, details string) *ProblemWrapper {
+	return &ProblemWrapper{problems.NewDetailedProblem(status, details)}
+}
+
+func ProblemStatus(d interface{}) int {
+	if pb, ok := d.(*problems.DefaultProblem); ok {
+		return pb.Status
+	}
+	return -1
 }
