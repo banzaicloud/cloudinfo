@@ -122,7 +122,7 @@ az provider register --namespace Microsoft.Resources
 az provider register --namespace Microsoft.ContainerService
 az provider register --namespace Microsoft.Commerce
 az role definition create --verbose --role-definition @azure_cloudinfo_role.json
-az ad sp create-for-rbac --name "CloudinfoSP" --role “Cloudinfo” --sdk-auth true > azure_cloudinfo.auth
+az ad sp create-for-rbac --name "CloudinfoSP" --role "Cloudinfo" --sdk-auth true > azure_cloudinfo.auth
 ```
 
 ### Oracle
