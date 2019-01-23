@@ -57,7 +57,7 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 	return nil
 }
 
-// validationFn validation logic for the region data to be registered with the validator
+// regionValidator validates the `region` path parameter
 func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -139,7 +139,7 @@ func digValueForName(value reflect.Value, field string) string {
 	return ret
 }
 
-// serviceValidator validates the `provider` path parameter
+// providerValidator validates the `provider` path parameter
 func providerValidator(providers []string) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -153,7 +153,7 @@ func providerValidator(providers []string) validator.Func {
 	}
 }
 
-// ValidatePthData explicitly calls validation on the parsed path data structs
+// ValidatePathData explicitly calls validation on the parsed path data structs
 func ValidatePathData(pathParams interface{}) error {
 	v := binding.Validator.Engine().(*validator.Validate)
 	return v.Struct(pathParams)

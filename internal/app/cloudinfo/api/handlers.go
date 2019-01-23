@@ -226,8 +226,8 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 
 		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retriev regions for service [%s], provider [%s]",
-				pathParams.Service, pathParams.Provider))
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve regions for provider [%s], service [%s]",
+				pathParams.Provider, pathParams.Service))
 			return
 		}
 		var response RegionsResponse
@@ -274,13 +274,13 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 		regions, err := r.prod.GetRegions(ctxLog, pathParams.Provider, pathParams.Service)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
-				"failed to retrieve regions. service [%s], provider [%s]", pathParams.Service, pathParams.Service))
+				"failed to retrieve regions. provider [%s], service [%s]", pathParams.Provider, pathParams.Service))
 			return
 		}
 		zones, err := r.prod.GetZones(ctxLog, pathParams.Provider, pathParams.Region)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
-				"failed to retrieve zones. service [%s], provider [%s], region [%s]", pathParams.Service, pathParams.Provider, pathParams.Region))
+				"failed to retrieve zones. provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 
 			return
 		}
@@ -387,7 +387,7 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 		images, err := r.prod.GetServiceImages(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve service images details. "+
-				"service [%s], provider [%s], region [%s]", pathParams.Service, pathParams.Service, pathParams.Region))
+				"provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 			return
 
 		}
@@ -450,8 +450,8 @@ func (r *RouteHandler) getVersions(ctx context.Context) gin.HandlerFunc {
 
 		versions, err := r.prod.GetVersions(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve versions. service [%s], "+
-				"provider [%s], region [%s]", pathParams.Service, pathParams.Service, pathParams.Region))
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve versions. provider [%s], "+
+				"service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 			return
 		}
 
@@ -498,8 +498,8 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 
 		attributes, err := r.prod.GetAttrValues(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Attribute)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve attribute values. service [%s], "+
-				"provider [%s], attributes [%s]", pathParams.Service, pathParams.Service, pathParams.Attribute))
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve attribute values. provider [%s], "+
+				"service [%s], attributes [%s]", pathParams.Provider, pathParams.Service, pathParams.Attribute))
 			return
 		}
 		log.Debugf("successfully retrieved %s attribute values", pathParams.Attribute)

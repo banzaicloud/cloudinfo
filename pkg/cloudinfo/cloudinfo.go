@@ -563,7 +563,7 @@ func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
 			}
 		} else {
-			log.WithField("instanceType", vm.Type).Debugf("price info not yet cached")
+			log.WithField("instanceType", vm.Type).Debug("price info not yet cached")
 		}
 
 		if pd.OnDemandPrice != 0 {

@@ -253,7 +253,7 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 
 // GetRegions returns a map with available regions
 func (i *Infoer) GetRegions(ctx context.Context, service string) (regions map[string]string, err error) {
-	logger.Extract(ctx).Debugf("getting regions")
+	logger.Extract(ctx).Debug("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
