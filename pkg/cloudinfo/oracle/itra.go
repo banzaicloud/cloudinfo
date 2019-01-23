@@ -53,11 +53,11 @@ func (i *Infoer) GetCloudInfoFromITRA(ctx context.Context, partNumber string) (i
 	}
 
 	if _, ok := i.cloudInfoCache[partNumber]; ok {
-		logger.Extract(ctx).Debugf("getting product info for PN[%s] - from cache", partNumber)
+		logger.Extract(ctx).Debug("getting product info for part number - from cache", map[string]interface{}{"PN": partNumber})
 		return i.cloudInfoCache[partNumber], nil
 	}
 
-	logger.Extract(ctx).Debugf("getting product info for PN[%s]", partNumber)
+	logger.Extract(ctx).Debug("getting product info for PN[%s]", map[string]interface{}{"PN": partNumber})
 
 	url := fmt.Sprintf("https://itra.oraclecloud.com/itas/.anon/myservices/api/v1/products?partNumber=%s", partNumber)
 	resp, err := http.Get(url)

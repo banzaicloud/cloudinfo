@@ -16,14 +16,15 @@ package logger
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
+
+	"github.com/goph/logur"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContextLogger(t *testing.T) {
 
+	Init(logur.NewTestLogger())
 	ctx := ToContext(context.Background(), NewLogCtxBuilder().
 		WithProvider("test-provider").
 		WithRegion("test-region").
@@ -39,60 +40,6 @@ func TestContextLogger(t *testing.T) {
 	}(ctx, done)
 	<-done
 	Extract(ctx).Info("after routine")
-}
-
-func TestInitLogger(t *testing.T) {
-	tests := []struct {
-		name     string
-		logLevel string
-		fmtStr   string
-		checker  func(args ...interface{}) bool
-	}{
-		{
-			name:     "debug log level",
-			logLevel: "debug",
-			fmtStr:   "",
-			checker: func(logArg ...interface{}) bool {
-				level := logArg[1]
-				assert.Equal(t, level, Level())
-				return true
-			},
-		},
-		{
-			name:     "info log level",
-			logLevel: "info",
-			fmtStr:   "",
-			checker: func(logArg ...interface{}) bool {
-				level := logArg[1]
-				assert.Equal(t, level, Level())
-				return true
-			},
-		},
-		{
-			name:     "default log formatter",
-			logLevel: "error",
-			fmtStr:   "",
-			checker: func(logArg ...interface{}) bool {
-				assert.Equal(t, reflect.TypeOf(&logrus.TextFormatter{}).String(), reflect.TypeOf(Formatter()).String())
-				return true
-			},
-		},
-		{
-			name:     "json log formatter",
-			logLevel: "error",
-			fmtStr:   "json",
-			checker: func(logArg ...interface{}) bool {
-				assert.Equal(t, reflect.TypeOf(&logrus.JSONFormatter{}).String(), reflect.TypeOf(Formatter()).String())
-				return true
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			InitLogger(test.logLevel, test.fmtStr)
-			test.checker(Log(), test.logLevel, test.fmtStr)
-		})
-	}
 }
 
 func TestToContext(t *testing.T) {
@@ -131,10 +78,7 @@ func TestToContext(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			InitLogger("debug", "json")
-
 			ctx := ToContext(test.initialContext, test.fields)
-
 			test.check(ctx, test.fields)
 		})
 	}

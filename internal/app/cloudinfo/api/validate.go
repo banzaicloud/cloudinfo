@@ -74,17 +74,16 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 		log := logger.Extract(ctx)
 		ci, err := cpi.GetInfoer(ctx, currentProvider)
 		if err != nil {
-			log.WithError(err).Error("could not get infoer")
+			log.Error("could not get infoer")
 			return false
 		}
 
 		regions, err := ci.GetRegions(ctx, currentService)
 		if err != nil {
-			log.WithError(err).Error("could not get regions")
+			log.Error("could not get regions")
 			return false
 		}
 
-		log.Debugf("current region: %s, regions: %#v", currentRegion, regions)
 		for reg := range regions {
 			if reg == currentRegion {
 				return true
@@ -110,12 +109,12 @@ func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fu
 		log := logger.Extract(ctx)
 		infoer, err := cpi.GetInfoer(ctx, currentProvider)
 		if err != nil {
-			log.WithError(err).Error("could not get infoer")
+			log.Error("could not get infoer")
 			return false
 		}
 		services, err := infoer.GetServices()
 		if err != nil {
-			log.WithError(err).Error("could not get services")
+			log.Error("could not get services")
 			return false
 		}
 

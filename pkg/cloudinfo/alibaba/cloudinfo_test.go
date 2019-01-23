@@ -17,10 +17,13 @@ package alibaba
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 //testStruct helps to mock external calls
@@ -318,6 +321,7 @@ func TestAlibabaInfoer_GetProducts(t *testing.T) {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
 
+			logger.Init(logur.NewTestLogger())
 			test.check(cloudInfoer.GetProducts(context.TODO(), "compute", test.region))
 		})
 	}

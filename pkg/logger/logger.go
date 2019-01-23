@@ -16,8 +16,8 @@ package logger
 
 import (
 	"context"
-
 	"github.com/gin-gonic/gin"
+	"github.com/goph/logur"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,8 +25,15 @@ type ctxMarker struct{}
 
 var (
 	ctxKey = &ctxMarker{}
-	logger = logrus.New() // default logger
+	// reference to the configured logrus instance not to loose the settingss
+	l logur.Logger
 )
+
+// infer the configured instance
+func Init(logur logur.Logger) {
+
+	l = logur
+}
 
 const (
 	correlationIdKey = "correlation-id"
@@ -38,48 +45,8 @@ const (
 	regionKey   = "region"
 )
 
-// InitLogger sets level and format for Logger
-func InitLogger(level, format string) {
-
-	logger = newLogger(Config{
-		Level:  level,
-		Format: format,
-	})
-
-}
-
-// Config holds information necessary for customizing the logger.
-type Config struct {
-	Level  string
-	Format string
-}
-
-func newLogger(config Config) *logrus.Logger {
-	logger = logrus.New()
-
-	level, err := logrus.ParseLevel(config.Level)
-	if err != nil {
-		level = logrus.InfoLevel
-	}
-
-	logger.Level = level
-
-	switch config.Format {
-	case "json":
-		logger.Formatter = new(logrus.JSONFormatter)
-
-	default:
-		textFormatter := new(logrus.TextFormatter)
-		textFormatter.FullTimestamp = true
-
-		logger.Formatter = textFormatter
-	}
-
-	return logger
-}
-
 // Extract assembles the entry with the fields extracted from the context
-func Extract(ctx context.Context) ContextLogger {
+func Extract(ctx context.Context) logur.Logger {
 
 	var ctxFields map[string]interface{}
 
@@ -92,7 +59,7 @@ func Extract(ctx context.Context) ContextLogger {
 		fields[k] = v
 	}
 
-	return logger.WithFields(fields)
+	return logur.WithFields(l, fields)
 }
 
 // ToContext adds
@@ -124,12 +91,6 @@ func ToContext(ctx context.Context, fields map[string]interface{}) context.Conte
 func GetCorrelationId(c *gin.Context) string {
 	id := c.GetString(ContextKey)
 	return id
-}
-
-// ContextLogger gathers all the log operations used in the application, mainly operations implemented by "conventional" loggers
-// The interface is meant to decouple application dependency on logger libraries
-type ContextLogger interface {
-	logrus.FieldLogger
 }
 
 // logCtxBuilder helper struct to build the context for logging purposes
@@ -191,19 +152,4 @@ func (cb *logCtxBuilder) WithField(field string, value interface{}) *logCtxBuild
 func (cb *logCtxBuilder) Build() map[string]interface{} {
 	cb.init()
 	return cb.ctx
-}
-
-// Log returns a reference to the underlying logger implementation
-func Log() ContextLogger {
-	return logger
-}
-
-// Level returns the current logger level
-func Level() string {
-	return logger.Level.String()
-}
-
-// Formatter returns the current formatter
-func Formatter() logrus.Formatter {
-	return logger.Formatter
 }

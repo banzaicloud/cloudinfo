@@ -122,8 +122,6 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloud
 		}
 	}
 
-	log.Debugf("google compute engine service id: %s", compEngId)
-
 	zonesInRegions := make(map[string][]string)
 	regions, err := g.GetRegions(ctx, "compute")
 	if err != nil {
@@ -259,7 +257,7 @@ func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64,
 // Queries the Google Cloud Compute API's machine type list endpoint
 func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
-	log.Debugf("getting %s values", attribute)
+	log.Debug("retrieving attribute values", map[string]interface{}{"attribute": attribute})
 
 	values := make(cloudinfo.AttrValues, 0)
 	valueSet := make(map[cloudinfo.AttrValue]interface{})
@@ -291,7 +289,7 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute s
 		values = append(values, attr)
 	}
 
-	log.Debugf("found %s values: %v", attribute, values)
+	log.Debug("found attribute values", map[string]interface{}{"attribute": attribute, "values": fmt.Sprintf("%v", values)})
 	return values, nil
 }
 
@@ -299,7 +297,7 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute s
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
 func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
-	log.Debug("getting product info")
+	log.Debug("retrieving product information")
 	var vmsMap = make(map[string]cloudinfo.VmInfo)
 	var ntwPerf uint
 	zones, err := g.GetZones(ctx, regionId)
@@ -323,7 +321,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 				ntwMapper := newGceNetworkMapper()
 				ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(ntwPerf, " Gbit/s"))
 				if err != nil {
-					log.WithError(err).Debug("could not get network performance category")
+					log.Debug("could not get network performance category")
 				}
 				vmsMap[mt.Name] = cloudinfo.VmInfo{
 					Type:       mt.Name,
@@ -345,7 +343,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 	for _, vm := range vmsMap {
 		vms = append(vms, vm)
 	}
-	log.Debugf("found vms: %#v", vms)
+	log.Debug("found virtual machines", map[string]interface{}{"vms": fmt.Sprintf("%v", vms)})
 	return vms, nil
 }
 
@@ -366,7 +364,7 @@ func (g *GceInfoer) GetRegions(ctx context.Context, service string) (map[string]
 		regionIdMap[region.Name] = description
 
 	}
-	log.Debugf("regions found: %v", regionIdMap)
+	log.Debug("found regions", map[string]interface{}{"regionidmap": fmt.Sprintf("%v", regionIdMap)})
 	return regionIdMap, nil
 }
 
@@ -387,7 +385,8 @@ func (g *GceInfoer) GetZones(ctx context.Context, region string) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("found zones %s", zones)
+
+	log.Debug("found zones", map[string]interface{}{"zones": fmt.Sprintf("%v", zones)})
 	return zones, nil
 }
 
@@ -427,7 +426,7 @@ func (g *GceInfoer) GetService(ctx context.Context, service string) (cloudinfo.S
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debugf("found service: %s", service)
+			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}

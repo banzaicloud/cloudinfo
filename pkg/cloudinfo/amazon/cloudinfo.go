@@ -71,7 +71,7 @@ func NewEc2Infoer(ctx context.Context, promAddr, pq, awsAccessKeyId, awsSecretAc
 		Region: aws.String(defaultPricingRegion),
 	})
 	if err != nil {
-		log.WithError(err).Error("Error creating AWS session")
+		log.Error("failed to create AWS session")
 		return nil, err
 	}
 
@@ -84,7 +84,7 @@ func NewEc2Infoer(ctx context.Context, promAddr, pq, awsAccessKeyId, awsSecretAc
 			Address: promAddr,
 		})
 		if err != nil {
-			log.WithError(err).Error("Error creating Prometheus client, fallback to direct API access.")
+			log.Error("failed to create Prometheus client, fallback to direct API access.")
 			promApi = nil
 		} else {
 			promApi = v1.NewAPI(promClient)
@@ -119,14 +119,15 @@ func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, service, attribute s
 		dotValue := strings.Replace(*v.Value, ",", ".", -1)
 		floatValue, err := strconv.ParseFloat(strings.Split(dotValue, " ")[0], 64)
 		if err != nil {
-			log.WithError(err).Warnf("Couldn't parse attribute Value: [%s=%s]", attribute, dotValue)
+			log.Warn("could not parse attribute value", map[string]interface{}{"attribute": attribute, "value": dotValue})
 		}
 		values = append(values, cloudinfo.AttrValue{
 			Value:    floatValue,
 			StrValue: *v.Value,
 		})
 	}
-	log.Debugf("found %s values: %v", attribute, values)
+
+	log.Debug("found attribute values", map[string]interface{}{"attribute": attribute, "value": fmt.Sprintf("%v", values)})
 	return values, nil
 }
 
@@ -151,13 +152,13 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 	for i, price := range priceList {
 		pd, err := newPriceData(price)
 		if err != nil {
-			log.WithError(err).Warnf("could not extract pricing info for the item with index: [ %d ]", i)
+			log.Warn("could not extract pricing info", map[string]interface{}{"itemindex": i})
 			continue
 		}
 
 		instanceType, err := pd.GetDataForKey("instanceType")
 		if err != nil {
-			log.WithError(err).Warnf("could not retrieve instance type [%s]", instanceType)
+			log.Warn("could not retrieve instance type", map[string]interface{}{"instancetype": instanceType})
 			continue
 		}
 		cpusStr, err := pd.GetDataForKey(Cpu)
@@ -191,7 +192,7 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		ntwMapper := newAmazonNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 		if err != nil {
-			log.WithError(err).Debug("could not get network performance category")
+			log.Debug("could not get network performance category")
 		}
 
 		onDemandPrice, _ := strconv.ParseFloat(odPriceStr, 64)
@@ -211,8 +212,9 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		}
 		vms = append(vms, vm)
 	}
-	log.Warnf("instance types with missing attributes %s", missingAttributes)
-	log.Debugf("instance types with missing gpu %s", missingGpu)
+	log.Debug("instance types with missing attributes", map[string]interface{}{"missingAttrs": fmt.Sprintf("%v", missingAttributes)})
+	log.Debug("instance types with missing gpu", map[string]interface{}{"missingGPU": fmt.Sprintf("%v", missingGpu)})
+
 	if vms == nil {
 		log.Debug("couldn't find any virtual machines to recommend")
 	}
@@ -224,7 +226,7 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		})
 	}
 
-	log.Debugf("found vms: %#v", vms)
+	log.Debug("found vms", map[string]interface{}{"vms": fmt.Sprintf("%#v", vms)})
 	return vms, nil
 }
 
@@ -425,7 +427,7 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(ctx context.Context, region stri
 	log.Debug("getting spot price averages from Prometheus API")
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
-	log.Debugf("sending prometheus query: %s", query)
+	log.Debug("sending prometheus query", map[string]interface{}{"query": query})
 	result, err := e.prometheus.Query(context.Background(), query, time.Now())
 	if err != nil {
 		return nil, err
@@ -459,7 +461,7 @@ func (e *Ec2Infoer) getCurrentSpotPrices(ctx context.Context, region string) (ma
 		for _, pe := range history.SpotPriceHistory {
 			price, err := strconv.ParseFloat(*pe.SpotPrice, 64)
 			if err != nil {
-				logger.Extract(ctx).WithError(err).Error("couldn't parse spot price from history")
+				logger.Extract(ctx).Error("couldn't parse spot price from history")
 				continue
 			}
 			if priceInfo[*pe.InstanceType] == nil {
@@ -483,7 +485,7 @@ func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[st
 	if e.prometheus != nil {
 		spotPrices, err = e.getSpotPricesFromPrometheus(ctx, region)
 		if err != nil {
-			log.WithError(err).Warn("Couldn't get spot price info from Prometheus API, fallback to direct AWS API access.")
+			log.Warn("could not get spot price info from Prometheus API, fallback to direct AWS API access.")
 		}
 	}
 
@@ -491,7 +493,7 @@ func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[st
 		log.Debug("getting current spot prices directly from the AWS API")
 		spotPrices, err = e.getCurrentSpotPrices(ctx, region)
 		if err != nil {
-			log.WithError(err).Error("could not retrieve current prices")
+			log.Error("could not retrieve current prices")
 			return nil, err
 		}
 	}
@@ -535,7 +537,7 @@ func (e *Ec2Infoer) GetService(ctx context.Context, service string) (cloudinfo.S
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debugf("found service: %s", service)
+			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}

@@ -17,12 +17,14 @@ package cloudinfo
 import (
 	"context"
 	"errors"
-	"github.com/goph/emperror"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -243,6 +245,7 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			logger.Init(logur.NewTestLogger())
 			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
 			test.checker(cloudInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
 		})

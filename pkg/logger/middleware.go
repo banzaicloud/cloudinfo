@@ -64,7 +64,7 @@ func Middleware(notlogged ...string) gin.HandlerFunc {
 				fields["correlation-id"] = cid
 			}
 
-			entry := logger.WithFields(fields)
+			entry := logrus.WithFields(fields)
 
 			if len(c.Errors) > 0 {
 				// Append error field if this is an erroneous request.

@@ -494,7 +494,7 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 			Build())
 
 		log := logger.Extract(ctxLog)
-		log.Infof("getting %s attribute values", pathParams.Attribute)
+		log.Info("retrieving attribute values...", map[string]interface{}{"attribute": pathParams.Attribute})
 
 		attributes, err := r.prod.GetAttrValues(ctxLog, pathParams.Provider, pathParams.Service, pathParams.Attribute)
 		if err != nil {
@@ -502,7 +502,7 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 				"service [%s], attributes [%s]", pathParams.Provider, pathParams.Service, pathParams.Attribute))
 			return
 		}
-		log.Debugf("successfully retrieved %s attribute values", pathParams.Attribute)
+		log.Info("retrieved attribute values...", map[string]interface{}{"attribute": pathParams.Attribute})
 
 		c.JSON(http.StatusOK, AttributeResponse{pathParams.Attribute, attributes})
 	}

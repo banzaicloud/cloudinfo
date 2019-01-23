@@ -19,9 +19,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+// Config holds any kind of configuration that comes from the outside world and
+// is necessary for running the application.
+type Config struct {
+	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
+	Environment string
+
+	// Turns on some debug functionality
+	Debug bool
+
+	// Timeout for graceful shutdown
+	ShutdownTimeout time.Duration
+
+	// Log configuration
+	Log log.Config
+}
 
 // defineFlags defines supported flags and makes them available for viper
 func defineFlags(pf *pflag.FlagSet) {
@@ -53,20 +70,27 @@ func defineFlags(pf *pflag.FlagSet) {
 func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// configure viper
 	// Viper check for an environment variable
+
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+
 	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	// Log configuration
+	v.RegisterAlias("log.format", "log-format")
+	v.RegisterAlias("log.level", "log-level")
+	v.RegisterAlias("log.noColor", "no_color")
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 
 	// define flags
 	defineFlags(pf)
 
-	// parse the command line
-	pflag.Parse()
-
 	// bind flags to viper
 	if err := viper.BindPFlags(pf); err != nil {
 		panic(fmt.Errorf("could not parse flags. error: %s", err))
 	}
+
+	// parse the command line
+	pflag.Parse()
 
 }
