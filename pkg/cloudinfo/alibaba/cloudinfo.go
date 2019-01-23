@@ -17,6 +17,7 @@ package alibaba
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -27,6 +28,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 )
 
@@ -169,7 +171,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 // GetAttributeValues gets the AttributeValues for the given attribute name
 func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
-	log.Debugf("getting %s values", attribute)
+	log.WithField("attribute", attribute).Debug("retrieving attribute values")
 
 	values := make(cloudinfo.AttrValues, 0)
 	valueSet := make(map[cloudinfo.AttrValue]interface{})
@@ -411,11 +413,10 @@ func (e *AlibabaInfoer) GetService(ctx context.Context, service string) (cloudin
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debugf("found service: %s", service)
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
+	return nil, emperror.With(errors.New("the service is not supported"), "service", service)
 }
 
 // HasImages - Alibaba doesn't support images
@@ -425,17 +426,17 @@ func (e *AlibabaInfoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (e *AlibabaInfoer) GetServiceImages(service, region string) ([]cloudinfo.ImageDescriber, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (e *AlibabaInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (e *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region

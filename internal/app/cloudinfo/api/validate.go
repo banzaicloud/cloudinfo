@@ -17,35 +17,25 @@ package api
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"reflect"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/mitchellh/mapstructure"
 	"gopkg.in/go-playground/validator.v8"
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.CachingCloudInfo) error {
+func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.CloudInfo) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
-	if err := v.RegisterValidation("provider", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range providers {
-			if field.String() == p {
-				return true
-			}
-		}
-		return false
-	}); err != nil {
+	if err := v.RegisterValidation("provider", providerValidator(providers)); err != nil {
 		return fmt.Errorf("could not register provider validator. error: %s", err)
 	}
 
 	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range pi.GetAttributes() {
+		for _, p := range pi.GetAttributes(ctx) {
 			if field.String() == p {
 				return true
 			}
@@ -67,67 +57,8 @@ func ConfigureValidator(ctx context.Context, providers []string, pi *cloudinfo.C
 	return nil
 }
 
-// ValidatePathParam is a gin middleware handler function that validates a named path parameter with specific Validate tags
-func ValidatePathParam(ctx context.Context, name string, validate *validator.Validate, tags ...string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		p := c.Param(name)
-		for _, tag := range tags {
-			err := validate.Field(p, tag)
-			if err != nil {
-				logger.Extract(ctx).WithError(err).Error("validation failed.")
-				c.Abort()
-				c.JSON(http.StatusBadRequest, gin.H{
-					"code":    "bad_params",
-					"message": fmt.Sprintf("invalid %s parameter", name),
-					"params":  map[string]string{name: p},
-				})
-				return
-			}
-		}
-	}
-}
-
-// ValidatePathData middleware function to validate region information in the request path.
-func ValidatePathData(ctx context.Context, validate *validator.Validate) gin.HandlerFunc {
-	const (
-		regionParam = "region"
-	)
-	log := logger.Extract(ctx)
-	return func(c *gin.Context) {
-
-		var pathData interface{}
-		// build the appropriate internal struct based on the path params
-		_, hasRegion := c.Params.Get(regionParam)
-
-		if hasRegion {
-			pathData = &GetRegionPathParams{}
-		} else {
-			pathData = &GetServicesPathParams{}
-		}
-
-		if err := mapstructure.Decode(getPathParamMap(c), pathData); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": fmt.Sprintf("%s", err)})
-			return
-		}
-
-		log.Debugf("path data is being validated: %s", pathData)
-		err := validate.Struct(pathData)
-		if err != nil {
-			log.WithError(err).Error("validation failed.")
-			c.Abort()
-			c.JSON(http.StatusBadRequest, gin.H{
-				"code":    "bad_params",
-				"message": fmt.Sprintf("invalid path parameter value: %s", pathData),
-				"params":  pathData,
-			})
-			return
-		}
-	}
-
-}
-
-// validationFn validation logic for the region data to be registered with the validator
-func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) validator.Func {
+// regionValidator validates the `region` path parameter
+func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
@@ -141,9 +72,16 @@ func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) valid
 			Build())
 
 		log := logger.Extract(ctx)
-		regions, err := cpi.GetRegions(ctx, currentProvider, currentService)
+		ci, err := cpi.GetInfoer(ctx, currentProvider)
+		if err != nil {
+			log.WithError(err).Error("could not get infoer")
+			return false
+		}
+
+		regions, err := ci.GetRegions(ctx, currentService)
 		if err != nil {
 			log.WithError(err).Error("could not get regions")
+			return false
 		}
 
 		log.Debugf("current region: %s, regions: %#v", currentRegion, regions)
@@ -157,7 +95,7 @@ func regionValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) valid
 }
 
 // serviceValidator validates the `service` path parameter
-func serviceValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) validator.Func {
+func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 
@@ -170,13 +108,15 @@ func serviceValidator(ctx context.Context, cpi *cloudinfo.CachingCloudInfo) vali
 			Build())
 
 		log := logger.Extract(ctx)
-		infoer, err := cpi.GetInfoer(currentProvider)
+		infoer, err := cpi.GetInfoer(ctx, currentProvider)
 		if err != nil {
-			log.WithError(err).Error("could not get information")
+			log.WithError(err).Error("could not get infoer")
+			return false
 		}
 		services, err := infoer.GetServices()
 		if err != nil {
 			log.WithError(err).Error("could not get services")
+			return false
 		}
 
 		for _, svc := range services {
@@ -197,4 +137,24 @@ func digValueForName(value reflect.Value, field string) string {
 		ret = value.Elem().FieldByName(field).String()
 	}
 	return ret
+}
+
+// providerValidator validates the `provider` path parameter
+func providerValidator(providers []string) validator.Func {
+
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+		for _, p := range providers {
+			if field.String() == p {
+				return true
+			}
+		}
+		return false
+
+	}
+}
+
+// ValidatePathData explicitly calls validation on the parsed path data structs
+func ValidatePathData(pathParams interface{}) error {
+	v := binding.Validator.Engine().(*validator.Validate)
+	return v.Struct(pathParams)
 }

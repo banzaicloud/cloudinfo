@@ -29,37 +29,37 @@ const (
 // CloudInfo is the main entry point for retrieving vm type characteristics and pricing information on different cloud providers
 type CloudInfo interface {
 	// GetProviders returns the supported providers
-	GetProviders() []ProviderDescriber
+	GetProviders(ctx context.Context) []Provider
 
 	// GetProvider retrieves information about the provider
-	GetProvider(provider string) (ProviderDescriber, error)
+	GetProvider(ctx context.Context, provider string) (Provider, error)
 
 	// Start starts the product information retrieval in a new goroutine
 	Start(ctx context.Context)
 
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
-	Initialize(provider string) (map[string]map[string]Price, error)
+	Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error)
 
 	// GetAttributes returns the supported attribute names
-	GetAttributes() []string
+	GetAttributes(ctx context.Context) []string
 
 	// GetAttrValues returns a slice with the possible values for a given attribute on a specific provider
-	GetAttrValues(provider string, attribute string) ([]float64, error)
+	GetAttrValues(ctx context.Context, provider string, service string, attribute string) ([]float64, error)
 
 	// GetZones returns all the availability zones for a region
-	GetZones(provider string, region string) ([]string, error)
+	GetZones(ctx context.Context, provider string, region string) ([]string, error)
 
 	// GetRegions returns all the regions for a cloud provider
-	GetRegions(provider string) (map[string]string, error)
+	GetRegions(ctx context.Context, provider string, service string) (map[string]string, error)
 
 	// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
-	HasShortLivedPriceInfo(provider string) bool
+	HasShortLivedPriceInfo(ctx context.Context, provider string) bool
 
 	// GetPrice returns the on demand price and the zone averaged computed spot price for a given instance type in a given region
-	GetPrice(provider string, region string, instanceType string, zones []string) (float64, float64, error)
+	GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error)
 
 	// GetInfoer gets the cloud provider specific Infoer implementation (discriminator for cloud providers)
-	GetInfoer(provider string) (CloudInfoer, error)
+	GetInfoer(ctx context.Context, provider string) (CloudInfoer, error)
 }
 
 // AttrValue represents an attribute value

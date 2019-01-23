@@ -299,7 +299,7 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute s
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
 func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	log := logger.Extract(ctx)
-	log.Debugf("getting product info")
+	log.Debug("getting product info")
 	var vmsMap = make(map[string]cloudinfo.VmInfo)
 	var ntwPerf uint
 	zones, err := g.GetZones(ctx, regionId)
@@ -352,7 +352,7 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (g *GceInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	log := logger.Extract(ctx)
-	log.Debugf("getting regions")
+	log.Debug("getting regions")
 	regionIdMap := make(map[string]string)
 	regionList, err := g.computeSvc.Regions.List(g.projectId).Do()
 	if err != nil {
