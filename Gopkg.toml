@@ -5,23 +5,23 @@
 
 [[constraint]]
   name = "github.com/aws/aws-sdk-go"
-  version = "v1.16.11"
+  version = "v1.16.22"
 
 [[constraint]]
   name = "github.com/gin-gonic/gin"
-  branch = "master"
+  version = "v1.3.0"
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
-  version = "1.2.0"
+  version = "v1.3.0"
 
 [[constraint]]
   name = "github.com/patrickmn/go-cache"
-  version = "2.1.0"
+  version = "v2.1.0"
 
 [[constraint]]
   name = "github.com/prometheus/client_golang"
-  version = "0.9.0-pre1"
+  version = "v0.9.2"
 
 [[constraint]]
   name = "github.com/prometheus/common"
@@ -33,63 +33,63 @@
 
 [[constraint]]
   name = "github.com/gin-contrib/cors"
-  version = "1.2.0"
+  version = "v1.2"
 
 [[constraint]]
   name = "github.com/stretchr/testify"
-  version = "1.2.1"
+  version = "v1.3.0"
 
 [[constraint]]
-  branch = "master"
   name = "google.golang.org/api"
+  version = "v0.1.0"
 
 [[constraint]]
-  branch = "master"
   name = "golang.org/x/oauth2"
+  revision = "5dab4167f31cbd76b407f1486c86b40748bc5073"
 
 [[constraint]]
   name = "github.com/spf13/viper"
-  version = "1.0.2"
+  version = "v1.3.1"
 
 [[constraint]]
   name = "github.com/spf13/pflag"
-  version = "1.0.1"
+  version = "v1.0.3"
 
 [[constraint]]
   name = "github.com/Azure/go-autorest"
-  version = "10.11.2"
+  version = "v11.3.1"
 
 [[constraint]]
   name = "github.com/Azure/azure-sdk-for-go"
-  version = "17.1.0"
+  version = "v24.1.0"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/gin-contrib/static"
+  revision = "cf5e10bbd933040ff603b7f0fb85510bae9916f0"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/banzaicloud/go-gin-prometheus"
+  revision = "fa3b20bd0ba938372f83549aa82ba0d247ac7e7a"
 
 [[constraint]]
   name = "github.com/oracle/oci-go-sdk"
-  version = "2.1.0"
+  version = "v3.4.0"
 
 [[constraint]]
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
-  version = "1.26.1"
+  version = "1.51.1"
 
-# master: Could not introduce github.com/aliyun/alibaba-cloud-sdk-go@master,
+# master: Could not introduce github.com/aliyun/alibaba-cloud-sdk-go@1.51.1,
 # as it has a dependency on github.com/jmespath/go-jmespath with constraint ^0.2.2,
 # which has no overlap with the following existing constraints:
-#	0b12d6b5 from github.com/aws/aws-sdk-go@v1.13.9
+#	c2b33e84 from github.com/aws/aws-sdk-go@v1.16.11
 [[override]]
-  revision = "0b12d6b5"
+  revision = "c2b33e84"
   name = "github.com/jmespath/go-jmespath"
 
 [[constraint]]
   name = "go.opencensus.io"
-  version = "0.8.0"
+  version = "0.18.0"
 
 [[constraint]]
   name = "github.com/moogar0880/problems"
