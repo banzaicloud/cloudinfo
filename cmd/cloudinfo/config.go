@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -47,6 +48,9 @@ type Config struct {
 
 	// Amazon configuration
 	Amazon amazon.Config
+
+	// Google configuration
+	Google google.Config
 }
 
 // defineFlags defines supported flags and makes them available for viper
@@ -97,6 +101,10 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.RegisterAlias("amazon.secretaccesskey", awsSecretAccessKey)
 	v.RegisterAlias("amazon.prometheusaddress", prometheusAddressFlag)
 	v.RegisterAlias("amazon.prometheusquery", prometheusQueryFlag)
+
+	//Google config
+	v.RegisterAlias("google.apikey", gceApiKeyFlag)
+	v.RegisterAlias("google.appcredentials", gceApplicationCred)
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 

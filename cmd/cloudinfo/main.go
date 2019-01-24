@@ -81,12 +81,12 @@ func main() {
 	logger.Init(logur)
 	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", "cloudinfo").Build())
 
-	logger.Extract(ctx).Info("cloudinfo initialization", map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
+	logger.Extract(ctx).Info("initializing the application", map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
 		config.RenewalInterval,
 		cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval),
-		infoers(ctx, config), metrics.NewDefaultMetricsReporter())
+		loadInfoers(ctx, config), metrics.NewDefaultMetricsReporter())
 	emperror.Panic(err)
 
 	go prodInfo.Start(ctx)
@@ -113,19 +113,23 @@ func main() {
 	}
 }
 
-func infoers(ctx context.Context, config Config) map[string]cloudinfo.CloudInfoer {
+func loadInfoers(ctx context.Context, config Config) map[string]cloudinfo.CloudInfoer {
 
 	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.Providers))
+
+	var (
+		infoer cloudinfo.CloudInfoer
+		err    error
+	)
+
 	for _, p := range config.Providers {
-		var infoer cloudinfo.CloudInfoer
-		var err error
 		pctx := logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
 
 		switch p {
 		case Amazon:
 			infoer, err = amazon.NewAmazonInfoer(pctx, config.Amazon)
 		case Google:
-			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
+			infoer, err = google.NewGoogleInfoer(pctx, config.Google)
 		case Azure:
 			infoer, err = azure.NewAzureInfoer(viper.GetString(azureAuthLocation))
 		case Oracle:

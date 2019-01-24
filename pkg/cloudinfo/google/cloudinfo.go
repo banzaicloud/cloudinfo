@@ -103,6 +103,10 @@ func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
 	}, nil
 }
 
+func NewGoogleInfoer(ctx context.Context, cfg Config) (*GceInfoer, error) {
+	return NewGceInfoer(cfg.AppCredentials, cfg.ApiKey)
+}
+
 // Initialize downloads and parses the SKU list of the Compute Engine service
 func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
 	log := logger.Extract(ctx)
