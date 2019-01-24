@@ -17,6 +17,7 @@ ignored = [
   "github.com/magiconair/properties",
   "github.com/pmezard/go-difflib",
   "github.com/shopspring/decimal",
+  "github.com/globalsign/mgo",
 
   "github.com/davecgh/go-spew", # ISC license
   "github.com/howeyc/gopass", # ISC license
