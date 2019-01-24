@@ -135,10 +135,7 @@ func loadInfoers(ctx context.Context, config Config) map[string]cloudinfo.CloudI
 		case Oracle:
 			infoer, err = oracle.NewInfoer(viper.GetString(oracleConfigLocation))
 		case Alibaba:
-			infoer, err = alibaba.NewAlibabaInfoer(
-				viper.GetString(alibabaRegionId),
-				viper.GetString(alibabaAccessKeyId),
-				viper.GetString(alibabaAccessKeySecret))
+			infoer, err = alibaba.NewAliInfoer(pctx, config.Alibaba)
 		default:
 			logger.Extract(pctx).Error("provider is not supported")
 		}

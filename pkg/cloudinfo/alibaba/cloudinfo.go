@@ -116,6 +116,10 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 	}, nil
 }
 
+func NewAliInfoer(ctx context.Context, cfg Config) (*AlibabaInfoer, error) {
+	return NewAlibabaInfoer(cfg.RegionId, cfg.AccessKeyId, cfg.AccessKeySecret)
+}
+
 // Initialize is not needed on Alibaba because price info is changing frequently
 func (e *AlibabaInfoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil

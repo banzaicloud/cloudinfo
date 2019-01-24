@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/spf13/pflag"
@@ -51,6 +52,8 @@ type Config struct {
 
 	// Google configuration
 	Google google.Config
+
+	Alibaba alibaba.Config
 }
 
 // defineFlags defines supported flags and makes them available for viper
@@ -95,7 +98,8 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 
 	v.RegisterAlias("renewalinterval", prodInfRenewalIntervalFlag)
 
-	v.RegisterAlias("providers", "provider")
+	v.RegisterAlias("providers", providerFlag)
+
 	// Amazon config
 	v.RegisterAlias("amazon.accesskeyid", awsAccessKeyId)
 	v.RegisterAlias("amazon.secretaccesskey", awsSecretAccessKey)
@@ -105,6 +109,11 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	//Google config
 	v.RegisterAlias("google.apikey", gceApiKeyFlag)
 	v.RegisterAlias("google.appcredentials", gceApplicationCred)
+
+	// Alibaba config
+	v.RegisterAlias("alibaba.accesskeyid", alibabaAccessKeyId)
+	v.RegisterAlias("alibaba.accesskeysecret", alibabaAccessKeySecret)
+	v.RegisterAlias("alibaba.regionid", alibabaRegionId)
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 
