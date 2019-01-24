@@ -79,9 +79,10 @@ func main() {
 	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
 
 	logger.Init(logur)
-	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", "cloudinfo").Build())
+	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", ServiceName).Build())
 
-	logger.Extract(ctx).Info("initializing the application", map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
+	logger.Extract(ctx).Info("initializing the application",
+		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
 		config.RenewalInterval,
@@ -131,9 +132,9 @@ func loadInfoers(ctx context.Context, config Config) map[string]cloudinfo.CloudI
 		case Google:
 			infoer, err = google.NewGoogleInfoer(pctx, config.Google)
 		case Azure:
-			infoer, err = azure.NewAzureInfoer(viper.GetString(azureAuthLocation))
+			infoer, err = azure.NewAzureInfoer(pctx, config.Azure)
 		case Oracle:
-			infoer, err = oracle.NewInfoer(viper.GetString(oracleConfigLocation))
+			infoer, err = oracle.NewOracleInfoer(pctx, config.Oracle)
 		case Alibaba:
 			infoer, err = alibaba.NewAliInfoer(pctx, config.Alibaba)
 		default:

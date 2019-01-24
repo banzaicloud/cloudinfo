@@ -22,7 +22,9 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -53,7 +55,12 @@ type Config struct {
 	// Google configuration
 	Google google.Config
 
+	// Alibaba configuration
 	Alibaba alibaba.Config
+
+	Oracle oracle.Config
+
+	Azure azure.Config
 }
 
 // defineFlags defines supported flags and makes them available for viper
@@ -114,6 +121,12 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.RegisterAlias("alibaba.accesskeyid", alibabaAccessKeyId)
 	v.RegisterAlias("alibaba.accesskeysecret", alibabaAccessKeySecret)
 	v.RegisterAlias("alibaba.regionid", alibabaRegionId)
+
+	// Oracle config
+	v.RegisterAlias("oracle.configlocation", oracleConfigLocation)
+
+	// Azure config
+	v.RegisterAlias("azure.authlocation", azureAuthLocation)
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 

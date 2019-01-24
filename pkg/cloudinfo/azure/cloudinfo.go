@@ -107,8 +107,8 @@ type PriceRetriever interface {
 	Get(ctx context.Context, filter string) (result commerce.ResourceRateCardInfo, err error)
 }
 
-// NewAzureInfoer creates a new instance of the Azure infoer
-func NewAzureInfoer(authLocation string) (*AzureInfoer, error) {
+// azureInfoer creates a new instance of the Azure infoer
+func azureInfoer(authLocation string) (*AzureInfoer, error) {
 	err := os.Setenv("AZURE_AUTH_LOCATION", authLocation)
 	if err != nil {
 		return nil, err
@@ -152,6 +152,10 @@ func NewAzureInfoer(authLocation string) (*AzureInfoer, error) {
 		providersClient:     providersClient,
 		containerSvcClient:  &containerServiceClient,
 	}, nil
+}
+
+func NewAzureInfoer(ctx context.Context, cfg Config) (*AzureInfoer, error) {
+	return azureInfoer(cfg.AuthLocation)
 }
 
 type regionParts []string

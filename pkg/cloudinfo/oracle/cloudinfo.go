@@ -18,10 +18,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle/client"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
 
 // Infoer encapsulates the data and operations needed to access external resources
@@ -83,6 +82,10 @@ func NewInfoer(configFileLocation string) (*Infoer, error) {
 		client:     oci,
 		shapeSpecs: shapeSpecs,
 	}, nil
+}
+
+func NewOracleInfoer(ctx context.Context, cfg Config) (*Infoer, error) {
+	return NewInfoer(cfg.ConfigLocation)
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
