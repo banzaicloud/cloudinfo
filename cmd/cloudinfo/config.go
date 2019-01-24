@@ -58,8 +58,10 @@ type Config struct {
 	// Alibaba configuration
 	Alibaba alibaba.Config
 
+	// Oracle configuration
 	Oracle oracle.Config
 
+	// Azure configuration
 	Azure azure.Config
 }
 
@@ -99,8 +101,8 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.AutomaticEnv()
 
 	// Log configuration
-	v.RegisterAlias("log.format", "log-format")
-	v.RegisterAlias("log.level", "log-level")
+	v.RegisterAlias("log.format", logFormatFlag)
+	v.RegisterAlias("log.level", logLevelFlag)
 	v.RegisterAlias("log.noColor", "no_color")
 
 	v.RegisterAlias("renewalinterval", prodInfRenewalIntervalFlag)
