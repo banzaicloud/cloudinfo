@@ -17,13 +17,15 @@ package amazon
 import (
 	"context"
 	"errors"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -210,6 +212,7 @@ func TestNewEc2Infoer(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
+		logger.Init(logur.NewTestLogger())
 		t.Run(test.name, func(t *testing.T) {
 			test.check(NewEc2Infoer(context.Background(), test.prom, "", "", ""))
 		})

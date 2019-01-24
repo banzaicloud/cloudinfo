@@ -18,10 +18,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle/client"
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
 )
 
 // Infoer encapsulates the data and operations needed to access external resources
@@ -85,6 +84,10 @@ func NewInfoer(configFileLocation string) (*Infoer, error) {
 	}, nil
 }
 
+func NewOracleInfoer(ctx context.Context, cfg Config) (*Infoer, error) {
+	return NewInfoer(cfg.ConfigLocation)
+}
+
 // Initialize downloads and parses the SKU list of the Compute Engine service
 func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]cloudinfo.Price, err error) {
 	log := logger.Extract(ctx)
@@ -128,11 +131,10 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]c
 			price := prices[region][product.Type]
 			price.OnDemandPrice = shapePrice
 			prices[region][product.Type] = price
-			log.WithField("region", region).Debugf("price info added: [machinetype=%s, price=%v]", product.Type, price)
+			log.Debug("price info added", map[string]interface{}{"machinetype": product.Type, "price": price})
 		}
 	}
-
-	log.Debugf("queried zones and regions: %v", zonesInRegions)
+	log.Debug("retrieved zones and regions", map[string]interface{}{"zonesInRegions": fmt.Sprintf("%v", zonesInRegions)})
 
 	return
 }
@@ -141,7 +143,7 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]c
 func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute string) (values cloudinfo.AttrValues, err error) {
 	log := logger.Extract(ctx)
 
-	log.Debugf("getting %s values", attribute)
+	log.Debug("retrieving attribute values", map[string]interface{}{"attribute": attribute})
 
 	values = make(cloudinfo.AttrValues, 0)
 	uniquemap := make(map[float64]bool)
@@ -178,7 +180,7 @@ func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute stri
 		}
 	}
 
-	log.Debugf("found %s values: %v", attribute, values)
+	log.Debug("found attribute values", map[string]interface{}{"attributes": attribute, "values": fmt.Sprintf("%v", values)})
 
 	return values, nil
 }
@@ -234,7 +236,7 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 		ntwMapper := newNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
 		if err != nil {
-			logger.Extract(ctx).WithError(err).Debug("could not get network performance category")
+			logger.Extract(ctx).Debug("could not get network performance category")
 		}
 
 		products = append(products, cloudinfo.VmInfo{
@@ -253,7 +255,7 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 
 // GetRegions returns a map with available regions
 func (i *Infoer) GetRegions(ctx context.Context, service string) (regions map[string]string, err error) {
-	logger.Extract(ctx).Debug("getting regions")
+	logger.Extract(ctx).Debug("retrieving regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
@@ -324,7 +326,7 @@ func (i *Infoer) GetService(ctx context.Context, service string) (cloudinfo.Serv
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debugf("found service: %s", service)
+			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}

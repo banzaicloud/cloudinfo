@@ -111,7 +111,7 @@ func (cpi *CachingCloudInfo) GetProviders(ctx context.Context) []Provider {
 	for name, infoer := range cpi.cloudInfoers {
 		services, err := infoer.GetServices()
 		if err != nil {
-			logger.Extract(ctx).WithField("provider", name).WithError(err).Error("could not retrieve services")
+			logger.Extract(ctx).Error("could not retrieve services", map[string]interface{}{"provider": name})
 		}
 
 		// decorate the provider with service information
@@ -133,7 +133,7 @@ func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 		if provider == name {
 			services, err := infoer.GetServices()
 			if err != nil {
-				logger.Extract(ctx).WithError(err).Error("could not retrieve services")
+				logger.Extract(ctx).Error("could not retrieve services", map[string]interface{}{"provider": provider})
 			}
 
 			// decorate the provider with service information
@@ -165,14 +165,14 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	log.Info("renewing product info")
 	if _, err := cpi.Initialize(ctx, provider); err != nil {
 		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-		log.WithError(err).Error("failed to renew product info")
+		log.Error("failed to renew product info")
 		return
 	}
 
 	services, err := pi.GetServices()
 	if err != nil {
 		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-		log.WithError(err).Error("failed to renew products")
+		log.Error("failed to renew products")
 		return
 	}
 
@@ -187,7 +187,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			_, err := cpi.renewAttrValues(ctxLog, provider, service.ServiceName(), attr)
 			if err != nil {
 				cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-				logger.Extract(ctxLog).WithError(err).Errorf("failed to renew %s attribute values", attr)
+				logger.Extract(ctxLog).Error("failed to renew attribute values", map[string]interface{}{"attr": attr})
 				return
 			}
 		}
@@ -217,19 +217,19 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			_, err := cpi.renewVms(c, provider, service.ServiceName(), regionId)
 			if err != nil {
 				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-				logger.Extract(c).WithError(err).Error("failed to renew products")
+				logger.Extract(c).Error("failed to renew products")
 			}
 			if pi.HasImages() {
 				_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
 				if imgErr != nil {
 					cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-					logger.Extract(c).WithError(imgErr).Error("failed to renew images")
+					logger.Extract(c).Error("failed to renew images")
 				}
 			}
 			_, versionErr := cpi.renewVersions(c, provider, service.ServiceName(), regionId)
 			if versionErr != nil {
 				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-				logger.Extract(c).WithError(versionErr).Error("failed to renew versions")
+				logger.Extract(c).Error("failed to renew versions")
 			}
 			if err == nil && versionErr == nil {
 				cpi.metrics.ReportScrapeRegionCompleted(provider, service.ServiceName(), regionId, start)
@@ -239,7 +239,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	log.Info("finished to renew products (vm-s)")
 
 	if _, err := cpi.renewStatus(provider); err != nil {
-		log.Errorf("failed to renew status: %s", err)
+		log.Error("failed to renew status")
 		return
 	}
 	cpi.metrics.ReportScrapeProviderCompleted(provider, start)
@@ -265,7 +265,7 @@ func (cpi *CachingCloudInfo) renewAll(ctx context.Context) {
 		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
 	}
 	providerWg.Wait()
-	logger.Extract(ctx).WithField("scrape-id-full", atomic.LoadUint64(&scrapeCounterComplete)).Info("finished renewing product info")
+	logger.Extract(ctx).Info("finished renewing product info", map[string]interface{}{"scrape-id-full": atomic.LoadUint64(&scrapeCounterComplete)})
 }
 
 func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
@@ -291,7 +291,7 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 			regions, err := i.GetRegions(c, "compute")
 			if err != nil {
 				cpi.metrics.ReportScrapeShortLivedFailure(p, "N/A")
-				logger.Extract(c).WithError(err).Error("couldn't renew attribute values in cache")
+				logger.Extract(c).Error("couldn't renew attribute values in cache")
 				return
 			}
 			var wg sync.WaitGroup
@@ -306,7 +306,7 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 					_, err := cpi.renewShortLivedInfo(c, p, r)
 					if err != nil {
 						cpi.metrics.ReportScrapeShortLivedFailure(p, r)
-						logger.Extract(c).WithError(err).Error("couldn't renew short lived info in cache")
+						logger.Extract(c).Error("couldn't renew short lived info in cache")
 						return
 					}
 					cpi.metrics.ReportScrapeRegionShortLivedCompleted(p, r, start)
@@ -318,7 +318,8 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 		}(ctxWithFields, provider, infoer)
 	}
 	providerWg.Wait()
-	logger.Extract(ctx).WithField("scrape-id-short", atomic.LoadUint64(&scrapeCounterShortLived)).Info("finished renewing short lived product info")
+	logger.Extract(ctx).Info("finished renewing short lived product info",
+		map[string]interface{}{"scrape-id-short": atomic.LoadUint64(&scrapeCounterShortLived)})
 }
 
 // Start starts the information retrieval in a new goroutine
@@ -344,7 +345,7 @@ func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 	log.Info("initializing cloud product information")
 	allPrices, err := cpi.cloudInfoers[provider].Initialize(ctx)
 	if err != nil {
-		log.WithError(err).Warn("failed to initialize cloud product information")
+		log.Warn("failed to initialize cloud product information")
 		return nil, err
 	}
 
@@ -414,7 +415,7 @@ func (cpi *CachingCloudInfo) GetPrice(ctx context.Context, provider string, regi
 		Build())
 
 	if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, instanceType); ok {
-		logger.Extract(ctx).Debugf("Getting price info from cache [instance type=%s].", instanceType)
+		logger.Extract(ctx).Debug("retrieving price info from cache", map[string]interface{}{"instancetype": instanceType})
 		p = cachedVal.(Price)
 	} else {
 		allPriceInfo, err := cpi.renewShortLivedInfo(ctx, provider, region)
@@ -501,7 +502,7 @@ func (cpi *CachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 
 	// retrieve zones from the provider
 	if zones, err = cpi.cloudInfoers[provider].GetZones(ctx, region); err != nil {
-		log.WithError(err).Error("error while retrieving zones.")
+		log.Error("error while retrieving zones.")
 		return nil, emperror.With(err, "provider", provider, "region", region)
 	}
 
@@ -526,7 +527,7 @@ func (cpi *CachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 
 	// retrieve regions from the provider
 	if regions, err = cpi.cloudInfoers[provider].GetRegions(ctx, service); err != nil {
-		log.WithError(err).Error("could not retrieve regions.")
+		log.Error("could not retrieve regions.")
 		return nil, emperror.With(err, "provider", provider, "service", service)
 	}
 
@@ -563,7 +564,7 @@ func (cpi *CachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
 			}
 		} else {
-			log.WithField("instanceType", vm.Type).Debug("price info not yet cached")
+			log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
 		}
 
 		if pd.OnDemandPrice != 0 {

@@ -19,14 +19,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-
+	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -589,6 +588,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
+		logger.Init(logur.NewTestLogger())
 		t.Run(test.name, func(t *testing.T) {
 			azureInfoer := AzureInfoer{}
 

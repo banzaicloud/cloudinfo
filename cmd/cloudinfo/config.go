@@ -19,9 +19,51 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+// Config holds any kind of configuration that comes from the outside world and
+// is necessary for running the application.
+type Config struct {
+	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
+	Environment string
+
+	// Turns on some debug functionality
+	Debug bool
+
+	// Timeout for graceful shutdown
+	ShutdownTimeout time.Duration
+
+	RenewalInterval time.Duration
+
+	// Log configuration
+	Log log.Config
+
+	// providers to be scraped for product information
+	Providers []string
+
+	// Amazon configuration
+	Amazon amazon.Config
+
+	// Google configuration
+	Google google.Config
+
+	// Alibaba configuration
+	Alibaba alibaba.Config
+
+	// Oracle configuration
+	Oracle oracle.Config
+
+	// Azure configuration
+	Azure azure.Config
+}
 
 // defineFlags defines supported flags and makes them available for viper
 func defineFlags(pf *pflag.FlagSet) {
@@ -53,16 +95,45 @@ func defineFlags(pf *pflag.FlagSet) {
 func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// configure viper
 	// Viper check for an environment variable
+
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+
 	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	// Log configuration
+	v.RegisterAlias("log.format", logFormatFlag)
+	v.RegisterAlias("log.level", logLevelFlag)
+	v.RegisterAlias("log.noColor", "no_color")
+
+	v.RegisterAlias("renewalinterval", prodInfRenewalIntervalFlag)
+
+	v.RegisterAlias("providers", providerFlag)
+
+	// Amazon config
+	v.RegisterAlias("amazon.accesskeyid", awsAccessKeyId)
+	v.RegisterAlias("amazon.secretaccesskey", awsSecretAccessKey)
+	v.RegisterAlias("amazon.prometheusaddress", prometheusAddressFlag)
+	v.RegisterAlias("amazon.prometheusquery", prometheusQueryFlag)
+
+	//Google config
+	v.RegisterAlias("google.apikey", gceApiKeyFlag)
+	v.RegisterAlias("google.appcredentials", gceApplicationCred)
+
+	// Alibaba config
+	v.RegisterAlias("alibaba.accesskeyid", alibabaAccessKeyId)
+	v.RegisterAlias("alibaba.accesskeysecret", alibabaAccessKeySecret)
+	v.RegisterAlias("alibaba.regionid", alibabaRegionId)
+
+	// Oracle config
+	v.RegisterAlias("oracle.configlocation", oracleConfigLocation)
+
+	// Azure config
+	v.RegisterAlias("azure.authlocation", azureAuthLocation)
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 
 	// define flags
 	defineFlags(pf)
-
-	// parse the command line
-	pflag.Parse()
 
 	// bind flags to viper
 	if err := viper.BindPFlags(pf); err != nil {

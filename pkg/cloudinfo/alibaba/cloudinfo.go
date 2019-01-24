@@ -116,6 +116,10 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 	}, nil
 }
 
+func NewAliInfoer(ctx context.Context, cfg Config) (*AlibabaInfoer, error) {
+	return NewAlibabaInfoer(cfg.RegionId, cfg.AccessKeyId, cfg.AccessKeySecret)
+}
+
 // Initialize is not needed on Alibaba because price info is changing frequently
 func (e *AlibabaInfoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil
@@ -145,7 +149,7 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 
 			prices, err := e.spotClient(region).DescribeSpotPriceHistory(request)
 			if err != nil {
-				log.WithField("region", region).WithError(err).Errorf("failed to get spot price history for instance type [%s].", values[1])
+				log.Error("failed to get spot price history", map[string]interface{}{"instancetype": values[1]})
 				continue
 			}
 
@@ -164,14 +168,14 @@ func (e *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string,
 			}
 		}
 	}
-	log.WithField("region", region).Debug("finished retrieving spot price data")
+	log.Debug("retrieved spot price data", map[string]interface{}{"region": region})
 	return priceInfo, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
 	log := logger.Extract(ctx)
-	log.WithField("attribute", attribute).Debug("retrieving attribute values")
+	log.Debug("retrieving attribute values", map[string]interface{}{"attribute": attribute})
 
 	values := make(cloudinfo.AttrValues, 0)
 	valueSet := make(map[cloudinfo.AttrValue]interface{})
@@ -221,7 +225,8 @@ func (e *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 	for attr := range valueSet {
 		values = append(values, attr)
 	}
-	log.Debugf("found %s values: %v", attribute, values)
+
+	log.Debug("found attribute values", map[string]interface{}{"attribute": attribute, "values": fmt.Sprintf("%v", values)})
 	return values, nil
 }
 
@@ -271,7 +276,7 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 						ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
 						ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 						if err != nil {
-							log.WithError(err).Debug("could not get network performance category")
+							log.Debug("could not get network performance category")
 						}
 
 						onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
@@ -295,7 +300,7 @@ func (e *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 		}
 	}
 
-	log.Debugf("found vms: %#v", vms)
+	log.Debug("found vms", map[string]interface{}{"vms": fmt.Sprintf("%v", vms)})
 	return vms, nil
 }
 
@@ -349,10 +354,10 @@ func (e *AlibabaInfoer) GetCurrentPrices(ctx context.Context, region string) (ma
 		return nil, err
 	}
 
-	log.WithField("region", region).Debug("getting current spot prices directly from the API")
+	log.Debug("getting current spot prices directly from the API", map[string]interface{}{"region": region})
 	spotPrices, err = e.getCurrentSpotPrices(ctx, region, zones)
 	if err != nil {
-		log.WithField("region", region).WithError(err).Error("could not retrieve current prices.")
+		log.Error("could not retrieve current prices.", map[string]interface{}{"region": region})
 		return nil, err
 	}
 

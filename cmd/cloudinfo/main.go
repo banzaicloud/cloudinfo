@@ -29,11 +29,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
@@ -43,6 +43,8 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -52,29 +54,48 @@ func main() {
 	// read configuration (commandline, env etc)
 	Configure(viper.GetViper(), pflag.CommandLine)
 
+	// parse the command line
+	pflag.Parse()
+
 	if viper.GetBool(helpFlag) {
 		pflag.Usage()
 		return
 	}
 
-	// initialize the logging framework
-	logger.InitLogger(viper.GetString(logLevelFlag), viper.GetString(logFormatFlag))
+	err := viper.ReadInConfig()
+	_, configFileNotFound := err.(viper.ConfigFileNotFoundError)
+	if !configFileNotFound {
+		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
+	}
 
-	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", "cloudinfo").Build())
+	var config Config
+	// configuration gets populated here - external configuration sources (flags, env vars) are processed into the instance
+	err = viper.Unmarshal(&config)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
-	logger.Extract(ctx).WithField("version", Version).WithField("commit_hash", CommitHash).WithField("build_date", BuildDate).Info("cloudinfo initialization")
+	// Create logger (first thing after configuration loading)
+	logur := log.NewLogger(config.Log)
+
+	// Provide some basic context to all log lines
+	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
+
+	logger.Init(logur)
+	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", ServiceName).Build())
+
+	logger.Extract(ctx).Info("initializing the application",
+		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
-		viper.GetDuration(prodInfRenewalIntervalFlag),
-		cloudinfo.NewCacheProductStore(24*time.Hour, viper.GetDuration(prodInfRenewalIntervalFlag)),
-		infoers(ctx), metrics.NewDefaultMetricsReporter())
-	quitOnError(ctx, "error encountered", err)
+		config.RenewalInterval,
+		cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval),
+		loadInfoers(ctx, config), metrics.NewDefaultMetricsReporter())
+	emperror.Panic(err)
 
 	go prodInfo.Start(ctx)
 
 	// configure the gin validator
-	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
-	quitOnError(ctx, "error encountered", err)
+	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
+	emperror.Panic(err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
 	routeHandler := api.NewRouteHandler(prodInfo, buildInfo)
@@ -94,49 +115,37 @@ func main() {
 	}
 }
 
-func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
-	providers := viper.GetStringSlice(providerFlag)
-	infoers := make(map[string]cloudinfo.CloudInfoer, len(providers))
-	for _, p := range providers {
-		var infoer cloudinfo.CloudInfoer
-		var err error
+func loadInfoers(ctx context.Context, config Config) map[string]cloudinfo.CloudInfoer {
+
+	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.Providers))
+
+	var (
+		infoer cloudinfo.CloudInfoer
+		err    error
+	)
+
+	for _, p := range config.Providers {
 		pctx := logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
 
 		switch p {
 		case Amazon:
-			infoer, err = amazon.NewEc2Infoer(
-				pctx,
-				viper.GetString(prometheusAddressFlag),
-				viper.GetString(prometheusQueryFlag),
-				viper.GetString(awsAccessKeyId),
-				viper.GetString(awsSecretAccessKey))
+			infoer, err = amazon.NewAmazonInfoer(pctx, config.Amazon)
 		case Google:
-			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
+			infoer, err = google.NewGoogleInfoer(pctx, config.Google)
 		case Azure:
-			infoer, err = azure.NewAzureInfoer(viper.GetString(azureAuthLocation))
+			infoer, err = azure.NewAzureInfoer(pctx, config.Azure)
 		case Oracle:
-			infoer, err = oracle.NewInfoer(viper.GetString(oracleConfigLocation))
+			infoer, err = oracle.NewOracleInfoer(pctx, config.Oracle)
 		case Alibaba:
-			infoer, err = alibaba.NewAlibabaInfoer(
-				viper.GetString(alibabaRegionId),
-				viper.GetString(alibabaAccessKeyId),
-				viper.GetString(alibabaAccessKeySecret))
+			infoer, err = alibaba.NewAliInfoer(pctx, config.Alibaba)
 		default:
-			logger.Extract(pctx).Fatal("provider is not supported")
+			logger.Extract(pctx).Error("provider is not supported")
 		}
 
-		quitOnError(pctx, "could not initialize product info provider", err)
+		emperror.Panic(err)
 
 		infoers[p] = infoer
-		logger.Extract(pctx).Infof("Configured '%s' product info provider", p)
+		logger.Extract(pctx).Info("configured product info provider", map[string]interface{}{"provider": p})
 	}
 	return infoers
-}
-
-func quitOnError(ctx context.Context, msg string, err error) {
-	if err != nil {
-		logger.Extract(ctx).WithError(err).Error(msg)
-		pflag.Usage()
-		os.Exit(-1)
-	}
 }

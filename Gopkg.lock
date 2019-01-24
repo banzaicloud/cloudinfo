@@ -311,12 +311,23 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:ac139dab09c6fc5e042ce8210d91c2cec106d9d20f24bdf9dba3874a98d79aa6"
+  digest = "1:749bb04f4077e36f539cc90dc2b99a907f4ace8b39760e7d00e19d65732c7440"
   name = "github.com/goph/emperror"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "b1b4a9b847ebc56299eb729faa942b89e9d8a562"
-  version = "v0.14.0"
+  revision = "4cdd86c173cfed1f47be88bd88327140f81bcede"
+  version = "v0.16.0"
+
+[[projects]]
+  digest = "1:36fbc4dc37d6169fa672d7f62c8e899d8de9018d84f9acb692f3415aea475810"
+  name = "github.com/goph/logur"
+  packages = [
+    ".",
+    "adapters/logrusadapter",
+  ]
+  pruneopts = "NUT"
+  revision = "f26f8cefccfb6837e0d36561467cf67d2d0b65b1"
+  version = "v0.9.0"
 
 [[projects]]
   branch = "master"
@@ -351,6 +362,14 @@
   pruneopts = "NUT"
   revision = "ca39e5af3ece67bbcda3d0f4f56a8e24d9f2dad4"
   version = "1.1.3"
+
+[[projects]]
+  digest = "1:4059c14e87a2de3a434430340521b5feece186c1469eff0834c29a63870de3ed"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
 
 [[projects]]
   digest = "1:d244f8666a838fe6ad70ec8fe77f50ebc29fdc3331a2729ba5886bef8435d10d"
@@ -527,12 +546,12 @@
   version = "1.0.1"
 
 [[projects]]
-  digest = "1:6989062eb7ccf25cf38bf4fe3dba097ee209f896cda42cefdca3927047bef7b6"
+  digest = "1:e256b859ab89f005f2f639f5ed9807d0873d9135e27c6382f419b840ff9abe71"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
-  version = "v1.0.5"
+  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:35f36ea322654e3d0932e58ad26556998260b9fa9e691471f756d173684eac0a"
@@ -773,6 +792,8 @@
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
     "github.com/goph/emperror",
+    "github.com/goph/logur",
+    "github.com/goph/logur/adapters/logrusadapter",
     "github.com/mitchellh/mapstructure",
     "github.com/moogar0880/problems",
     "github.com/oracle/oci-go-sdk/common",
