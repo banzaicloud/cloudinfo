@@ -54,6 +54,9 @@ func main() {
 	// read configuration (commandline, env etc)
 	Configure(viper.GetViper(), pflag.CommandLine)
 
+	// parse the command line
+	pflag.Parse()
+
 	if viper.GetBool(helpFlag) {
 		pflag.Usage()
 		return
@@ -81,15 +84,15 @@ func main() {
 	logger.Extract(ctx).Info("cloudinfo initialization", map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
-		viper.GetDuration(prodInfRenewalIntervalFlag),
-		cloudinfo.NewCacheProductStore(24*time.Hour, viper.GetDuration(prodInfRenewalIntervalFlag)),
-		infoers(ctx), metrics.NewDefaultMetricsReporter())
+		config.RenewalInterval,
+		cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval),
+		infoers(ctx, config), metrics.NewDefaultMetricsReporter())
 	emperror.Panic(err)
 
 	go prodInfo.Start(ctx)
 
 	// configure the gin validator
-	err = api.ConfigureValidator(ctx, viper.GetStringSlice(providerFlag), prodInfo)
+	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
 	emperror.Panic(err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
@@ -110,22 +113,17 @@ func main() {
 	}
 }
 
-func infoers(ctx context.Context) map[string]cloudinfo.CloudInfoer {
-	providers := viper.GetStringSlice(providerFlag)
-	infoers := make(map[string]cloudinfo.CloudInfoer, len(providers))
-	for _, p := range providers {
+func infoers(ctx context.Context, config Config) map[string]cloudinfo.CloudInfoer {
+
+	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.Providers))
+	for _, p := range config.Providers {
 		var infoer cloudinfo.CloudInfoer
 		var err error
 		pctx := logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
 
 		switch p {
 		case Amazon:
-			infoer, err = amazon.NewEc2Infoer(
-				pctx,
-				viper.GetString(prometheusAddressFlag),
-				viper.GetString(prometheusQueryFlag),
-				viper.GetString(awsAccessKeyId),
-				viper.GetString(awsSecretAccessKey))
+			infoer, err = amazon.NewAmazonInfoer(pctx, config.Amazon)
 		case Google:
 			infoer, err = google.NewGceInfoer(viper.GetString(gceApplicationCred), viper.GetString(gceApiKeyFlag))
 		case Azure:

@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -36,8 +37,16 @@ type Config struct {
 	// Timeout for graceful shutdown
 	ShutdownTimeout time.Duration
 
+	RenewalInterval time.Duration
+
 	// Log configuration
 	Log log.Config
+
+	// providers to be scraped for product information
+	Providers []string
+
+	// Amazon configuration
+	Amazon amazon.Config
 }
 
 // defineFlags defines supported flags and makes them available for viper
@@ -80,6 +89,15 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.RegisterAlias("log.level", "log-level")
 	v.RegisterAlias("log.noColor", "no_color")
 
+	v.RegisterAlias("renewalinterval", prodInfRenewalIntervalFlag)
+
+	v.RegisterAlias("providers", "provider")
+	// Amazon config
+	v.RegisterAlias("amazon.accesskeyid", awsAccessKeyId)
+	v.RegisterAlias("amazon.secretaccesskey", awsSecretAccessKey)
+	v.RegisterAlias("amazon.prometheusaddress", prometheusAddressFlag)
+	v.RegisterAlias("amazon.prometheusquery", prometheusQueryFlag)
+
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 
 	// define flags
@@ -89,8 +107,5 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	if err := viper.BindPFlags(pf); err != nil {
 		panic(fmt.Errorf("could not parse flags. error: %s", err))
 	}
-
-	// parse the command line
-	pflag.Parse()
 
 }

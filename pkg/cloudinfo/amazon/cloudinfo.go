@@ -101,6 +101,11 @@ func NewEc2Infoer(ctx context.Context, promAddr, pq, awsAccessKeyId, awsSecretAc
 	}, nil
 }
 
+// NewAmazonInfoer builds an infoer instance based on the provided configuration
+func NewAmazonInfoer(ctx context.Context, cfg Config) (*Ec2Infoer, error) {
+	return NewEc2Infoer(ctx, cfg.PrometheusAddress, cfg.PrometheusQuery, cfg.AccessKeyId, cfg.SecretAccessKey)
+}
+
 // Initialize is not needed on EC2 because price info is changing frequently
 func (e *Ec2Infoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil
