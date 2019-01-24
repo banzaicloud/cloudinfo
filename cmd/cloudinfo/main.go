@@ -69,6 +69,7 @@ func main() {
 	}
 
 	var config Config
+	// configuration gets populated here - external configuration sources (flags, env vars) are processed into the instance
 	err = viper.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
