@@ -604,3 +604,12 @@ func Attributes(cpu, memory, ntwPerfCat string) map[string]string {
 
 	return attributes
 }
+
+// CreateString builds strings effectively
+func CreateString(keys ...string) string {
+	var b strings.Builder
+	for _, key := range keys {
+		b.WriteString(key)
+	}
+	return b.String()
+}

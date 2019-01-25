@@ -280,7 +280,7 @@ func (a *AzureInfoer) machineType(meterName string, subCategory string) []string
 
 	// not available now
 	if strings.Contains(subCategory, "Promo") {
-		instanceTypes[0] = instanceTypes[0] + "_Promo"
+		instanceTypes[0] = cloudinfo.CreateString(instanceTypes[0], "_Promo")
 	}
 	instanceTypes = a.transformMachineType(subCategory, instanceTypes)
 	if strings.Contains(name, "Expired") {
@@ -292,18 +292,18 @@ func (a *AzureInfoer) machineType(meterName string, subCategory string) []string
 func (a *AzureInfoer) transformMachineType(subCategory string, mt []string) []string {
 	switch {
 	case strings.Contains(subCategory, "Basic"):
-		return []string{"Basic_" + mt[0]}
+		return []string{cloudinfo.CreateString("Basic_", mt[0])}
 	case len(mt) == 2:
-		return []string{"Standard_" + mt[0], "Standard_" + mt[1]}
+		return []string{cloudinfo.CreateString("Standard_", mt[0]), cloudinfo.CreateString("Standard_", mt[1])}
 	default:
-		return []string{"Standard_" + mt[0]}
+		return []string{cloudinfo.CreateString("Standard_", mt[0])}
 	}
 }
 
 func (a *AzureInfoer) getMachineTypeVariants(mt string) []string {
 	switch {
 	case mtStandardB.MatchString(mt):
-		return []string{mt + "s"}
+		return []string{cloudinfo.CreateString(mt, "s")}
 	case mtStandardD.MatchString(mt):
 		var result []string
 		result = append(result, a.addSuffix(mt, "s")[0])
@@ -343,11 +343,11 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	parts := strings.Split(mt, "_")
 	if len(parts) > 2 {
 		for _, p := range parts[2:] {
-			suffix += "_" + p
+			suffix = cloudinfo.CreateString("_", p)
 		}
 	}
 	for i, s := range suffixes {
-		result[i] = parts[0] + "_" + parts[1] + s + suffix
+		result[i] = cloudinfo.CreateString(parts[0], "_", parts[1], s, suffix)
 	}
 	return result
 }
