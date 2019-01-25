@@ -250,7 +250,7 @@ func (r *RouteHandler) getRegions(ctx context.Context) gin.HandlerFunc {
 //     Security:
 //
 //     Responses:
-//       200: RegionResponse
+//       200: GetRegionResp
 func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}

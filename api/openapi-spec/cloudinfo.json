@@ -102,12 +102,6 @@
             "schema": {
               "$ref": "#/definitions/ServicesResponse"
             }
-          },
-          "503": {
-            "description": "ErrorResponse",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
           }
         }
       }
@@ -146,12 +140,6 @@
             "description": "ServiceResponse",
             "schema": {
               "$ref": "#/definitions/ServiceResponse"
-            }
-          },
-          "503": {
-            "description": "ErrorResponse",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
             }
           }
         }
@@ -234,9 +222,9 @@
         ],
         "responses": {
           "200": {
-            "description": "RegionResponse",
+            "description": "GetRegionResp",
             "schema": {
-              "$ref": "#/definitions/RegionResponse"
+              "$ref": "#/definitions/GetRegionResp"
             }
           }
         }
@@ -466,21 +454,6 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
-    "ErrorResponse": {
-      "description": "ErrorResponse struct for error responses",
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "x-go-name": "ErrorCode"
-        },
-        "message": {
-          "type": "string",
-          "x-go-name": "ErrorMessage"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
     "GetAttributeValuesPathParams": {
       "description": "GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters",
       "type": "object",
@@ -555,6 +528,28 @@
           "description": "in:path",
           "type": "string",
           "x-go-name": "Service"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
+    "GetRegionResp": {
+      "description": "GetRegionResp holds the detailed description of a specific region of a cloud provider",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "x-go-name": "Id"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Zones"
         }
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
@@ -754,29 +749,6 @@
           "x-go-name": "Name"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
-    "RegionResponse": {
-      "description": "GetRegionResp holds the detailed description of a specific region of a cloud provider",
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "x-go-name": "Id"
-        },
-        "name": {
-          "type": "string",
-          "x-go-name": "Name"
-        },
-        "zones": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Zones"
-        }
-      },
-      "x-go-name": "GetRegionResp",
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
     "RegionsResponse": {

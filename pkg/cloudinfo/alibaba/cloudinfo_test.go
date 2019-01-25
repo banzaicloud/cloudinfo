@@ -198,7 +198,7 @@ func (dps *testStruct) getOnDemandPrice(url string) (OnDemandPrice, error) {
 func TestAlibabaInfoer_GetRegions(t *testing.T) {
 	tests := []struct {
 		name   string
-		client EcsSource
+		client Source
 		check  func(regions map[string]string, err error)
 	}{
 		{
@@ -222,7 +222,7 @@ func TestAlibabaInfoer_GetRegions(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cloudInfoer, err := NewAlibabaInfoer("", "", "")
 			// override pricingSvc
-			cloudInfoer.ecsClient = test.client
+			cloudInfoer.Client = test.client
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -235,7 +235,7 @@ func TestAlibabaInfoer_GetRegions(t *testing.T) {
 func TestAlibabaInfoer_GetZones(t *testing.T) {
 	tests := []struct {
 		name   string
-		client EcsSource
+		client Source
 		region string
 		check  func(zones []string, err error)
 	}{
@@ -262,7 +262,7 @@ func TestAlibabaInfoer_GetZones(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cloudInfoer, err := NewAlibabaInfoer("", "", "")
 			// override pricingSvc
-			cloudInfoer.ecsClient = test.client
+			cloudInfoer.Client = test.client
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -275,7 +275,7 @@ func TestAlibabaInfoer_GetZones(t *testing.T) {
 func TestAlibabaInfoer_GetProducts(t *testing.T) {
 	tests := []struct {
 		name           string
-		ecsClient      EcsSource
+		ecsClient      Source
 		priceRetriever PriceRetriever
 		region         string
 		check          func(vms []cloudinfo.VmInfo, err error)
@@ -315,7 +315,7 @@ func TestAlibabaInfoer_GetProducts(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cloudInfoer, err := NewAlibabaInfoer("", "", "")
 			// override pricingSvc
-			cloudInfoer.ecsClient = test.ecsClient
+			cloudInfoer.Client = test.ecsClient
 			cloudInfoer.priceRetriever = test.priceRetriever
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
@@ -330,7 +330,7 @@ func TestAlibabaInfoer_GetProducts(t *testing.T) {
 func TestAlibabaInfoer_GetAttributeValues(t *testing.T) {
 	tests := []struct {
 		name           string
-		ecsClient      EcsSource
+		ecsClient      Source
 		priceRetriever PriceRetriever
 		attribute      string
 		check          func(attrVal cloudinfo.AttrValues, err error)
@@ -400,7 +400,7 @@ func TestAlibabaInfoer_GetAttributeValues(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cloudInfoer, err := NewAlibabaInfoer("", "", "")
 			// override pricingSvc
-			cloudInfoer.ecsClient = test.ecsClient
+			cloudInfoer.Client = test.ecsClient
 			cloudInfoer.priceRetriever = test.priceRetriever
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
@@ -414,16 +414,16 @@ func TestAlibabaInfoer_GetAttributeValues(t *testing.T) {
 func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 	tests := []struct {
 		name           string
-		ecsClient      EcsSource
+		ecsClient      Source
 		priceRetriever PriceRetriever
-		spotClient     func(region string) EcsSource
+		spotClient     func(region string) Source
 		check          func(prices map[string]cloudinfo.Price, err error)
 	}{
 		{
 			name:           "success",
 			ecsClient:      &testStruct{},
 			priceRetriever: &testStruct{},
-			spotClient: func(region string) EcsSource {
+			spotClient: func(region string) Source {
 				return &testStruct{}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
@@ -435,7 +435,7 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 			name:           "could not retrieve zones",
 			ecsClient:      &testStruct{GetZonesError},
 			priceRetriever: &testStruct{},
-			spotClient: func(region string) EcsSource {
+			spotClient: func(region string) Source {
 				return &testStruct{}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
@@ -447,7 +447,7 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 			name:           "could not retrieve url",
 			ecsClient:      &testStruct{},
 			priceRetriever: &testStruct{GetUrlError},
-			spotClient: func(region string) EcsSource {
+			spotClient: func(region string) Source {
 				return &testStruct{}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
@@ -459,7 +459,7 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 			name:           "could not retrieve spot price history",
 			ecsClient:      &testStruct{},
 			priceRetriever: &testStruct{},
-			spotClient: func(region string) EcsSource {
+			spotClient: func(region string) Source {
 				return &testStruct{GetSpotPriceHistoryError}
 			},
 			check: func(prices map[string]cloudinfo.Price, err error) {
@@ -472,7 +472,7 @@ func TestAlibabaInfoer_GetCurrentPrices(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cloudInfoer, err := NewAlibabaInfoer("", "", "")
 			// override pricingSvc
-			cloudInfoer.ecsClient = test.ecsClient
+			cloudInfoer.Client = test.ecsClient
 			cloudInfoer.priceRetriever = test.priceRetriever
 			cloudInfoer.spotClient = test.spotClient
 			if err != nil {

@@ -44,7 +44,7 @@ func NewGetRegionOK() *GetRegionOK {
 
 /*GetRegionOK handles this case with default header values.
 
-RegionResponse
+GetRegionResp
 */
 type GetRegionOK struct {
 	Payload *models.GetRegionResp

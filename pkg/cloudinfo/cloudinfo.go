@@ -178,7 +178,7 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	services, err := cpi.cloudInfoers[provider].GetServices()
 	if err != nil {
 		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-		log.Error("failed to renew products")
+		log.Error(emperror.Wrap(err, "failed to renew products").Error())
 		return
 	}
 
@@ -193,7 +193,7 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			_, err := cpi.renewAttrValues(ctxLog, provider, service.ServiceName(), attr)
 			if err != nil {
 				cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-				logger.Extract(ctxLog).Error("failed to renew attribute values", map[string]interface{}{"attr": attr})
+				logger.Extract(ctxLog).Error(emperror.Wrap(err, "failed to renew attribute values").Error(), map[string]interface{}{"attr": attr})
 				return
 			}
 		}
@@ -213,7 +213,7 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		regions, err := cpi.cloudInfoers[provider].GetRegions(ctx, service.ServiceName())
 		if err != nil {
 			cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), "N/A")
-			logger.Extract(ctxLog).Error("failed to renew products")
+			logger.Extract(ctxLog).Error(emperror.Wrap(err, "failed to renew products").Error())
 			return
 		}
 
@@ -227,7 +227,7 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			_, err := cpi.renewVms(c, provider, service.ServiceName(), regionId)
 			if err != nil {
 				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-				logger.Extract(c).Error("failed to renew products")
+				logger.Extract(c).Error(emperror.Wrap(err, "failed to renew products").Error())
 			}
 			if cpi.cloudInfoers[provider].HasImages() {
 				_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
