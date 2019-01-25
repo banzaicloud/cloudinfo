@@ -211,8 +211,8 @@ func (i Image) GpuAvailability() bool {
 }
 
 // NewImage create new provider describer struct
-func NewImage(name, version string, gpu bool) *Image {
-	return &Image{
+func NewImage(name, version string, gpu bool) Image {
+	return Image{
 		Image:        name,
 		Version:      version,
 		GpuAvailable: gpu,

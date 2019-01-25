@@ -16,8 +16,11 @@ package cloudinfo
 
 import (
 	"fmt"
-	"github.com/patrickmn/go-cache"
 	"time"
+
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -71,6 +74,9 @@ type CloudInfoStore interface {
 
 	StoreStatus(provider string, val interface{})
 	GetStatus(provider string) (interface{}, bool)
+
+	Export() error
+	Import() error
 }
 
 // CacheProductStore in memory cloud product information storer
@@ -78,6 +84,23 @@ type CacheProductStore struct {
 	*cache.Cache
 	// all items are cached with this expiry
 	itemExpiry time.Duration
+	log        logur.Logger
+}
+
+func (cis *CacheProductStore) Export() error {
+	if err := cis.SaveFile("todo"); err != nil {
+		cis.log.Error("failed to export the store", map[string]interface{}{"op": "export", "destination": "todo"})
+		return emperror.WrapWith(err, "failed to export the store", "op", "export", "destination", "todo")
+	}
+	return nil
+}
+
+func (cis *CacheProductStore) Import() error {
+	if err := cis.LoadFile("todo"); err != nil {
+		cis.log.Error("failed to load store data", map[string]interface{}{"op": "import", "destination": "todo"})
+		return emperror.WrapWith(err, "failed to load the store data", "op", "import", "destination", "todo")
+	}
+	return nil
 }
 
 func (cis *CacheProductStore) StoreRegion(provider, service string, val interface{}) {
@@ -146,10 +169,11 @@ func (cis *CacheProductStore) GetStatus(provider string) (interface{}, bool) {
 
 // NewCacheProductStore creates a new store instance.
 // the backing cache is initialized with the defaultExpiration and cleanupInterval
-func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration) CloudInfoStore {
+func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration, logger logur.Logger) CloudInfoStore {
 	return &CacheProductStore{
 		cache.New(cloudInfoExpiration, cleanupInterval),
 		cleanupInterval,
+		logger,
 	}
 }
 

@@ -600,9 +600,9 @@ func (cpi *CachingCloudInfo) GetInfoer(ctx context.Context, provider string) (Cl
 	return nil, emperror.With(errors.New("could not find infoer for provider"), "provider", provider)
 }
 
-func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
+func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]Image, error) {
 	var (
-		values []ImageDescriber
+		values []Image
 		err    error
 	)
 
