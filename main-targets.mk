@@ -20,12 +20,31 @@ bin/dep-${DEP_VERSION}:
 vendor: bin/dep ## Install dependencies
 	bin/dep ensure -v -vendor-only
 
+.PHONY: build-release
+build-release: ## Build a binary without debug information
+	@${MAKE} LDFLAGS="-w ${LDFLAGS}" build
+
+.PHONY: build-debug
+build-debug: ## Build a binary with remote debugging capabilities
+	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BINARY_NAME="${BINARY_NAME}-debug" build
+
 .PHONY: build
 build: ## Build a binary
 ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 endif
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME} ${BUILD_PACKAGE}
+
+.PHONY: docker
+docker: ## Build a Docker image
+ifneq (${DOCKER_PREBUILT}, 1)
+	@${MAKE} BINARY_NAME="${BINARY_NAME}-docker" GOOS=linux build-release
+endif
+	docker build --build-arg BUILD_DIR=${BUILD_DIR} --build-arg BINARY_NAME=${BINARY_NAME}-docker -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f Dockerfile .
+ifeq (${DOCKER_LATEST}, 1)
+	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+endif
+
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image

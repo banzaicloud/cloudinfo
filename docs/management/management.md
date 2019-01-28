@@ -5,7 +5,7 @@ The management service is internally exposed on a RESTful API (completely separa
 
 These operations mainly affect the Cloud Info Store that backs the Cloudinfo application
 
-The management service cna be configured with the following environment variables:
+The management service can be configured with the following environment variables:
 
 ``management.enabled`` true by default
 
@@ -29,7 +29,7 @@ curl -X PUT \
 
 * Import
 
-    The operation loads data into the CLoud Product Store
+    The operation loads data into the Cloud Product Store
 
 ```bash
 curl -X PUT \

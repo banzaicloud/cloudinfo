@@ -36,6 +36,9 @@ GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -
 SWAGGER_PI_TMP_FILE = ./api/openapi-spec/cloudinfo.json
 SWAGGER_PI_FILE = ./api/openapi-spec/cloudinfo.yaml
 
+DOCKER_TAG ?= ${VERSION}
+DOCKER_IMAGE = $(shell echo ${PACKAGE} | cut -d '/' -f 2,3)
+
 ## include "generic" targets
 include main-targets.mk
 
