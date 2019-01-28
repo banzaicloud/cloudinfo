@@ -54,6 +54,8 @@ func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
 		f, fh, err := c.Request.FormFile("data")
 		if err != nil {
 			mrh.log.Error("failed to import data", map[string]interface{}{"err": err})
+			c.JSON(http.StatusInternalServerError, err)
+			return
 		}
 
 		mrh.log.Info("loading cloud info", map[string]interface{}{"file": fh.Filename, "size": fh.Size})

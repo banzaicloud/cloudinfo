@@ -13,7 +13,7 @@ The management service cna be configured with the following environment variable
 
 If enabled, along with the Cloudinfo application there will be another service started which listens at the address specified in the second env var.
 
-####Management operations:
+#### Management operations:
 
 The context path for management operations is:
 
@@ -41,9 +41,9 @@ Initiates a scraping process for the given provider for cloud product informatio
 ```bash
 curl -X PUT \
   http://localhost:8099/management/store/import \
-    -H 'cache-control: no-cache' \
-  -H 'content-type: multipart/form-data;' \
-  -F data=@/Users/puski/data.txt
+  -H 'cache-control: no-cache' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
+  -F data=@/Users/<store-data>/<data>.txt
 ```
 
 
