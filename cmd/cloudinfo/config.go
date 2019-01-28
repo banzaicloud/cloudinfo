@@ -19,11 +19,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -42,6 +44,10 @@ type Config struct {
 	ShutdownTimeout time.Duration
 
 	RenewalInterval time.Duration
+
+	Management management.Config
+
+	Metrics metrics.Config
 
 	// Log configuration
 	Log log.Config
@@ -129,6 +135,14 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 
 	// Azure config
 	v.RegisterAlias("azure.authlocation", azureAuthLocation)
+
+	// Management
+	v.SetDefault("management.enabled", true)
+	v.SetDefault("management.address", ":8099")
+
+	// Metrics
+	v.RegisterAlias("metrics.enabled", metricsEnabledFlag)
+	v.RegisterAlias("metrics.address", metricsAddressFlag)
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 

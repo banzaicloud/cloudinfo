@@ -444,7 +444,7 @@ func (g *GceInfoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (g *GceInfoer) GetServiceImages(service, region string) ([]cloudinfo.ImageDescriber, error) {
+func (g *GceInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
 	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
 }
 

@@ -16,8 +16,12 @@ package cloudinfo
 
 import (
 	"fmt"
-	"github.com/patrickmn/go-cache"
+	"io"
 	"time"
+
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -71,6 +75,9 @@ type CloudInfoStore interface {
 
 	StoreStatus(provider string, val interface{})
 	GetStatus(provider string) (interface{}, bool)
+
+	Export(w io.Writer) error
+	Import(r io.Reader) error
 }
 
 // CacheProductStore in memory cloud product information storer
@@ -78,6 +85,25 @@ type CacheProductStore struct {
 	*cache.Cache
 	// all items are cached with this expiry
 	itemExpiry time.Duration
+	log        logur.Logger
+}
+
+// Export writes the content of the store into the passed in writer
+func (cis *CacheProductStore) Export(w io.Writer) error {
+	if err := cis.Save(w); err != nil {
+		cis.log.Error("failed to export the store", map[string]interface{}{"op": "export", "destination": "todo"})
+		return emperror.WrapWith(err, "failed to export the store", "op", "export", "destination", "todo")
+	}
+	return nil
+}
+
+// Import loads the store data from the standard input
+func (cis *CacheProductStore) Import(r io.Reader) error {
+	if err := cis.Load(r); err != nil {
+		cis.log.Error("failed to load store data", map[string]interface{}{"op": "import", "destination": "todo"})
+		return emperror.WrapWith(err, "failed to load the store data", "op", "import", "destination", "todo")
+	}
+	return nil
 }
 
 func (cis *CacheProductStore) StoreRegion(provider, service string, val interface{}) {
@@ -146,10 +172,11 @@ func (cis *CacheProductStore) GetStatus(provider string) (interface{}, bool) {
 
 // NewCacheProductStore creates a new store instance.
 // the backing cache is initialized with the defaultExpiration and cleanupInterval
-func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration) CloudInfoStore {
+func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration, logger logur.Logger) CloudInfoStore {
 	return &CacheProductStore{
 		cache.New(cloudInfoExpiration, cleanupInterval),
 		cleanupInterval,
+		logger,
 	}
 }
 

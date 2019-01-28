@@ -60,6 +60,8 @@ type CloudInfo interface {
 
 	// GetInfoer gets the cloud provider specific Infoer implementation (discriminator for cloud providers)
 	GetInfoer(ctx context.Context, provider string) (CloudInfoer, error)
+
+	RefreshProvider(ctx context.Context, provider string) error
 }
 
 // AttrValue represents an attribute value
@@ -211,8 +213,8 @@ func (i Image) GpuAvailability() bool {
 }
 
 // NewImage create new provider describer struct
-func NewImage(name, version string, gpu bool) *Image {
-	return &Image{
+func NewImage(name, version string, gpu bool) Image {
+	return Image{
 		Image:        name,
 		Version:      version,
 		GpuAvailable: gpu,

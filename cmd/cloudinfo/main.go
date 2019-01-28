@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -79,19 +80,30 @@ func main() {
 	// Provide some basic context to all log lines
 	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
 
+	// inject the configured logger instance
 	logger.Init(logur)
+
 	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", ServiceName).Build())
 
 	logger.Extract(ctx).Info("initializing the application",
 		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
+	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
+
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
 		config.RenewalInterval,
-		cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval),
-		loadInfoers(ctx, config), metrics.NewDefaultMetricsReporter())
+		cloudInfoStore,
+		loadInfoers(ctx, config),
+		metrics.NewDefaultMetricsReporter())
+
 	emperror.Panic(err)
 
 	go prodInfo.Start(ctx)
+
+	// start the management service
+	if config.Management.Enabled {
+		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
+	}
 
 	// configure the gin validator
 	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
@@ -104,8 +116,8 @@ func main() {
 	router := gin.Default()
 
 	// add prometheus metric endpoint
-	if viper.GetBool(metricsEnabledFlag) {
-		routeHandler.EnableMetrics(ctx, router, viper.GetString(metricsAddressFlag))
+	if config.Metrics.Enabled {
+		routeHandler.EnableMetrics(ctx, router, config.Metrics.Address)
 	}
 
 	routeHandler.ConfigureRoutes(ctx, router)

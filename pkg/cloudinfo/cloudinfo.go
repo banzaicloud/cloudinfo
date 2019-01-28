@@ -38,6 +38,15 @@ type CachingCloudInfo struct {
 	metrics         metrics.Reporter
 }
 
+func (cpi *CachingCloudInfo) RefreshProvider(ctx context.Context, provider string) error {
+	if _, ok := cpi.cloudInfoers[provider]; !ok {
+		logger.Extract(ctx).Error("refresh - unsupported provider", map[string]interface{}{"provider": provider, "op": "refreshProvider"})
+		return emperror.WrapWith(errors.New("unsupported provider"), "provider", provider, "op", "refreshProvider")
+	}
+	cpi.renewProviderInfo(ctx, provider, nil)
+	return nil
+}
+
 func (cpi *CachingCloudInfo) HasShortLivedPriceInfo(ctx context.Context, provider string) bool {
 	if cier, err := cpi.GetInfoer(ctx, provider); err != nil {
 		return cier.HasShortLivedPriceInfo()
@@ -160,7 +169,11 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	}
 	start := time.Now()
 	// get the provider specific infoer
-	pi := cpi.cloudInfoers[provider]
+	pi, ok := cpi.cloudInfoers[provider]
+	if !ok {
+		log.Error("invalid provider", map[string]interface{}{"provider": provider})
+		return
+	}
 
 	log.Info("renewing product info")
 	if _, err := cpi.Initialize(ctx, provider); err != nil {
@@ -600,9 +613,9 @@ func (cpi *CachingCloudInfo) GetInfoer(ctx context.Context, provider string) (Cl
 	return nil, emperror.With(errors.New("could not find infoer for provider"), "provider", provider)
 }
 
-func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]ImageDescriber, error) {
+func (cpi *CachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]Image, error) {
 	var (
-		values []ImageDescriber
+		values []Image
 		err    error
 	)
 

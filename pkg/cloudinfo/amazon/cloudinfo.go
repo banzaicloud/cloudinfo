@@ -556,8 +556,8 @@ func (e *Ec2Infoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.ImageDescriber, error) {
-	imageDescribers := make([]cloudinfo.ImageDescriber, 0)
+func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+	imageDescribers := make([]cloudinfo.Image, 0)
 
 	if service == "eks" {
 		for _, version := range []string{"1.10", "1.11"} {
