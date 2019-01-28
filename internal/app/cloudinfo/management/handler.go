@@ -26,12 +26,14 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+// mngmntRouteHandler struct collecting handlers for the management service
 type mngmntRouteHandler struct {
 	cis cloudinfo.CloudInfoStore
 	ci  cloudinfo.CloudInfo
 	log logur.Logger
 }
 
+// Export exports the content of the Store into the response body
 func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
 	mrh.log.Info("exporting cloud information")
 	return func(c *gin.Context) {
@@ -44,6 +46,7 @@ func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
 	}
 }
 
+// Import loads the data into the underlying store implementation from the stdin
 func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
 	mrh.log.Info("importing cloud information")
 	return func(c *gin.Context) {
@@ -56,6 +59,7 @@ func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
 	}
 }
 
+// Refresh handler that triggers the refresh process for a provider
 func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
 
 	return func(c *gin.Context) {

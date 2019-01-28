@@ -89,6 +89,7 @@ type CacheProductStore struct {
 	log        logur.Logger
 }
 
+// Export writes the content of the store into the passed in writer
 func (cis *CacheProductStore) Export(w io.Writer) error {
 	if err := cis.Save(w); err != nil {
 		cis.log.Error("failed to export the store", map[string]interface{}{"op": "export", "destination": "todo"})
@@ -97,6 +98,7 @@ func (cis *CacheProductStore) Export(w io.Writer) error {
 	return nil
 }
 
+// Import loads the store data from the standard input
 func (cis *CacheProductStore) Import() error {
 	if err := cis.Load(os.Stdin); err != nil {
 		cis.log.Error("failed to load store data", map[string]interface{}{"op": "import", "destination": "todo"})
