@@ -16,6 +16,8 @@ package cloudinfo
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/goph/emperror"
@@ -75,7 +77,7 @@ type CloudInfoStore interface {
 	StoreStatus(provider string, val interface{})
 	GetStatus(provider string) (interface{}, bool)
 
-	Export() error
+	Export(w io.Writer) error
 	Import() error
 }
 
@@ -87,8 +89,8 @@ type CacheProductStore struct {
 	log        logur.Logger
 }
 
-func (cis *CacheProductStore) Export() error {
-	if err := cis.SaveFile("todo"); err != nil {
+func (cis *CacheProductStore) Export(w io.Writer) error {
+	if err := cis.Save(w); err != nil {
 		cis.log.Error("failed to export the store", map[string]interface{}{"op": "export", "destination": "todo"})
 		return emperror.WrapWith(err, "failed to export the store", "op", "export", "destination", "todo")
 	}
@@ -96,7 +98,7 @@ func (cis *CacheProductStore) Export() error {
 }
 
 func (cis *CacheProductStore) Import() error {
-	if err := cis.LoadFile("todo"); err != nil {
+	if err := cis.Load(os.Stdin); err != nil {
 		cis.log.Error("failed to load store data", map[string]interface{}{"op": "import", "destination": "todo"})
 		return emperror.WrapWith(err, "failed to load the store data", "op", "import", "destination", "todo")
 	}

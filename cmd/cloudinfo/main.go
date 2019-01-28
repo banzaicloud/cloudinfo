@@ -102,7 +102,7 @@ func main() {
 
 	// start the management service
 	if config.Management.Enabled {
-		go management.SetupManagementEngine(config.Management, cloudInfoStore)
+		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
 	}
 
 	// configure the gin validator

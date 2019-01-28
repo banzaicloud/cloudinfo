@@ -60,6 +60,8 @@ type CloudInfo interface {
 
 	// GetInfoer gets the cloud provider specific Infoer implementation (discriminator for cloud providers)
 	GetInfoer(ctx context.Context, provider string) (CloudInfoer, error)
+
+	RefreshProvider(ctx context.Context, provider string) error
 }
 
 // AttrValue represents an attribute value

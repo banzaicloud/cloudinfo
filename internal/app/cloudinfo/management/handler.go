@@ -15,29 +15,37 @@
 package management
 
 import (
+	"context"
+	"net/http"
+
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
-	"net/http"
+	"github.com/goph/logur"
+	"github.com/mitchellh/mapstructure"
 )
 
 type mngmntRouteHandler struct {
 	cis cloudinfo.CloudInfoStore
+	ci  cloudinfo.CloudInfo
+	log logur.Logger
 }
 
 func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
+	mrh.log.Info("exporting cloud information")
 	return func(c *gin.Context) {
-		if err := mrh.cis.Export(); err != nil {
+		if err := mrh.cis.Export(c.Writer); err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		c.JSON(http.StatusOK, "export succeeded")
-
+		c.Writer.WriteHeader(http.StatusOK)
 	}
 }
 
 func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
+	mrh.log.Info("importing cloud information")
 	return func(c *gin.Context) {
 		if err := mrh.cis.Import(); err != nil {
 			c.JSON(http.StatusInternalServerError, err)
@@ -49,18 +57,35 @@ func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
 }
 
 func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
-		// get the provider
-		//mrh.cis.Refresh()
+		pathParams := api.GetProviderPathParams{}
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			mrh.log.Error("failed to get provider")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get the provider from path"})
+			return
+		}
+		// trigger refreshing the provider
+		if pathParams.Provider == "" {
+			mrh.log.Error("failed to get provider")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to get the provider from path"})
+			return
+		}
+
+		// trigger the refresh process for the provider
+		mrh.log.Info("triggering refresh cloud information", map[string]interface{}{"provider": pathParams.Provider})
+		go mrh.ci.RefreshProvider(context.Background(), pathParams.Provider)
+		c.JSON(http.StatusOK, gin.H{"operation": "refresh", "provider": pathParams.Provider})
+
 	}
 }
 
-func SetupManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore) *gin.Engine {
+func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, ci cloudinfo.CloudInfo, log logur.Logger) *gin.Engine {
 	if err := cfg.Validate(); err != nil {
 		emperror.Panic(err)
 	}
 
-	rh := &mngmntRouteHandler{cis}
+	rh := &mngmntRouteHandler{cis, ci, log}
 
 	router := gin.New()
 	base := router.Group("/management/store")
@@ -72,4 +97,13 @@ func SetupManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore) *gin.Engine
 	}
 
 	return router
+}
+
+// getPathParamMap transforms the path params into a map to be able to easily bind to param structs
+func getPathParamMap(c *gin.Context) map[string]string {
+	pm := make(map[string]string)
+	for _, p := range c.Params {
+		pm[p.Key] = p.Value
+	}
+	return pm
 }
