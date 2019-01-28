@@ -17,7 +17,6 @@ package cloudinfo
 import (
 	"fmt"
 	"io"
-	"os"
 	"time"
 
 	"github.com/goph/emperror"
@@ -78,7 +77,7 @@ type CloudInfoStore interface {
 	GetStatus(provider string) (interface{}, bool)
 
 	Export(w io.Writer) error
-	Import() error
+	Import(r io.Reader) error
 }
 
 // CacheProductStore in memory cloud product information storer
@@ -99,8 +98,8 @@ func (cis *CacheProductStore) Export(w io.Writer) error {
 }
 
 // Import loads the store data from the standard input
-func (cis *CacheProductStore) Import() error {
-	if err := cis.Load(os.Stdin); err != nil {
+func (cis *CacheProductStore) Import(r io.Reader) error {
+	if err := cis.Load(r); err != nil {
 		cis.log.Error("failed to load store data", map[string]interface{}{"op": "import", "destination": "todo"})
 		return emperror.WrapWith(err, "failed to load the store data", "op", "import", "destination", "todo")
 	}

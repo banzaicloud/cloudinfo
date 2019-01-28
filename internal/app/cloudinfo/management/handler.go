@@ -50,7 +50,14 @@ func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
 func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
 	mrh.log.Info("importing cloud information")
 	return func(c *gin.Context) {
-		if err := mrh.cis.Import(); err != nil {
+
+		f, fh, err := c.Request.FormFile("data")
+		if err != nil {
+			mrh.log.Error("failed to import data", map[string]interface{}{"err": err})
+		}
+
+		mrh.log.Info("loading cloud info", map[string]interface{}{"file": fh.Filename, "size": fh.Size})
+		if err := mrh.cis.Import(f); err != nil {
 			c.JSON(http.StatusInternalServerError, err)
 			return
 		}
@@ -80,7 +87,6 @@ func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
 		mrh.log.Info("triggering refresh cloud information", map[string]interface{}{"provider": pathParams.Provider})
 		go mrh.ci.RefreshProvider(context.Background(), pathParams.Provider)
 		c.JSON(http.StatusOK, gin.H{"operation": "refresh", "provider": pathParams.Provider})
-
 	}
 }
 
