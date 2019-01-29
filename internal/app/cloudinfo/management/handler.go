@@ -101,7 +101,7 @@ func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, ci cloudinf
 
 	router := gin.New()
 	base := router.Group("/management/store")
-	base.PUT("export", rh.Export())
+	base.GET("export", rh.Export())
 	base.PUT("import", rh.Import())
 	base.PUT("refresh/:provider", rh.Refresh())
 	if err := router.Run(cfg.Address); err != nil {
