@@ -19,7 +19,7 @@ RUN npm install -g @angular/cli
 RUN ng build --configuration=production --base-href=/
 
 FROM alpine:3.7
-RUN apk add --update --no-cache bash
+RUN apk add --update --no-cache bash curl
 
 COPY --from=backend /usr/share/zoneinfo/ /usr/share/zoneinfo/
 COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
