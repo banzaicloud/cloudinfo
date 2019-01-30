@@ -343,7 +343,7 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	parts := strings.Split(mt, "_")
 	if len(parts) > 2 {
 		for _, p := range parts[2:] {
-			suffix = cloudinfo.CreateString("_", p)
+			suffix = cloudinfo.CreateString(suffix, "_", p)
 		}
 	}
 	for i, s := range suffixes {

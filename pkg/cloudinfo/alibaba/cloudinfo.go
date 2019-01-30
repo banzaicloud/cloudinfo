@@ -17,79 +17,42 @@ package alibaba
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
-	"github.com/spf13/viper"
+	"github.com/pkg/errors"
 )
-
-// OnDemandPrice contains price data from json
-type OnDemandPrice struct {
-	Currency        string                   `json:"currency"`
-	Version         string                   `json:"version"`
-	PublicationDate string                   `json:"publicationDate"`
-	PricingInfo     map[string]TimeUnitPrice `json:"pricingInfo"`
-	Disclaimer      string                   `json:"disclaimer"`
-	Type            string                   `json:"type"`
-	Site            string                   `json:"site"`
-	Description     string                   `json:"description"`
-}
-
-// TimeUnitPrice contains time data from json
-type TimeUnitPrice struct {
-	Hours  []Price `json:"hours"`
-	Months []Price `json:"months"`
-	Years  []Price `json:"years"`
-}
-
-// Price contains price data from json
-type Price struct {
-	Price  string `json:"price"`
-	Period string `json:"period"`
-}
-
-var priceInfoUrl = "alibaba-price-info-url"
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
-	Client         Source
-	priceRetriever PriceRetriever
-	spotClient     func(region string) Source
+	client     Source
+	spotClient func(region string) Source
 }
 
 // Source list of operations for retrieving sdk information
 type Source interface {
-	ProcessCommonRequest(request *requests.CommonRequest) (response *responses.CommonResponse, err error)
+	ProcessCommonRequest(request *requests.CommonRequest) (*responses.CommonResponse, error)
 }
-
-type onDemandPrice struct{}
 
 const (
 	svcCompute = "compute"
 	svcAck     = "ack"
 )
 
-// PriceRetriever collects on demand prices from a json file
-type PriceRetriever interface {
-	getOnDemandPrice(url string) (OnDemandPrice, error)
-}
-
 // NewAlibabaInfoer creates a new instance of the Alibaba infoer
 func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaInfoer, error) {
 
-	// Create a client
+	// Create client
 	client, err := sdk.NewClientWithAccessKey(
 		regionId,
 		accessKeyId,
@@ -104,10 +67,10 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 	client.GetConfig().WithGoRoutinePoolSize(100)
 	client.GetConfig().WithEnableAsync(true)
 	client.GetConfig().WithDebug(true)
+	client.GetConfig().WithMaxRetryTime(10)
 
 	return &AlibabaInfoer{
-		Client:         client,
-		priceRetriever: &onDemandPrice{},
+		client: client,
 		spotClient: func(region string) Source {
 			return client
 		},
@@ -158,22 +121,20 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string)
 
 				response := &ecs.DescribeSpotPriceHistoryResponse{}
 
-				err = json.Unmarshal(describeSpotPriceHistory.BaseResponse.GetHttpContentBytes(), &response)
+				err = json.Unmarshal(describeSpotPriceHistory.BaseResponse.GetHttpContentBytes(), response)
 				if err != nil {
 					return nil, err
 				}
 
-				price := priceInfo[instanceType]
 				spotPrice := make(cloudinfo.SpotPriceInfo, 0)
 
 				priceTypes := response.SpotPrices.SpotPriceType
 				for _, priceType := range priceTypes {
 					if zone.ZoneId == priceType.ZoneId {
 						spotPrice[zone.ZoneId] = priceType.SpotPrice
-						price = spotPrice
 						break
 					}
-					priceInfo[instanceType] = price
+					priceInfo[instanceType] = spotPrice
 				}
 			}
 		}
@@ -207,19 +168,21 @@ func (a *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 		}
 		for _, zone := range zones {
 			for _, instanceType := range instanceTypes {
-				for _, availableInstanceType := range zone.AvailableInstanceTypes.InstanceTypes {
-					if availableInstanceType == instanceType.InstanceType {
-						switch attribute {
-						case cloudinfo.Cpu:
-							valueSet[cloudinfo.AttrValue{
-								Value:    float64(instanceType.CpuCoreCount),
-								StrValue: fmt.Sprintf("%v", instanceType.CpuCoreCount),
-							}] = ""
-						case cloudinfo.Memory:
-							valueSet[cloudinfo.AttrValue{
-								Value:    instanceType.MemorySize,
-								StrValue: fmt.Sprintf("%v", instanceType.MemorySize),
-							}] = ""
+				for _, resourcesInfo := range zone.AvailableResources.ResourcesInfo {
+					for _, availableInstanceType := range resourcesInfo.InstanceTypes.SupportedInstanceType {
+						if availableInstanceType == instanceType.InstanceTypeId {
+							switch attribute {
+							case cloudinfo.Cpu:
+								valueSet[cloudinfo.AttrValue{
+									Value:    float64(instanceType.CpuCoreCount),
+									StrValue: fmt.Sprintf("%v", instanceType.CpuCoreCount),
+								}] = ""
+							case cloudinfo.Memory:
+								valueSet[cloudinfo.AttrValue{
+									Value:    instanceType.MemorySize,
+									StrValue: fmt.Sprintf("%v", instanceType.MemorySize),
+								}] = ""
+							}
 						}
 					}
 				}
@@ -243,14 +206,14 @@ func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
 	request.ApiName = "DescribeZones"
 	request.QueryParams["RegionId"] = region
 
-	describeZones, err := a.Client.ProcessCommonRequest(request)
+	describeZones, err := a.client.ProcessCommonRequest(request)
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeZones API call problem")
 	}
 
 	response := &ecs.DescribeZonesResponse{}
 
-	err = json.Unmarshal(describeZones.BaseResponse.GetHttpContentBytes(), &response)
+	err = json.Unmarshal(describeZones.BaseResponse.GetHttpContentBytes(), response)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +227,7 @@ func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 	log.Debug("getting product info")
 	vms := make([]cloudinfo.VmInfo, 0)
 
-	dataFromJson, err := a.priceRetriever.getOnDemandPrice(viper.GetString(priceInfoUrl))
+	instanceTypes, err := a.getInstanceTypes()
 	if err != nil {
 		return nil, err
 	}
@@ -274,56 +237,47 @@ func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 		return nil, err
 	}
 
-	instanceTypes, err := a.getInstanceTypes()
-	if err != nil {
-		return nil, err
-	}
-
 	for _, instanceType := range instanceTypes {
-		for key, prices := range dataFromJson.PricingInfo {
-			for _, price := range prices.Hours {
-				if price.Period == "1" {
-					// The key structure is 'RegionId::InstanceType::NetworkType::OSType::IoOptimized'"
-					values := strings.Split(key, "::")
-					if values[0] == regionId && values[1] == instanceType.InstanceTypeId && values[3] == "linux" {
-						var zones []string
-						for _, zone := range availableZones {
-							for _, availableVm := range zone.AvailableInstanceTypes.InstanceTypes {
-								if instanceType.InstanceTypeId == availableVm {
-									zones = append(zones, zone.ZoneId)
-								}
-							}
-						}
-						ntwMapper := newAlibabaNetworkMapper()
-						ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
-						ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
-						if err != nil {
-							log.Debug("could not get network performance category")
-						}
-
-						onDemandPrice, err := strconv.ParseFloat(price.Price, 64)
-						if err != nil {
-							return nil, err
-						}
-						vms = append(vms, cloudinfo.VmInfo{
-							Type:          instanceType.InstanceTypeId,
-							OnDemandPrice: onDemandPrice,
-							Cpus:          float64(instanceType.CpuCoreCount),
-							Mem:           instanceType.MemorySize,
-							Gpus:          float64(instanceType.GPUAmount),
-							NtwPerf:       ntwPerf,
-							NtwPerfCat:    ntwPerfCat,
-							Zones:         zones,
-							Attributes:    cloudinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat),
-						})
+		zones := make([]string, 0)
+		for _, zone := range availableZones {
+			for _, resourcesInfo := range zone.AvailableResources.ResourcesInfo {
+				for _, availableInstanceType := range resourcesInfo.InstanceTypes.SupportedInstanceType {
+					if availableInstanceType == instanceType.InstanceTypeId {
+						zones = append(zones, zone.ZoneId)
+						break
 					}
 				}
 			}
 		}
+		if len(zones) > 0 {
+
+			ntwMapper := newAlibabaNetworkMapper()
+			ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
+			ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
+			if err != nil {
+				log.Debug("could not get network performance category")
+			}
+
+			vms = append(vms, cloudinfo.VmInfo{
+				Type:       instanceType.InstanceTypeId,
+				Cpus:       float64(instanceType.CpuCoreCount),
+				Mem:        instanceType.MemorySize,
+				Gpus:       float64(instanceType.GPUAmount),
+				NtwPerf:    ntwPerf,
+				NtwPerfCat: ntwPerfCat,
+				Zones:      zones,
+				Attributes: cloudinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat),
+			})
+		}
 	}
 
-	log.Debug("found vms", map[string]interface{}{"vms": fmt.Sprintf("%v", vms)})
-	return vms, nil
+	virtualMachines, err := a.getOnDemandPrice(vms, regionId)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debug("found vms", map[string]interface{}{"vms": fmt.Sprintf("%v", virtualMachines)})
+	return virtualMachines, nil
 }
 
 func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {
@@ -333,19 +287,156 @@ func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {
 	request.Version = "2014-05-26"
 	request.ApiName = "DescribeInstanceTypes"
 
-	describeInstanceTypes, err := a.Client.ProcessCommonRequest(request)
+	describeInstanceTypes, err := a.client.ProcessCommonRequest(request)
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeInstanceTypes API call problem")
 	}
 
 	response := &ecs.DescribeInstanceTypesResponse{}
 
-	err = json.Unmarshal(describeInstanceTypes.BaseResponse.GetHttpContentBytes(), &response)
+	err = json.Unmarshal(describeInstanceTypes.BaseResponse.GetHttpContentBytes(), response)
 	if err != nil {
 		return nil, err
 	}
 
 	return response.InstanceTypes.InstanceType, nil
+}
+
+func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) ([]cloudinfo.VmInfo, error) {
+	price := make(map[string]float64, 0)
+	vmsWithPrice := make([]cloudinfo.VmInfo, 0)
+
+	instanceTypes := make([]string, 0)
+
+	for _, vm := range vms {
+
+		instanceTypes = append(instanceTypes, vm.Type)
+
+		if len(instanceTypes) == 50 {
+			resp50vm, err := a.getPrice(instanceTypes, region)
+			if err != nil {
+				return nil, err
+			}
+
+			switch resp50vm.Code {
+			case "Success":
+				for i, moduleDetail := range resp50vm.Data.ModuleDetails.ModuleDetail {
+					price[instanceTypes[i]] = moduleDetail.OriginalCost
+				}
+			case "InternalError":
+				for i := 0; i < 5; i++ {
+					resp10vm, err := a.getPrice(instanceTypes[10*i:10*(i+1)], region)
+					if err != nil {
+						return nil, err
+					}
+
+					switch resp10vm.Code {
+					case "Success":
+						for n, moduleDetail := range resp10vm.Data.ModuleDetails.ModuleDetail {
+							price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
+						}
+					case "InternalError":
+						for n := 0; n < 10; n++ {
+							resp1vm, err := a.getPrice([]string{instanceTypes[10*i+n]}, region)
+							if err != nil {
+								return nil, err
+							}
+							if resp1vm.Code == "Success" {
+								for n, moduleDetail := range resp1vm.Data.ModuleDetails.ModuleDetail {
+									price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
+								}
+							}
+						}
+					}
+				}
+			case "NotAuthorized":
+				return nil, errors.New("user needs AliyunBSSReadOnlyAccess permission")
+			default:
+				return nil, errors.Errorf("unknown error code: %s", resp50vm.Code)
+			}
+
+			instanceTypes = make([]string, 0)
+		}
+	}
+
+	if len(instanceTypes) != 0 {
+		resp, err := a.getPrice(instanceTypes, region)
+		if err != nil {
+			return nil, err
+		}
+
+		switch resp.Code {
+		case "Success":
+			for i, moduleDetail := range resp.Data.ModuleDetails.ModuleDetail {
+				price[instanceTypes[i]] = moduleDetail.OriginalCost
+			}
+		case "InternalError":
+			for i := 0; i < len(instanceTypes); i++ {
+				resp1vm, err := a.getPrice([]string{instanceTypes[i]}, region)
+				if err != nil {
+					return nil, err
+				}
+				if resp1vm.Code == "Success" {
+					for n, moduleDetail := range resp1vm.Data.ModuleDetails.ModuleDetail {
+						price[instanceTypes[n]] = moduleDetail.OriginalCost
+					}
+				}
+			}
+		case "NotAuthorized":
+			return nil, errors.New("user needs AliyunBSSReadOnlyAccess permission")
+		default:
+			return nil, errors.Errorf("unknown error code: %s", resp.Code)
+		}
+	}
+
+	for _, vm := range vms {
+		vmsWithPrice = append(vmsWithPrice, cloudinfo.VmInfo{
+			Type:          vm.Type,
+			OnDemandPrice: price[vm.Type],
+			Cpus:          vm.Cpus,
+			Mem:           vm.Mem,
+			Gpus:          vm.Gpus,
+			NtwPerf:       vm.NtwPerf,
+			NtwPerfCat:    vm.NtwPerfCat,
+			Zones:         vm.Zones,
+			Attributes:    vm.Attributes,
+		})
+	}
+
+	return vmsWithPrice, nil
+}
+
+func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) (bssopenapi.GetPayAsYouGoPriceResponse, error) {
+	response := &bssopenapi.GetPayAsYouGoPriceResponse{}
+
+	request := requests.NewCommonRequest()
+	request.Method = "POST"
+	request.Scheme = "https"
+	request.Domain = "business.ap-southeast-1.aliyuncs.com"
+	request.Version = "2017-12-14"
+	request.ApiName = "GetPayAsYouGoPrice"
+	request.QueryParams["RegionId"] = region
+	request.QueryParams["ProductCode"] = "ecs"
+	request.QueryParams["SubscriptionType"] = "PayAsYouGo"
+
+	for i, instanceType := range instanceTypes {
+		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".ModuleCode")] = "InstanceType"
+		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".Config")] =
+			cloudinfo.CreateString("InstanceType:", instanceType, ",IoOptimized:IoOptimized,ImageOs:linux")
+		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".PriceType")] = "Hour"
+	}
+
+	getPayAsYouGoPrice, err := a.client.ProcessCommonRequest(request)
+	if err != nil {
+		return bssopenapi.GetPayAsYouGoPriceResponse{}, err
+	}
+
+	err = json.Unmarshal(getPayAsYouGoPrice.BaseResponse.GetHttpContentBytes(), response)
+	if err != nil {
+		return bssopenapi.GetPayAsYouGoPriceResponse{}, err
+	}
+
+	return *response, nil
 }
 
 // GetZones returns the availability zones in a region
@@ -373,20 +464,19 @@ func (a *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[str
 	request.ApiName = "DescribeRegions"
 	request.QueryParams["AcceptLanguage"] = "en-US"
 
-	describeRegions, err := a.Client.ProcessCommonRequest(request)
+	describeRegions, err := a.client.ProcessCommonRequest(request)
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeRegions API call problem")
 	}
 
-	response := ecs.DescribeRegionsResponse{}
+	response := &ecs.DescribeRegionsResponse{}
 
-	err = json.Unmarshal(describeRegions.BaseResponse.GetHttpContentBytes(), &response)
+	err = json.Unmarshal(describeRegions.BaseResponse.GetHttpContentBytes(), response)
 	if err != nil {
 		return nil, err
 	}
 
-	regions := response.Regions.Region
-	for _, region := range regions {
+	for _, region := range response.Regions.Region {
 		RegionIdMap[region.RegionId] = region.LocalName
 	}
 	return RegionIdMap, nil
@@ -434,23 +524,6 @@ func (a *AlibabaInfoer) GetCpuAttrName() string {
 	return cloudinfo.Cpu
 }
 
-func (p *onDemandPrice) getOnDemandPrice(url string) (OnDemandPrice, error) {
-	var myClient = &http.Client{Timeout: 10 * time.Second}
-	var dataFromJson OnDemandPrice
-	r, err := myClient.Get(url)
-	if err != nil {
-		return OnDemandPrice{}, err
-	}
-	defer r.Body.Close()
-
-	err = json.NewDecoder(r.Body).Decode(&dataFromJson)
-	if err != nil {
-		return OnDemandPrice{}, err
-	}
-
-	return dataFromJson, nil
-}
-
 // GetServices returns the available services on the provider
 func (a *AlibabaInfoer) GetServices() ([]cloudinfo.Service, error) {
 	services := []cloudinfo.Service{
@@ -479,7 +552,7 @@ func (a *AlibabaInfoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (e *AlibabaInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+func (a *AlibabaInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
 	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 

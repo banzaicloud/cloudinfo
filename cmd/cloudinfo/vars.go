@@ -44,7 +44,6 @@ const (
 	alibabaRegionId        = "alibaba-region-id"
 	alibabaAccessKeyId     = "alibaba-access-key-id"
 	alibabaAccessKeySecret = "alibaba-access-key-secret"
-	alibabaPriceInfoUrl    = "alibaba-price-info-url"
 	oracleConfigLocation   = "oracle-cli-config-location"
 
 	// Google is the identifier of the Google Cloud Engine provider
