@@ -20,7 +20,9 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/internal/platform/prometheus"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
@@ -69,6 +71,26 @@ type Config struct {
 
 	// Azure configuration
 	Azure azure.Config
+
+	Instrumentation InstrumentationConfig
+}
+
+// InstrumentationConfig represents the instrumentation related configuration.
+type InstrumentationConfig struct {
+	// Instrumentation HTTP server address
+	Addr string
+
+	// Prometheus configuration
+	Prometheus struct {
+		Enabled           bool
+		prometheus.Config `mapstructure:",squash"`
+	}
+
+	// Jaeger configuration
+	Jaeger struct {
+		Enabled       bool
+		jaeger.Config `mapstructure:",squash"`
+	}
 }
 
 // defineFlags defines supported flags and makes them available for viper
@@ -143,6 +165,14 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// Metrics
 	v.RegisterAlias("metrics.enabled", metricsEnabledFlag)
 	v.RegisterAlias("metrics.address", metricsAddressFlag)
+
+	// Instrumentation
+	v.SetDefault("instrumentation.jaeger.enabled", true)
+	v.SetDefault("instrumentation.jaeger.collectorendpoint", "http://localhost:14268")
+	v.SetDefault("instrumentation.jaeger.agentEndpoint", "localhost:6831")
+	v.RegisterAlias("instrumentation.jaeger.serviceName", "serviceName")
+	_ = v.BindEnv("instrumentation.jaeger.username")
+	_ = v.BindEnv("instrumentation.jaeger.password")
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 

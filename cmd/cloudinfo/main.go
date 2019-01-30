@@ -29,6 +29,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
+	"go.opencensus.io/trace"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
@@ -103,6 +105,16 @@ func main() {
 	// start the management service
 	if config.Management.Enabled {
 		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
+	}
+
+	// Configure Jaeger
+	if config.Instrumentation.Jaeger.Enabled {
+		logur.Info("jaeger exporter enabled", nil)
+
+		exporter, err := jaeger.NewExporter(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
+		emperror.Panic(err)
+
+		trace.RegisterExporter(exporter)
 	}
 
 	// configure the gin validator
