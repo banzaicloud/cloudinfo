@@ -16,6 +16,7 @@ package tracing
 
 import (
 	"context"
+
 	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
 	"github.com/goph/emperror"
 	"go.opencensus.io/trace"
