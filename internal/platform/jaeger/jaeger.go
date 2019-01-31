@@ -39,4 +39,3 @@ func NewExporter(config Config, errorHandler emperror.Handler) (*jaeger.Exporter
 
 	return exporter, errors.Wrap(err, "failed to create jaeger exporter")
 }
-

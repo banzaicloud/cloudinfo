@@ -166,8 +166,8 @@ func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
 // provided WaitGroup (if provided)
 func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider string, wg *sync.WaitGroup) {
-	ctx, span := cpi.tracer.StartSpan(ctx, "renew-provider")
-	defer span.End()
+	ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-provider", map[string]interface{}{"provider": provider})
+	defer cpi.tracer.EndSpan(ctx)
 
 	log := logger.Extract(ctx)
 	if wg != nil {
@@ -367,6 +367,8 @@ func (cpi *CachingCloudInfo) Start(ctx context.Context) {
 
 // Initialize stores the result of the Infoer's Initialize output in cache
 func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error) {
+	ctx, _ = cpi.tracer.StartWitTags(ctx, "initialize", map[string]interface{}{"provider": provider})
+	defer cpi.tracer.EndSpan(ctx)
 	log := logger.Extract(ctx)
 	log.Info("initializing cloud product information")
 	allPrices, err := cpi.cloudInfoers[provider].Initialize(ctx)
@@ -419,6 +421,9 @@ func (cpi *CachingCloudInfo) renewAttrValues(ctx context.Context, provider, serv
 		err    error
 		values AttrValues
 	)
+
+	ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-attribute-values", map[string]interface{}{"provider": provider, "service": service, "attribute": attribute})
+	defer cpi.tracer.EndSpan(ctx)
 
 	if attr, err = cpi.toProviderAttribute(provider, attribute); err != nil {
 		return nil, emperror.With(err, "renewal")

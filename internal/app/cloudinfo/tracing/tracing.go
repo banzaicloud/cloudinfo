@@ -24,7 +24,14 @@ import (
 // Tracer represents the application specific view of tracing
 // It's meant to collect all tracing related operations
 type Tracer interface {
+	// StartSpan starts a span with the given name and context
 	StartSpan(ctx context.Context, name string) (context.Context, *CiSpan)
+
+	// StartWitTags starts a new span and adds the tags to it as attributes
+	StartWitTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan)
+
+	// EndSpan ends a span in the given context
+	EndSpan(ctx context.Context)
 }
 
 type CiSpan struct {
@@ -34,8 +41,40 @@ type CiSpan struct {
 type ciTracer struct {
 }
 
+func (t *ciTracer) StartWitTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan) {
+	var attrs []trace.Attribute
+	ctx, span := t.StartSpan(ctx, name)
+
+	for k, v := range tags {
+		switch v.(type) {
+		case string:
+			attrs = append(attrs, trace.StringAttribute(k, v.(string)))
+		case bool:
+			attrs = append(attrs, trace.BoolAttribute(k, v.(bool)))
+		case int64:
+			attrs = append(attrs, trace.Int64Attribute(k, v.(int64)))
+		}
+	}
+	if len(attrs) > 0 {
+		span.AddAttributes(attrs...)
+	}
+	return ctx, span
+}
+
+// EndSpan ends the span in the given context
+func (t *ciTracer) EndSpan(ctx context.Context) {
+	var span *trace.Span
+	if span = trace.FromContext(ctx); span == nil {
+		// there's no span in the context
+		return
+	}
+	//span.SetStatus(trace.Status{Code: int32(trace.StatusCodeNotFound), Message: "Test status"})
+	span.End()
+}
+
 func (t *ciTracer) StartSpan(ctx context.Context, name string) (context.Context, *CiSpan) {
 	c, s := trace.StartSpan(ctx, name)
+	//s.Annotate([]trace.Attribute{trace.StringAttribute("attr", "testing"), trace.BoolAttribute("boolAttr", true)}, "annotation")
 	return c, &CiSpan{s}
 }
 
