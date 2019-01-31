@@ -29,12 +29,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
-	"go.opencensus.io/trace"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -90,13 +89,20 @@ func main() {
 	logger.Extract(ctx).Info("initializing the application",
 		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
+	// Configure Jaeger
+	if config.Instrumentation.Jaeger.Enabled {
+		logur.Info("jaeger exporter enabled", nil)
+		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
+	}
+
 	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
 		config.RenewalInterval,
 		cloudInfoStore,
 		loadInfoers(ctx, config),
-		metrics.NewDefaultMetricsReporter())
+		metrics.NewDefaultMetricsReporter(),
+		tracing.NewTracer())
 
 	emperror.Panic(err)
 
@@ -105,16 +111,6 @@ func main() {
 	// start the management service
 	if config.Management.Enabled {
 		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
-	}
-
-	// Configure Jaeger
-	if config.Instrumentation.Jaeger.Enabled {
-		logur.Info("jaeger exporter enabled", nil)
-
-		exporter, err := jaeger.NewExporter(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
-		emperror.Panic(err)
-
-		trace.RegisterExporter(exporter)
 	}
 
 	// configure the gin validator

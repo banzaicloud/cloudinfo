@@ -124,6 +124,9 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// configure viper
 	// Viper check for an environment variable
 
+	// Application constants
+	v.Set("serviceName", ServiceName)
+
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
 	v.AutomaticEnv()
@@ -168,8 +171,8 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 
 	// Instrumentation
 	v.SetDefault("instrumentation.jaeger.enabled", true)
-	v.SetDefault("instrumentation.jaeger.collectorendpoint", "http://localhost:14268")
-	v.SetDefault("instrumentation.jaeger.agentEndpoint", "localhost:6831")
+	v.SetDefault("instrumentation.jaeger.collectorendpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
+	v.SetDefault("instrumentation.jaeger.agentEndpoint", "localhost:6832")
 	v.RegisterAlias("instrumentation.jaeger.serviceName", "serviceName")
 	_ = v.BindEnv("instrumentation.jaeger.username")
 	_ = v.BindEnv("instrumentation.jaeger.password")
