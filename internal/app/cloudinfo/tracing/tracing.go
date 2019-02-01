@@ -28,8 +28,11 @@ type Tracer interface {
 	// StartSpan starts a span with the given name and context
 	StartSpan(ctx context.Context, name string) (context.Context, *CiSpan)
 
-	// StartWitTags starts a new span and adds the tags to it as attributes
-	StartWitTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan)
+	// StartWithTags starts a new span and adds the tags to it as attributes
+	StartWithTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan)
+
+	// StartAndLink starts a new root span and links it with the span from the passed in context
+	StartAndLink(parentCtx context.Context, name string) (context.Context, *CiSpan)
 
 	// EndSpan ends a span in the given context
 	EndSpan(ctx context.Context)
@@ -44,11 +47,29 @@ type CiSpan struct {
 type ciTracer struct {
 }
 
+// StartAndLink starts a new root span and links it to the span in the provided context if any
+func (t *ciTracer) StartAndLink(parentCtx context.Context, name string) (context.Context, *CiSpan) {
+	// start a new root span
+	newCtx, rootSpan := trace.StartSpan(context.Background(), name)
+
+	// get the spant to link from the context if any
+	if linkSpan := trace.FromContext(parentCtx); linkSpan != nil {
+		rootSpan.AddLink(trace.Link{
+			SpanID:  linkSpan.SpanContext().SpanID,
+			TraceID: linkSpan.SpanContext().TraceID,
+			Type:    trace.LinkTypeChild,
+		})
+	}
+
+	return newCtx, &CiSpan{rootSpan}
+
+}
+
 func (t *ciTracer) EndSpanInstance(span *CiSpan) {
 	span.End()
 }
 
-func (t *ciTracer) StartWitTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan) {
+func (t *ciTracer) StartWithTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan) {
 	var attrs []trace.Attribute
 	ctx, span := t.StartSpan(ctx, name)
 

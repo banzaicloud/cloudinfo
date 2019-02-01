@@ -18,7 +18,7 @@ The application comes with tracing disabled by default. Tracing can be configure
 
 #### Requirements
 
-Cludinfo tracing reports to a jaeger installation that need to be reachable by the application. The related configuration entries need to be set accordingly.
+Cludinfo tracing reports to a jaeger installation that needs to be reachable by the application. The related configuration entries need to be set accordingly.
 
 #### Reference
 

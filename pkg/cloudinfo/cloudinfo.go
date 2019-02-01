@@ -167,7 +167,7 @@ func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
 // provided WaitGroup (if provided)
 func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider string, wg *sync.WaitGroup) {
-	ctx, _ = cpi.tracer.StartWitTags(ctx, fmt.Sprintf("renew-provider (%s)", provider), map[string]interface{}{"provider": provider})
+	ctx, _ = cpi.tracer.StartWithTags(ctx, fmt.Sprintf("renew-provider (%s)", provider), map[string]interface{}{"provider": provider})
 	defer cpi.tracer.EndSpan(ctx)
 
 	log := logger.Extract(ctx)
@@ -217,7 +217,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	log.Info("start to renew products (vm-s)")
 
 	// todo spans to be created in individual method calls instead
-	vmCtx, _ := cpi.tracer.StartWitTags(ctx, "renew-products", map[string]interface{}{"provider": provider})
+	vmCtx, _ := cpi.tracer.StartWithTags(ctx, "renew-products", map[string]interface{}{"provider": provider})
 
 	for _, service := range services {
 		ctxLog := logger.ToContext(ctx,
@@ -274,7 +274,7 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 }
 
 func (cpi *CachingCloudInfo) renewStatus(ctx context.Context, provider string) (string, error) {
-	ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-status", map[string]interface{}{"provider": provider})
+	ctx, _ = cpi.tracer.StartWithTags(ctx, "renew-status", map[string]interface{}{"provider": provider})
 	defer cpi.tracer.EndSpan(ctx)
 
 	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
@@ -316,7 +316,7 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 		providerWg.Add(1)
 		go func(c context.Context, p string, i CloudInfoer) {
-			ctxp, _ := cpi.tracer.StartWitTags(ctx, fmt.Sprintf("collect-provider-price-info (%s)", p), map[string]interface{}{"provider": p})
+			ctxp, _ := cpi.tracer.StartAndLink(ctx, fmt.Sprintf("collect-provider-price-info (%s)", p))
 			defer cpi.tracer.EndSpan(ctxp)
 
 			defer providerWg.Done()
@@ -382,7 +382,7 @@ func (cpi *CachingCloudInfo) Start(ctx context.Context) {
 
 // Initialize stores the result of the Infoer's Initialize output in cache
 func (cpi *CachingCloudInfo) Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error) {
-	ctx, _ = cpi.tracer.StartWitTags(ctx, "initialize", map[string]interface{}{"provider": provider})
+	ctx, _ = cpi.tracer.StartWithTags(ctx, "initialize", map[string]interface{}{"provider": provider})
 	defer cpi.tracer.EndSpan(ctx)
 	log := logger.Extract(ctx)
 	log.Info("initializing cloud product information")
@@ -437,7 +437,7 @@ func (cpi *CachingCloudInfo) renewAttrValues(ctx context.Context, provider, serv
 		values AttrValues
 	)
 
-	ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-attribute-values", map[string]interface{}{"provider": provider, "service": service, "attribute": attribute})
+	ctx, _ = cpi.tracer.StartWithTags(ctx, "renew-attribute-values", map[string]interface{}{"provider": provider, "service": service, "attribute": attribute})
 	defer cpi.tracer.EndSpan(ctx)
 
 	if attr, err = cpi.toProviderAttribute(provider, attribute); err != nil {

@@ -19,6 +19,10 @@ import "context"
 type noOpTracer struct {
 }
 
+func (*noOpTracer) StartAndLink(parentCtx context.Context, name string) (context.Context, *CiSpan) {
+	return parentCtx, nil
+}
+
 func (*noOpTracer) EndSpanInstance(span *CiSpan) {
 	// do noting
 }
@@ -27,7 +31,7 @@ func (*noOpTracer) StartSpan(ctx context.Context, name string) (context.Context,
 	return ctx, nil
 }
 
-func (*noOpTracer) StartWitTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan) {
+func (*noOpTracer) StartWithTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan) {
 	return ctx, nil
 }
 

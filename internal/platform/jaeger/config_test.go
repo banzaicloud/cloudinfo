@@ -22,7 +22,7 @@ import (
 
 func TestConfig_Validate(t *testing.T) {
 	tests := map[string]Config{
-		"either endpoint or agent endpoint must be configured": {},
+		"either collector endpoint or agent endpoint must be configured": {},
 	}
 
 	for name, test := range tests {
