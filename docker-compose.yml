@@ -2,6 +2,16 @@ version: '3.1'
 
 services:
 
+    jaeger:
+        image: jaegertracing/all-in-one:${JAEGER_TAG:-latest}
+        restart: always
+        environment:
+            - JAEGER
+        ports:
+            - 5778:5778
+            - 16686:16686
+            - 14268:14268
+
     cloudinfo:
         image: banzaicloud/cloudinfo:${TAG:-test}
         restart: always
@@ -9,6 +19,10 @@ services:
             - PROVIDER=amazon
             - LOG_LEVEL=debug
             - ORACLE_CLI_CONFIG_LOCATION=/root/.oci/config
+            - INSTRUMENTATION_JAEGER_ENABLED=true
+            - INSTRUMENTATION_JAEGER_COLLECTORENDPOINT=http://jaeger:14268/api/traces?format=jaeger.thrift
+        links:
+            - "jaeger:jaeger"
         ports:
             - 9090:9090
             - 8099:8099
@@ -16,19 +30,7 @@ services:
             - ${HOME}/.aws:/root/.aws
             - ${HOME}/.oci:/root/.oci
 
-    jaeger:
-        image: jaegertracing/all-in-one:${JAEGER_TAG:-latest}
-        restart: always
-        environment:
-            - COLLECTOR_ZIPKIN_HTTP_PORT=9411
-        ports:
-            - 5775:5775/udp
-            - 6831:6831/udp
-            - 6832:6832/udp
-            - 5778:5778
-            - 16686:16686
-            - 14268:14268
-            - 9411:9411
+
 
 
 
