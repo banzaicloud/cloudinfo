@@ -90,7 +90,7 @@ func main() {
 		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
 	// default tracer
-	tracer := tracing.NoOpTracer()
+	tracer := tracing.NewNoOpTracer()
 
 	// Configure Jaeger
 	if config.Instrumentation.Jaeger.Enabled {

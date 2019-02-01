@@ -23,7 +23,7 @@ type Config struct {
 	CollectorEndpoint string
 
 	// AgentEndpoint instructs exporter to send spans to Jaeger agent at this address.
-	// For example, localhost:6831.
+	// For example, http://localhost:14268/api/traces?format=jaeger.thrift.
 	AgentEndpoint string
 
 	// Username to be used if basic auth is required.
@@ -41,7 +41,7 @@ type Config struct {
 // Validate checks that the configuration is valid.
 func (c Config) Validate() error {
 	if c.CollectorEndpoint == "" && c.AgentEndpoint == "" {
-		return errors.New("either endpoint or agent endpoint must be configured")
+		return errors.New("either collector endpoint or agent endpoint must be configured")
 	}
 
 	return nil

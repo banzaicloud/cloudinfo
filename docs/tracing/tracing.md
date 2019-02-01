@@ -1,8 +1,8 @@
 #### Tracing
 
-The cloudinfo application contains code instrumentation that makes possible tracing trough opencensus / jaegeR_
+The cloudinfo application contains code instrumentation that makes possible tracing trough opencensus / jaeger
 
-For the time being the tracing instrumentation only covers background processes in the application (those collecting cloud information from the providers)
+For the time being the tracing solution only instruments the background processes in the application (collecting cloud information from the providers)
 
 #### Enable tracing
 
@@ -13,7 +13,6 @@ The application comes with tracing disabled by default. Tracing can be configure
 |  INSTRUMENTATION_JAEGER_ENABLED            | false                                                   |
 |  INSTRUMENTATION_JAEGER_COLLECTORENDPOINT  | http://localhost:14268/api/traces?format=jaeger.thrift  |
 |  INSTRUMENTATION_JAEGER_AGENTENDPOINT      | localhost:6832                                          |
-|  INSTRUMENTATION_JAEGER_SERVICENAME        | cloudinfo                                                |
 |  INSTRUMENTATION_JAEGER_USERNAME           |                                                         |
 |  INSTRUMENTATION_JAEGER_PASSWORD           |                                                         |
 

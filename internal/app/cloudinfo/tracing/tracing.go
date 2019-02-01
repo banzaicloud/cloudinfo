@@ -75,13 +75,11 @@ func (t *ciTracer) EndSpan(ctx context.Context) {
 		// there's no span in the context
 		return
 	}
-	//span.SetStatus(trace.Status{Code: int32(trace.StatusCodeNotFound), Message: "Test status"})
 	span.End()
 }
 
 func (t *ciTracer) StartSpan(ctx context.Context, name string) (context.Context, *CiSpan) {
 	c, s := trace.StartSpan(ctx, name)
-	//s.Annotate([]trace.Attribute{trace.StringAttribute("attr", "testing"), trace.BoolAttribute("boolAttr", true)}, "annotation")
 	return c, &CiSpan{s}
 }
 

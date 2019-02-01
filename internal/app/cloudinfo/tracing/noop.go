@@ -34,6 +34,6 @@ func (*noOpTracer) StartWitTags(ctx context.Context, name string, tags map[strin
 func (*noOpTracer) EndSpan(ctx context.Context) {
 }
 
-func NoOpTracer() Tracer {
+func NewNoOpTracer() Tracer {
 	return &noOpTracer{}
 }
