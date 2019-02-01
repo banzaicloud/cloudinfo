@@ -170,7 +170,7 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.RegisterAlias("metrics.address", metricsAddressFlag)
 
 	// Instrumentation
-	v.SetDefault("instrumentation.jaeger.enabled", true)
+	v.SetDefault("instrumentation.jaeger.enabled", false)
 	v.SetDefault("instrumentation.jaeger.collectorendpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
 	v.SetDefault("instrumentation.jaeger.agentEndpoint", "localhost:6832")
 	v.RegisterAlias("instrumentation.jaeger.serviceName", "serviceName")
