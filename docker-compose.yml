@@ -2,22 +2,22 @@ version: '3.1'
 
 services:
 
-#    cloudinfo:
-#        image: banzaicloud/cloudinfo:${TAG:-test}
-#        restart: always
-#        environment:
-#            - PROVIDER=amazon
-#            - LOG_LEVEL=debug
-#            - ORACLE_CLI_CONFIG_LOCATION=/root/.oci/config
-#        ports:
-#            - 9090:9090
-#            - 8099:8099
-#        volumes:
-#            - ${HOME}/.aws:/root/.aws
-#            - ${HOME}/.oci:/root/.oci
+    cloudinfo:
+        image: banzaicloud/cloudinfo:${TAG:-test}
+        restart: always
+        environment:
+            - PROVIDER=amazon
+            - LOG_LEVEL=debug
+            - ORACLE_CLI_CONFIG_LOCATION=/root/.oci/config
+        ports:
+            - 9090:9090
+            - 8099:8099
+        volumes:
+            - ${HOME}/.aws:/root/.aws
+            - ${HOME}/.oci:/root/.oci
 
     jaeger:
-        image: jaegertracing/all-in-one:latest
+        image: jaegertracing/all-in-one:${JAEGER_TAG:-latest}
         restart: always
         environment:
             - COLLECTOR_ZIPKIN_HTTP_PORT=9411

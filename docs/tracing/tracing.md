@@ -13,7 +13,7 @@ The application comes with tracing disabled by default. Tracing can be configure
 |  INSTRUMENTATION_JAEGER_ENABLED            | false                                                   |
 |  INSTRUMENTATION_JAEGER_COLLECTORENDPOINT  | http://localhost:14268/api/traces?format=jaeger.thrift  |
 |  INSTRUMENTATION_JAEGER_AGENTENDPOINT      | localhost:6832                                          |
-|  INSTRUMENTATION_JAEGER_SERVICENAME        | cludinfo                                                |
+|  INSTRUMENTATION_JAEGER_SERVICENAME        | cloudinfo                                                |
 |  INSTRUMENTATION_JAEGER_USERNAME           |                                                         |
 |  INSTRUMENTATION_JAEGER_PASSWORD           |                                                         |
 
