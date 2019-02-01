@@ -17,6 +17,7 @@ package cloudinfo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -166,7 +167,7 @@ func (cpi *CachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
 // provided WaitGroup (if provided)
 func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider string, wg *sync.WaitGroup) {
-	ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-provider", map[string]interface{}{"provider": provider})
+	ctx, _ = cpi.tracer.StartWitTags(ctx, fmt.Sprintf("renew-provider (%s)", provider), map[string]interface{}{"provider": provider})
 	defer cpi.tracer.EndSpan(ctx)
 
 	log := logger.Extract(ctx)
@@ -284,7 +285,7 @@ func (cpi *CachingCloudInfo) renewStatus(ctx context.Context, provider string) (
 
 // renewAll sequentially renews information for all provider
 func (cpi *CachingCloudInfo) renewAll(ctx context.Context) {
-	ctx, _ = cpi.tracer.StartSpan(ctx, "renew-all-providers")
+	ctx, _ = cpi.tracer.StartSpan(ctx, "collect-from-providers")
 	defer cpi.tracer.EndSpan(ctx)
 
 	atomic.AddUint64(&scrapeCounterComplete, 1)
@@ -302,7 +303,7 @@ func (cpi *CachingCloudInfo) renewAll(ctx context.Context) {
 }
 
 func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
-	ctx, _ = cpi.tracer.StartSpan(ctx, "renew-price-info")
+	ctx, _ = cpi.tracer.StartSpan(ctx, "collect-price-info")
 	defer cpi.tracer.EndSpan(ctx)
 
 	atomic.AddUint64(&scrapeCounterShortLived, 1)
@@ -315,8 +316,8 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 		providerWg.Add(1)
 		go func(c context.Context, p string, i CloudInfoer) {
-			ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-provider-price-info", map[string]interface{}{"provider": p})
-			defer cpi.tracer.EndSpan(ctx)
+			ctxp, _ := cpi.tracer.StartWitTags(ctx, fmt.Sprintf("collect-provider-price-info (%s)", p), map[string]interface{}{"provider": p})
+			defer cpi.tracer.EndSpan(ctxp)
 
 			defer providerWg.Done()
 			if !i.HasShortLivedPriceInfo() {
@@ -363,7 +364,7 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 // Start starts the information retrieval in a new goroutine
 func (cpi *CachingCloudInfo) Start(ctx context.Context) {
-	ctx, _ = cpi.tracer.StartSpan(ctx, "collect-product-info")
+	ctx, _ = cpi.tracer.StartSpan(ctx, "bootstrap")
 	defer cpi.tracer.EndSpan(ctx)
 	// start scraping providers for vm information
 	if err := NewPeriodicExecutor(cpi.renewalInterval).Execute(ctx, cpi.renewAll); err != nil {
