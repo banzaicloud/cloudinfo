@@ -19,6 +19,10 @@ import "context"
 type noOpTracer struct {
 }
 
+func (*noOpTracer) EndSpanInstance(span *CiSpan) {
+	// do noting
+}
+
 func (*noOpTracer) StartSpan(ctx context.Context, name string) (context.Context, *CiSpan) {
 	return ctx, nil
 }

@@ -89,10 +89,15 @@ func main() {
 	logger.Extract(ctx).Info("initializing the application",
 		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
+	// default tracer
+	tracer := tracing.NoOpTracer()
+
 	// Configure Jaeger
 	if config.Instrumentation.Jaeger.Enabled {
 		logur.Info("jaeger exporter enabled", nil)
 		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
+		// set the app tracer
+		tracer = tracing.NewTracer()
 	}
 
 	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
@@ -102,7 +107,7 @@ func main() {
 		cloudInfoStore,
 		loadInfoers(ctx, config),
 		metrics.NewDefaultMetricsReporter(),
-		tracing.NewTracer())
+		tracer)
 
 	emperror.Panic(err)
 

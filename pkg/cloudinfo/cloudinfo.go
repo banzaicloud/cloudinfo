@@ -214,6 +214,10 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	log.Info("finished to renew attribute values")
 
 	log.Info("start to renew products (vm-s)")
+
+	// todo spans to be created in individual method calls instead
+	vmCtx, _ := cpi.tracer.StartWitTags(ctx, "renew-products", map[string]interface{}{"provider": provider})
+
 	for _, service := range services {
 		ctxLog := logger.ToContext(ctx,
 			logger.NewLogCtxBuilder().
@@ -257,14 +261,21 @@ func (cpi *CachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 	}
 	log.Info("finished to renew products (vm-s)")
 
-	if _, err := cpi.renewStatus(provider); err != nil {
+	// close the span
+	cpi.tracer.EndSpan(vmCtx)
+
+	if _, err := cpi.renewStatus(ctx, provider); err != nil {
 		log.Error("failed to renew status")
 		return
 	}
+
 	cpi.metrics.ReportScrapeProviderCompleted(provider, start)
 }
 
-func (cpi *CachingCloudInfo) renewStatus(provider string) (string, error) {
+func (cpi *CachingCloudInfo) renewStatus(ctx context.Context, provider string) (string, error) {
+	ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-status", map[string]interface{}{"provider": provider})
+	defer cpi.tracer.EndSpan(ctx)
+
 	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
 
 	cpi.cloudInfoStore.StoreStatus(provider, values)
@@ -273,8 +284,8 @@ func (cpi *CachingCloudInfo) renewStatus(provider string) (string, error) {
 
 // renewAll sequentially renews information for all provider
 func (cpi *CachingCloudInfo) renewAll(ctx context.Context) {
-	ctx, span := cpi.tracer.StartSpan(ctx, "renew-all")
-	defer span.End()
+	ctx, _ = cpi.tracer.StartSpan(ctx, "renew-all-providers")
+	defer cpi.tracer.EndSpan(ctx)
 
 	atomic.AddUint64(&scrapeCounterComplete, 1)
 	var providerWg sync.WaitGroup
@@ -291,8 +302,8 @@ func (cpi *CachingCloudInfo) renewAll(ctx context.Context) {
 }
 
 func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
-	ctx, span := cpi.tracer.StartSpan(ctx, "renew-shortlived")
-	defer span.End()
+	ctx, _ = cpi.tracer.StartSpan(ctx, "renew-price-info")
+	defer cpi.tracer.EndSpan(ctx)
 
 	atomic.AddUint64(&scrapeCounterShortLived, 1)
 	var providerWg sync.WaitGroup
@@ -304,6 +315,9 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 		providerWg.Add(1)
 		go func(c context.Context, p string, i CloudInfoer) {
+			ctx, _ = cpi.tracer.StartWitTags(ctx, "renew-provider-price-info", map[string]interface{}{"provider": p})
+			defer cpi.tracer.EndSpan(ctx)
+
 			defer providerWg.Done()
 			if !i.HasShortLivedPriceInfo() {
 				logger.Extract(c).Info("no short lived price info")
@@ -349,8 +363,8 @@ func (cpi *CachingCloudInfo) renewShortLived(ctx context.Context) {
 
 // Start starts the information retrieval in a new goroutine
 func (cpi *CachingCloudInfo) Start(ctx context.Context) {
-	ctx, span := cpi.tracer.StartSpan(ctx, "start")
-	defer span.End()
+	ctx, _ = cpi.tracer.StartSpan(ctx, "collect-product-info")
+	defer cpi.tracer.EndSpan(ctx)
 	// start scraping providers for vm information
 	if err := NewPeriodicExecutor(cpi.renewalInterval).Execute(ctx, cpi.renewAll); err != nil {
 		logger.Extract(ctx).Info("failed to scrape for vm information")

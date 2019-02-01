@@ -33,6 +33,8 @@ type Tracer interface {
 
 	// EndSpan ends a span in the given context
 	EndSpan(ctx context.Context)
+
+	EndSpanInstance(span *CiSpan)
 }
 
 type CiSpan struct {
@@ -40,6 +42,10 @@ type CiSpan struct {
 }
 
 type ciTracer struct {
+}
+
+func (t *ciTracer) EndSpanInstance(span *CiSpan) {
+	span.End()
 }
 
 func (t *ciTracer) StartWitTags(ctx context.Context, name string, tags map[string]interface{}) (context.Context, *CiSpan) {
