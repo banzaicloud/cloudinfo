@@ -106,19 +106,14 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(
-		config.RenewalInterval,
-		cloudInfoStore,
-		infoers,
-		reporter,
-		tracer)
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer)
 
 	emperror.Panic(err)
 
 	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logur, reporter, tracer)
-	scrapingDriver.StartScraping(ctx)
 
-	//go prodInfo.Start(ctx)
+	err = scrapingDriver.StartScraping(ctx)
+	emperror.Panic(err)
 
 	// start the management service
 	if config.Management.Enabled {

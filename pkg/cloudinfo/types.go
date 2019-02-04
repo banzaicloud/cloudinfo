@@ -34,9 +34,6 @@ type CloudInfo interface {
 	// GetProvider retrieves information about the provider
 	GetProvider(ctx context.Context, provider string) (Provider, error)
 
-	// Start starts the product information retrieval in a new goroutine
-	Start(ctx context.Context)
-
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
 	Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error)
 

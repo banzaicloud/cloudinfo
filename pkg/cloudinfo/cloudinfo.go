@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
@@ -34,11 +33,10 @@ import (
 // It's the entry point for the product info retrieval and management subsystem
 // It's also responsible for delegating to the cloud provider specific implementations
 type cachingCloudInfo struct {
-	cloudInfoers    map[string]CloudInfoer
-	renewalInterval time.Duration
-	cloudInfoStore  CloudInfoStore
-	metrics         metrics.Reporter
-	tracer          tracing.Tracer
+	cloudInfoers   map[string]CloudInfoer
+	cloudInfoStore CloudInfoStore
+	metrics        metrics.Reporter
+	tracer         tracing.Tracer
 }
 
 func (cpi *cachingCloudInfo) RefreshProvider(ctx context.Context, provider string) error {
@@ -90,11 +88,6 @@ type VmInfo struct {
 	CurrentGen bool `json:"currentGen"`
 }
 
-var (
-	scrapeCounterShortLived uint64
-	scrapeCounterComplete   uint64
-)
-
 // IsBurst returns true if the EC2 instance vCPU is burst type
 // the decision is made based on the instance type
 func (vm VmInfo) IsBurst() bool {
@@ -102,17 +95,16 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new cachingCloudInfo instance
-func NewCachingCloudInfo(ri time.Duration, ciStore CloudInfoStore, infoers map[string]CloudInfoer, reporter metrics.Reporter, tracer tracing.Tracer) (*cachingCloudInfo, error) {
+func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer, reporter metrics.Reporter, tracer tracing.Tracer) (*cachingCloudInfo, error) {
 	if infoers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
 
 	pi := cachingCloudInfo{
-		cloudInfoers:    infoers,
-		cloudInfoStore:  ciStore,
-		renewalInterval: ri,
-		metrics:         reporter,
-		tracer:          tracer,
+		cloudInfoers:   infoers,
+		cloudInfoStore: ciStore,
+		metrics:        reporter,
+		tracer:         tracer,
 	}
 	return &pi, nil
 }
@@ -275,103 +267,6 @@ func (cpi *cachingCloudInfo) renewStatus(ctx context.Context, provider string) (
 
 	cpi.cloudInfoStore.StoreStatus(provider, values)
 	return values, nil
-}
-
-// renewAll sequentially renews information for all provider
-func (cpi *cachingCloudInfo) renewAll(ctx context.Context) {
-	ctx, _ = cpi.tracer.StartSpan(ctx, "collect-from-providers")
-	defer cpi.tracer.EndSpan(ctx)
-
-	atomic.AddUint64(&scrapeCounterComplete, 1)
-	var providerWg sync.WaitGroup
-	for provider := range cpi.cloudInfoers {
-		ctxWithFields := logger.ToContext(ctx, logger.NewLogCtxBuilder().
-			WithProvider(provider).
-			WithScrapeIdFull(atomic.LoadUint64(&scrapeCounterComplete)).
-			Build())
-		providerWg.Add(1)
-		go cpi.renewProviderInfo(ctxWithFields, provider, &providerWg)
-	}
-	providerWg.Wait()
-	logger.Extract(ctx).Info("finished renewing product info", map[string]interface{}{"scrape-id-full": atomic.LoadUint64(&scrapeCounterComplete)})
-}
-
-func (cpi *cachingCloudInfo) renewShortLived(ctx context.Context) {
-	ctx, _ = cpi.tracer.StartSpan(ctx, "collect-price-info")
-	defer cpi.tracer.EndSpan(ctx)
-
-	atomic.AddUint64(&scrapeCounterShortLived, 1)
-	var providerWg sync.WaitGroup
-	for provider, infoer := range cpi.cloudInfoers {
-		ctxWithFields := logger.ToContext(ctx, logger.NewLogCtxBuilder().
-			WithProvider(provider).
-			WithScrapeIdShort(atomic.LoadUint64(&scrapeCounterShortLived)).
-			Build())
-
-		providerWg.Add(1)
-		go func(c context.Context, p string, i CloudInfoer) {
-			ctxp, _ := cpi.tracer.StartAndLink(ctx, fmt.Sprintf("collect-provider-price-info (%s)", p))
-			defer cpi.tracer.EndSpan(ctxp)
-
-			defer providerWg.Done()
-			if !i.HasShortLivedPriceInfo() {
-				logger.Extract(c).Info("no short lived price info")
-				return
-			}
-
-			logger.Extract(c).Info("renewing short lived product info")
-			start := time.Now()
-
-			regions, err := i.GetRegions(c, "compute")
-			if err != nil {
-				cpi.metrics.ReportScrapeShortLivedFailure(p, "N/A")
-				logger.Extract(c).Error("couldn't renew attribute values in cache")
-				return
-			}
-			var wg sync.WaitGroup
-			for regionId := range regions {
-				ctx := logger.ToContext(c, logger.NewLogCtxBuilder().
-					WithRegion(regionId).
-					Build())
-
-				wg.Add(1)
-				go func(c context.Context, p string, r string) {
-					defer wg.Done()
-					_, err := cpi.renewShortLivedInfo(c, p, r)
-					if err != nil {
-						cpi.metrics.ReportScrapeShortLivedFailure(p, r)
-						logger.Extract(c).Error("couldn't renew short lived info in cache")
-						return
-					}
-					cpi.metrics.ReportScrapeRegionShortLivedCompleted(p, r, start)
-				}(ctx, p, regionId)
-			}
-			wg.Wait()
-			cpi.metrics.ReportScrapeProviderShortLivedCompleted(p, start)
-
-		}(ctxWithFields, provider, infoer)
-	}
-	providerWg.Wait()
-	logger.Extract(ctx).Info("finished renewing short lived product info",
-		map[string]interface{}{"scrape-id-short": atomic.LoadUint64(&scrapeCounterShortLived)})
-}
-
-// Start starts the information retrieval in a new goroutine
-func (cpi *cachingCloudInfo) Start(ctx context.Context) {
-	ctx, _ = cpi.tracer.StartSpan(ctx, "bootstrap")
-	defer cpi.tracer.EndSpan(ctx)
-	// start scraping providers for vm information
-	if err := NewPeriodicExecutor(cpi.renewalInterval).Execute(ctx, cpi.renewAll); err != nil {
-		logger.Extract(ctx).Info("failed to scrape for vm information")
-		return
-	}
-
-	// start scraping providers for pricing information
-	if err := NewPeriodicExecutor(4*time.Minute).Execute(ctx, cpi.renewShortLived); err != nil {
-		logger.Extract(ctx).Info("failed to scrape for pricing information")
-		return
-	}
-
 }
 
 // Initialize stores the result of the Infoer's Initialize output in cache
