@@ -17,7 +17,6 @@ package google
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
 	"os"
 	"strings"
@@ -25,6 +24,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	billing "google.golang.org/api/cloudbilling/v1"
 	"google.golang.org/api/compute/v1"
@@ -415,8 +415,8 @@ func (g *GceInfoer) GetCpuAttrName() string {
 }
 
 // GetServices returns the available services on the  provider
-func (g *GceInfoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
-	services := []cloudinfo.ServiceDescriber{
+func (g *GceInfoer) GetServices() ([]cloudinfo.Service, error) {
+	services := []cloudinfo.Service{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("gke")}
 	return services, nil

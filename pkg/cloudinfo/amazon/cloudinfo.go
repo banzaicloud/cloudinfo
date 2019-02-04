@@ -527,8 +527,8 @@ func (e *Ec2Infoer) GetCpuAttrName() string {
 }
 
 // GetServices returns the available services on the provider
-func (e *Ec2Infoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
-	services := []cloudinfo.ServiceDescriber{
+func (e *Ec2Infoer) GetServices() ([]cloudinfo.Service, error) {
+	services := []cloudinfo.Service{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("eks")}
 	return services, nil

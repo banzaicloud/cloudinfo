@@ -558,8 +558,8 @@ func (a *AzureInfoer) GetCpuAttrName() string {
 }
 
 // GetServices returns the available services on the  provider
-func (a *AzureInfoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
-	services := []cloudinfo.ServiceDescriber{
+func (a *AzureInfoer) GetServices() ([]cloudinfo.Service, error) {
+	services := []cloudinfo.Service{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("aks")}
 	return services, nil

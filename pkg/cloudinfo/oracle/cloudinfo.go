@@ -311,8 +311,8 @@ func (i *Infoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetServices returns the available services on the  given region
-func (i *Infoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
-	services := []cloudinfo.ServiceDescriber{
+func (i *Infoer) GetServices() ([]cloudinfo.Service, error) {
+	services := []cloudinfo.Service{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("oke")}
 	return services, nil

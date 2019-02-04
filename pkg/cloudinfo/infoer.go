@@ -48,7 +48,7 @@ type CloudInfoer interface {
 	GetCpuAttrName() string
 
 	// GetServices returns the available services on the given provider
-	GetServices() ([]ServiceDescriber, error)
+	GetServices() ([]Service, error)
 
 	// GetServices returns the available services on the  given region
 	GetService(ctx context.Context, service string) (ServiceDescriber, error)

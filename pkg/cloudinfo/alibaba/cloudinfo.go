@@ -403,8 +403,8 @@ func (p *onDemandPrice) getOnDemandPrice(url string) (OnDemandPrice, error) {
 }
 
 // GetServices returns the available services on the provider
-func (e *AlibabaInfoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
-	services := []cloudinfo.ServiceDescriber{
+func (e *AlibabaInfoer) GetServices() ([]cloudinfo.Service, error) {
+	services := []cloudinfo.Service{
 		cloudinfo.NewService(svcCompute),
 		cloudinfo.NewService(svcAck)}
 	return services, nil

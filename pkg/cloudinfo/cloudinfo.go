@@ -672,11 +672,9 @@ func (cpi *cachingCloudInfo) renewVersions(ctx context.Context, provider, servic
 		values []string
 		err    error
 	)
-
 	if values, err = cpi.cloudInfoers[provider].GetVersions(ctx, service, region); err != nil {
 		return nil, emperror.With(errors.New("failed to renew versions"), "provider", provider, "service", service, "region", region)
 	}
-
 	cpi.cloudInfoStore.StoreVersion(provider, service, region, values)
 	return values, nil
 
