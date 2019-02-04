@@ -62,6 +62,14 @@ type CloudInfo interface {
 	GetInfoer(ctx context.Context, provider string) (CloudInfoer, error)
 
 	RefreshProvider(ctx context.Context, provider string) error
+
+	GetStatus(provider string) (string, error)
+
+	GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error)
+
+	GetServiceImages(ctx context.Context, provider, service, region string) ([]ImageDescriber, error)
+
+	GetVersions(ctx context.Context, provider, service, region string) ([]string, error)
 }
 
 // AttrValue represents an attribute value

@@ -158,14 +158,14 @@ func TestNewCachingCloudInfo(t *testing.T) {
 	tests := []struct {
 		Name        string
 		CloudInfoer map[string]CloudInfoer
-		checker     func(info *CachingCloudInfo, err error)
+		checker     func(info *cachingCloudInfo, err error)
 	}{
 		{
 			Name: "product info successfully created",
 			CloudInfoer: map[string]CloudInfoer{
 				"dummy": &DummyCloudInfoer{},
 			},
-			checker: func(info *CachingCloudInfo, err error) {
+			checker: func(info *cachingCloudInfo, err error) {
 				assert.Nil(t, err, "should not get error")
 				assert.NotNil(t, info, "the product info should not be nil")
 			},
@@ -173,7 +173,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 		{
 			Name:        "validation should fail nil values",
 			CloudInfoer: nil,
-			checker: func(info *CachingCloudInfo, err error) {
+			checker: func(info *cachingCloudInfo, err error) {
 				assert.Nil(t, info, "the cloudinfo should be nil in case of error")
 				assert.EqualError(t, err, "could not create product infoer")
 			},
