@@ -33,6 +33,7 @@ import (
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -88,13 +89,25 @@ func main() {
 	logger.Extract(ctx).Info("initializing the application",
 		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
+	// default tracer
+	tracer := tracing.NewNoOpTracer()
+
+	// Configure Jaeger
+	if config.Instrumentation.Jaeger.Enabled {
+		logur.Info("jaeger exporter enabled", nil)
+		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
+		// set the app tracer
+		tracer = tracing.NewTracer()
+	}
+
 	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(
 		config.RenewalInterval,
 		cloudInfoStore,
 		loadInfoers(ctx, config),
-		metrics.NewDefaultMetricsReporter())
+		metrics.NewDefaultMetricsReporter(),
+		tracer)
 
 	emperror.Panic(err)
 

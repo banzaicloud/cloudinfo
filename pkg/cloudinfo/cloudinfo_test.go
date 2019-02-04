@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
@@ -181,7 +182,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCachingCloudInfo(10*time.Second, NewCacheProductStore(10*time.Minute, 5*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter()))
+			test.checker(NewCachingCloudInfo(10*time.Second, NewCacheProductStore(10*time.Minute, 5*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer()))
 		})
 	}
 
@@ -246,7 +247,7 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			logger.Init(logur.NewTestLogger())
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(cloudInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
 		})
 	}
@@ -281,7 +282,7 @@ func TestCachingCloudInfo_Initialize(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(cloudInfo.Initialize(context.Background(), "dummy"))
 		})
 	}
@@ -316,7 +317,7 @@ func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(info.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
@@ -380,7 +381,7 @@ func TestCachingCloudInfo_GetPrice(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			values, value, err := info.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
 			test.checker(values, value, err)
 		})
@@ -417,7 +418,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter())
+			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(info.GetRegions(context.Background(), "dummy", "compute"))
 		})
 	}

@@ -18,6 +18,15 @@
   version = "v0.2.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:2e4e7ac75a01688090a333413ed9ef104e050551f5f880bafce93e1aa0093e14"
+  name = "git.apache.org/thrift.git"
+  packages = ["lib/go/thrift"]
+  pruneopts = "NUT"
+  revision = "042580f53441efe1bc5c80c89351fcb30740659e"
+  source = "github.com/apache/thrift"
+
+[[projects]]
   digest = "1:aa9951e969a5db808d125fca856fe00660d471a8ba9d9063d4600437f7f85dda"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
@@ -663,11 +672,13 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:cc972b463d2ccc1cb5f066ab87ba449a53cb98880a7b1c734938a9132417546f"
+  digest = "1:09f685444001f0a5bc31480e93fd26441cf9f487cd0ad38aa2d66bda8d1518bd"
   name = "go.opencensus.io"
   packages = [
     ".",
     "exemplar",
+    "exporter/jaeger",
+    "exporter/jaeger/internal/gen-go/jaeger",
     "exporter/prometheus",
     "internal",
     "internal/tagencoding",
@@ -773,7 +784,8 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:066d88d9b8d19dd303f41a2d449209a142d68a591800d52d833e62e12c8daf88"
+  branch = "master"
+  digest = "1:a45c128f550af6e260533096ad596ac4e805214ae02fe36ea432c20ebda81def"
   name = "google.golang.org/api"
   packages = [
     "cloudbilling/v1",
@@ -786,8 +798,7 @@
     "support/bundler",
   ]
   pruneopts = "NUT"
-  revision = "19e022d8cf43ce81f046bae8cc18c5397cc7732f"
-  version = "v0.1.0"
+  revision = "59f8eae6bc597bfd5d5b292134c4b19d8955ed8a"
 
 [[projects]]
   digest = "1:d395d49d784dd3a11938a3e85091b6570664aa90ff2767a626565c6c130fa7e9"
@@ -920,6 +931,7 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
+    "go.opencensus.io/exporter/jaeger",
     "go.opencensus.io/exporter/prometheus",
     "golang.org/x/net/context",
     "golang.org/x/oauth2/google",
