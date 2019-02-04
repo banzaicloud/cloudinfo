@@ -16,6 +16,7 @@ package cloudinfo
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -190,6 +191,8 @@ func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) error {
 		err      error
 		services []Service
 	)
+	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-service-info", map[string]interface{}{"provider": sm.provider})
+	defer sm.tracer.EndSpan(ctx)
 
 	if services, err = sm.infoer.GetServices(); err != nil {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
@@ -241,6 +244,10 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) error {
 		err     error
 		wg      sync.WaitGroup
 	)
+
+	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-prices", map[string]interface{}{"provider": sm.provider})
+	defer sm.tracer.EndSpan(ctx)
+
 	// record current time for metrics
 	start := time.Now()
 	if regions, err = sm.infoer.GetRegions(ctx, "compute"); err != nil {
@@ -259,6 +266,9 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) error {
 
 // scrape implements the scraping logic for a provider
 func (sm *scrapingManager) scrape(ctx context.Context) error {
+	ctx, _ = sm.tracer.StartWithTags(ctx, fmt.Sprintf("scraping-%s", sm.provider), map[string]interface{}{"provider": sm.provider})
+	defer sm.tracer.EndSpan(ctx)
+
 	if err := sm.initialize(ctx); err != nil {
 		return err
 	}
