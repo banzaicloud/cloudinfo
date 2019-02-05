@@ -163,17 +163,17 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 
 		for regionId := range regions {
 
+			start := time.Now()
 			if err = sm.scrapeServiceRegionProducts(ctx, service, regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 			}
-
 			if err = sm.scrapeServiceRegionImages(ctx, service, regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 			}
-
 			if err = sm.scrapeServiceRegionVersions(ctx, service, regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 			}
+			sm.metrics.ReportScrapeRegionCompleted(sm.provider, service.ServiceName(), regionId, start)
 		}
 	}
 	return nil
@@ -247,6 +247,7 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) error {
 
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-prices", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
+	sm.log.Info("start scraping prices")
 
 	// record current time for metrics
 	start := time.Now()
@@ -268,6 +269,8 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) error {
 func (sm *scrapingManager) scrape(ctx context.Context) error {
 	ctx, _ = sm.tracer.StartWithTags(ctx, fmt.Sprintf("scraping-%s", sm.provider), map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
+
+	sm.log.Info("start scraping for provider information")
 	start := time.Now()
 
 	if err := sm.initialize(ctx); err != nil {
