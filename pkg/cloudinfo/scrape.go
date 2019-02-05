@@ -268,6 +268,7 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) error {
 func (sm *scrapingManager) scrape(ctx context.Context) error {
 	ctx, _ = sm.tracer.StartWithTags(ctx, fmt.Sprintf("scraping-%s", sm.provider), map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
+	start := time.Now()
 
 	if err := sm.initialize(ctx); err != nil {
 		return err
@@ -275,6 +276,8 @@ func (sm *scrapingManager) scrape(ctx context.Context) error {
 	if err := sm.scrapeServiceInformation(ctx); err != nil {
 		return err
 	}
+
+	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 	return nil
 }
 
