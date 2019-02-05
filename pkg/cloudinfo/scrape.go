@@ -279,11 +279,12 @@ func (sm *scrapingManager) scrape(ctx context.Context) error {
 }
 
 func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer) *scrapingManager {
+
 	return &scrapingManager{
 		provider: provider,
 		infoer:   infoer,
 		store:    store,
-		log:      log,
+		log:      logur.WithFields(log, map[string]interface{}{"provider": provider}),
 		metrics:  metrics,
 		tracer:   tracer,
 	}
