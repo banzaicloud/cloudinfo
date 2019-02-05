@@ -18,12 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"time"
-
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -35,13 +30,7 @@ import (
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
-	client     Source
-	spotClient func(region string) Source
-}
-
-// Source list of operations for retrieving sdk information
-type Source interface {
-	ProcessCommonRequest(request *requests.CommonRequest) (*responses.CommonResponse, error)
+	client CommonDescriber
 }
 
 const (
@@ -71,9 +60,6 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 
 	return &AlibabaInfoer{
 		client: client,
-		spotClient: func(region string) Source {
-			return client
-		},
 	}, nil
 }
 
@@ -91,18 +77,6 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string)
 	log.Debug("start retrieving spot price data")
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 
-	request := requests.NewCommonRequest()
-	request.Method = "POST"
-	request.Domain = "ecs.aliyuncs.com"
-	request.Version = "2014-05-26"
-	request.ApiName = "DescribeSpotPriceHistory"
-	request.QueryParams["RegionId"] = region
-	request.QueryParams["NetworkType"] = "vpc"
-	request.QueryParams["OSType"] = "linux"
-	request.QueryParams["StartTime"] = time.Now().Round(1 * time.Hour).UTC().Format(time.RFC3339)
-
-	log.Debug("created new client")
-
 	zones, err := a.getZones(region)
 	if err != nil {
 		return nil, err
@@ -111,9 +85,8 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string)
 	for _, zone := range zones {
 		for _, instanceType := range zone.AvailableInstanceTypes.InstanceTypes {
 			if priceInfo[instanceType] == nil {
-				request.QueryParams["InstanceType"] = instanceType
 
-				describeSpotPriceHistory, err := a.spotClient(region).ProcessCommonRequest(request)
+				describeSpotPriceHistory, err := a.apiResponse("DescribeSpotPriceHistory", region, []string{instanceType})
 				if err != nil {
 					log.Error("failed to get spot price history", map[string]interface{}{"instancetype": instanceType})
 					continue
@@ -199,14 +172,7 @@ func (a *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 }
 
 func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
-	request := requests.NewCommonRequest()
-	request.Method = "POST"
-	request.Domain = "ecs.aliyuncs.com"
-	request.Version = "2014-05-26"
-	request.ApiName = "DescribeZones"
-	request.QueryParams["RegionId"] = region
-
-	describeZones, err := a.client.ProcessCommonRequest(request)
+	describeZones, err := a.apiResponse("DescribeZones", region, []string{})
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeZones API call problem")
 	}
@@ -281,13 +247,7 @@ func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 }
 
 func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {
-	request := requests.NewCommonRequest()
-	request.Method = "POST"
-	request.Domain = "ecs.aliyuncs.com"
-	request.Version = "2014-05-26"
-	request.ApiName = "DescribeInstanceTypes"
-
-	describeInstanceTypes, err := a.client.ProcessCommonRequest(request)
+	describeInstanceTypes, err := a.apiResponse("DescribeInstanceTypes", "", []string{})
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeInstanceTypes API call problem")
 	}
@@ -409,24 +369,7 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) (bssopenapi.GetPayAsYouGoPriceResponse, error) {
 	response := &bssopenapi.GetPayAsYouGoPriceResponse{}
 
-	request := requests.NewCommonRequest()
-	request.Method = "POST"
-	request.Scheme = "https"
-	request.Domain = "business.ap-southeast-1.aliyuncs.com"
-	request.Version = "2017-12-14"
-	request.ApiName = "GetPayAsYouGoPrice"
-	request.QueryParams["RegionId"] = region
-	request.QueryParams["ProductCode"] = "ecs"
-	request.QueryParams["SubscriptionType"] = "PayAsYouGo"
-
-	for i, instanceType := range instanceTypes {
-		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".ModuleCode")] = "InstanceType"
-		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".Config")] =
-			cloudinfo.CreateString("InstanceType:", instanceType, ",IoOptimized:IoOptimized,ImageOs:linux")
-		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".PriceType")] = "Hour"
-	}
-
-	getPayAsYouGoPrice, err := a.client.ProcessCommonRequest(request)
+	getPayAsYouGoPrice, err := a.apiResponse("GetPayAsYouGoPrice", region, instanceTypes)
 	if err != nil {
 		return bssopenapi.GetPayAsYouGoPriceResponse{}, err
 	}
@@ -456,15 +399,9 @@ func (a *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, 
 
 // GetRegions returns a map with available regions
 func (a *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
-	var RegionIdMap = make(map[string]string)
-	request := requests.NewCommonRequest()
-	request.Method = "POST"
-	request.Domain = "ecs.aliyuncs.com"
-	request.Version = "2014-05-26"
-	request.ApiName = "DescribeRegions"
-	request.QueryParams["AcceptLanguage"] = "en-US"
+	var regionIdMap = make(map[string]string)
 
-	describeRegions, err := a.client.ProcessCommonRequest(request)
+	describeRegions, err := a.apiResponse("DescribeRegions", "", []string{})
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeRegions API call problem")
 	}
@@ -477,9 +414,9 @@ func (a *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[str
 	}
 
 	for _, region := range response.Regions.Region {
-		RegionIdMap[region.RegionId] = region.LocalName
+		regionIdMap[region.RegionId] = region.LocalName
 	}
-	return RegionIdMap, nil
+	return regionIdMap, nil
 }
 
 // HasShortLivedPriceInfo - Spot Prices are changing continuously on Alibaba
