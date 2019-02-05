@@ -378,6 +378,10 @@ func (cpi *cachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider s
 		prices map[string]Price
 	)
 
+	if !cpi.cloudInfoers[provider].HasShortLivedPriceInfo() {
+		return nil, nil
+	}
+
 	if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(ctx, region); err != nil {
 		return nil, emperror.With(err, "failed to retrieve prices",
 			"provider", provider, "region", region)
