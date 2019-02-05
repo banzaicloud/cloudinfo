@@ -217,8 +217,8 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		}
 		vms = append(vms, vm)
 	}
-	log.Debug("instance types with missing attributes", map[string]interface{}{"missingAttrs": fmt.Sprintf("%v", missingAttributes)})
-	log.Debug("instance types with missing gpu", map[string]interface{}{"missingGPU": fmt.Sprintf("%v", missingGpu)})
+	log.Debug("instance types with missing attributes", map[string]interface{}{"missingAttrs": missingAttributes})
+	log.Debug("instance types with missing gpu", map[string]interface{}{"missingGPU": missingGpu})
 
 	if vms == nil {
 		log.Debug("couldn't find any virtual machines to recommend")
@@ -527,8 +527,8 @@ func (e *Ec2Infoer) GetCpuAttrName() string {
 }
 
 // GetServices returns the available services on the provider
-func (e *Ec2Infoer) GetServices() ([]cloudinfo.ServiceDescriber, error) {
-	services := []cloudinfo.ServiceDescriber{
+func (e *Ec2Infoer) GetServices() ([]cloudinfo.Service, error) {
+	services := []cloudinfo.Service{
 		cloudinfo.NewService("compute"),
 		cloudinfo.NewService("eks")}
 	return services, nil

@@ -17,6 +17,7 @@ package cloudinfo
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -158,14 +159,14 @@ func TestNewCachingCloudInfo(t *testing.T) {
 	tests := []struct {
 		Name        string
 		CloudInfoer map[string]CloudInfoer
-		checker     func(info *CachingCloudInfo, err error)
+		checker     func(info *cachingCloudInfo, err error)
 	}{
 		{
 			Name: "product info successfully created",
 			CloudInfoer: map[string]CloudInfoer{
 				"dummy": &DummyCloudInfoer{},
 			},
-			checker: func(info *CachingCloudInfo, err error) {
+			checker: func(info *cachingCloudInfo, err error) {
 				assert.Nil(t, err, "should not get error")
 				assert.NotNil(t, info, "the product info should not be nil")
 			},
@@ -173,7 +174,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 		{
 			Name:        "validation should fail nil values",
 			CloudInfoer: nil,
-			checker: func(info *CachingCloudInfo, err error) {
+			checker: func(info *cachingCloudInfo, err error) {
 				assert.Nil(t, info, "the cloudinfo should be nil in case of error")
 				assert.EqualError(t, err, "could not create product infoer")
 			},
@@ -182,7 +183,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCachingCloudInfo(10*time.Second, NewCacheProductStore(10*time.Minute, 5*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer()))
+			test.checker(NewCachingCloudInfo(NewCacheProductStore(10*time.Minute, 5*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer()))
 		})
 	}
 
@@ -247,7 +248,7 @@ func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			logger.Init(logur.NewTestLogger())
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
+			cloudInfo, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(cloudInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
 		})
 	}
@@ -282,7 +283,7 @@ func TestCachingCloudInfo_Initialize(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
+			cloudInfo, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(cloudInfo.Initialize(context.Background(), "dummy"))
 		})
 	}
@@ -311,13 +312,13 @@ func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
 			},
 			checker: func(price map[string]Price, err error) {
 				assert.Nil(t, price, "the price should be nil")
-				assert.EqualError(t, err, GetCurrentPricesError)
+				assert.True(t, strings.Contains(err.Error(), GetCurrentPricesError))
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
+			info, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(info.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
 		})
 	}
@@ -375,13 +376,13 @@ func TestCachingCloudInfo_GetPrice(t *testing.T) {
 			checker: func(i float64, f float64, err error) {
 				assert.Equal(t, float64(0), i)
 				assert.Equal(t, float64(0), f)
-				assert.EqualError(t, err, GetCurrentPricesError)
+				assert.True(t, strings.Contains(err.Error(), GetCurrentPricesError))
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
+			info, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			values, value, err := info.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
 			test.checker(values, value, err)
 		})
@@ -418,7 +419,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(10*time.Second, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
+			info, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
 			test.checker(info.GetRegions(context.Background(), "dummy", "compute"))
 		})
 	}

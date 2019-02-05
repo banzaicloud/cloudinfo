@@ -79,7 +79,7 @@ func main() {
 	logur := log.NewLogger(config.Log)
 
 	// Provide some basic context to all log lines
-	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
+	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "application": ServiceName})
 
 	// inject the configured logger instance
 	logger.Init(logur)
@@ -102,16 +102,18 @@ func main() {
 
 	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(
-		config.RenewalInterval,
-		cloudInfoStore,
-		loadInfoers(ctx, config),
-		metrics.NewDefaultMetricsReporter(),
-		tracer)
+	infoers := loadInfoers(ctx, config)
+
+	reporter := metrics.NewDefaultMetricsReporter()
+
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer)
 
 	emperror.Panic(err)
 
-	go prodInfo.Start(ctx)
+	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logur, reporter, tracer)
+
+	err = scrapingDriver.StartScraping(ctx)
+	emperror.Panic(err)
 
 	// start the management service
 	if config.Management.Enabled {

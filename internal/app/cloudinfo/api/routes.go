@@ -31,13 +31,13 @@ import (
 
 // RouteHandler configures the REST API routes in the gin router
 type RouteHandler struct {
-	prod           *cloudinfo.CachingCloudInfo
+	prod           cloudinfo.CloudInfo
 	buildInfo      buildinfo.BuildInfo
 	errorResponder Responder
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
-func NewRouteHandler(p *cloudinfo.CachingCloudInfo, bi buildinfo.BuildInfo) *RouteHandler {
+func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo) *RouteHandler {
 	return &RouteHandler{
 		prod:           p,
 		buildInfo:      bi,

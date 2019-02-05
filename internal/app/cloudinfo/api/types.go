@@ -136,12 +136,8 @@ func NewServiceResponse(sd cloudinfo.ServiceDescriber) ServiceResponse {
 }
 
 // NewServicesResponse assembles a new services response
-func NewServicesResponse(sds []cloudinfo.ServiceDescriber) ServicesResponse {
-	var services []cloudinfo.Service
-	for _, sd := range sds {
-		services = append(services, cloudinfo.NewService(sd.ServiceName()))
-	}
+func NewServicesResponse(sds []cloudinfo.Service) ServicesResponse {
 	return ServicesResponse{
-		Services: services,
+		Services: sds,
 	}
 }
