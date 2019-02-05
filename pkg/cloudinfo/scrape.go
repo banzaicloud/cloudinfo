@@ -324,7 +324,7 @@ func (sd *ScrapingDriver) renewShortLived(ctx context.Context) {
 		if !manager.infoer.HasShortLivedPriceInfo() {
 			// the manager's logger is used here - that has the provider in it's context
 			manager.log.Debug("skip scraping for short lived prices (not applicable for provider)")
-			return
+			continue
 		}
 		go manager.scrapePricesInAllRegions(ctx)
 	}
