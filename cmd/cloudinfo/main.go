@@ -79,7 +79,7 @@ func main() {
 	logur := log.NewLogger(config.Log)
 
 	// Provide some basic context to all log lines
-	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
+	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "application": ServiceName})
 
 	// inject the configured logger instance
 	logger.Init(logur)
