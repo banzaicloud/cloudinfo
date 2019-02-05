@@ -344,21 +344,24 @@ func (cpi *cachingCloudInfo) renewAttrValues(ctx context.Context, provider, serv
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
 func (cpi *cachingCloudInfo) GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error) {
 	var p Price
-	ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
-		WithProvider(provider).
-		WithRegion(region).
-		Build())
+	ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(provider).WithRegion(region).Build())
 
-	if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, instanceType); ok {
-		logger.Extract(ctx).Debug("retrieving price info from cache", map[string]interface{}{"instancetype": instanceType})
-		p = cachedVal.(Price)
-	} else {
-		allPriceInfo, err := cpi.renewShortLivedInfo(ctx, provider, region)
-		if err != nil {
-			return 0, 0, err
+	if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, instanceType); !ok {
+		var (
+			allPriceInfo map[string]Price
+			err          error
+		)
+		if allPriceInfo, err = cpi.renewShortLivedInfo(ctx, provider, region); err != nil {
+			return 0, 0, emperror.Wrap(err, "failed to renew short lived info")
+		}
+		if allPriceInfo == nil {
+			return 0, 0, errors.New("no prices found or short lived info disabled")
 		}
 		p = allPriceInfo[instanceType]
+	} else {
+		p = cachedVal.(Price)
 	}
+
 	var sumPrice float64
 	for _, z := range zones {
 		for zone, price := range p.SpotPrice {
@@ -383,7 +386,7 @@ func (cpi *cachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider s
 	}
 
 	if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(ctx, region); err != nil {
-		return nil, emperror.With(err, "failed to retrieve prices",
+		return nil, emperror.WrapWith(err, "failed to retrieve prices",
 			"provider", provider, "region", region)
 	}
 

@@ -933,6 +933,7 @@
     "github.com/stretchr/testify/assert",
     "go.opencensus.io/exporter/jaeger",
     "go.opencensus.io/exporter/prometheus",
+    "go.opencensus.io/trace",
     "golang.org/x/net/context",
     "golang.org/x/oauth2/google",
     "google.golang.org/api/cloudbilling/v1",

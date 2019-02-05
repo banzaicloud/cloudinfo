@@ -17,6 +17,7 @@ package cloudinfo
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -311,7 +312,7 @@ func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
 			},
 			checker: func(price map[string]Price, err error) {
 				assert.Nil(t, price, "the price should be nil")
-				assert.EqualError(t, err, GetCurrentPricesError)
+				assert.True(t, strings.Contains(err.Error(), GetCurrentPricesError))
 			},
 		},
 	}
@@ -375,7 +376,7 @@ func TestCachingCloudInfo_GetPrice(t *testing.T) {
 			checker: func(i float64, f float64, err error) {
 				assert.Equal(t, float64(0), i)
 				assert.Equal(t, float64(0), f)
-				assert.EqualError(t, err, GetCurrentPricesError)
+				assert.True(t, strings.Contains(err.Error(), GetCurrentPricesError))
 			},
 		},
 	}
