@@ -86,7 +86,7 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string)
 		for _, instanceType := range zone.AvailableInstanceTypes.InstanceTypes {
 			if priceInfo[instanceType] == nil {
 
-				describeSpotPriceHistory, err := a.apiResponse("DescribeSpotPriceHistory", region, []string{instanceType})
+				describeSpotPriceHistory, err := a.client.ProcessCommonRequest(a.describeSpotPriceHistoryRequest(region, instanceType))
 				if err != nil {
 					log.Error("failed to get spot price history", map[string]interface{}{"instancetype": instanceType})
 					continue
@@ -172,7 +172,7 @@ func (a *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 }
 
 func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
-	describeZones, err := a.apiResponse("DescribeZones", region, []string{})
+	describeZones, err := a.client.ProcessCommonRequest(a.describeZonesRequest(region))
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeZones API call problem")
 	}
@@ -247,7 +247,7 @@ func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 }
 
 func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {
-	describeInstanceTypes, err := a.apiResponse("DescribeInstanceTypes", "", []string{})
+	describeInstanceTypes, err := a.client.ProcessCommonRequest(a.describeInstanceTypesRequest())
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeInstanceTypes API call problem")
 	}
@@ -369,7 +369,7 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) (bssopenapi.GetPayAsYouGoPriceResponse, error) {
 	response := &bssopenapi.GetPayAsYouGoPriceResponse{}
 
-	getPayAsYouGoPrice, err := a.apiResponse("GetPayAsYouGoPrice", region, instanceTypes)
+	getPayAsYouGoPrice, err := a.client.ProcessCommonRequest(a.getPayAsYouGoPriceRequest(region, instanceTypes))
 	if err != nil {
 		return bssopenapi.GetPayAsYouGoPriceResponse{}, err
 	}
@@ -401,7 +401,7 @@ func (a *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, 
 func (a *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
 	var regionIdMap = make(map[string]string)
 
-	describeRegions, err := a.apiResponse("DescribeRegions", "", []string{})
+	describeRegions, err := a.client.ProcessCommonRequest(a.describeRegionsRequest())
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeRegions API call problem")
 	}
