@@ -5,11 +5,12 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1651/badge)](https://bestpractices.coreinfrastructure.org/projects/1651)
 
 
-# Cloud price information
+# Cloud price and service information
 
-The Banzai Cloud `cloudinfo` application is a standalone project in the [Pipeline](https://github.com/banzaicloud/pipeline) ecosystem.
+The Banzai Cloud `CloudInfo` application is a standalone project in the [Pipeline](https://github.com/banzaicloud/pipeline) ecosystem.
 While EC2, Google Cloud and Azure all provide some kind of APIs to query instance type attributes and product pricing information, these APIs are often responding with partly inconsistent data, or the responses are very cumbersome to parse.
 The Cloudinfo service uses these cloud provider APIs to asynchronously fetch and parse instance type attributes and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
+
 See the UI in action here: [https://banzaicloud.com/cloudinfo/](https://banzaicloud.com/cloudinfo/)
 
 Check out the developer beta if you would like to try out the Pipeline platform:
