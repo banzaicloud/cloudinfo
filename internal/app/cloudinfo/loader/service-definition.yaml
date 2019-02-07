@@ -1,32 +1,71 @@
-name: eks
+name: test-svc
+provider: test-prv
 status:
 regions:
     -
-        regionId: id-1
-        region: region1
+        regionId: region-id-1
+        region: region-1
         zones:
-            -
+            - zonea
+            - zoneb
+            - zonec
         images:
             -
-                name: imagename
-                attr: attr
+                image: img-1
+                version: img-version
+                gpuavailable: false
             -
-                name: imagename
-                attr: attr
+                image: img-2
+                version: img-version
+                gpuavailable: false
+
         versions:
-            -
-                tag: versiontag
+            - version-1
+            - version-2
         attributes:
             -
-                memory:
+                name: memory
+                values:
                     -
+                        value: 12.24
+                        strvalue: "12.24"
+                    -
+                        value: 55.24
+                        strvalue: "55.24"
             -
-                cpu:
+                name: cpu
+                values:
                     -
+                        value: 2
+                        strvalue: "2"
+                    -
+                        value: 8
+                        strvalue: "8"
         vms:
             -
-                name: vm1
-                price:
+                Type: xlarge
+                OnDemandPrice: 0.5
+                #                SpotPrice: 0.2
+                Cpus: 4
+                Mem: 16
+                Gpus:
+                NtwPerf:
+                NtwPerfCat:
+                Zones:
                     -
+                Attributes:
+                    -
+        prices:
+            -
+                instancetype: xlarge
+                price:
+                    ondemandprice: 0.3
+                    spotprice:
+                        zonea: 0.3
+                        zoneb: 0.2
 
+
+    -
+        regionId: region-id-2
+        region: region-2
 

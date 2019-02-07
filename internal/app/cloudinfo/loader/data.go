@@ -14,35 +14,34 @@
 
 package loader
 
+import "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+
 type ServiceDataList []ServiceData
 
 // ServiceData serviuce data representation corresponding to the data to parsed from the external yaml / json
 type ServiceData struct {
-	Name    string       `json:"name"`
-	Regions []RegionData `json:"regions"`
+	Provider string
+	Name     string
+	Regions  []RegionData
 }
 
 type RegionData struct {
 	RegionId   string
 	Region     string
-	Zones      []ZoneData
-	Images     []ImageData
-	Versions   []VersionData
+	Zones      []string
+	Images     []cloudinfo.Image
+	Versions   []string
 	Attributes []AttributeData
-	Vms        []VmData
-}
-
-type ZoneData struct {
-}
-
-type ImageData struct {
-}
-
-type VersionData struct {
+	Vms        []cloudinfo.VmInfo
+	Prices     []PriceData
 }
 
 type AttributeData struct {
+	Name   string
+	Values cloudinfo.AttrValues
 }
 
-type VmData struct {
+type PriceData struct {
+	Instancetype string
+	Price        cloudinfo.Price
 }

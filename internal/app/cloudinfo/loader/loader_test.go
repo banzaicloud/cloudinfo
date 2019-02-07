@@ -17,6 +17,9 @@ package loader
 import (
 	"context"
 	"testing"
+	"time"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
@@ -28,9 +31,19 @@ func TestDefaultServiceLoader_Load(t *testing.T) {
 		Location: ".",
 		Name:     "service-definition",
 	}
+	l := logrus.New()
+	level, _ := logrus.ParseLevel("debug")
+	l.SetLevel(level)
 
-	loader := NewDefaultServiceLoader(config, logrusadapter.New(logrus.New()))
+	log := logrusadapter.New(l)
+
+	store := cloudinfo.NewCacheProductStore(10*time.Minute, 10*time.Minute, log)
+
+	loader := NewDefaultServiceLoader(config, store, log)
 
 	loader.Load(context.Background())
+
+	reg, _ := store.GetRegion("test-prv", "test-svc")
+	log.Info("stored", map[string]interface{}{"cnt": reg})
 
 }
