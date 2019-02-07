@@ -1,0 +1,32 @@
+name: eks
+status:
+regions:
+    -
+        regionId: id-1
+        region: region1
+        zones:
+            -
+        images:
+            -
+                name: imagename
+                attr: attr
+            -
+                name: imagename
+                attr: attr
+        versions:
+            -
+                tag: versiontag
+        attributes:
+            -
+                memory:
+                    -
+            -
+                cpu:
+                    -
+        vms:
+            -
+                name: vm1
+                price:
+                    -
+
+
