@@ -47,12 +47,6 @@ type CloudInfoer interface {
 	// GetCpuAttrName returns the provider representation of the cpu attribute
 	GetCpuAttrName() string
 
-	// GetServices returns the available services on the given provider
-	GetServices() ([]Service, error)
-
-	// GetServices returns the available services on the  given region
-	GetService(ctx context.Context, service string) (ServiceDescriber, error)
-
 	// HasImages signals if a product info provider has image support
 	HasImages() bool
 

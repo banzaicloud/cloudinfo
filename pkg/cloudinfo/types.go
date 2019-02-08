@@ -31,6 +31,8 @@ type CloudInfo interface {
 	// GetProviders returns the supported providers
 	GetProviders(ctx context.Context) []Provider
 
+	GetServices(ctx context.Context, provider string) ([]Service, error)
+
 	// GetProvider retrieves information about the provider
 	GetProvider(ctx context.Context, provider string) (Provider, error)
 

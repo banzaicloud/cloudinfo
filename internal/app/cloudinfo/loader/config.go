@@ -16,7 +16,10 @@ package loader
 
 type Config struct {
 	// the locations - folder on the filesystem where the loader looks for data to be loaded
-	Location string
+	SvcDataLocation string
+
+	// the location of the yaml(s) defining services for providerss
+	SvcDefinitionsLocation string
 
 	// the name of the file with the data
 	Name string

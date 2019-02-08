@@ -526,30 +526,6 @@ func (e *Ec2Infoer) GetCpuAttrName() string {
 	return Cpu
 }
 
-// GetServices returns the available services on the provider
-func (e *Ec2Infoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("eks")}
-	return services, nil
-}
-
-// GetService returns the given service description
-func (e *Ec2Infoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := e.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
-
-}
-
 // HasImages - Amazon support images
 func (e *Ec2Infoer) HasImages() bool {
 	return true

@@ -189,15 +189,23 @@ func (sm *scrapingManager) updateStatus(ctx context.Context) {
 func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) error {
 	var (
 		err      error
+		cached   interface{}
 		services []Service
+		ok       bool
 	)
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-service-info", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
 
-	if services, err = sm.infoer.GetServices(); err != nil {
+	if cached, ok = sm.store.GetServices(sm.provider); !ok {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
 		sm.log.Error("failed to renew products")
 		return emperror.Wrap(err, "failed to retrieve services")
+	}
+
+	if services, ok = cached.([]Service); !ok {
+		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
+		sm.log.Error("invalid services stored in the store")
+		return emperror.Wrap(err, "invalid services stored in the store")
 	}
 
 	if err := sm.scrapeServiceAttributes(ctx, services); err != nil {

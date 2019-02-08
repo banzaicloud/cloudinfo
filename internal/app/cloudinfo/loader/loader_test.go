@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
 )
@@ -28,8 +27,9 @@ import (
 func TestDefaultServiceLoader_Load(t *testing.T) {
 
 	config := Config{
-		Location: ".",
-		Name:     "service-definition",
+		SvcDataLocation:        ".",
+		SvcDefinitionsLocation: "/Users/puski/go/src/github.com/banzaicloud/cloudinfo/configs",
+		Name:                   "service-definition",
 	}
 	l := logrus.New()
 	level, _ := logrus.ParseLevel("debug")
@@ -41,7 +41,8 @@ func TestDefaultServiceLoader_Load(t *testing.T) {
 
 	loader := NewDefaultServiceLoader(config, store, log)
 
-	loader.Load(context.Background())
+	//loader.LoadServiceData(context.Background())
+	loader.LoadServices(context.Background())
 
 	reg, _ := store.GetRegions("test-prv", "test-svc")
 	log.Info("stored", map[string]interface{}{"cnt": reg})

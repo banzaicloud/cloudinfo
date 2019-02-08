@@ -1,0 +1,39 @@
+amazon:
+    -
+        name: compute
+        isdynamic: false
+    -
+        name: eks
+        isdynamic: false
+alibaba:
+    -
+        name: compute
+        isdynamic: false
+    -
+        name: ack
+        isdynamic: false
+azure:
+    -
+        name: compute
+        isdynamic: false
+    -
+        name: aks
+        isdynamic: false
+google:
+    -
+        name: compute
+        isdynamic: false
+    -
+        name: gke
+        isdynamic: false
+    -
+        name: test
+        isdynamic: false
+oracle:
+    -
+        name: compute
+        isdynamic: false
+    -
+        name: oke
+        isdynamic: false
+

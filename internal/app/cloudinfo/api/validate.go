@@ -45,11 +45,6 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 		return fmt.Errorf("could not register attribute validator. error: %s", err)
 	}
 
-	// register validator for the service parameter in the request path
-	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
-		return fmt.Errorf("could not register service validator. error: %s", err)
-	}
-
 	// register validator for the region parameter in the request path
 	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
 		return fmt.Errorf("could not register provider validator. . error: %s", err)
@@ -86,40 +81,6 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 
 		for reg := range regions {
 			if reg == currentRegion {
-				return true
-			}
-		}
-		return false
-	}
-}
-
-// serviceValidator validates the `service` path parameter
-func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
-
-	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-
-		currentProvider := digValueForName(currentStruct, "Provider")
-		currentService := digValueForName(currentStruct, "Service")
-
-		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
-			WithProvider(currentProvider).
-			WithService(currentService).
-			Build())
-
-		log := logger.Extract(ctx)
-		infoer, err := cpi.GetInfoer(ctx, currentProvider)
-		if err != nil {
-			log.Error("could not get infoer")
-			return false
-		}
-		services, err := infoer.GetServices()
-		if err != nil {
-			log.Error("could not get services")
-			return false
-		}
-
-		for _, svc := range services {
-			if svc.ServiceName() == currentService {
 				return true
 			}
 		}

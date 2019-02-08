@@ -1,5 +1,6 @@
 name: test-svc
 provider: test-prv
+isdynamic: false
 status:
 regions:
     -

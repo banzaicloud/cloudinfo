@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
@@ -73,6 +74,8 @@ type Config struct {
 	Azure azure.Config
 
 	Instrumentation InstrumentationConfig
+
+	ServiceLoader loader.Config
 }
 
 // InstrumentationConfig represents the instrumentation related configuration.
@@ -175,6 +178,12 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.RegisterAlias("instrumentation.jaeger.serviceName", "serviceName")
 	_ = v.BindEnv("instrumentation.jaeger.username")
 	_ = v.BindEnv("instrumentation.jaeger.password")
+
+	// ServiceLoader
+	v.SetDefault("serviceloader.svcdatalocation", ".")
+	// todo fix the wired location
+	v.SetDefault("serviceloader.svcdefinitionslocation", "/Users/puski/go/src/github.com/banzaicloud/cloudinfo/configs")
+	v.SetDefault("serviceloader.name", "services")
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 

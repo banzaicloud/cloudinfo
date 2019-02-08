@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
@@ -106,8 +107,11 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer)
+	// todo only services are loaded here!
+	serviceLoader := loader.NewDefaultServiceLoader(config.ServiceLoader, cloudInfoStore, logur)
+	serviceLoader.LoadServices(ctx)
 
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer, logur)
 	emperror.Panic(err)
 
 	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logur, reporter, tracer)

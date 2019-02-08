@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -34,8 +35,7 @@ type AlibabaInfoer struct {
 }
 
 const (
-	svcCompute = "compute"
-	svcAck     = "ack"
+	svcAck = "ack"
 )
 
 // NewAlibabaInfoer creates a new instance of the Alibaba infoer

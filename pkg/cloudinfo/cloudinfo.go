@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
 )
 
 // cachingCloudInfo is the module struct, holds configuration and cache
@@ -37,6 +38,24 @@ type cachingCloudInfo struct {
 	cloudInfoStore CloudInfoStore
 	metrics        metrics.Reporter
 	tracer         tracing.Tracer
+	log            logur.Logger
+}
+
+func (cpi *cachingCloudInfo) GetServices(ctx context.Context, provider string) ([]Service, error) {
+	var (
+		cVal interface{}
+		ok   bool
+	)
+
+	if cVal, ok = cpi.cloudInfoStore.GetServices(provider); !ok {
+		return nil, emperror.With(errors.New("no services found for provider"), "provider", provider)
+	}
+
+	if s, ok := cVal.([]Service); ok {
+		return s, nil
+	}
+
+	return nil, emperror.With(errors.New("invalid cache value for services for provider"), "provider", provider)
 }
 
 func (cpi *cachingCloudInfo) RefreshProvider(ctx context.Context, provider string) error {
@@ -95,7 +114,7 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new cachingCloudInfo instance
-func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer, reporter metrics.Reporter, tracer tracing.Tracer) (*cachingCloudInfo, error) {
+func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer, reporter metrics.Reporter, tracer tracing.Tracer, log logur.Logger) (*cachingCloudInfo, error) {
 	if infoers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
@@ -105,28 +124,24 @@ func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer,
 		cloudInfoStore: ciStore,
 		metrics:        reporter,
 		tracer:         tracer,
+		log:            log,
 	}
 	return &pi, nil
 }
 
 // GetProviders returns the supported providers
 func (cpi *cachingCloudInfo) GetProviders(ctx context.Context) []Provider {
-	var providers []Provider
+	var (
+		providers []Provider
+		provider  Provider
+		err       error
+	)
 
-	for name, infoer := range cpi.cloudInfoers {
-		services, err := infoer.GetServices()
-		if err != nil {
-			logger.Extract(ctx).Error("could not retrieve services", map[string]interface{}{"provider": name})
+	// iterate over supported provider names only
+	for pn := range cpi.cloudInfoers {
+		if provider, err = cpi.GetProvider(ctx, pn); err != nil {
+			cpi.log.Warn("could not retrieve provider", map[string]interface{}{"provider": provider})
 		}
-
-		// decorate the provider with service information
-		svcs := make([]Service, 0)
-		for _, s := range services {
-			svcs = append(svcs, NewService(s.ServiceName()))
-		}
-		provider := NewProvider(name)
-		provider.Services = svcs
-
 		providers = append(providers, provider)
 	}
 	return providers
@@ -134,26 +149,30 @@ func (cpi *cachingCloudInfo) GetProviders(ctx context.Context) []Provider {
 
 // GetProvider returns the supported provider
 func (cpi *cachingCloudInfo) GetProvider(ctx context.Context, provider string) (Provider, error) {
-	for name, infoer := range cpi.cloudInfoers {
-		if provider == name {
-			services, err := infoer.GetServices()
-			if err != nil {
-				logger.Extract(ctx).Error("could not retrieve services", map[string]interface{}{"provider": provider})
-			}
 
-			// decorate the provider with service information
-			svcs := make([]Service, 0)
-			for _, s := range services {
-				svcs = append(svcs, NewService(s.ServiceName()))
-			}
+	var (
+		cachedServices interface{}
+		srvcs          []Service
+		ok             bool
+	)
 
-			p := NewProvider(name)
-			p.Services = svcs
-
-			return p, nil
-		}
+	if _, ok = cpi.cloudInfoers[provider]; !ok {
+		return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
 	}
-	return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
+
+	if cachedServices, ok = cpi.cloudInfoStore.GetServices(provider); !ok {
+		return Provider{}, emperror.With(errors.New("no supported services for provider"), "provider", provider)
+	}
+
+	if srvcs, ok = cachedServices.([]Service); !ok {
+		return Provider{}, emperror.With(errors.New("invalid services for provider in the store"), "provider", provider)
+	}
+
+	// decorate the provider with service information
+	p := NewProvider(provider)
+	p.Services = srvcs
+
+	return p, nil
 }
 
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
@@ -175,7 +194,7 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		return
 	}
 
-	services, err := cpi.cloudInfoers[provider].GetServices()
+	services, err := cpi.GetServices(ctx, provider)
 	if err != nil {
 		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
 		log.Error(emperror.Wrap(err, "failed to renew products").Error())

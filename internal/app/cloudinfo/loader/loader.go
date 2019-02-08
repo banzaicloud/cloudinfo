@@ -28,7 +28,9 @@ import (
 // Loader abstracts the loading logic
 // I'ts purpose is to provide the possibility to load information from various sources (but scraping)
 type Loader interface {
-	Load(ctx context.Context)
+	LoadServiceData(ctx context.Context)
+
+	LoadServices(ctx context.Context)
 }
 
 // defaultServiceLoader component is in charge for loading service related information into the Cloud Information Store
@@ -42,8 +44,38 @@ type defaultServiceLoader struct {
 	log   logur.Logger
 }
 
+func (sl *defaultServiceLoader) LoadServices(ctx context.Context) {
+	sl.log.Info("initializing services for providers...s")
+
+	// todo use another viper instance here instead of repeating this code
+	sl.viper.SetConfigName("services")
+	if err := sl.viper.ReadInConfig(); err != nil { // Find and read the config file
+		// Handle errors reading the config file
+		emperror.Panic(err)
+	}
+
+	var (
+		sds map[string][]Svc
+	)
+
+	if err := sl.viper.Unmarshal(&sds); err != nil {
+		sl.log.Error("failed to load service data")
+		emperror.Panic(err)
+	}
+
+	for p, psvcs := range sds {
+		var svcs []cloudinfo.Service
+		for _, psvc := range psvcs {
+			svcs = append(svcs, cloudinfo.NewService(psvc.Name))
+		}
+		sl.store.StoreServices(p, svcs)
+	}
+
+	sl.log.Info("services initialized")
+}
+
 // Load entry point to the service loading logic
-func (sl *defaultServiceLoader) Load(ctx context.Context) {
+func (sl *defaultServiceLoader) LoadServiceData(ctx context.Context) {
 	sl.log.Info("loading service information...")
 	var sds []ServiceData
 
@@ -144,8 +176,9 @@ func NewDefaultServiceLoader(config Config, store cloudinfo.CloudInfoStore, log 
 	// using a viper instance for loading data
 	vp := viper.New()
 
-	vp.SetConfigName(config.Name)     // name of config file (without extension)
-	vp.AddConfigPath(config.Location) // path to look for the config file in
+	vp.SetConfigName(config.Name)                   // name of config file (without extension)
+	vp.AddConfigPath(config.SvcDataLocation)        // path to look for the config file in
+	vp.AddConfigPath(config.SvcDefinitionsLocation) // path to look for the config file in
 	vp.SetConfigType(config.Format)
 
 	if err := vp.ReadInConfig(); err != nil { // Find and read the config file

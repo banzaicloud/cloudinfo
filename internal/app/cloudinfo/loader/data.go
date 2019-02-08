@@ -16,13 +16,12 @@ package loader
 
 import "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 
-type ServiceDataList []ServiceData
-
 // ServiceData serviuce data representation corresponding to the data to parsed from the external yaml / json
 type ServiceData struct {
-	Provider string
-	Name     string
-	Regions  []RegionData
+	Provider  string
+	Name      string
+	Regions   []RegionData
+	IsDynamic bool
 }
 
 type RegionData struct {
@@ -44,4 +43,9 @@ type AttributeData struct {
 type PriceData struct {
 	Instancetype string
 	Price        cloudinfo.Price
+}
+
+type Svc struct {
+	Name      string
+	IsDynamic bool
 }

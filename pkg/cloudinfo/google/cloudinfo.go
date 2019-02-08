@@ -414,30 +414,6 @@ func (g *GceInfoer) GetCpuAttrName() string {
 	return cloudinfo.Cpu
 }
 
-// GetServices returns the available services on the  provider
-func (g *GceInfoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("gke")}
-	return services, nil
-}
-
-// GetService returns the given service details on the provider
-func (g *GceInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := g.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
-
-}
-
 // HasImages - Google doesn't support images
 func (g *GceInfoer) HasImages() bool {
 	return false

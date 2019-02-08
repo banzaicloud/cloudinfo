@@ -48,6 +48,9 @@ const (
 
 	// VersionKeyTemplate format for generating kubernetes version cache keys
 	VersionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
+
+	// ServicesKeyTemplate key for storing provider specific services
+	ServicesKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services"
 )
 
 // Storage operations for cloud information
@@ -75,6 +78,9 @@ type CloudInfoStore interface {
 
 	StoreStatus(provider string, val interface{})
 	GetStatus(provider string) (interface{}, bool)
+
+	StoreServices(provider string, services interface{})
+	GetServices(provider string) (interface{}, bool)
 
 	Export(w io.Writer) error
 	Import(r io.Reader) error
@@ -168,6 +174,14 @@ func (cis *cacheProductStore) StoreStatus(provider string, val interface{}) {
 
 func (cis *cacheProductStore) GetStatus(provider string) (interface{}, bool) {
 	return cis.Get(cis.getKey(StatusKeyTemplate, provider))
+}
+
+func (cis *cacheProductStore) StoreServices(provider string, services interface{}) {
+	cis.Set(cis.getKey(ServicesKeyTemplate, provider), services, cis.itemExpiry)
+}
+
+func (cis *cacheProductStore) GetServices(provider string) (interface{}, bool) {
+	return cis.Get(cis.getKey(ServicesKeyTemplate, provider))
 }
 
 // NewCacheProductStore creates a new store instance.

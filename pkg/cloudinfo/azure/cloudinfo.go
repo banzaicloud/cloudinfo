@@ -557,30 +557,6 @@ func (a *AzureInfoer) GetCpuAttrName() string {
 	return cloudinfo.Cpu
 }
 
-// GetServices returns the available services on the  provider
-func (a *AzureInfoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("aks")}
-	return services, nil
-}
-
-// GetService returns the service on the provider
-func (a *AzureInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := a.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
-
-}
-
 // HasImages - Azure doesn't support images
 func (a *AzureInfoer) HasImages() bool {
 	return false
