@@ -82,7 +82,7 @@ func (sl *defaultServiceLoader) loadRegions(ctx context.Context, sd ServiceData)
 		sl.loadPrices(ctx, sd.Provider, sd.Name, rd)
 	}
 
-	sl.store.StoreRegion(sd.Provider, sd.Name, regionMap)
+	sl.store.StoreRegions(sd.Provider, sd.Name, regionMap)
 	sl.log.Debug("regions loaded")
 
 	// set the status
@@ -95,7 +95,7 @@ func (sl *defaultServiceLoader) loadRegions(ctx context.Context, sd ServiceData)
 // loadZones loads zones for a given region in the store
 func (sl *defaultServiceLoader) loadZones(ctx context.Context, provider string, rd RegionData) {
 	sl.log.Debug("loading zones...")
-	sl.store.StoreZone(provider, rd.RegionId, rd.Zones)
+	sl.store.StoreZones(provider, rd.RegionId, rd.Zones)
 	sl.log.Debug("zones loaded")
 }
 

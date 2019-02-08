@@ -43,7 +43,7 @@ func TestDefaultServiceLoader_Load(t *testing.T) {
 
 	loader.Load(context.Background())
 
-	reg, _ := store.GetRegion("test-prv", "test-svc")
+	reg, _ := store.GetRegions("test-prv", "test-svc")
 	log.Info("stored", map[string]interface{}{"cnt": reg})
 
 }

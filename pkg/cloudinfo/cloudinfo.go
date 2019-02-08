@@ -437,7 +437,7 @@ func (cpi *cachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 	log := logger.Extract(ctx)
 
 	// check the cache
-	if cachedVal, ok := cpi.cloudInfoStore.GetZone(provider, region); ok {
+	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, region); ok {
 		log.Debug("returning available zones from the cache")
 		return cachedVal.([]string), nil
 	}
@@ -449,7 +449,7 @@ func (cpi *cachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 	}
 
 	// cache the results / use the cache default expiry
-	cpi.cloudInfoStore.StoreZone(provider, region, zones)
+	cpi.cloudInfoStore.StoreZones(provider, region, zones)
 	return zones, nil
 }
 
@@ -462,7 +462,7 @@ func (cpi *cachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 	log := logger.Extract(ctx)
 
 	// check the cache
-	if cachedVal, ok := cpi.cloudInfoStore.GetRegion(provider, service); ok {
+	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
 		log.Debug("returning available regions from cache")
 		return cachedVal.(map[string]string), nil
 	}
@@ -474,7 +474,7 @@ func (cpi *cachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 	}
 
 	// cache the results / use the cache default expiry
-	cpi.cloudInfoStore.StoreRegion(provider, service, regions)
+	cpi.cloudInfoStore.StoreRegions(provider, service, regions)
 	return regions, nil
 }
 

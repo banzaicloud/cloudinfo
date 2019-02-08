@@ -52,11 +52,11 @@ const (
 
 // Storage operations for cloud information
 type CloudInfoStore interface {
-	StoreRegion(provider, service string, val interface{})
-	GetRegion(provider, service string) (interface{}, bool)
+	StoreRegions(provider, service string, val interface{})
+	GetRegions(provider, service string) (interface{}, bool)
 
-	StoreZone(provider, region string, val interface{})
-	GetZone(provider, region string) (interface{}, bool)
+	StoreZones(provider, region string, val interface{})
+	GetZones(provider, region string) (interface{}, bool)
 
 	StorePrice(provider, region, instanceType string, val interface{})
 	GetPrice(provider, region, instanceType string) (interface{}, bool)
@@ -106,19 +106,19 @@ func (cis *cacheProductStore) Import(r io.Reader) error {
 	return nil
 }
 
-func (cis *cacheProductStore) StoreRegion(provider, service string, val interface{}) {
+func (cis *cacheProductStore) StoreRegions(provider, service string, val interface{}) {
 	cis.Set(cis.getKey(RegionKeyTemplate, provider, service), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetRegion(provider, service string) (interface{}, bool) {
+func (cis *cacheProductStore) GetRegions(provider, service string) (interface{}, bool) {
 	return cis.Get(cis.getKey(RegionKeyTemplate, provider, service))
 }
 
-func (cis *cacheProductStore) StoreZone(provider, region string, val interface{}) {
+func (cis *cacheProductStore) StoreZones(provider, region string, val interface{}) {
 	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetZone(provider, region string) (interface{}, bool) {
+func (cis *cacheProductStore) GetZones(provider, region string) (interface{}, bool) {
 	return cis.Get(cis.getKey(ZoneKeyTemplate, provider, region))
 }
 
