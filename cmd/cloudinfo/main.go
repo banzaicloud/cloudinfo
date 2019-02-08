@@ -107,9 +107,10 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	// todo only services are loaded here!
 	serviceLoader := loader.NewDefaultServiceLoader(config.ServiceLoader, cloudInfoStore, logur)
 	serviceLoader.LoadServices(ctx)
+
+	serviceLoader.LoadServiceData(ctx)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer, logur)
 	emperror.Panic(err)
@@ -124,9 +125,7 @@ func main() {
 		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
 	}
 
-	// configure the gin validator
-	// todo validation code to be removed - add these to the appropriate handlers
-	// err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
+	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
 	emperror.Panic(err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)

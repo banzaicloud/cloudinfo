@@ -390,7 +390,6 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve service images details. "+
 				"provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 			return
-
 		}
 
 		if queryParams.Gpu != "" && queryParams.Version != "" {

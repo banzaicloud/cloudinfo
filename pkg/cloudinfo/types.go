@@ -160,7 +160,8 @@ type ImageDescriber interface {
 // Service represents a service supported by a given provider.
 // it's intended to implement the ServiceDescriber interface
 type Service struct {
-	Service string `json:"service"`
+	Service  string `json:"service"`
+	IsStatic bool
 }
 
 // ServiceName returns the service name

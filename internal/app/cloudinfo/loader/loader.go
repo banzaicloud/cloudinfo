@@ -46,16 +46,9 @@ type defaultServiceLoader struct {
 
 func (sl *defaultServiceLoader) LoadServices(ctx context.Context) {
 	sl.log.Info("initializing services for providers...s")
-
-	// todo use another viper instance here instead of repeating this code
-	sl.viper.SetConfigName("services")
-	if err := sl.viper.ReadInConfig(); err != nil { // Find and read the config file
-		// Handle errors reading the config file
-		emperror.Panic(err)
-	}
-
+	sl.directViper(ctx, "services")
 	var (
-		sds map[string][]Svc
+		sds map[string][]Service
 	)
 
 	if err := sl.viper.Unmarshal(&sds); err != nil {
@@ -66,7 +59,7 @@ func (sl *defaultServiceLoader) LoadServices(ctx context.Context) {
 	for p, psvcs := range sds {
 		var svcs []cloudinfo.Service
 		for _, psvc := range psvcs {
-			svcs = append(svcs, cloudinfo.NewService(psvc.Name))
+			svcs = append(svcs, cloudinfo.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
 		}
 		sl.store.StoreServices(p, svcs)
 	}
@@ -76,7 +69,10 @@ func (sl *defaultServiceLoader) LoadServices(ctx context.Context) {
 
 // Load entry point to the service loading logic
 func (sl *defaultServiceLoader) LoadServiceData(ctx context.Context) {
+
 	sl.log.Info("loading service information...")
+
+	sl.directViper(ctx, "service-definition")
 	var sds []ServiceData
 
 	if err := sl.viper.Unmarshal(&sds); err != nil {
@@ -171,20 +167,24 @@ func (sl *defaultServiceLoader) loadPrices(ctx context.Context, provider string,
 	sl.log.Debug("prices loaded")
 }
 
+// loadVms loads vms for a given region into the store
+func (sl *defaultServiceLoader) directViper(ctx context.Context, file string) {
+	sl.viper.SetConfigName(file)
+
+	if err := sl.viper.ReadInConfig(); err != nil { // Find and read the config file
+		// Handle errors reading the config file
+		emperror.Panic(err)
+	}
+}
+
 // NewDefaultServiceLoader sets up a new serviceloader
 func NewDefaultServiceLoader(config Config, store cloudinfo.CloudInfoStore, log logur.Logger) Loader {
 	// using a viper instance for loading data
 	vp := viper.New()
 
-	vp.SetConfigName(config.Name)                   // name of config file (without extension)
 	vp.AddConfigPath(config.SvcDataLocation)        // path to look for the config file in
 	vp.AddConfigPath(config.SvcDefinitionsLocation) // path to look for the config file in
 	vp.SetConfigType(config.Format)
-
-	if err := vp.ReadInConfig(); err != nil { // Find and read the config file
-		// Handle errors reading the config file
-		emperror.Panic(err)
-	}
 
 	return &defaultServiceLoader{
 		viper: vp,

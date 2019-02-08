@@ -1,39 +1,42 @@
 amazon:
     -
         name: compute
-        isdynamic: false
+        isstatic: false
     -
         name: eks
-        isdynamic: false
+        isstatic: false
+    -
+        name: test
+        isstatic: true
 alibaba:
     -
         name: compute
-        isdynamic: false
+        isstatic: false
     -
         name: ack
-        isdynamic: false
+        isstatic: false
 azure:
     -
         name: compute
-        isdynamic: false
+        isstatic: false
     -
         name: aks
-        isdynamic: false
+        isstatic: false
 google:
     -
         name: compute
-        isdynamic: false
+        isstatic: false
     -
         name: gke
-        isdynamic: false
+        isstatic: false
     -
         name: test
-        isdynamic: false
+        isstatic: true
 oracle:
     -
         name: compute
-        isdynamic: false
+        isstatic: false
     -
         name: oke
-        isdynamic: false
+        isstatic: false
 

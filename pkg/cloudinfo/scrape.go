@@ -72,6 +72,10 @@ func (sm *scrapingManager) scrapeServiceAttributes(ctx context.Context, services
 
 	sm.log.Info("start to renew attribute values")
 	for _, service := range services {
+		if service.IsStatic {
+			sm.log.Info("skipping scraping for attributes - service is static", map[string]interface{}{"service": service})
+			continue
+		}
 		for _, attr := range []string{sm.infoer.GetCpuAttrName(), sm.infoer.GetMemoryAttrName()} {
 
 			if attrVals, err = sm.infoer.GetAttributeValues(ctx, service.ServiceName(), attr); err != nil {
@@ -153,6 +157,11 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 
 	sm.log.Info("start to scrape service region information")
 	for _, service := range services {
+		if service.IsStatic {
+			sm.log.Info("skipping scraping for region information - service is statics", map[string]interface{}{"service": service})
+			continue
+		}
+
 		if regions, err = sm.infoer.GetRegions(ctx, service.ServiceName()); err != nil {
 
 			sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), "N/A")

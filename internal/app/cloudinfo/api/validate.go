@@ -45,6 +45,11 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 		return fmt.Errorf("could not register attribute validator. error: %s", err)
 	}
 
+	// register validator for the service parameter in the request path
+	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
+		return fmt.Errorf("could not register service validator. error: %s", err)
+	}
+
 	// register validator for the region parameter in the request path
 	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
 		return fmt.Errorf("could not register provider validator. . error: %s", err)
@@ -66,21 +71,48 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 			WithRegion(currentRegion).
 			Build())
 
-		log := logger.Extract(ctx)
-		ci, err := cpi.GetInfoer(ctx, currentProvider)
-		if err != nil {
-			log.Error("could not get infoer")
-			return false
-		}
+		var (
+			regions map[string]string
+			err     error
+		)
 
-		regions, err := ci.GetRegions(ctx, currentService)
-		if err != nil {
-			log.Error("could not get regions")
+		if regions, err = cpi.GetRegions(ctx, currentProvider, currentService); err != nil {
 			return false
 		}
 
 		for reg := range regions {
 			if reg == currentRegion {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// serviceValidator validates the `service` path parameter
+func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
+
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+
+		var (
+			services []cloudinfo.Service
+			err      error
+		)
+
+		currentProvider := digValueForName(currentStruct, "Provider")
+		currentService := digValueForName(currentStruct, "Service")
+
+		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
+			WithProvider(currentProvider).
+			WithService(currentService).
+			Build())
+
+		if services, err = cpi.GetServices(ctx, currentProvider); err != nil {
+			return false
+		}
+
+		for _, svc := range services {
+			if svc.ServiceName() == currentService {
 				return true
 			}
 		}
