@@ -121,7 +121,8 @@ func main() {
 	}
 
 	// configure the gin validator
-	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
+	// todo validation code to be removed - add these to the appropriate handlers
+	// err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
 	emperror.Panic(err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
