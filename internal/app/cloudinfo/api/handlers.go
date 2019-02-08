@@ -182,6 +182,7 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 		for _, service := range cachedServices {
 			if service.ServiceName() == pathParams.Service {
 				c.JSON(http.StatusOK, NewServiceResponse(service))
+				return
 			}
 		}
 
