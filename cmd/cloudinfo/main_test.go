@@ -187,14 +187,6 @@ func Test_configurationStringDefaults(t *testing.T) {
 				assert.Equal(t, false, val, fmt.Sprintf("invalid default for %s", metricsEnabledFlag))
 			},
 		},
-		{
-			name:     fmt.Sprintf("defaults for: %s", alibabaPriceInfoUrl),
-			viperKey: alibabaPriceInfoUrl,
-			args:     []string{}, // no flags provided
-			check: func(val interface{}) {
-				assert.Equal(t, "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.9/price/download/instancePrice.json", val, fmt.Sprintf("invalid default for %s", alibabaPriceInfoUrl))
-			},
-		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

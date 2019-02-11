@@ -32,13 +32,6 @@ func (o *GetServiceReader) ReadResponse(response runtime.ClientResponse, consume
 		}
 		return result, nil
 
-	case 503:
-		result := NewGetServiceServiceUnavailable()
-		if err := result.readResponse(response, consumer, o.formats); err != nil {
-			return nil, err
-		}
-		return nil, result
-
 	default:
 		return nil, runtime.NewAPIError("unknown error", response, response.Code())
 	}
@@ -64,35 +57,6 @@ func (o *GetServiceOK) Error() string {
 func (o *GetServiceOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.ServiceResponse)
-
-	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
-		return err
-	}
-
-	return nil
-}
-
-// NewGetServiceServiceUnavailable creates a GetServiceServiceUnavailable with default headers values
-func NewGetServiceServiceUnavailable() *GetServiceServiceUnavailable {
-	return &GetServiceServiceUnavailable{}
-}
-
-/*GetServiceServiceUnavailable handles this case with default header values.
-
-ErrorResponse
-*/
-type GetServiceServiceUnavailable struct {
-	Payload *models.ErrorResponse
-}
-
-func (o *GetServiceServiceUnavailable) Error() string {
-	return fmt.Sprintf("[GET /providers/{provider}/services/{service}][%d] getServiceServiceUnavailable  %+v", 503, o.Payload)
-}
-
-func (o *GetServiceServiceUnavailable) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
-	o.Payload = new(models.ErrorResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

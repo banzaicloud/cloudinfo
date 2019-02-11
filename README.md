@@ -35,7 +35,6 @@ The following options can be configured when starting the exporter (with default
 Usage of ./build/cloudinfo:
       --alibaba-access-key-id string             alibaba access key id
       --alibaba-access-key-secret string         alibaba access key secret
-      --alibaba-price-info-url string            Alibaba get price info from this file (default "https://g.alicdn.com/aliyun/ecs-price-info-intl/2.0.9/price/download/instancePrice.json")
       --alibaba-region-id string                 alibaba region id
       --aws-access-key-id string                 aws access key id
       --aws-secret-access-key string             aws secret access key

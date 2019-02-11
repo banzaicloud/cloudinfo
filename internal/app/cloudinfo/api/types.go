@@ -78,7 +78,7 @@ type Region struct {
 }
 
 // GetRegionResp holds the detailed description of a specific region of a cloud provider
-// swagger:model RegionResponse
+// swagger:model GetRegionResp
 type GetRegionResp struct {
 	Id    string   `json:"id"`
 	Name  string   `json:"name"`

@@ -68,12 +68,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServicesResponse'
-        '503':
-          description: ErrorResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
   '/providers/{provider}/services/{service}':
     get:
       description: >-
@@ -102,12 +96,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceResponse'
-        '503':
-          description: ErrorResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
   '/providers/{provider}/services/{service}/regions':
     get:
       description: Provides the list of available regions of a cloud provider
@@ -161,11 +149,11 @@ paths:
             type: string
       responses:
         '200':
-          description: RegionResponse
+          description: GetRegionResp
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegionResponse'
+                $ref: '#/components/schemas/GetRegionResp'
   '/providers/{provider}/services/{service}/regions/{region}/images':
     get:
       tags:
@@ -334,17 +322,6 @@ components:
             format: double
           x-go-name: AttributeValues
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    ErrorResponse:
-      description: ErrorResponse struct for error responses
-      type: object
-      properties:
-        code:
-          type: string
-          x-go-name: ErrorCode
-        message:
-          type: string
-          x-go-name: ErrorMessage
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetAttributeValuesPathParams:
       description: >-
         GetAttributeValuesPathParams is a placeholder for the get attribute
@@ -412,6 +389,24 @@ components:
           description: 'in:path'
           type: string
           x-go-name: Service
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetRegionResp:
+      description: >-
+        GetRegionResp holds the detailed description of a specific region of a
+        cloud provider
+      type: object
+      properties:
+        id:
+          type: string
+          x-go-name: Id
+        name:
+          type: string
+          x-go-name: Name
+        zones:
+          type: array
+          items:
+            type: string
+          x-go-name: Zones
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetServicesPathParams:
       description: >-
@@ -566,25 +561,6 @@ components:
         name:
           type: string
           x-go-name: Name
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    RegionResponse:
-      description: >-
-        GetRegionResp holds the detailed description of a specific region of a
-        cloud provider
-      type: object
-      properties:
-        id:
-          type: string
-          x-go-name: Id
-        name:
-          type: string
-          x-go-name: Name
-        zones:
-          type: array
-          items:
-            type: string
-          x-go-name: Zones
-      x-go-name: GetRegionResp
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     RegionsResponse:
       description: RegionsResponse holds the list of available regions of a cloud provider
