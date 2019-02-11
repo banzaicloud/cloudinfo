@@ -1,3 +1,6 @@
+# part of the application configuration this file lists the supported services and related meta information
+# services define cloud product information available for a given cloud provider offered service (eg: vm-s that can be part
+# of kubernetes clusters with a given kubernetes version
 amazon:
     -
         name: compute
@@ -8,6 +11,8 @@ amazon:
     -
         name: test
         isstatic: true
+        dataLocation: /Users/puski/go/src/github.com/banzaicloud/cloudinfo/configs
+        dataFile: service-data
 alibaba:
     -
         name: compute

@@ -108,9 +108,9 @@ func main() {
 	reporter := metrics.NewDefaultMetricsReporter()
 
 	serviceLoader := loader.NewDefaultServiceLoader(config.ServiceLoader, cloudInfoStore, logur)
-	serviceLoader.LoadServices(ctx)
+	serviceLoader.LoadServices(ctx, config.Providers)
 
-	serviceLoader.LoadServiceData(ctx)
+	serviceLoader.LoadServiceData(ctx, config.Providers)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer, logur)
 	emperror.Panic(err)

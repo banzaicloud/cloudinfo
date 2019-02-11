@@ -461,28 +461,6 @@ func (a *AlibabaInfoer) GetCpuAttrName() string {
 	return cloudinfo.Cpu
 }
 
-// GetServices returns the available services on the provider
-func (a *AlibabaInfoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService(svcCompute),
-		cloudinfo.NewService(svcAck)}
-	return services, nil
-}
-
-// GetService returns the given service description
-func (a *AlibabaInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := a.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			return sd, nil
-		}
-	}
-	return nil, emperror.With(errors.New("the service is not supported"), "service", service)
-}
-
 // HasImages - Alibaba doesn't support images
 func (a *AlibabaInfoer) HasImages() bool {
 	return false

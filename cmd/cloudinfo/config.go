@@ -180,9 +180,8 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	_ = v.BindEnv("instrumentation.jaeger.password")
 
 	// ServiceLoader
-	v.SetDefault("serviceloader.svcdatalocation", "./configs")
-	v.SetDefault("serviceloader.svcdefinitionslocation", "./configs")
-	v.SetDefault("serviceloader.name", "services")
+	v.SetDefault("serviceloader.serviceconfiglocation", "./configs")
+	v.SetDefault("serviceloader.serviceconfigname", "services")
 
 	pf.Init(FriendlyServiceName, pflag.ExitOnError)
 

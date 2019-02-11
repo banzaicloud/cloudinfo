@@ -25,12 +25,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+const ComponentName = "service-loader"
+
 // Loader abstracts the loading logic
 // I'ts purpose is to provide the possibility to load information from various sources (but scraping)
 type Loader interface {
-	LoadServiceData(ctx context.Context)
+	LoadServiceData(ctx context.Context, providers []string)
 
-	LoadServices(ctx context.Context)
+	LoadServices(ctx context.Context, providers []string)
 }
 
 // defaultServiceLoader component is in charge for loading service related information into the Cloud Information Store
@@ -44,19 +46,15 @@ type defaultServiceLoader struct {
 	log   logur.Logger
 }
 
-func (sl *defaultServiceLoader) LoadServices(ctx context.Context) {
-	sl.log.Info("initializing services for providers...s")
-	sl.directViper(ctx, "services")
-	var (
-		sds map[string][]Service
-	)
+func (sl *defaultServiceLoader) LoadServices(ctx context.Context, providers []string) {
+	sl.log.Info("initializing services for providers...")
 
-	if err := sl.viper.Unmarshal(&sds); err != nil {
-		sl.log.Error("failed to load service data")
-		emperror.Panic(err)
-	}
-
+	sds := sl.loadServices()
 	for p, psvcs := range sds {
+		if !cloudinfo.Contains(providers, p) {
+			sl.log.Debug("skip loading services for provider", map[string]interface{}{"provider": p})
+			continue
+		}
 		var svcs []cloudinfo.Service
 		for _, psvc := range psvcs {
 			svcs = append(svcs, cloudinfo.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
@@ -68,14 +66,46 @@ func (sl *defaultServiceLoader) LoadServices(ctx context.Context) {
 }
 
 // Load entry point to the service loading logic
-func (sl *defaultServiceLoader) LoadServiceData(ctx context.Context) {
+func (sl *defaultServiceLoader) LoadServiceData(ctx context.Context, providers []string) {
 
 	sl.log.Info("loading service information...")
+	cfgServices := make([]Service, 0)
 
-	sl.directViper(ctx, "service-definition")
+	// gather all "static" services, that need to be imported
+	for p, allCfgServices := range sl.loadServices() {
+		if !cloudinfo.Contains(providers, p) {
+			continue
+		}
+		for _, s := range allCfgServices {
+			if s.IsStatic {
+				cfgServices = append(cfgServices, s)
+			}
+		}
+	}
+
+	sl.log.Debug("services to be imported", map[string]interface{}{"svcs": cfgServices})
+
+	for _, s := range cfgServices {
+		sl.loadStaticServiceData(ctx, s)
+	}
+
+	sl.log.Info("service information loaded")
+}
+
+func (sl *defaultServiceLoader) loadStaticServiceData(ctx context.Context, stSvc Service) {
+	sl.log.Info("load static service information for service...", map[string]interface{}{"svc": stSvc.Name})
+
+	dataViper := viper.New()
+	dataViper.AddConfigPath(stSvc.DataLocation)
+	dataViper.SetConfigName(stSvc.DataFile)
+
+	if err := dataViper.ReadInConfig(); err != nil { // Find and read the config file
+		// Handle errors reading the config file
+		emperror.Panic(err)
+	}
+
 	var sds []ServiceData
-
-	if err := sl.viper.Unmarshal(&sds); err != nil {
+	if err := dataViper.Unmarshal(&sds); err != nil {
 		sl.log.Error("failed to load service data")
 		emperror.Panic(err)
 	}
@@ -86,7 +116,7 @@ func (sl *defaultServiceLoader) LoadServiceData(ctx context.Context) {
 		}
 	}
 
-	sl.log.Info("service information loaded")
+	sl.log.Info("loaded static service information for service", map[string]interface{}{"svc": stSvc.Name})
 }
 
 // loadRegions loads regions in the cloud info store
@@ -177,18 +207,39 @@ func (sl *defaultServiceLoader) directViper(ctx context.Context, file string) {
 	}
 }
 
+func (sl *defaultServiceLoader) loadServices() map[string][]Service {
+	sl.log.Info("loading service configuration...")
+
+	if err := sl.viper.ReadInConfig(); err != nil { // Find and read the config file
+		// Handle errors reading the config file
+		emperror.Panic(err)
+	}
+
+	var (
+		sds map[string][]Service
+	)
+
+	if err := sl.viper.Unmarshal(&sds); err != nil {
+		sl.log.Error("failed to load service configuration")
+		emperror.Panic(err)
+	}
+
+	return sds
+}
+
 // NewDefaultServiceLoader sets up a new serviceloader
 func NewDefaultServiceLoader(config Config, store cloudinfo.CloudInfoStore, log logur.Logger) Loader {
 	// using a viper instance for loading data
 	vp := viper.New()
 
-	vp.AddConfigPath(config.SvcDataLocation)        // path to look for the config file in
-	vp.AddConfigPath(config.SvcDefinitionsLocation) // path to look for the config file in
+	vp.AddConfigPath(config.ServiceConfigLocation)
+	vp.SetConfigName(config.ServiceConfigName)
+
 	vp.SetConfigType(config.Format)
 
 	return &defaultServiceLoader{
 		viper: vp,
 		store: store,
-		log:   logur.WithFields(log, map[string]interface{}{"service": "svcloader"}),
+		log:   logur.WithFields(log, map[string]interface{}{"service": ComponentName}),
 	}
 }
