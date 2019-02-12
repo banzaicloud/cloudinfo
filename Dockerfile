@@ -11,7 +11,7 @@ ADD . /go/src/github.com/banzaicloud/cloudinfo
 
 RUN make build
 
-FROM node:9 as frontend
+FROM node:10 as frontend
 ADD ./web /web
 WORKDIR /web
 RUN npm install
