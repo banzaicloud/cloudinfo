@@ -48,6 +48,8 @@ type PriceData struct {
 type Service struct {
 	Name         string
 	IsStatic     bool
+	Source       string
+	Strategy     string
 	DataLocation string
 	DataFile     string
 }

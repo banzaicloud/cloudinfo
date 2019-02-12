@@ -35,8 +35,8 @@ func TestDefaultServiceLoader_Load(t *testing.T) {
 	//
 	//loader := NewDefaultServiceLoader(config, store, log)
 	//
-	////loader.LoadServiceData(context.Background())
-	//loader.LoadServices(context.Background())
+	////loader.LoadServiceInformation(context.Background())
+	//loader.ConfigureServices(context.Background())
 	//
 	//reg, _ := store.GetRegions("test-prv", "test-svc")
 	//log.Info("stored", map[string]interface{}{"cnt": reg})
