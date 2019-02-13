@@ -16,7 +16,6 @@ package amazon
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -28,9 +27,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -47,6 +49,7 @@ type Ec2Infoer struct {
 	prometheus   v1.API
 	promQuery    string
 	ec2Describer func(region string) Ec2Describer
+	log          logur.Logger
 }
 
 // Ec2Describer interface for operations describing EC2 artifacts. (a subset of the Ec2 cli operations used by this app)
@@ -56,10 +59,8 @@ type Ec2Describer interface {
 	DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPriceHistoryInput, fn func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool) error
 }
 
-// NewEc2Infoer creates a new instance of the infoer
-func NewEc2Infoer(ctx context.Context, promAddr, pq, awsAccessKeyId, awsSecretAccessKey string) (*Ec2Infoer, error) {
-	log := logger.Extract(ctx)
-
+// newInfoer creates a new instance of the infoer
+func newInfoer(promAddr, pq, awsAccessKeyId, awsSecretAccessKey string, log logur.Logger) (*Ec2Infoer, error) {
 	const defaultPricingRegion = "us-east-1"
 
 	s, err := session.NewSession(&aws.Config{
@@ -98,23 +99,24 @@ func NewEc2Infoer(ctx context.Context, promAddr, pq, awsAccessKeyId, awsSecretAc
 		ec2Describer: func(region string) Ec2Describer {
 			return ec2.New(s, s.Config.WithRegion(region))
 		},
+		log: log,
 	}, nil
 }
 
 // NewAmazonInfoer builds an infoer instance based on the provided configuration
-func NewAmazonInfoer(ctx context.Context, cfg Config) (*Ec2Infoer, error) {
-	return NewEc2Infoer(ctx, cfg.PrometheusAddress, cfg.PrometheusQuery, cfg.AccessKeyId, cfg.SecretAccessKey)
+func NewAmazonInfoer(cfg Config, log logur.Logger) (*Ec2Infoer, error) {
+	return newInfoer(cfg.PrometheusAddress, cfg.PrometheusQuery, cfg.AccessKeyId, cfg.SecretAccessKey, log)
 }
 
 // Initialize is not needed on EC2 because price info is changing frequently
-func (e *Ec2Infoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
+func (e *Ec2Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 // Delegates to the underlying PricingSource instance and unifies (transforms) the response
-func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
-	log := logger.Extract(ctx)
+func (e *Ec2Infoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"service": service, "attribute": attribute})
 	apiValues, err := e.pricingSvc.GetAttributeValues(e.newAttributeValuesInput(attribute))
 	if err != nil {
 		return nil, err
@@ -124,7 +126,7 @@ func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, service, attribute s
 		dotValue := strings.Replace(*v.Value, ",", ".", -1)
 		floatValue, err := strconv.ParseFloat(strings.Split(dotValue, " ")[0], 64)
 		if err != nil {
-			log.Warn("could not parse attribute value", map[string]interface{}{"attribute": attribute, "value": dotValue})
+			log.Warn("could not parse attribute value", map[string]interface{}{"value": dotValue})
 		}
 		values = append(values, cloudinfo.AttrValue{
 			Value:    floatValue,
@@ -132,14 +134,15 @@ func (e *Ec2Infoer) GetAttributeValues(ctx context.Context, service, attribute s
 		})
 	}
 
-	log.Debug("found attribute values", map[string]interface{}{"attribute": attribute, "value": fmt.Sprintf("%v", values)})
+	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
 	return values, nil
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := logger.Extract(ctx)
+func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"service": service, "region": regionId})
+	log.Debug("getting available instance types from AWS API")
 
 	missingAttributes := make(map[string][]string)
 	var (
@@ -148,7 +151,6 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		priceList  []aws.JSONValue
 		err        error
 	)
-	log.Debug("Getting available instance types from AWS API.")
 
 	if priceList, err = e.pricingSvc.GetPriceList(e.newGetProductsInput(regionId)); err != nil {
 		return nil, err
@@ -161,34 +163,34 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 			continue
 		}
 
-		instanceType, err := pd.GetDataForKey("instanceType")
+		instanceType, err := pd.getDataForKey("instanceType")
 		if err != nil {
 			log.Warn("could not retrieve instance type", map[string]interface{}{"instancetype": instanceType})
 			continue
 		}
-		cpusStr, err := pd.GetDataForKey(Cpu)
+		cpusStr, err := pd.getDataForKey(Cpu)
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "cpu")
 		}
-		memStr, err := pd.GetDataForKey(cloudinfo.Memory)
+		memStr, err := pd.getDataForKey(cloudinfo.Memory)
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "memory")
 		}
-		gpu, err := pd.GetDataForKey("gpu")
+		gpu, err := pd.getDataForKey("gpu")
 		if err != nil {
 			missingGpu = append(missingGpu, instanceType)
 		}
-		odPriceStr, err := pd.GetOnDemandPrice()
+		odPriceStr, err := pd.getOnDemandPrice()
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "onDemandPrice")
 		}
-		ntwPerf, err := pd.GetDataForKey("networkPerformance")
+		ntwPerf, err := pd.getDataForKey("networkPerformance")
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "networkPerformance")
 		}
 
 		var currGen = true
-		if currentGenStr, err := pd.GetDataForKey("currentGeneration"); err == nil {
+		if currentGenStr, err := pd.getDataForKey("currentGeneration"); err == nil {
 			if strings.ToLower(currentGenStr) == "no" {
 				currGen = false
 			}
@@ -197,7 +199,8 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		ntwMapper := newAmazonNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 		if err != nil {
-			log.Debug("could not get network performance category")
+			log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+				map[string]interface{}{"instanceType": instanceType})
 		}
 
 		onDemandPrice, _ := strconv.ParseFloat(odPriceStr, 64)
@@ -231,7 +234,7 @@ func (e *Ec2Infoer) GetProducts(ctx context.Context, service, regionId string) (
 		})
 	}
 
-	log.Debug("found vms", map[string]interface{}{"vms": fmt.Sprintf("%#v", vms)})
+	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
 	return vms, nil
 }
 
@@ -258,14 +261,14 @@ func newPriceData(prData aws.JSONValue) (*priceData, error) {
 
 	return &pd, nil
 }
-func (pd *priceData) GetDataForKey(attr string) (string, error) {
+func (pd *priceData) getDataForKey(attr string) (string, error) {
 	if value, ok := pd.attrMap[attr].(string); ok {
 		return value, nil
 	}
-	return "", fmt.Errorf("could not get %s or could not cast %s to string", attr, attr)
+	return "", errors.Errorf("could not get %s or could not cast %s to string", attr, attr)
 }
 
-func (pd *priceData) GetOnDemandPrice() (string, error) {
+func (pd *priceData) getOnDemandPrice() (string, error) {
 	termsMap, err := getMapForKey("terms", pd.awsData)
 	if err != nil {
 		return "", err
@@ -298,12 +301,12 @@ func (pd *priceData) GetOnDemandPrice() (string, error) {
 func getMapForKey(key string, srcMap map[string]interface{}) (map[string]interface{}, error) {
 	rawMap, ok := srcMap[key]
 	if !ok {
-		return nil, fmt.Errorf("could not get map for key: [ %s ]", key)
+		return nil, errors.Wrap(errors.New(key), "could not get map for key")
 	}
 
 	remap, ok := rawMap.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("the value for key: [ %s ] could not be cast to map[string]interface{}", key)
+		return nil, errors.Wrap(errors.New(key), "could not be cast to map[string]interface{} for key")
 	}
 	return remap, nil
 }
@@ -364,7 +367,10 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
-func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"service": service})
+	log.Debug("getting regions")
+
 	regionIdMap := make(map[string]string)
 	for key, region := range endpoints.AwsPartition().Regions() {
 		regionIdMap[key] = region.Description()
@@ -400,14 +406,18 @@ func (e *Ec2Infoer) GetRegions(ctx context.Context, service string) (map[string]
 				eksRegionIdMap[key] = value
 			}
 		}
+		log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(eksRegionIdMap)})
 		return eksRegionIdMap, nil
 	default:
+		log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
 		return regionIdMap, nil
 	}
 }
 
 // GetZones returns the availability zones in a region
-func (e *Ec2Infoer) GetZones(ctx context.Context, region string) ([]string, error) {
+func (e *Ec2Infoer) GetZones(region string) ([]string, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"region": region})
+	log.Debug("getting zones")
 
 	var zones []string
 	azs, err := e.ec2Describer(region).DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
@@ -419,6 +429,8 @@ func (e *Ec2Infoer) GetZones(ctx context.Context, region string) ([]string, erro
 			zones = append(zones, *az.ZoneName)
 		}
 	}
+
+	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return zones, nil
 }
 
@@ -427,8 +439,8 @@ func (e *Ec2Infoer) HasShortLivedPriceInfo() bool {
 	return true
 }
 
-func (e *Ec2Infoer) getSpotPricesFromPrometheus(ctx context.Context, region string) (map[string]cloudinfo.SpotPriceInfo, error) {
-	log := logger.Extract(ctx)
+func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"region": region})
 	log.Debug("getting spot price averages from Prometheus API")
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
@@ -457,7 +469,8 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(ctx context.Context, region stri
 	return priceInfo, nil
 }
 
-func (e *Ec2Infoer) getCurrentSpotPrices(ctx context.Context, region string) (map[string]cloudinfo.SpotPriceInfo, error) {
+func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"region": region})
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 	err := e.ec2Describer(region).DescribeSpotPriceHistoryPages(&ec2.DescribeSpotPriceHistoryInput{
 		StartTime:           aws.Time(time.Now()),
@@ -466,7 +479,7 @@ func (e *Ec2Infoer) getCurrentSpotPrices(ctx context.Context, region string) (ma
 		for _, pe := range history.SpotPriceHistory {
 			price, err := strconv.ParseFloat(*pe.SpotPrice, 64)
 			if err != nil {
-				logger.Extract(ctx).Error("couldn't parse spot price from history")
+				log.Error("couldn't parse spot price from history")
 				continue
 			}
 			if priceInfo[*pe.InstanceType] == nil {
@@ -483,12 +496,12 @@ func (e *Ec2Infoer) getCurrentSpotPrices(ctx context.Context, region string) (ma
 }
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
-func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[string]cloudinfo.Price, error) {
-	log := logger.Extract(ctx)
+func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"region": region})
 	var spotPrices map[string]cloudinfo.SpotPriceInfo
 	var err error
 	if e.prometheus != nil {
-		spotPrices, err = e.getSpotPricesFromPrometheus(ctx, region)
+		spotPrices, err = e.getSpotPricesFromPrometheus(region)
 		if err != nil {
 			log.Warn("could not get spot price info from Prometheus API, fallback to direct AWS API access.")
 		}
@@ -496,9 +509,9 @@ func (e *Ec2Infoer) GetCurrentPrices(ctx context.Context, region string) (map[st
 
 	if len(spotPrices) == 0 {
 		log.Debug("getting current spot prices directly from the AWS API")
-		spotPrices, err = e.getCurrentSpotPrices(ctx, region)
+		spotPrices, err = e.getCurrentSpotPrices(region)
 		if err != nil {
-			log.Error("could not retrieve current prices")
+			log.Error("failed to retrieve current spot prices")
 			return nil, err
 		}
 	}
@@ -535,18 +548,20 @@ func (e *Ec2Infoer) GetServices() ([]cloudinfo.Service, error) {
 }
 
 // GetService returns the given service description
-func (e *Ec2Infoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
+func (e *Ec2Infoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"service": service})
+
 	svcs, err := e.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
+			log.Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
+	return nil, errors.Wrap(errors.New(service), "service is not supported")
 
 }
 
@@ -620,16 +635,16 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (e *Ec2Infoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+func (e *Ec2Infoer) GetVersions(service, region string) ([]string, error) {
 	switch service {
 	case "eks":
 		return []string{"1.10"}, nil

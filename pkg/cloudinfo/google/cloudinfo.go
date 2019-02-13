@@ -21,9 +21,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	billing "google.golang.org/api/cloudbilling/v1"
@@ -59,10 +61,11 @@ type GceInfoer struct {
 	computeSvc   *compute.Service
 	containerSvc *container.Service
 	projectId    string
+	log          logur.Logger
 }
 
-// NewGceInfoer creates a new instance of the infoer
-func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
+// newInfoer creates a new instance of the infoer
+func newInfoer(appCredentials, apiKey string, log logur.Logger) (*GceInfoer, error) {
 	if appCredentials == "" {
 		return nil, errors.New("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
 	}
@@ -100,17 +103,17 @@ func NewGceInfoer(appCredentials, apiKey string) (*GceInfoer, error) {
 		computeSvc:   computeSvc,
 		containerSvc: containerSvc,
 		projectId:    defaultCredential.ProjectID,
+		log:          log,
 	}, nil
 }
 
-func NewGoogleInfoer(ctx context.Context, cfg Config) (*GceInfoer, error) {
-	return NewGceInfoer(cfg.AppCredentials, cfg.ApiKey)
+func NewGoogleInfoer(cfg Config, log logur.Logger) (*GceInfoer, error) {
+	return newInfoer(cfg.AppCredentials, cfg.ApiKey, log)
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
-	log := logger.Extract(ctx)
-	log.Debug("initializing price info")
+func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+	g.log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]cloudinfo.Price)
 	unsupportedInstanceTypes := []string{"n1-ultramem-40", "n1-ultramem-80", "n1-megamem-96", "n1-ultramem-160"}
 
@@ -127,7 +130,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloud
 	}
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := g.GetRegions(ctx, "compute")
+	regions, err := g.GetRegions("compute")
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +140,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloud
 		return nil, err
 	}
 	for r := range regions {
-		zones, err := g.GetZones(ctx, r)
+		zones, err := g.GetZones(r)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +184,7 @@ func (g *GceInfoer) Initialize(ctx context.Context) (map[string]map[string]cloud
 		}
 	}
 
-	log.Debug("finished initializing price info")
+	g.log.Debug("finished initializing price info")
 	return allPrices, nil
 }
 
@@ -237,7 +240,7 @@ func (g *GceInfoer) getPrice(parent string) (map[string]map[string]map[string]fl
 
 func (g *GceInfoer) priceInUsd(pricingInfos []*billing.PricingInfo) (float64, error) {
 	if len(pricingInfos) != 1 {
-		return 0, fmt.Errorf("pricing info not parsable, %d pricing info entries are returned", len(pricingInfos))
+		return 0, emperror.With(errors.New("pricing info not parsable"), "numberOfPricingInfos", len(pricingInfos))
 	}
 	pricingInfo := pricingInfos[0]
 	var priceInUsd float64
@@ -259,9 +262,9 @@ func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64,
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
 // Queries the Google Cloud Compute API's machine type list endpoint
-func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
-	log := logger.Extract(ctx)
-	log.Debug("retrieving attribute values", map[string]interface{}{"attribute": attribute})
+func (g *GceInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
+	log := log.WithFields(g.log, map[string]interface{}{"service": service, "attribute": attribute})
+	log.Debug("retrieving attribute values")
 
 	values := make(cloudinfo.AttrValues, 0)
 	valueSet := make(map[cloudinfo.AttrValue]interface{})
@@ -286,25 +289,25 @@ func (g *GceInfoer) GetAttributeValues(ctx context.Context, service, attribute s
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to list machine types: %v", err.Error())
+		return nil, emperror.Wrap(err, "unable to list machine types")
 	}
 
 	for attr := range valueSet {
 		values = append(values, attr)
 	}
 
-	log.Debug("found attribute values", map[string]interface{}{"attribute": attribute, "values": fmt.Sprintf("%v", values)})
+	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
 	return values, nil
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
-func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := logger.Extract(ctx)
+func (g *GceInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(g.log, map[string]interface{}{"service": service, "region": regionId})
 	log.Debug("retrieving product information")
 	var vmsMap = make(map[string]cloudinfo.VmInfo)
 	var ntwPerf uint
-	zones, err := g.GetZones(ctx, regionId)
+	zones, err := g.GetZones(regionId)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +328,8 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 				ntwMapper := newGceNetworkMapper()
 				ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(ntwPerf, " Gbit/s"))
 				if err != nil {
-					log.Debug("could not get network performance category")
+					log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+						map[string]interface{}{"instanceType": mt.Name})
 				}
 				vmsMap[mt.Name] = cloudinfo.VmInfo{
 					Type:       mt.Name,
@@ -347,35 +351,38 @@ func (g *GceInfoer) GetProducts(ctx context.Context, service, regionId string) (
 	for _, vm := range vmsMap {
 		vms = append(vms, vm)
 	}
-	log.Debug("found virtual machines", map[string]interface{}{"vms": fmt.Sprintf("%v", vms)})
+	log.Debug("found virtual machines", map[string]interface{}{"vms": len(vms)})
 	return vms, nil
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (g *GceInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
-	log := logger.Extract(ctx)
+func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
+	log := log.WithFields(g.log, map[string]interface{}{"service": service})
 	log.Debug("getting regions")
-	regionIdMap := make(map[string]string)
+
 	regionList, err := g.computeSvc.Regions.List(g.projectId).Do()
 	if err != nil {
 		return nil, err
 	}
+
+	regionIdMap := make(map[string]string)
 	for _, region := range regionList.Items {
 		description := region.Description
 		if displayName, ok := regionNames[region.Name]; ok {
 			description = displayName
 		}
 		regionIdMap[region.Name] = description
-
 	}
-	log.Debug("found regions", map[string]interface{}{"regionidmap": fmt.Sprintf("%v", regionIdMap)})
+
+	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
 	return regionIdMap, nil
 }
 
 // GetZones returns the availability zones in a region
-func (g *GceInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
-	log := logger.Extract(ctx)
+func (g *GceInfoer) GetZones(region string) ([]string, error) {
+	log := log.WithFields(g.log, map[string]interface{}{"region": region})
 	log.Debug("getting zones")
+
 	zones := make([]string, 0)
 	err := g.computeSvc.Zones.List(g.projectId).Pages(context.TODO(), func(zoneList *compute.ZoneList) error {
 		for _, z := range zoneList.Items {
@@ -390,7 +397,7 @@ func (g *GceInfoer) GetZones(ctx context.Context, region string) ([]string, erro
 		return nil, err
 	}
 
-	log.Debug("found zones", map[string]interface{}{"zones": fmt.Sprintf("%v", zones)})
+	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return zones, nil
 }
 
@@ -400,8 +407,8 @@ func (g *GceInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (g *GceInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]cloudinfo.Price, error) {
-	return nil, fmt.Errorf("google prices cannot be queried on the fly")
+func (g *GceInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+	return nil, errors.New("google prices cannot be queried on the fly")
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -423,18 +430,19 @@ func (g *GceInfoer) GetServices() ([]cloudinfo.Service, error) {
 }
 
 // GetService returns the given service details on the provider
-func (g *GceInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
+func (g *GceInfoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
+	log := log.WithFields(g.log, map[string]interface{}{"service": service})
 	svcs, err := g.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
+			log.Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
+	return nil, errors.Wrap(errors.New(service), "service is not supported")
 
 }
 
@@ -445,25 +453,25 @@ func (g *GceInfoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (g *GceInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (g *GceInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (g *GceInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+func (g *GceInfoer) GetVersions(service, region string) ([]string, error) {
 	switch service {
 	case "gke":
 		var versions []string
-		zones, err := g.GetZones(ctx, region)
+		zones, err := g.GetZones(region)
 		if err != nil {
 			return nil, err
 		}

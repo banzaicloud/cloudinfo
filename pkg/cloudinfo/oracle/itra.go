@@ -16,12 +16,12 @@ package oracle
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 )
 
 // ITRACloudInfo holds information of a product
@@ -46,18 +46,18 @@ type ITRAResponse struct {
 }
 
 // GetCloudInfoFromITRA gets product information from ITRA api by part number
-func (i *Infoer) GetCloudInfoFromITRA(ctx context.Context, partNumber string) (info ITRACloudInfo, err error) {
+func (i *Infoer) GetCloudInfoFromITRA(partNumber string) (info ITRACloudInfo, err error) {
 
 	if i.cloudInfoCache == nil {
 		i.cloudInfoCache = make(map[string]ITRACloudInfo)
 	}
 
 	if _, ok := i.cloudInfoCache[partNumber]; ok {
-		logger.Extract(ctx).Debug("getting product info for part number - from cache", map[string]interface{}{"PN": partNumber})
+		i.log.Debug("getting product info for part number - from cache", map[string]interface{}{"PN": partNumber})
 		return i.cloudInfoCache[partNumber], nil
 	}
 
-	logger.Extract(ctx).Debug("getting product info]", map[string]interface{}{"PN": partNumber})
+	i.log.Debug("getting product info", map[string]interface{}{"PN": partNumber})
 
 	url := fmt.Sprintf("https://itra.oraclecloud.com/itas/.anon/myservices/api/v1/products?partNumber=%s", partNumber)
 	resp, err := http.Get(url)
@@ -78,7 +78,7 @@ func (i *Infoer) GetCloudInfoFromITRA(ctx context.Context, partNumber string) (i
 	}
 
 	if len(response.Items) < 1 {
-		return info, fmt.Errorf("No product information was found for PN[%s]", partNumber)
+		return info, emperror.With(errors.New("no product information was found"), "partNumber", partNumber)
 	}
 
 	i.cloudInfoCache[partNumber] = response.Items[0]

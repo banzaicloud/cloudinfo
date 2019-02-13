@@ -15,14 +15,16 @@
 package amazon
 
 import (
-	"fmt"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/pkg/errors"
 )
 
 var (
 	ntwPerfMap = map[string][]string{
 		// available categories
+		//"Up to 25 Gigabit"
+		//"50 Gigabit"
+		//"100 Gigabit"
 		//"10 Gigabit"
 		//"20 Gigabit"
 		//"25 Gigabit"
@@ -37,7 +39,7 @@ var (
 		cloudinfo.NetwLow:   {"Very Low", "Low", "Low to Moderate"},
 		cloudinfo.NtwMedium: {"Moderate", "High"},
 		cloudinfo.NtwHight:  {"Up to 10 Gigabit", "10 Gigabit"},
-		cloudinfo.NtwExtra:  {"20 Gigabit", "25 Gigabit"},
+		cloudinfo.NtwExtra:  {"20 Gigabit", "25 Gigabit", "Up to 25 Gigabit", "50 Gigabit", "100 Gigabit"},
 	}
 )
 
@@ -57,5 +59,5 @@ func (nm *AmazonNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 			return perfCat, nil
 		}
 	}
-	return "", fmt.Errorf("could not determine network performance for: [%s]", ntwPerf)
+	return "", errors.Wrap(errors.New(ntwPerf), "could not determine network performance")
 }

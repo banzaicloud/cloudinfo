@@ -15,7 +15,6 @@
 package amazon
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -214,7 +213,7 @@ func TestNewEc2Infoer(t *testing.T) {
 	for _, test := range tests {
 		logger.Init(logur.NewTestLogger())
 		t.Run(test.name, func(t *testing.T) {
-			test.check(NewEc2Infoer(context.Background(), test.prom, "", "", ""))
+			test.check(newInfoer(test.prom, "", "", "", logur.NewTestLogger()))
 		})
 	}
 }
@@ -253,14 +252,14 @@ func TestEc2Infoer_GetAttributeValues(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudinfoer, err := NewEc2Infoer(context.Background(), "", "", "", "")
+			cloudinfoer, err := newInfoer("", "", "", "", logur.NewTestLogger())
 			// override pricingSvc
 			cloudinfoer.pricingSvc = test.pricingService
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
 
-			test.check(cloudinfoer.GetAttributeValues(context.Background(), "compute", test.attrName))
+			test.check(cloudinfoer.GetAttributeValues("compute", test.attrName))
 
 		})
 	}
@@ -293,7 +292,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "", "", "", "")
+			cloudInfoer, err := newInfoer("", "", "", "", logur.NewTestLogger())
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -335,14 +334,14 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "", "", "", "")
+			cloudInfoer, err := newInfoer("", "", "", "", logur.NewTestLogger())
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
 
-			test.check(cloudInfoer.getCurrentSpotPrices(context.Background(), test.region))
+			test.check(cloudInfoer.getCurrentSpotPrices(test.region))
 		})
 	}
 }
@@ -379,14 +378,14 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "", "", "")
+			cloudInfoer, err := newInfoer("PromAPIAddress", "", "", "", logur.NewTestLogger())
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
 
-			test.check(cloudInfoer.GetCurrentPrices(context.Background(), test.region))
+			test.check(cloudInfoer.GetCurrentPrices(test.region))
 		})
 	}
 }
@@ -424,13 +423,13 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewEc2Infoer(context.Background(), "PromAPIAddress", "", "", "")
+			cloudInfoer, err := newInfoer("PromAPIAddress", "", "", "", logur.NewTestLogger())
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
-			test.check(cloudInfoer.GetZones(context.Background(), test.region))
+			test.check(cloudInfoer.GetZones(test.region))
 		})
 	}
 }
@@ -588,7 +587,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			pricedata, _ := newPriceData(test.price.awsData)
-			test.check(pricedata.GetDataForKey(test.attr))
+			test.check(pricedata.getDataForKey(test.attr))
 		})
 	}
 }
@@ -669,7 +668,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 									"randomNumber": map[string]interface{}{}}}}}}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: [ pricePerUnit ]")
+				assert.EqualError(t, err, "could not get map for key: pricePerUnit")
 			},
 		},
 		{
@@ -681,7 +680,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 							"randomNumber": map[string]interface{}{}}}}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: [ priceDimensions ]")
+				assert.EqualError(t, err, "could not get map for key: priceDimensions")
 			},
 		},
 		{
@@ -691,7 +690,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 					"terms": map[string]interface{}{}}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: [ OnDemand ]")
+				assert.EqualError(t, err, "could not get map for key: OnDemand")
 			},
 		},
 		{
@@ -700,13 +699,13 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 				awsData: aws.JSONValue{}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: [ terms ]")
+				assert.EqualError(t, err, "could not get map for key: terms")
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.check(test.price.GetOnDemandPrice())
+			test.check(test.price.getOnDemandPrice())
 		})
 	}
 }
@@ -730,7 +729,7 @@ func TestPriceData_newPriceData(t *testing.T) {
 			prData: aws.JSONValue{"product": map[string]interface{}{}},
 			check: func(data *priceData, err error) {
 				assert.Nil(t, data, "the data should be nil")
-				assert.EqualError(t, err, "could not get map for key: [ attributes ]")
+				assert.EqualError(t, err, "could not get map for key: attributes")
 			},
 		},
 		{
@@ -738,7 +737,7 @@ func TestPriceData_newPriceData(t *testing.T) {
 			prData: aws.JSONValue{},
 			check: func(data *priceData, err error) {
 				assert.Nil(t, data, "the data should be nil")
-				assert.EqualError(t, err, "could not get map for key: [ product ]")
+				assert.EqualError(t, err, "could not get map for key: product")
 			},
 		},
 	}

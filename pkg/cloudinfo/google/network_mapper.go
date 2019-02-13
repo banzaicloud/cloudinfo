@@ -15,9 +15,8 @@
 package google
 
 import (
-	"fmt"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -45,5 +44,5 @@ func (nm *GceNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 			return perfCat, nil
 		}
 	}
-	return "", fmt.Errorf("could not determine network performance for: [%s]", ntwPerf)
+	return "", errors.Wrap(errors.New(ntwPerf), "could not determine network performance")
 }

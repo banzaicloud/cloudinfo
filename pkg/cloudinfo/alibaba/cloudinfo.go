@@ -15,22 +15,24 @@
 package alibaba
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 )
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
 	client CommonDescriber
+	log    logur.Logger
 }
 
 const (
@@ -38,8 +40,8 @@ const (
 	svcAck     = "ack"
 )
 
-// NewAlibabaInfoer creates a new instance of the Alibaba infoer
-func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaInfoer, error) {
+// newInfoer creates a new instance of the Alibaba infoer
+func newInfoer(regionId, accessKeyId, accessKeySecret string, log logur.Logger) (*AlibabaInfoer, error) {
 
 	// Create client
 	client, err := sdk.NewClientWithAccessKey(
@@ -60,20 +62,21 @@ func NewAlibabaInfoer(regionId, accessKeyId, accessKeySecret string) (*AlibabaIn
 
 	return &AlibabaInfoer{
 		client: client,
+		log:    log,
 	}, nil
 }
 
-func NewAliInfoer(ctx context.Context, cfg Config) (*AlibabaInfoer, error) {
-	return NewAlibabaInfoer(cfg.RegionId, cfg.AccessKeyId, cfg.AccessKeySecret)
+func NewAliInfoer(cfg Config, log logur.Logger) (*AlibabaInfoer, error) {
+	return newInfoer(cfg.RegionId, cfg.AccessKeyId, cfg.AccessKeySecret, log)
 }
 
 // Initialize is not needed on Alibaba because price info is changing frequently
-func (a *AlibabaInfoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
+func (a *AlibabaInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil
 }
 
-func (a *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string) (map[string]cloudinfo.SpotPriceInfo, error) {
-	log := logger.Extract(ctx)
+func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"region": region})
 	log.Debug("start retrieving spot price data")
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 
@@ -112,19 +115,19 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(ctx context.Context, region string)
 			}
 		}
 	}
-	log.Debug("retrieved spot price data", map[string]interface{}{"region": region})
+	log.Debug("retrieved spot price data")
 	return priceInfo, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
-	log := logger.Extract(ctx)
-	log.Debug("retrieving attribute values", map[string]interface{}{"attribute": attribute})
+func (a *AlibabaInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service, "attribute": attribute})
+	log.Debug("retrieving attribute values")
 
 	values := make(cloudinfo.AttrValues, 0)
 	valueSet := make(map[cloudinfo.AttrValue]interface{})
 
-	regions, err := a.GetRegions(ctx, service)
+	regions, err := a.GetRegions(service)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +170,7 @@ func (a *AlibabaInfoer) GetAttributeValues(ctx context.Context, service, attribu
 		values = append(values, attr)
 	}
 
-	log.Debug("found attribute values", map[string]interface{}{"attribute": attribute, "values": fmt.Sprintf("%v", values)})
+	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
 	return values, nil
 }
 
@@ -188,8 +191,8 @@ func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := logger.Extract(ctx)
+func (a *AlibabaInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service, "region": regionId})
 	log.Debug("getting product info")
 	vms := make([]cloudinfo.VmInfo, 0)
 
@@ -221,7 +224,8 @@ func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 			ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
 			ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 			if err != nil {
-				log.Debug("could not get network performance category")
+				log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+					map[string]interface{}{"instanceType": instanceType.InstanceTypeId})
 			}
 
 			vms = append(vms, cloudinfo.VmInfo{
@@ -242,7 +246,7 @@ func (a *AlibabaInfoer) GetProducts(ctx context.Context, service, regionId strin
 		return nil, err
 	}
 
-	log.Debug("found vms", map[string]interface{}{"vms": fmt.Sprintf("%v", virtualMachines)})
+	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(virtualMachines)})
 	return virtualMachines, nil
 }
 
@@ -383,7 +387,10 @@ func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) (bssopen
 }
 
 // GetZones returns the availability zones in a region
-func (a *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
+func (a *AlibabaInfoer) GetZones(region string) ([]string, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"region": region})
+	log.Debug("getting zones")
+
 	var zones []string
 
 	availableZones, err := a.getZones(region)
@@ -394,12 +401,15 @@ func (a *AlibabaInfoer) GetZones(ctx context.Context, region string) ([]string, 
 	for _, zone := range availableZones {
 		zones = append(zones, zone.ZoneId)
 	}
+
+	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return zones, nil
 }
 
 // GetRegions returns a map with available regions
-func (a *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
-	var regionIdMap = make(map[string]string)
+func (a *AlibabaInfoer) GetRegions(service string) (map[string]string, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service})
+	log.Debug("getting regions")
 
 	describeRegions, err := a.client.ProcessCommonRequest(a.describeRegionsRequest())
 	if err != nil {
@@ -413,9 +423,12 @@ func (a *AlibabaInfoer) GetRegions(ctx context.Context, service string) (map[str
 		return nil, err
 	}
 
+	var regionIdMap = make(map[string]string)
 	for _, region := range response.Regions.Region {
 		regionIdMap[region.RegionId] = region.LocalName
 	}
+
+	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
 	return regionIdMap, nil
 }
 
@@ -425,15 +438,12 @@ func (a *AlibabaInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
-func (a *AlibabaInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]cloudinfo.Price, error) {
-	log := logger.Extract(ctx)
+func (a *AlibabaInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	var spotPrices map[string]cloudinfo.SpotPriceInfo
 	var err error
 
-	log.Debug("getting current spot prices directly from the API", map[string]interface{}{"region": region})
-	spotPrices, err = a.getCurrentSpotPrices(ctx, region)
+	spotPrices, err = a.getCurrentSpotPrices(region)
 	if err != nil {
-		log.Error("could not retrieve current prices.", map[string]interface{}{"region": region})
 		return nil, err
 	}
 
@@ -470,7 +480,7 @@ func (a *AlibabaInfoer) GetServices() ([]cloudinfo.Service, error) {
 }
 
 // GetService returns the given service description
-func (a *AlibabaInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
+func (a *AlibabaInfoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
 	svcs, err := a.GetServices()
 	if err != nil {
 		return nil, err
@@ -480,7 +490,7 @@ func (a *AlibabaInfoer) GetService(ctx context.Context, service string) (cloudin
 			return sd, nil
 		}
 	}
-	return nil, emperror.With(errors.New("the service is not supported"), "service", service)
+	return nil, errors.Wrap(errors.New(service), "service is not supported")
 }
 
 // HasImages - Alibaba doesn't support images
@@ -504,7 +514,7 @@ func (a *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) 
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (a *AlibabaInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+func (a *AlibabaInfoer) GetVersions(service, region string) ([]string, error) {
 	switch service {
 	case svcAck:
 		return []string{"1.11.2"}, nil

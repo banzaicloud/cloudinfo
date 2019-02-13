@@ -210,7 +210,7 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 			logger.NewLogCtxBuilder().
 				WithService(service.ServiceName()).
 				Build())
-		regions, err := cpi.cloudInfoers[provider].GetRegions(ctx, service.ServiceName())
+		regions, err := cpi.cloudInfoers[provider].GetRegions(service.ServiceName())
 		if err != nil {
 			cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), "N/A")
 			logger.Extract(ctxLog).Error(emperror.Wrap(err, "failed to renew products").Error())
@@ -275,7 +275,7 @@ func (cpi *cachingCloudInfo) Initialize(ctx context.Context, provider string) (m
 	defer cpi.tracer.EndSpan(ctx)
 	log := logger.Extract(ctx)
 	log.Info("initializing cloud product information")
-	allPrices, err := cpi.cloudInfoers[provider].Initialize(ctx)
+	allPrices, err := cpi.cloudInfoers[provider].Initialize()
 	if err != nil {
 		log.Warn("failed to initialize cloud product information")
 		return nil, err
@@ -333,7 +333,7 @@ func (cpi *cachingCloudInfo) renewAttrValues(ctx context.Context, provider, serv
 		return nil, emperror.With(err, "renewal")
 	}
 
-	if values, err = cpi.cloudInfoers[provider].GetAttributeValues(ctx, service, attr); err != nil {
+	if values, err = cpi.cloudInfoers[provider].GetAttributeValues(service, attr); err != nil {
 		return nil, emperror.With(err, "renewal")
 	}
 
@@ -385,7 +385,7 @@ func (cpi *cachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider s
 		return nil, nil
 	}
 
-	if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(ctx, region); err != nil {
+	if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(region); err != nil {
 		return nil, emperror.WrapWith(err, "failed to retrieve prices",
 			"provider", provider, "region", region)
 	}
@@ -414,7 +414,7 @@ func (cpi *cachingCloudInfo) renewVms(ctx context.Context, provider, service, re
 		err    error
 	)
 
-	if values, err = cpi.cloudInfoers[provider].GetProducts(ctx, service, regionId); err != nil {
+	if values, err = cpi.cloudInfoers[provider].GetProducts(service, regionId); err != nil {
 		return nil, emperror.With(err, "provider", provider, "service", service, "region", regionId)
 	}
 
@@ -443,7 +443,7 @@ func (cpi *cachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 	}
 
 	// retrieve zones from the provider
-	if zones, err = cpi.cloudInfoers[provider].GetZones(ctx, region); err != nil {
+	if zones, err = cpi.cloudInfoers[provider].GetZones(region); err != nil {
 		log.Error("error while retrieving zones.")
 		return nil, emperror.With(err, "provider", provider, "region", region)
 	}
@@ -468,7 +468,7 @@ func (cpi *cachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 	}
 
 	// retrieve regions from the provider
-	if regions, err = cpi.cloudInfoers[provider].GetRegions(ctx, service); err != nil {
+	if regions, err = cpi.cloudInfoers[provider].GetRegions(service); err != nil {
 		log.Error("could not retrieve regions.")
 		return nil, emperror.With(err, "provider", provider, "service", service)
 	}
@@ -574,7 +574,7 @@ func (cpi *cachingCloudInfo) renewVersions(ctx context.Context, provider, servic
 		values []string
 		err    error
 	)
-	if values, err = cpi.cloudInfoers[provider].GetVersions(ctx, service, region); err != nil {
+	if values, err = cpi.cloudInfoers[provider].GetVersions(service, region); err != nil {
 		return nil, emperror.With(errors.New("failed to renew versions"), "provider", provider, "service", service, "region", region)
 	}
 	cpi.cloudInfoStore.StoreVersion(provider, service, region, values)

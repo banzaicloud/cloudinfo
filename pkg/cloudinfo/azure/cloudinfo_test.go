@@ -16,16 +16,16 @@ package azure
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/logur"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,7 +49,7 @@ const (
 func (dps *testStruct) List(ctx context.Context, location string) (result compute.VirtualMachineSizeListResult, err error) {
 	switch dps.TcId {
 	case GetVmsError:
-		return compute.VirtualMachineSizeListResult{}, fmt.Errorf(GetVmsError)
+		return compute.VirtualMachineSizeListResult{}, errors.New(GetVmsError)
 	default:
 		return compute.VirtualMachineSizeListResult{
 			Value: &[]compute.VirtualMachineSize{
@@ -79,7 +79,7 @@ func (dps *testStruct) List(ctx context.Context, location string) (result comput
 func (dps *testStruct) ListLocations(ctx context.Context, subscriptionID string) (result subscriptions.LocationListResult, err error) {
 	switch dps.TcId {
 	case GetRegionsError:
-		return subscriptions.LocationListResult{}, fmt.Errorf(GetRegionsError)
+		return subscriptions.LocationListResult{}, errors.New(GetRegionsError)
 	default:
 		return subscriptions.LocationListResult{
 			Value: &[]subscriptions.Location{
@@ -103,7 +103,7 @@ func (dps *testStruct) ListLocations(ctx context.Context, subscriptionID string)
 func (dps *testStruct) Get(ctx context.Context, resourceProviderNamespace string, expand string) (result resources.Provider, err error) {
 	switch dps.TcId {
 	case GetLocationError:
-		return resources.Provider{}, fmt.Errorf(GetLocationError)
+		return resources.Provider{}, errors.New(GetLocationError)
 	default:
 		return resources.Provider{
 			ResourceTypes: &[]resources.ProviderResourceType{
@@ -123,7 +123,7 @@ func (dps *testStruct) Get(ctx context.Context, resourceProviderNamespace string
 func (dps *test) Get(ctx context.Context, filter string) (result commerce.ResourceRateCardInfo, err error) {
 	switch dps.TcId {
 	case GetPriceError:
-		return commerce.ResourceRateCardInfo{}, fmt.Errorf(GetPriceError)
+		return commerce.ResourceRateCardInfo{}, errors.New(GetPriceError)
 	default:
 		return commerce.ResourceRateCardInfo{
 			Meters: &[]commerce.MeterInfo{
@@ -160,6 +160,10 @@ func (dps *test) Get(ctx context.Context, filter string) (result commerce.Resour
 			},
 		}, nil
 	}
+}
+
+func (dps *testStruct) ListOrchestrators(ctx context.Context, location string, resourceType string) (result containerservice.OrchestratorVersionProfileListResult, err error) {
+	return containerservice.OrchestratorVersionProfileListResult{}, nil
 }
 
 // strPointer gets the pointer to the passed string
@@ -343,7 +347,7 @@ func TestAzureInfoer_toRegionID(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 			test.check(azureInfoer.toRegionID(test.sourceRegion, regionMap))
 		})
 	}
@@ -381,7 +385,7 @@ func TestAzureInfoer_transformMachineType(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 			test.check(azureInfoer.transformMachineType(test.subCategory, test.sourceMt))
 		})
 	}
@@ -530,7 +534,7 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 			test.check(azureInfoer.getMachineTypeVariants(test.sourceMt))
 		})
 	}
@@ -588,12 +592,11 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		logger.Init(logur.NewTestLogger())
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 
 			azureInfoer.vmSizesClient = test.vmSizes
-			test.check(azureInfoer.GetProducts(context.TODO(), test.service, "dummyRegion"))
+			test.check(azureInfoer.GetProducts(test.service, "dummyRegion"))
 		})
 	}
 }
@@ -659,11 +662,11 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 
 			azureInfoer.subscriptionsClient = test.location
 			azureInfoer.providersClient = test.providers
-			test.check(azureInfoer.GetRegions(context.TODO(), test.service))
+			test.check(azureInfoer.GetRegions(test.service))
 		})
 	}
 }
@@ -749,12 +752,12 @@ func TestAzureInfoer_GetAttributeValues(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 
 			azureInfoer.vmSizesClient = test.vmSizes
 			azureInfoer.subscriptionsClient = test.location
 			azureInfoer.providersClient = test.providers
-			test.check(azureInfoer.GetAttributeValues(context.TODO(), test.service, test.attribute))
+			test.check(azureInfoer.GetAttributeValues(test.service, test.attribute))
 		})
 	}
 }
@@ -811,12 +814,12 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{}
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 
 			azureInfoer.subscriptionsClient = test.location
 			azureInfoer.providersClient = test.providers
 			azureInfoer.rateCardClient = test.price
-			test.check(azureInfoer.Initialize(context.TODO()))
+			test.check(azureInfoer.Initialize())
 		})
 	}
 }
