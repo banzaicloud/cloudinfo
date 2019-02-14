@@ -48,9 +48,6 @@ type CloudInfoer interface {
 	// GetServices returns the available services on the given provider
 	GetServices() ([]Service, error)
 
-	// GetServices returns the available services on the  given region
-	GetService(service string) (ServiceDescriber, error)
-
 	// HasImages signals if a product info provider has image support
 	HasImages() bool
 

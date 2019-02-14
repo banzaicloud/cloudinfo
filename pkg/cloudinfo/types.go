@@ -34,6 +34,9 @@ type CloudInfo interface {
 	// GetProvider retrieves information about the provider
 	GetProvider(ctx context.Context, provider string) (Provider, error)
 
+	// GetServices returns the supported services for a provider
+	GetServices(ctx context.Context, provider string) ([]Service, error)
+
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
 	Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error)
 

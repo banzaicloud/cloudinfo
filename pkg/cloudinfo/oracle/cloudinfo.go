@@ -327,23 +327,6 @@ func (i *Infoer) GetServices() ([]cloudinfo.Service, error) {
 	return services, nil
 }
 
-// GetService returns the service on the  provider
-func (i *Infoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
-	log := log.WithFields(i.log, map[string]interface{}{"service": service})
-
-	svcs, err := i.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			log.Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-	return nil, errors.Wrap(errors.New(service), "service is not supported")
-}
-
 // HasImages - Oracle support images
 func (i *Infoer) HasImages() bool {
 	return true

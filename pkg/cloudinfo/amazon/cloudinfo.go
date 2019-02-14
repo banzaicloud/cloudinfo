@@ -547,24 +547,6 @@ func (e *Ec2Infoer) GetServices() ([]cloudinfo.Service, error) {
 	return services, nil
 }
 
-// GetService returns the given service description
-func (e *Ec2Infoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"service": service})
-
-	svcs, err := e.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			log.Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-	return nil, errors.Wrap(errors.New(service), "service is not supported")
-
-}
-
 // HasImages - Amazon support images
 func (e *Ec2Infoer) HasImages() bool {
 	return true

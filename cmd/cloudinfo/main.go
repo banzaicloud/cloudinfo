@@ -120,7 +120,6 @@ func main() {
 		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
 	}
 
-	// configure the gin validator
 	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
 	emperror.Panic(err)
 

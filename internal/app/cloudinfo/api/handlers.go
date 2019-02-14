@@ -124,13 +124,7 @@ func (r *RouteHandler) getServices(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
-		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrap(err, "could not retrieve cloud info provider"))
-			return
-		}
-
-		services, err := infoer.GetServices()
+		services, err := r.prod.GetServices(ctx, pathParams.Provider)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
 				"could not retrieve services for provider: %s", pathParams.Provider))
@@ -168,20 +162,22 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
-		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrap(err, "could not retrieve cloud info provider"))
-			return
-		}
-
-		service, err := infoer.GetService(pathParams.Service)
+		services, err := r.prod.GetServices(ctx, pathParams.Provider)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
-				"could not retrieve service [%s] for cloud info provider [%s]", pathParams.Service, pathParams.Provider))
+				"could not retrieve services for provider: %s", pathParams.Provider))
 			return
 		}
 
-		c.JSON(http.StatusOK, NewServiceResponse(service))
+		for _, service := range services {
+			if service.ServiceName() == pathParams.Service {
+				c.JSON(http.StatusOK, NewServiceResponse(service))
+				return
+			}
+		}
+
+		r.errorResponder.Respond(c, emperror.With(errors.New("could not retrieve service"),
+			"service", pathParams.Service, "provider", pathParams.Provider))
 	}
 }
 

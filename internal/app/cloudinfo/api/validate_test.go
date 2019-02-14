@@ -15,9 +15,10 @@
 package api
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/go-playground/validator.v8"
-	"testing"
 )
 
 func TestGetProviderPathParamsValidation(t *testing.T) {

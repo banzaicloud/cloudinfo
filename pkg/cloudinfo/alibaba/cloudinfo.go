@@ -479,20 +479,6 @@ func (a *AlibabaInfoer) GetServices() ([]cloudinfo.Service, error) {
 	return services, nil
 }
 
-// GetService returns the given service description
-func (a *AlibabaInfoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
-	svcs, err := a.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			return sd, nil
-		}
-	}
-	return nil, errors.Wrap(errors.New(service), "service is not supported")
-}
-
 // HasImages - Alibaba doesn't support images
 func (a *AlibabaInfoer) HasImages() bool {
 	return false

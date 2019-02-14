@@ -137,6 +137,23 @@ func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, serv
 	return nil
 }
 
+func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, region string) error {
+	var (
+		zones []string
+		err   error
+	)
+
+	sm.log.Debug("retrieving regional zone information", map[string]interface{}{"region": region})
+
+	if zones, err = sm.infoer.GetZones(region); err != nil {
+		return emperror.Wrap(err, "failed to retrieve zones for region")
+	}
+
+	sm.store.StoreZones(sm.provider, region, zones)
+
+	return nil
+}
+
 func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services []Service) error {
 	var (
 		regions map[string]string
@@ -154,9 +171,15 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				"provider", sm.provider, "service", service.ServiceName())
 		}
 
+		sm.store.StoreRegions(sm.provider, service.ServiceName(), regions)
+
 		for regionId := range regions {
 
 			start := time.Now()
+			if err = sm.scrapeServiceRegionZones(ctx, regionId); err != nil {
+				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
+			}
 			if err = sm.scrapeServiceRegionProducts(ctx, service, regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
@@ -194,6 +217,8 @@ func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
 		sm.log.Error(emperror.Wrap(err, "failed to retrieve services").Error(), logger.ToMap(emperror.Context(err)))
 	}
+
+	sm.store.StoreServices(sm.provider, services)
 
 	if err := sm.scrapeServiceAttributes(ctx, services); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to load service attribute values").Error(), logger.ToMap(emperror.Context(err)))
