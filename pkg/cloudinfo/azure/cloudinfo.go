@@ -572,24 +572,6 @@ func (a *AzureInfoer) GetServices() ([]cloudinfo.Service, error) {
 	return services, nil
 }
 
-// GetService returns the service on the provider
-func (a *AzureInfoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service})
-
-	svcs, err := a.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			log.Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-
-	return nil, errors.Wrap(errors.New(service), "service is not supported")
-}
-
 // HasImages - Azure doesn't support images
 func (a *AzureInfoer) HasImages() bool {
 	return false

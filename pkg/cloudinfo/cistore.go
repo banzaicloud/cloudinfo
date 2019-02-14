@@ -48,15 +48,18 @@ const (
 
 	// VersionKeyTemplate format for generating kubernetes version cache keys
 	VersionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
+
+	// ServicesKeyTemplate key for storing provider specific services
+	ServicesKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services"
 )
 
 // Storage operations for cloud information
 type CloudInfoStore interface {
-	StoreRegion(provider, service string, val interface{})
-	GetRegion(provider, service string) (interface{}, bool)
+	StoreRegions(provider, service string, val interface{})
+	GetRegions(provider, service string) (interface{}, bool)
 
-	StoreZone(provider, region string, val interface{})
-	GetZone(provider, region string) (interface{}, bool)
+	StoreZones(provider, region string, val interface{})
+	GetZones(provider, region string) (interface{}, bool)
 
 	StorePrice(provider, region, instanceType string, val interface{})
 	GetPrice(provider, region, instanceType string) (interface{}, bool)
@@ -75,6 +78,9 @@ type CloudInfoStore interface {
 
 	StoreStatus(provider string, val interface{})
 	GetStatus(provider string) (interface{}, bool)
+
+	StoreServices(provider string, services interface{})
+	GetServices(provider string) (interface{}, bool)
 
 	Export(w io.Writer) error
 	Import(r io.Reader) error
@@ -106,19 +112,19 @@ func (cis *cacheProductStore) Import(r io.Reader) error {
 	return nil
 }
 
-func (cis *cacheProductStore) StoreRegion(provider, service string, val interface{}) {
+func (cis *cacheProductStore) StoreRegions(provider, service string, val interface{}) {
 	cis.Set(cis.getKey(RegionKeyTemplate, provider, service), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetRegion(provider, service string) (interface{}, bool) {
+func (cis *cacheProductStore) GetRegions(provider, service string) (interface{}, bool) {
 	return cis.Get(cis.getKey(RegionKeyTemplate, provider, service))
 }
 
-func (cis *cacheProductStore) StoreZone(provider, region string, val interface{}) {
+func (cis *cacheProductStore) StoreZones(provider, region string, val interface{}) {
 	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetZone(provider, region string) (interface{}, bool) {
+func (cis *cacheProductStore) GetZones(provider, region string) (interface{}, bool) {
 	return cis.Get(cis.getKey(ZoneKeyTemplate, provider, region))
 }
 
@@ -168,6 +174,14 @@ func (cis *cacheProductStore) StoreStatus(provider string, val interface{}) {
 
 func (cis *cacheProductStore) GetStatus(provider string) (interface{}, bool) {
 	return cis.Get(cis.getKey(StatusKeyTemplate, provider))
+}
+
+func (cis *cacheProductStore) StoreServices(provider string, services interface{}) {
+	cis.Set(cis.getKey(ServicesKeyTemplate, provider), services, cis.itemExpiry)
+}
+
+func (cis *cacheProductStore) GetServices(provider string) (interface{}, bool) {
+	return cis.Get(cis.getKey(ServicesKeyTemplate, provider))
 }
 
 // NewCacheProductStore creates a new store instance.

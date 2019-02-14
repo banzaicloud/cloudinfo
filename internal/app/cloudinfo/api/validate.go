@@ -72,13 +72,8 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 			Build())
 
 		log := logger.Extract(ctx)
-		ci, err := cpi.GetInfoer(ctx, currentProvider)
-		if err != nil {
-			log.Error("could not get infoer")
-			return false
-		}
 
-		regions, err := ci.GetRegions(currentService)
+		regions, err := cpi.GetRegions(ctx, currentProvider, currentService)
 		if err != nil {
 			log.Error("could not get regions")
 			return false
@@ -96,7 +91,8 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 // serviceValidator validates the `service` path parameter
 func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
 
-	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
+		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
@@ -107,12 +103,7 @@ func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fu
 			Build())
 
 		log := logger.Extract(ctx)
-		infoer, err := cpi.GetInfoer(ctx, currentProvider)
-		if err != nil {
-			log.Error("could not get infoer")
-			return false
-		}
-		services, err := infoer.GetServices()
+		services, err := cpi.GetServices(ctx, currentProvider)
 		if err != nil {
 			log.Error("could not get services")
 			return false

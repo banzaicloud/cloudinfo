@@ -429,23 +429,6 @@ func (g *GceInfoer) GetServices() ([]cloudinfo.Service, error) {
 	return services, nil
 }
 
-// GetService returns the given service details on the provider
-func (g *GceInfoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"service": service})
-	svcs, err := g.GetServices()
-	if err != nil {
-		return nil, err
-	}
-	for _, sd := range svcs {
-		if service == sd.ServiceName() {
-			log.Debug("found service", map[string]interface{}{"service": service})
-			return sd, nil
-		}
-	}
-	return nil, errors.Wrap(errors.New(service), "service is not supported")
-
-}
-
 // HasImages - Google doesn't support images
 func (g *GceInfoer) HasImages() bool {
 	return false
