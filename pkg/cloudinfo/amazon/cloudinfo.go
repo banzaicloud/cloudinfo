@@ -647,7 +647,7 @@ func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (clo
 func (e *Ec2Infoer) GetVersions(service, region string) ([]string, error) {
 	switch service {
 	case "eks":
-		return []string{"1.10"}, nil
+		return []string{"1.10", "1.11"}, nil
 	default:
 		return []string{}, nil
 	}
