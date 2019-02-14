@@ -40,11 +40,11 @@ func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 		{
 			name: "error - mapper doesn't map to a category",
 			vm: cloudinfo.VmInfo{
-				NtwPerf: "Error",
+				NtwPerf: "invalid",
 			},
 			check: func(cat string, err error) {
 				assert.Equal(t, "", cat, "not mapped to the right category")
-				assert.Equal(t, "could not determine network performance for: [Error]", err.Error())
+				assert.EqualError(t, err, "could not determine network performance: invalid")
 			},
 		},
 	}

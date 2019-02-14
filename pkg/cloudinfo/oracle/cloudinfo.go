@@ -15,12 +15,14 @@
 package oracle
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle/client"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/pkg/errors"
 )
 
 // Infoer encapsulates the data and operations needed to access external resources
@@ -28,6 +30,7 @@ type Infoer struct {
 	client         *client.OCI
 	shapeSpecs     map[string]ShapeSpecs
 	cloudInfoCache map[string]ITRACloudInfo
+	log            logur.Logger
 }
 
 // ShapeSpecs representation the specs of a certain type of virtual machine
@@ -70,8 +73,8 @@ var shapeSpecs = map[string]ShapeSpecs{
 	"VM.DenseIO2.24":  {PartNumber: "B88516", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
 }
 
-// NewInfoer creates a new instance of the infoer
-func NewInfoer(configFileLocation string) (*Infoer, error) {
+// newInfoer creates a new instance of the infoer
+func newInfoer(configFileLocation string, log logur.Logger) (*Infoer, error) {
 
 	oci, err := client.NewOCI(configFileLocation)
 	if err != nil {
@@ -81,44 +84,43 @@ func NewInfoer(configFileLocation string) (*Infoer, error) {
 	return &Infoer{
 		client:     oci,
 		shapeSpecs: shapeSpecs,
+		log:        log,
 	}, nil
 }
 
-func NewOracleInfoer(ctx context.Context, cfg Config) (*Infoer, error) {
-	return NewInfoer(cfg.ConfigLocation)
+func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
+	return newInfoer(cfg.ConfigLocation, log)
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]cloudinfo.Price, err error) {
-	log := logger.Extract(ctx)
-
-	log.Info("initializing price info")
+func (i *Infoer) Initialize() (prices map[string]map[string]cloudinfo.Price, err error) {
+	i.log.Info("initializing price info")
 
 	prices = make(map[string]map[string]cloudinfo.Price)
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := i.GetRegions(ctx, "compute")
+	regions, err := i.GetRegions("compute")
 	if err != nil {
 		return nil, err
 	}
 
 	for r := range regions {
-		zones, err := i.GetZones(ctx, r)
+		zones, err := i.GetZones(r)
 		if err != nil {
 			return nil, err
 		}
 		zonesInRegions[r] = zones
 	}
 
-	shapePrices, err := i.GetProductPrices(ctx)
+	shapePrices, err := i.GetProductPrices()
 	if err != nil {
 		return nil, err
 	}
 
 	for region := range regions {
-		products, err := i.GetProducts(ctx, "compute", region)
+		products, err := i.GetProducts("compute", region)
 		if err != nil {
-			return prices, err
+			return prices, emperror.With(err, "service", "compute", "region", region)
 		}
 
 		if prices[region] == nil {
@@ -131,19 +133,18 @@ func (i *Infoer) Initialize(ctx context.Context) (prices map[string]map[string]c
 			price := prices[region][product.Type]
 			price.OnDemandPrice = shapePrice
 			prices[region][product.Type] = price
-			log.Debug("price info added", map[string]interface{}{"machinetype": product.Type, "price": price})
 		}
 	}
-	log.Debug("retrieved zones and regions", map[string]interface{}{"zonesInRegions": fmt.Sprintf("%v", zonesInRegions)})
 
+	i.log.Debug("finished initializing price info")
 	return
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute string) (values cloudinfo.AttrValues, err error) {
-	log := logger.Extract(ctx)
+func (i *Infoer) GetAttributeValues(service, attribute string) (values cloudinfo.AttrValues, err error) {
+	log := log.WithFields(i.log, map[string]interface{}{"service": service, "attribute": attribute})
 
-	log.Debug("retrieving attribute values", map[string]interface{}{"attribute": attribute})
+	log.Debug("retrieving attribute values")
 
 	values = make(cloudinfo.AttrValues, 0)
 	uniquemap := make(map[float64]bool)
@@ -180,14 +181,13 @@ func (i *Infoer) GetAttributeValues(ctx context.Context, service, attribute stri
 		}
 	}
 
-	log.Debug("found attribute values", map[string]interface{}{"attributes": attribute, "values": fmt.Sprintf("%v", values)})
-
+	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
 	return values, nil
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (i *Infoer) GetCurrentPrices(ctx context.Context, region string) (prices map[string]cloudinfo.Price, err error) {
-	return nil, fmt.Errorf("oracle prices cannot be queried on the fly")
+func (i *Infoer) GetCurrentPrices(region string) (prices map[string]cloudinfo.Price, err error) {
+	return nil, errors.New("oracle prices cannot be queried on the fly")
 }
 
 // GetMemoryAttrName returns the provider representation of the memory attribute
@@ -201,19 +201,23 @@ func (i *Infoer) GetCpuAttrName() string {
 }
 
 // GetProductPrices gets prices for available shapes from ITRA
-func (i *Infoer) GetProductPrices(ctx context.Context) (prices map[string]float64, err error) {
+func (i *Infoer) GetProductPrices() (prices map[string]float64, err error) {
 
 	prices = make(map[string]float64)
 	for shape, specs := range i.shapeSpecs {
-		info, _ := i.GetCloudInfoFromITRA(ctx, specs.PartNumber)
+		info, err := i.GetCloudInfoFromITRA(specs.PartNumber)
+		if err != nil {
+			return nil, err
+		}
 		prices[shape] = info.GetPrice("PAY_AS_YOU_GO") * specs.Cpus
 	}
 
-	return
+	return prices, nil
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (products []cloudinfo.VmInfo, err error) {
+func (i *Infoer) GetProducts(service, regionId string) (products []cloudinfo.VmInfo, err error) {
+	log := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
 	err = i.client.ChangeRegion(regionId)
 	if err != nil {
@@ -225,7 +229,7 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 		return
 	}
 
-	zones, err := i.GetZones(ctx, regionId)
+	zones, err := i.GetZones(regionId)
 	if err != nil {
 		return
 	}
@@ -236,7 +240,8 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 		ntwMapper := newNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
 		if err != nil {
-			logger.Extract(ctx).Debug("could not get network performance category")
+			log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+				map[string]interface{}{"instanceType": shape})
 		}
 
 		products = append(products, cloudinfo.VmInfo{
@@ -254,8 +259,9 @@ func (i *Infoer) GetProducts(ctx context.Context, service, regionId string) (pro
 }
 
 // GetRegions returns a map with available regions
-func (i *Infoer) GetRegions(ctx context.Context, service string) (regions map[string]string, err error) {
-	logger.Extract(ctx).Debug("retrieving regions")
+func (i *Infoer) GetRegions(service string) (regions map[string]string, err error) {
+	log := log.WithFields(i.log, map[string]interface{}{"service": service})
+	log.Debug("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
@@ -276,12 +282,14 @@ func (i *Infoer) GetRegions(ctx context.Context, service string) (regions map[st
 		regions[region] = description
 	}
 
+	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regions)})
 	return
 }
 
 // GetZones returns the availability zones in a region
-func (i *Infoer) GetZones(ctx context.Context, region string) (zones []string, err error) {
-	logger.Extract(ctx).Debug("getting zones")
+func (i *Infoer) GetZones(region string) (zones []string, err error) {
+	log := log.WithFields(i.log, map[string]interface{}{"region": region})
+	log.Debug("getting zones")
 
 	err = i.client.ChangeRegion(region)
 	if err != nil {
@@ -302,6 +310,7 @@ func (i *Infoer) GetZones(ctx context.Context, region string) (zones []string, e
 		zones = append(zones, *ad.Name)
 	}
 
+	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return
 }
 
@@ -319,18 +328,20 @@ func (i *Infoer) GetServices() ([]cloudinfo.Service, error) {
 }
 
 // GetService returns the service on the  provider
-func (i *Infoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
+func (i *Infoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
+	log := log.WithFields(i.log, map[string]interface{}{"service": service})
+
 	svcs, err := i.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
+			log.Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
+	return nil, errors.Wrap(errors.New(service), "service is not supported")
 }
 
 // HasImages - Oracle support images
@@ -355,16 +366,16 @@ func (i *Infoer) GetServiceImages(service, region string) (images []cloudinfo.Im
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (i *Infoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (i *Infoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (i *Infoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+func (i *Infoer) GetVersions(service, region string) ([]string, error) {
 	switch service {
 	case "oke":
 		err := i.client.ChangeRegion(region)

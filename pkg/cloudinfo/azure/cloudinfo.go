@@ -17,7 +17,6 @@ package azure
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -32,9 +31,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
+	"github.com/goph/logur"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -84,7 +85,8 @@ type AzureInfoer struct {
 	vmSizesClient       VmSizesRetriever
 	rateCardClient      PriceRetriever
 	providersClient     ProviderSource
-	containerSvcClient  *containerservice.ContainerServicesClient
+	containerSvcClient  VersionRetriever
+	log                 logur.Logger
 }
 
 // VmSizesRetriever list of operations for retrieving virtual machines information
@@ -107,8 +109,13 @@ type PriceRetriever interface {
 	Get(ctx context.Context, filter string) (result commerce.ResourceRateCardInfo, err error)
 }
 
-// azureInfoer creates a new instance of the Azure infoer
-func azureInfoer(authLocation string) (*AzureInfoer, error) {
+// VersionRetriever collects k8s versions
+type VersionRetriever interface {
+	ListOrchestrators(ctx context.Context, location string, resourceType string) (result containerservice.OrchestratorVersionProfileListResult, err error)
+}
+
+// newInfoer creates a new instance of the Azure infoer
+func newInfoer(authLocation string, log logur.Logger) (*AzureInfoer, error) {
 	err := os.Setenv("AZURE_AUTH_LOCATION", authLocation)
 	if err != nil {
 		return nil, err
@@ -151,11 +158,12 @@ func azureInfoer(authLocation string) (*AzureInfoer, error) {
 		rateCardClient:      rcClient,
 		providersClient:     providersClient,
 		containerSvcClient:  &containerServiceClient,
+		log:                 log,
 	}, nil
 }
 
-func NewAzureInfoer(ctx context.Context, cfg Config) (*AzureInfoer, error) {
-	return azureInfoer(cfg.AuthLocation)
+func NewAzureInfoer(cfg Config, log logur.Logger) (*AzureInfoer, error) {
+	return newInfoer(cfg.AuthLocation, log)
 }
 
 type regionParts []string
@@ -189,7 +197,7 @@ func (a *AzureInfoer) toRegionID(meterRegion string, regions map[string]string) 
 			return regionID, nil
 		}
 	}
-	return "", fmt.Errorf("couldn't find region: %s", meterRegion)
+	return "", errors.Wrap(errors.New(meterRegion), "couldn't find region")
 }
 
 func (a *AzureInfoer) checkRegionID(regionID string, regions map[string]string) bool {
@@ -202,29 +210,28 @@ func (a *AzureInfoer) checkRegionID(regionID string, regions map[string]string) 
 }
 
 // Initialize downloads and parses the Rate Card API's meter list on Azure
-func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]cloudinfo.Price, error) {
-	log := logger.Extract(ctx)
-	log.Debug("initializing price info")
+func (a *AzureInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+	a.log.Debug("initializing price info")
 	allPrices := make(map[string]map[string]cloudinfo.Price)
 
-	regions, err := a.GetRegions(ctx, "compute")
+	regions, err := a.GetRegions("compute")
 	if err != nil {
 		return nil, err
 	}
-
-	log.Debug("retrieved regions", map[string]interface{}{"regions": regions})
 
 	rateCardFilter := "OfferDurableId eq 'MS-AZR-0003p' and Currency eq 'USD' and Locale eq 'en-US' and RegionInfo eq 'US'"
 	result, err := a.rateCardClient.Get(context.TODO(), rateCardFilter)
 	if err != nil {
 		return nil, err
 	}
+
+	var missingRegions []string
 	for _, v := range *result.Meters {
 		if *v.MeterCategory == "Virtual Machines" && len(*v.MeterTags) == 0 && *v.MeterRegion != "" {
 			if !strings.Contains(*v.MeterSubCategory, "Windows") {
 				region, err := a.toRegionID(*v.MeterRegion, regions)
 				if err != nil {
-					log.Debug(err.Error())
+					missingRegions = append(missingRegions, *v.MeterRegion)
 					continue
 				}
 
@@ -233,7 +240,7 @@ func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]clo
 				var priceInUsd float64
 
 				if len(v.MeterRates) < 1 {
-					log.Debug("missing rate info", map[string]interface{}{"MeterSubCategory": *v.MeterSubCategory, "region": region})
+					a.log.Debug("missing rate info", map[string]interface{}{"MeterSubCategory": *v.MeterSubCategory, "region": region})
 					continue
 				}
 				for _, rate := range v.MeterRates {
@@ -254,19 +261,18 @@ func (a *AzureInfoer) Initialize(ctx context.Context) (map[string]map[string]clo
 					}
 
 					allPrices[region][instanceType] = price
-					log.Debug("price info added", map[string]interface{}{"region": region, "machineType": instanceType, "price": price})
 
 					mts := a.getMachineTypeVariants(instanceType)
 					for _, mt := range mts {
 						allPrices[region][mt] = price
-						log.Debug("price info added", map[string]interface{}{"region": region, "machineType": mt, "price": price})
 					}
 				}
 			}
 		}
 	}
+	a.log.Debug("couldn't find regions", map[string]interface{}{"missingRegions": missingRegions})
 
-	log.Debug("finished initializing price info")
+	a.log.Debug("finished initializing price info")
 	return allPrices, nil
 }
 
@@ -353,15 +359,15 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AzureInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (cloudinfo.AttrValues, error) {
-	log := logger.Extract(ctx)
+func (a *AzureInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service, "attribute": attribute})
 
-	log.Debug("getting attribute values", map[string]interface{}{"attribute": attribute})
+	log.Debug("getting attribute values")
 
 	values := make(cloudinfo.AttrValues, 0)
 	valueSet := make(map[cloudinfo.AttrValue]interface{})
 
-	regions, err := a.GetRegions(ctx, service)
+	regions, err := a.GetRegions(service)
 	if err != nil {
 		return nil, err
 	}
@@ -415,13 +421,13 @@ func (a *AzureInfoer) GetAttributeValues(ctx context.Context, service, attribute
 		values = append(values, attr)
 	}
 
-	log.Debug("retrieved attribute values", map[string]interface{}{"attribute": attribute, "values": values})
+	log.Debug("found attribute values", map[string]interface{}{"values": len(values)})
 	return values, nil
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AzureInfoer) GetProducts(ctx context.Context, service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := logger.Extract(ctx)
+func (a *AzureInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service, "region": regionId})
 	log.Debug("getting product info")
 	var vms []cloudinfo.VmInfo
 	vmSizes, err := a.vmSizesClient.List(context.TODO(), regionId)
@@ -456,18 +462,19 @@ func (a *AzureInfoer) GetProducts(ctx context.Context, service, regionId string)
 		}
 	}
 
-	log.Debug("found virtual machineds", map[string]interface{}{"vms": fmt.Sprintf("%#v", vms)})
+	log.Debug("found virtual machines", map[string]interface{}{"numberOfVms": len(vms)})
 	return vms, nil
 }
 
 // GetZones returns the availability zones in a region
-func (a *AzureInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
+func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 	return []string{region}, nil
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
-	log := logger.Extract(ctx)
+func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service})
+	log.Debug("getting locations")
 
 	allLocations := make(map[string]string)
 	supLocations := make(map[string]string)
@@ -498,7 +505,6 @@ func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[strin
 				if *pr.ResourceType == resourceTypeForAks {
 					for _, displName := range *pr.Locations {
 						if loc, ok := allLocations[displName]; ok {
-							log.Debug("found supported location", map[string]interface{}{"name": loc, "displayname": displName})
 							supLocations[loc] = displName
 						} else {
 							log.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
@@ -512,6 +518,7 @@ func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[strin
 			return nil, err
 		}
 
+		log.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
 		return supLocations, nil
 	default:
 		if providers, err := a.providersClient.Get(context.TODO(), providerNamespaceForCompute, ""); err == nil {
@@ -519,7 +526,6 @@ func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[strin
 				if *pr.ResourceType == resourceTypeForCompute {
 					for _, displName := range *pr.Locations {
 						if loc, ok := allLocations[displName]; ok {
-							log.Debug("found supported location", map[string]interface{}{"name": loc, "displayname": displName})
 							supLocations[loc] = displName
 						} else {
 							log.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
@@ -533,6 +539,7 @@ func (a *AzureInfoer) GetRegions(ctx context.Context, service string) (map[strin
 			return nil, err
 		}
 
+		log.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
 		return supLocations, nil
 	}
 }
@@ -543,7 +550,7 @@ func (a *AzureInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices retrieves all the price info in a region
-func (a *AzureInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]cloudinfo.Price, error) {
+func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	return nil, errors.New("azure prices cannot be queried on the fly")
 }
 
@@ -566,19 +573,21 @@ func (a *AzureInfoer) GetServices() ([]cloudinfo.Service, error) {
 }
 
 // GetService returns the service on the provider
-func (a *AzureInfoer) GetService(ctx context.Context, service string) (cloudinfo.ServiceDescriber, error) {
+func (a *AzureInfoer) GetService(service string) (cloudinfo.ServiceDescriber, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"service": service})
+
 	svcs, err := a.GetServices()
 	if err != nil {
 		return nil, err
 	}
 	for _, sd := range svcs {
 		if service == sd.ServiceName() {
-			logger.Extract(ctx).Debug("found service", map[string]interface{}{"service": service})
+			log.Debug("found service", map[string]interface{}{"service": service})
 			return sd, nil
 		}
 	}
-	return nil, fmt.Errorf("the service [%s] is not supported", service)
 
+	return nil, errors.Wrap(errors.New(service), "service is not supported")
 }
 
 // HasImages - Azure doesn't support images
@@ -588,26 +597,26 @@ func (a *AzureInfoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (a *AzureInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
-	return nil, fmt.Errorf("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (a *AzureInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, fmt.Errorf("GetServiceProducts - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (a *AzureInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, fmt.Errorf("GetServiceAttributes - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (a *AzureInfoer) GetVersions(ctx context.Context, service, region string) ([]string, error) {
+func (a *AzureInfoer) GetVersions(service, region string) ([]string, error) {
 	switch service {
 	case "aks":
 		const resourceTypeForAks = "managedClusters"
 		var versions []string
-		resp, err := a.containerSvcClient.ListOrchestrators(ctx, region, resourceTypeForAks)
+		resp, err := a.containerSvcClient.ListOrchestrators(context.TODO(), region, resourceTypeForAks)
 		if err != nil {
 			return nil, err
 		}

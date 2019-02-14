@@ -16,12 +16,12 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -31,7 +31,7 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 	v := binding.Validator.Engine().(*validator.Validate)
 
 	if err := v.RegisterValidation("provider", providerValidator(providers)); err != nil {
-		return fmt.Errorf("could not register provider validator. error: %s", err)
+		return errors.Wrap(err, "could not register provider validator")
 	}
 
 	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -42,17 +42,17 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 		}
 		return false
 	}); err != nil {
-		return fmt.Errorf("could not register attribute validator. error: %s", err)
+		return errors.Wrap(err, "could not register attribute validator")
 	}
 
 	// register validator for the service parameter in the request path
 	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
-		return fmt.Errorf("could not register service validator. error: %s", err)
+		return errors.Wrap(err, "could not register service validator")
 	}
 
 	// register validator for the region parameter in the request path
 	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
-		return fmt.Errorf("could not register provider validator. . error: %s", err)
+		return errors.Wrap(err, "could not register region validator")
 	}
 	return nil
 }
@@ -78,7 +78,7 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 			return false
 		}
 
-		regions, err := ci.GetRegions(ctx, currentService)
+		regions, err := ci.GetRegions(currentService)
 		if err != nil {
 			log.Error("could not get regions")
 			return false

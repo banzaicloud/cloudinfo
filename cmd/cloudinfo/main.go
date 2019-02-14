@@ -28,7 +28,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
@@ -46,6 +45,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -94,7 +94,7 @@ func main() {
 
 	// Configure Jaeger
 	if config.Instrumentation.Jaeger.Enabled {
-		logur.Info("jaeger exporter enabled", nil)
+		logur.Info("jaeger exporter enabled")
 		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
 		// set the app tracer
 		tracer = tracing.NewTracer()
@@ -102,7 +102,7 @@ func main() {
 
 	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
 
-	infoers := loadInfoers(ctx, config)
+	infoers := loadInfoers(config, logur)
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
@@ -138,11 +138,11 @@ func main() {
 	routeHandler.ConfigureRoutes(ctx, router)
 
 	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
-		panic(fmt.Errorf("could not run router. error: %s", err))
+		emperror.Panic(errors.Wrap(err, "failed to run router"))
 	}
 }
 
-func loadInfoers(ctx context.Context, config Config) map[string]cloudinfo.CloudInfoer {
+func loadInfoers(config Config, log logur.Logger) map[string]cloudinfo.CloudInfoer {
 
 	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.Providers))
 
@@ -152,27 +152,27 @@ func loadInfoers(ctx context.Context, config Config) map[string]cloudinfo.CloudI
 	)
 
 	for _, p := range config.Providers {
-		pctx := logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(p).Build())
+		log = logur.WithFields(log, map[string]interface{}{"provider": p})
 
 		switch p {
 		case Amazon:
-			infoer, err = amazon.NewAmazonInfoer(pctx, config.Amazon)
+			infoer, err = amazon.NewAmazonInfoer(config.Amazon, log)
 		case Google:
-			infoer, err = google.NewGoogleInfoer(pctx, config.Google)
+			infoer, err = google.NewGoogleInfoer(config.Google, log)
 		case Azure:
-			infoer, err = azure.NewAzureInfoer(pctx, config.Azure)
+			infoer, err = azure.NewAzureInfoer(config.Azure, log)
 		case Oracle:
-			infoer, err = oracle.NewOracleInfoer(pctx, config.Oracle)
+			infoer, err = oracle.NewOracleInfoer(config.Oracle, log)
 		case Alibaba:
-			infoer, err = alibaba.NewAliInfoer(pctx, config.Alibaba)
+			infoer, err = alibaba.NewAliInfoer(config.Alibaba, log)
 		default:
-			logger.Extract(pctx).Error("provider is not supported")
+			log.Error("provider is not supported")
 		}
 
 		emperror.Panic(err)
 
 		infoers[p] = infoer
-		logger.Extract(pctx).Info("configured product info provider", map[string]interface{}{"provider": p})
+		log.Info("configured product info provider", map[string]interface{}{"provider": p})
 	}
 	return infoers
 }

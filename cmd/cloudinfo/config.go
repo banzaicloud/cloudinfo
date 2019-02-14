@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -29,6 +28,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
+	"github.com/goph/emperror"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -183,7 +183,7 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 
 	// bind flags to viper
 	if err := viper.BindPFlags(pf); err != nil {
-		panic(fmt.Errorf("could not parse flags. error: %s", err))
+		emperror.Panic(emperror.Wrap(err, "could not parse flags"))
 	}
 
 }

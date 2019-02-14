@@ -168,19 +168,13 @@ func (r *RouteHandler) getService(ctx context.Context) gin.HandlerFunc {
 			return
 		}
 
-		ctxLog := logger.ToContext(ctx, logger.NewLogCtxBuilder().
-			WithProvider(pathParams.Provider).
-			WithService(pathParams.Service).
-			WithCorrelationId(logger.GetCorrelationId(c)).
-			Build())
-
 		infoer, err := r.prod.GetInfoer(ctx, pathParams.Provider)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrap(err, "could not retrieve cloud info provider"))
 			return
 		}
 
-		service, err := infoer.GetService(ctxLog, pathParams.Service)
+		service, err := infoer.GetService(pathParams.Service)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
 				"could not retrieve service [%s] for cloud info provider [%s]", pathParams.Service, pathParams.Provider))

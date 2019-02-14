@@ -60,7 +60,7 @@ const (
 	GetZonesError           = "could not get zones"
 )
 
-func (dpi *DummyCloudInfoer) Initialize(ctx context.Context) (map[string]map[string]Price, error) {
+func (dpi *DummyCloudInfoer) Initialize() (map[string]map[string]Price, error) {
 	switch dpi.TcId {
 	case InitializeError:
 		return nil, errors.New(InitializeError)
@@ -73,7 +73,7 @@ func (dpi *DummyCloudInfoer) Initialize(ctx context.Context) (map[string]map[str
 	}
 }
 
-func (dpi *DummyCloudInfoer) GetAttributeValues(ctx context.Context, service, attribute string) (AttrValues, error) {
+func (dpi *DummyCloudInfoer) GetAttributeValues(service, attribute string) (AttrValues, error) {
 	switch dpi.TcId {
 	case GetAttributeValuesError:
 		return nil, errors.New(GetAttributeValuesError)
@@ -81,7 +81,7 @@ func (dpi *DummyCloudInfoer) GetAttributeValues(ctx context.Context, service, at
 	return dpi.AttrValues, nil
 }
 
-func (dpi *DummyCloudInfoer) GetProducts(ctx context.Context, service, regionId string) ([]VmInfo, error) {
+func (dpi *DummyCloudInfoer) GetProducts(service, regionId string) ([]VmInfo, error) {
 	switch dpi.TcId {
 	case GetProductsError:
 		return nil, errors.New(GetProductsError)
@@ -94,7 +94,7 @@ func (dpi *DummyCloudInfoer) GetProducts(ctx context.Context, service, regionId 
 	}
 }
 
-func (dpi *DummyCloudInfoer) GetZones(ctx context.Context, region string) ([]string, error) {
+func (dpi *DummyCloudInfoer) GetZones(region string) ([]string, error) {
 	switch dpi.TcId {
 	case GetZonesError:
 		return nil, errors.New(GetZonesError)
@@ -107,7 +107,7 @@ func (dpi *DummyCloudInfoer) GetRegion(id string) *endpoints.Region {
 	return nil
 }
 
-func (dpi *DummyCloudInfoer) GetRegions(ctx context.Context, service string) (map[string]string, error) {
+func (dpi *DummyCloudInfoer) GetRegions(service string) (map[string]string, error) {
 	switch dpi.TcId {
 	case GetRegionsError:
 		return nil, errors.New(GetRegionsError)
@@ -124,7 +124,7 @@ func (dpi *DummyCloudInfoer) HasShortLivedPriceInfo() bool {
 	return true
 }
 
-func (dpi *DummyCloudInfoer) GetCurrentPrices(ctx context.Context, region string) (map[string]Price, error) {
+func (dpi *DummyCloudInfoer) GetCurrentPrices(region string) (map[string]Price, error) {
 	switch dpi.TcId {
 	case GetCurrentPricesError:
 		return nil, errors.New(GetCurrentPricesError)
