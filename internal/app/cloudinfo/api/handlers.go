@@ -47,7 +47,7 @@ func (r *RouteHandler) getProviders(ctx context.Context) gin.HandlerFunc {
 
 		providers := r.prod.GetProviders(ctxLog)
 		if len(providers) < 1 {
-			r.errorResponder.Respond(c, emperror.With(errors.New("no providers are configured")))
+			r.errorResponder.Respond(c, errors.New("no providers are configured"))
 			return
 		}
 
@@ -89,7 +89,7 @@ func (r *RouteHandler) getProvider(ctx context.Context) gin.HandlerFunc {
 		provider, err := r.prod.GetProvider(ctxLog, pathParams.Provider)
 		if err != nil {
 			// todo this code is unreachable, the validation catches the possible problems
-			r.errorResponder.Respond(c, emperror.With(err))
+			r.errorResponder.Respond(c, err)
 			return
 
 		}
@@ -385,11 +385,11 @@ func (r *RouteHandler) getImages(ctx context.Context) gin.HandlerFunc {
 		if queryParams.Gpu != "" && queryParams.Version != "" {
 			filteredImages := make([]string, 0)
 			for _, image := range images {
-				if queryParams.Version == image.VersionName() {
-					if queryParams.Gpu == "0" && !image.GpuAvailability() {
-						filteredImages = append(filteredImages, image.ImageName())
-					} else if queryParams.Gpu != "0" && image.GpuAvailability() {
-						filteredImages = append(filteredImages, image.ImageName())
+				if queryParams.Version == image.Version {
+					if queryParams.Gpu == "0" && !image.GpuAvailable {
+						filteredImages = append(filteredImages, image.Name)
+					} else if queryParams.Gpu != "0" && image.GpuAvailable {
+						filteredImages = append(filteredImages, image.Name)
 					}
 				}
 			}

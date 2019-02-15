@@ -52,22 +52,16 @@ type CloudInfo interface {
 	// GetRegions returns all the regions for a cloud provider
 	GetRegions(ctx context.Context, provider string, service string) (map[string]string, error)
 
-	// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
-	HasShortLivedPriceInfo(ctx context.Context, provider string) bool
-
 	// GetPrice returns the on demand price and the zone averaged computed spot price for a given instance type in a given region
 	GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error)
 
-	// GetInfoer gets the cloud provider specific Infoer implementation (discriminator for cloud providers)
-	GetInfoer(ctx context.Context, provider string) (CloudInfoer, error)
-
-	RefreshProvider(ctx context.Context, provider string) error
+	RefreshProvider(ctx context.Context, provider string)
 
 	GetStatus(provider string) (string, error)
 
 	GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error)
 
-	GetServiceImages(ctx context.Context, provider, service, region string) ([]ImageDescriber, error)
+	GetServiceImages(ctx context.Context, provider, service, region string) ([]Image, error)
 
 	GetVersions(ctx context.Context, provider, service, region string) ([]string, error)
 }
@@ -147,17 +141,6 @@ type ServiceDescriber interface {
 	ServiceName() string
 }
 
-// ImageDescriber is a placeholder interface for image information
-// to be extended with other operations if needed
-type ImageDescriber interface {
-	// ImageName returns the image name
-	ImageName() string
-	// VersionName returns the k8s version
-	VersionName() string
-	// GpuAvailability returns true, if gpu is available
-	GpuAvailability() bool
-}
-
 // Service represents a service supported by a given provider.
 // it's intended to implement the ServiceDescriber interface
 type Service struct {
@@ -200,30 +183,15 @@ func NewProvider(name string) Provider {
 
 // Image represents an image
 type Image struct {
-	Image        string `json:"image"`
+	Name         string `json:"name"`
 	Version      string `json:"version,omitempty"`
 	GpuAvailable bool   `json:"gpu,omitempty"`
-}
-
-// ImageName returns the name of the image
-func (i Image) ImageName() string {
-	return i.Image
-}
-
-// VersionName returns the name of the k8s version
-func (i Image) VersionName() string {
-	return i.Version
-}
-
-// GpuAvailability returns true, if gpu is available
-func (i Image) GpuAvailability() bool {
-	return i.GpuAvailable
 }
 
 // NewImage create new provider describer struct
 func NewImage(name, version string, gpu bool) Image {
 	return Image{
-		Image:        name,
+		Name:         name,
 		Version:      version,
 		GpuAvailable: gpu,
 	}

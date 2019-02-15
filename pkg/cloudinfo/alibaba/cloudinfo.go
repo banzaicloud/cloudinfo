@@ -491,12 +491,12 @@ func (a *AlibabaInfoer) GetServiceImages(service, region string) ([]cloudinfo.Im
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
 func (a *AlibabaInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
-	return nil, errors.New("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
 func (a *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, errors.New("GetServiceImages - not yet implemented")
+	return nil, errors.New("GetServiceAttributes - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region

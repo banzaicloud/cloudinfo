@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
@@ -39,20 +38,11 @@ type cachingCloudInfo struct {
 	tracer         tracing.Tracer
 }
 
-func (cpi *cachingCloudInfo) RefreshProvider(ctx context.Context, provider string) error {
+func (cpi *cachingCloudInfo) RefreshProvider(ctx context.Context, provider string) {
 	if _, ok := cpi.cloudInfoers[provider]; !ok {
 		logger.Extract(ctx).Error("refresh - unsupported provider", map[string]interface{}{"provider": provider, "op": "refreshProvider"})
-		return emperror.WrapWith(errors.New("unsupported provider"), "provider", provider, "op", "refreshProvider")
 	}
-	cpi.renewProviderInfo(ctx, provider, nil)
-	return nil
-}
-
-func (cpi *cachingCloudInfo) HasShortLivedPriceInfo(ctx context.Context, provider string) bool {
-	if cier, err := cpi.GetInfoer(ctx, provider); err != nil {
-		return cier.HasShortLivedPriceInfo()
-	}
-	return false
+	cpi.renewProviderInfo(ctx, provider)
 }
 
 func (v AttrValues) floatValues() []float64 {
@@ -111,61 +101,55 @@ func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer,
 
 // GetProviders returns the supported providers
 func (cpi *cachingCloudInfo) GetProviders(ctx context.Context) []Provider {
-	var providers []Provider
+	var (
+		providers []Provider
+		provider  Provider
+		err       error
+	)
+	log := logger.Extract(ctx)
 
-	for name, infoer := range cpi.cloudInfoers {
-		services, err := infoer.GetServices()
-		if err != nil {
-			logger.Extract(ctx).Error("could not retrieve services", map[string]interface{}{"provider": name})
+	// iterate over supported provider names only
+	for pn := range cpi.cloudInfoers {
+		if provider, err = cpi.GetProvider(ctx, pn); err != nil {
+			log.Warn("could not retrieve provider", map[string]interface{}{"provider": provider})
 		}
-
-		// decorate the provider with service information
-		svcs := make([]Service, 0)
-		for _, s := range services {
-			svcs = append(svcs, NewService(s.ServiceName()))
-		}
-		provider := NewProvider(name)
-		provider.Services = svcs
 
 		providers = append(providers, provider)
 	}
+
 	return providers
 }
 
 // GetProvider returns the supported provider
 func (cpi *cachingCloudInfo) GetProvider(ctx context.Context, provider string) (Provider, error) {
-	for name, infoer := range cpi.cloudInfoers {
-		if provider == name {
-			services, err := infoer.GetServices()
-			if err != nil {
-				logger.Extract(ctx).Error("could not retrieve services", map[string]interface{}{"provider": provider})
-			}
+	var (
+		srvcs []Service
+		err   error
+	)
 
-			// decorate the provider with service information
-			svcs := make([]Service, 0)
-			for _, s := range services {
-				svcs = append(svcs, NewService(s.ServiceName()))
-			}
-
-			p := NewProvider(name)
-			p.Services = svcs
-
-			return p, nil
-		}
+	if _, ok := cpi.cloudInfoers[provider]; !ok {
+		return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
 	}
-	return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
+
+	if srvcs, err = cpi.GetServices(ctx, provider); err != nil {
+		return Provider{}, emperror.With(errors.New("no supported services for provider"), "provider", provider)
+	}
+
+	// decorate the provider with service information
+	p := NewProvider(provider)
+	p.Services = srvcs
+
+	return p, nil
 }
 
 // renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
 // provided WaitGroup (if provided)
-func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider string, wg *sync.WaitGroup) {
+func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider string) {
 	ctx, _ = cpi.tracer.StartWithTags(ctx, fmt.Sprintf("renew-provider (%s)", provider), map[string]interface{}{"provider": provider})
 	defer cpi.tracer.EndSpan(ctx)
 
 	log := logger.Extract(ctx)
-	if wg != nil {
-		defer wg.Done()
-	}
+
 	start := time.Now()
 
 	log.Info("renewing product info")
@@ -559,13 +543,6 @@ func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
 	return "", emperror.With(errors.New("status not yet cached"), "provider", provider)
 }
 
-func (cpi *cachingCloudInfo) GetInfoer(ctx context.Context, provider string) (CloudInfoer, error) {
-	if infoer, ok := cpi.cloudInfoers[provider]; ok {
-		return infoer, nil
-	}
-	return nil, emperror.With(errors.New("could not find infoer for provider"), "provider", provider)
-}
-
 func (cpi *cachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]Image, error) {
 	var (
 		values []Image
@@ -581,11 +558,11 @@ func (cpi *cachingCloudInfo) renewImages(ctx context.Context, provider, service,
 }
 
 // GetServiceImages retrieves available images for the given provider, service and region
-func (cpi *cachingCloudInfo) GetServiceImages(ctx context.Context, provider, service, region string) ([]ImageDescriber, error) {
+func (cpi *cachingCloudInfo) GetServiceImages(ctx context.Context, provider, service, region string) ([]Image, error) {
 	logger.Extract(ctx).Debug("getting available images")
 
 	if cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region); ok {
-		return cachedImages.([]ImageDescriber), nil
+		return cachedImages.([]Image), nil
 	}
 
 	return nil, emperror.With(errors.New("images not yet cached"), "provider", provider,
