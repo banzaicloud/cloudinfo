@@ -49,11 +49,11 @@ func (nm *dummyNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 }
 
 const (
-	GetRegionsError         = "could not get regions"
-	GetCurrentPricesError   = "could not get current prices"
-	GetProductsError        = "could not get products"
-	InitializeError         = "initialization failed"
-	GetZonesError           = "could not get zones"
+	GetRegionsError       = "could not get regions"
+	GetCurrentPricesError = "could not get current prices"
+	GetProductsError      = "could not get products"
+	InitializeError       = "initialization failed"
+	GetZonesError         = "could not get zones"
 )
 
 func (dpi *DummyCloudInfoer) Initialize() (map[string]map[string]Price, error) {

@@ -138,88 +138,38 @@ func (cpi *cachingCloudInfo) GetAttributes(ctx context.Context) []string {
 
 // GetAttrValues returns a slice with the values for the given attribute name
 func (cpi *cachingCloudInfo) GetAttrValues(ctx context.Context, provider, service, attribute string) ([]float64, error) {
-	// check the cache
 	if cachedVal, ok := cpi.cloudInfoStore.GetAttribute(provider, service, attribute); ok {
-		logger.Extract(ctx).Debug("returning attribute values from cache")
 		return cachedVal.(AttrValues).floatValues(), nil
 	}
 
-	return nil, errors.New("failed to retrieve attribute values")
-
+	return nil, emperror.With(errors.New("attributes not yet cached"),
+		"provider", provider, "service", service, "attribute", attribute)
 }
 
 // GetZones returns the availability zones in a region
 func (cpi *cachingCloudInfo) GetZones(ctx context.Context, provider string, region string) ([]string, error) {
-	var (
-		zones []string
-		err   error
-	)
-	log := logger.Extract(ctx)
-
-	// check the cache
 	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, region); ok {
-		log.Debug("returning available zones from the cache")
 		return cachedVal.([]string), nil
 	}
 
-	// retrieve zones from the provider
-	if zones, err = cpi.cloudInfoers[provider].GetZones(region); err != nil {
-		log.Error("error while retrieving zones.")
-		return nil, emperror.With(err, "provider", provider, "region", region)
-	}
-
-	// cache the results / use the cache default expiry
-	cpi.cloudInfoStore.StoreZones(provider, region, zones)
-	return zones, nil
+	return nil, emperror.With(errors.New("zones not yet cached"), "provider", provider, "region", region)
 }
 
 // GetRegions gets the regions for the provided provider
 func (cpi *cachingCloudInfo) GetRegions(ctx context.Context, provider, service string) (map[string]string, error) {
-	var (
-		regions map[string]string
-		err     error
-	)
-	log := logger.Extract(ctx)
-
-	// check the cache
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
-		log.Debug("returning available regions from cache")
 		return cachedVal.(map[string]string), nil
 	}
 
-	// retrieve regions from the provider
-	if regions, err = cpi.cloudInfoers[provider].GetRegions(service); err != nil {
-		log.Error("could not retrieve regions")
-		return nil, emperror.With(err, "provider", provider, "service", service)
-	}
-
-	// cache the results / use the cache default expiry
-	cpi.cloudInfoStore.StoreRegions(provider, service, regions)
-	return regions, nil
+	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
 }
 
 func (cpi *cachingCloudInfo) GetServices(ctx context.Context, provider string) ([]Service, error) {
-	var (
-		services []Service
-		err      error
-	)
-	log := logger.Extract(ctx)
-
-	// check the cache
 	if cachedVal, ok := cpi.cloudInfoStore.GetServices(provider); ok {
-		log.Debug("returning available services from cache")
 		return cachedVal.([]Service), nil
 	}
 
-	// retrieve services from the provider
-	if services, err = cpi.cloudInfoers[provider].GetServices(); err != nil {
-		log.Error("could not retrieve services")
-		return nil, emperror.With(err, "provider", provider)
-	}
-
-	// cache the results / use the cache default expiry
-	cpi.cloudInfoStore.StoreServices(provider, services)
-	return services, nil
+	return nil, emperror.With(errors.New("services not yet cached"), "provider", provider)
 }
 
 // GetProductDetails retrieves product details form the given provider and region
@@ -242,10 +192,6 @@ func (cpi *cachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 		pd := newProductDetails(vm)
 		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
 			pr = cachedVal.(Price)
-			// fill the on demand price if appropriate
-			if pr.OnDemandPrice > 0 {
-				pd.OnDemandPrice = pr.OnDemandPrice
-			}
 			for zone, price := range pr.SpotPrice {
 				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
 			}
@@ -253,22 +199,10 @@ func (cpi *cachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 			log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
 		}
 
-		if pd.OnDemandPrice != 0 {
-			details = append(details, *pd)
-		}
+		details = append(details, *pd)
 	}
 
 	return details, nil
-}
-
-// Contains is a helper function to check if a slice contains a string
-func Contains(slice []string, s string) bool {
-	for _, e := range slice {
-		if e == s {
-			return true
-		}
-	}
-	return false
 }
 
 // GetStatus retrieves status form the given provider
@@ -302,6 +236,16 @@ func (cpi *cachingCloudInfo) GetVersions(ctx context.Context, provider, service,
 	return nil, emperror.With(errors.New("versions not yet cached"),
 		"provider", provider, "service", service, "region", region)
 
+}
+
+// Contains is a helper function to check if a slice contains a string
+func Contains(slice []string, s string) bool {
+	for _, e := range slice {
+		if e == s {
+			return true
+		}
+	}
+	return false
 }
 
 // Attributes create a map with the specified parameters

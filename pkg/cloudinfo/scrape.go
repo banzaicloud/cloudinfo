@@ -63,11 +63,12 @@ func (sm *scrapingManager) initialize(ctx context.Context) {
 }
 
 func (sm *scrapingManager) scrapeServiceRegionProducts(ctx context.Context, service string, regionId string) error {
+	var err error
+
 	if service != "compute" {
 		var (
 			values []VmInfo
 			vms    interface{}
-			err    error
 			ok     bool
 		)
 		sm.log.Debug("retrieving regional product information", map[string]interface{}{"service": service, "region": regionId})
@@ -86,6 +87,12 @@ func (sm *scrapingManager) scrapeServiceRegionProducts(ctx context.Context, serv
 		}
 		sm.store.StoreVm(sm.provider, service, regionId, values)
 	}
+
+	err = sm.updateVirtualMachines(service, regionId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -333,6 +340,42 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) {
 	}
 	wg.Wait()
 	sm.metrics.ReportScrapeProviderShortLivedCompleted(sm.provider, start)
+}
+
+func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
+	var (
+		vms             interface{}
+		prices          interface{}
+		ok              bool
+		pr              Price
+		virtualMachines []VmInfo
+	)
+	sm.log.Info("start updating virtual machines")
+
+	if vms, ok = sm.store.GetVm(sm.provider, service, region); !ok {
+		return emperror.With(errors.New("vms not yet cached"),
+			"provider", sm.provider, "service", service, "region", region)
+	}
+
+	for _, vm := range vms.([]VmInfo) {
+		if prices, ok = sm.store.GetPrice(sm.provider, region, vm.Type); ok {
+			pr = prices.(Price)
+			// fill the on demand price if appropriate
+			if pr.OnDemandPrice > 0 {
+				vm.OnDemandPrice = pr.OnDemandPrice
+			}
+		}
+
+		if vm.OnDemandPrice != 0 {
+			virtualMachines = append(virtualMachines, vm)
+		}
+	}
+
+	sm.store.DeleteVm(sm.provider, service, region)
+
+	sm.store.StoreVm(sm.provider, service, region, virtualMachines)
+
+	return nil
 }
 
 // scrape implements the scraping logic for a provider
