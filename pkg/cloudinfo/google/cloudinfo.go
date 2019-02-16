@@ -117,25 +117,13 @@ func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 	allPrices := make(map[string]map[string]cloudinfo.Price)
 	unsupportedInstanceTypes := []string{"n1-ultramem-40", "n1-ultramem-80", "n1-megamem-96", "n1-ultramem-160"}
 
-	svcList, err := g.cbSvc.Services.List().Do()
-	if err != nil {
-		return nil, err
-	}
-
-	var compEngId string
-	for _, svc := range svcList.Services {
-		if svc.DisplayName == "Compute Engine" {
-			compEngId = svc.Name
-		}
-	}
-
 	zonesInRegions := make(map[string][]string)
 	regions, err := g.GetRegions("compute")
 	if err != nil {
 		return nil, err
 	}
 
-	pricePerRegion, err := g.getPrice(compEngId)
+	pricePerRegion, err := g.getPrice()
 	if err != nil {
 		return nil, err
 	}
@@ -188,9 +176,21 @@ func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 	return allPrices, nil
 }
 
-func (g *GceInfoer) getPrice(parent string) (map[string]map[string]map[string]float64, error) {
+func (g *GceInfoer) getPrice() (map[string]map[string]map[string]float64, error) {
+	svcList, err := g.cbSvc.Services.List().Fields("services/displayName", "services/name").Do()
+	if err != nil {
+		return nil, err
+	}
+
+	var compEngId string
+	for _, svc := range svcList.Services {
+		if svc.DisplayName == "Compute Engine" {
+			compEngId = svc.Name
+		}
+	}
+
 	price := make(map[string]map[string]map[string]float64)
-	err := g.cbSvc.Services.Skus.List(parent).Pages(context.Background(), func(response *billing.ListSkusResponse) error {
+	err = g.cbSvc.Services.Skus.List(compEngId).Pages(context.Background(), func(response *billing.ListSkusResponse) error {
 		for _, sku := range response.Skus {
 			if sku.Category.ResourceGroup == "G1Small" || sku.Category.ResourceGroup == "F1Micro" {
 				priceInUsd, err := g.priceInUsd(sku.PricingInfo)
@@ -260,51 +260,12 @@ func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64,
 	return pr
 }
 
-// GetAttributeValues gets the AttributeValues for the given attribute name
-// Queries the Google Cloud Compute API's machine type list endpoint
-func (g *GceInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"service": service, "attribute": attribute})
-	log.Debug("retrieving attribute values")
-
-	values := make(cloudinfo.AttrValues, 0)
-	valueSet := make(map[cloudinfo.AttrValue]interface{})
-
-	err := g.computeSvc.MachineTypes.AggregatedList(g.projectId).Pages(context.TODO(), func(allMts *compute.MachineTypeAggregatedList) error {
-		for _, scope := range allMts.Items {
-			for _, mt := range scope.MachineTypes {
-				switch attribute {
-				case cloudinfo.Cpu:
-					valueSet[cloudinfo.AttrValue{
-						Value:    float64(mt.GuestCpus),
-						StrValue: fmt.Sprintf("%v", mt.GuestCpus),
-					}] = ""
-				case cloudinfo.Memory:
-					valueSet[cloudinfo.AttrValue{
-						Value:    float64(mt.MemoryMb) / 1024,
-						StrValue: fmt.Sprintf("%v", mt.MemoryMb),
-					}] = ""
-				}
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, emperror.Wrap(err, "unable to list machine types")
-	}
-
-	for attr := range valueSet {
-		values = append(values, attr)
-	}
-
-	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
-	return values, nil
-}
-
 func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 	log := log.WithFields(g.log, map[string]interface{}{"region": region})
 	log.Debug("retrieving product information")
 	var vmsMap = make(map[string]cloudinfo.VmInfo)
 	var ntwPerf uint
+
 	zones, err := g.GetZones(region)
 	if err != nil {
 		return nil, err
@@ -418,16 +379,6 @@ func (g *GceInfoer) HasShortLivedPriceInfo() bool {
 // GetCurrentPrices retrieves all the spot prices in a region
 func (g *GceInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	return nil, errors.New("google prices cannot be queried on the fly")
-}
-
-// GetMemoryAttrName returns the provider representation of the memory attribute
-func (g *GceInfoer) GetMemoryAttrName() string {
-	return cloudinfo.Memory
-}
-
-// GetCpuAttrName returns the provider representation of the cpu attribute
-func (g *GceInfoer) GetCpuAttrName() string {
-	return cloudinfo.Cpu
 }
 
 // GetServices returns the available services on the  provider

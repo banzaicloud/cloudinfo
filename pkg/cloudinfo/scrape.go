@@ -62,30 +62,6 @@ func (sm *scrapingManager) initialize(ctx context.Context) {
 	sm.log.Info("finished initializing cloud product information")
 }
 
-func (sm *scrapingManager) scrapeServiceAttributes(ctx context.Context, services []Service) error {
-	var (
-		err      error
-		attrVals AttrValues
-	)
-	ctx, _ = sm.tracer.StartWithTags(ctx, "renew-attribute-values", map[string]interface{}{"provider": sm.provider})
-	defer sm.tracer.EndSpan(ctx)
-
-	sm.log.Info("start to renew attribute values")
-	for _, service := range services {
-		for _, attr := range []string{sm.infoer.GetCpuAttrName(), sm.infoer.GetMemoryAttrName()} {
-
-			if attrVals, err = sm.infoer.GetAttributeValues(service.ServiceName(), attr); err != nil {
-				sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
-				// should the process go forward here?
-				return emperror.WrapWith(err, "failed to retrieve attribute values",
-					"service", service.ServiceName(), "attribute", attr)
-			}
-			sm.store.StoreAttribute(sm.provider, service.ServiceName(), attr, attrVals)
-		}
-	}
-	return nil
-}
-
 func (sm *scrapingManager) scrapeServiceRegionProducts(ctx context.Context, service string, regionId string) error {
 	if service != "compute" {
 		var (
@@ -110,6 +86,52 @@ func (sm *scrapingManager) scrapeServiceRegionProducts(ctx context.Context, serv
 		}
 		sm.store.StoreVm(sm.provider, service, regionId, values)
 	}
+	return nil
+}
+
+func (sm *scrapingManager) updateServiceRegionAttributes(ctx context.Context, service, region string) error {
+	var (
+		vms interface{}
+		ok  bool
+	)
+	sm.log.Info("updating attributes")
+
+	if vms, ok = sm.store.GetVm(sm.provider, service, region); !ok {
+		return emperror.With(errors.New("vms not yet cached"),
+			"provider", sm.provider, "service", service, "region", region)
+	}
+
+	memory := make(AttrValues, 0)
+	memorySet := make(map[AttrValue]interface{})
+
+	cpu := make(AttrValues, 0)
+	cpuSet := make(map[AttrValue]interface{})
+
+	for _, vm := range vms.([]VmInfo) {
+		memorySet[AttrValue{
+			Value:    vm.Mem,
+			StrValue: fmt.Sprintf("%v", vm.Mem),
+		}] = ""
+		cpuSet[AttrValue{
+			Value:    vm.Cpus,
+			StrValue: fmt.Sprintf("%v", vm.Cpus),
+		}] = ""
+	}
+
+	for attr := range memorySet {
+		memory = append(memory, attr)
+	}
+
+	for attr := range cpuSet {
+		cpu = append(cpu, attr)
+	}
+
+	sm.log.Debug("found attribute values",
+		map[string]interface{}{"numberOfMemory": len(memory), "numberOfCpu": len(cpu), "service": service, "region": region})
+
+	sm.store.StoreAttribute(sm.provider, service, Memory, memory)
+	sm.store.StoreAttribute(sm.provider, service, Cpu, cpu)
+
 	return nil
 }
 
@@ -220,6 +242,10 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
+			if err = sm.updateServiceRegionAttributes(ctx, service.ServiceName(), regionId); err != nil {
+				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
+			}
 			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
@@ -255,10 +281,6 @@ func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 	}
 
 	sm.store.StoreServices(sm.provider, services)
-
-	if err := sm.scrapeServiceAttributes(ctx, services); err != nil {
-		sm.log.Error(emperror.Wrap(err, "failed to load service attribute values").Error(), logger.ToMap(emperror.Context(err)))
-	}
 
 	if err := sm.scrapeServiceRegionInfo(ctx, services); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to load service region information").Error(), logger.ToMap(emperror.Context(err)))

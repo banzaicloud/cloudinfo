@@ -41,11 +41,6 @@ type ShapeSpecs struct {
 	NtwPerf    string  `json:"NtwPerf"`
 }
 
-const (
-	cpu    = "cpu"
-	memory = "memory"
-)
-
 var regionNames = map[string]string{
 	"uk-london-1":    "EU (London)",
 	"eu-frankfurt-1": "EU (Frankfurt)",
@@ -97,64 +92,9 @@ func (i *Infoer) Initialize() (prices map[string]map[string]cloudinfo.Price, err
 	return nil, nil
 }
 
-// GetAttributeValues gets the AttributeValues for the given attribute name
-func (i *Infoer) GetAttributeValues(service, attribute string) (values cloudinfo.AttrValues, err error) {
-	log := log.WithFields(i.log, map[string]interface{}{"service": service, "attribute": attribute})
-
-	log.Debug("retrieving attribute values")
-
-	values = make(cloudinfo.AttrValues, 0)
-	uniquemap := make(map[float64]bool)
-
-	shapesInRegions, err := i.client.GetSupportedShapes(service)
-	if err != nil {
-		return
-	}
-
-	var shapes []string
-	for _, shapes = range shapesInRegions {
-		for _, shape := range shapes {
-			if _, ok := i.shapeSpecs[shape]; !ok {
-				continue
-			}
-			specs := i.shapeSpecs[shape]
-			var attr cloudinfo.AttrValue
-			switch attribute {
-			case cpu:
-				attr = cloudinfo.AttrValue{
-					Value:    specs.Cpus,
-					StrValue: fmt.Sprintf("%v", specs.Cpus),
-				}
-			case memory:
-				attr = cloudinfo.AttrValue{
-					Value:    specs.Mem,
-					StrValue: fmt.Sprintf("%v", specs.Mem),
-				}
-			}
-			if _, ok := uniquemap[attr.Value]; !ok {
-				values = append(values, attr)
-				uniquemap[attr.Value] = true
-			}
-		}
-	}
-
-	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
-	return values, nil
-}
-
 // GetCurrentPrices retrieves all the spot prices in a region
 func (i *Infoer) GetCurrentPrices(region string) (prices map[string]cloudinfo.Price, err error) {
 	return nil, errors.New("oracle prices cannot be queried on the fly")
-}
-
-// GetMemoryAttrName returns the provider representation of the memory attribute
-func (i *Infoer) GetMemoryAttrName() string {
-	return memory
-}
-
-// GetCpuAttrName returns the provider representation of the cpu attribute
-func (i *Infoer) GetCpuAttrName() string {
-	return cpu
 }
 
 // GetProductPrices gets prices for available shapes from ITRA

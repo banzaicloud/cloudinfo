@@ -358,73 +358,6 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	return result
 }
 
-// GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AzureInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service, "attribute": attribute})
-
-	log.Debug("getting attribute values")
-
-	values := make(cloudinfo.AttrValues, 0)
-	valueSet := make(map[cloudinfo.AttrValue]interface{})
-
-	regions, err := a.GetRegions(service)
-	if err != nil {
-		return nil, err
-	}
-
-	for region := range regions {
-		vmSizes, err := a.vmSizesClient.List(context.TODO(), region)
-		if err != nil {
-			log.Warn("failed to retrieve VM sizes", map[string]interface{}{"region": region})
-			continue
-		}
-		switch service {
-		case "aks":
-			possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
-			for _, v := range *vmSizes.Value {
-				for _, vm := range possibleVmTypes {
-					if string(vm) == *v.Name {
-						switch attribute {
-						case cloudinfo.Cpu:
-							valueSet[cloudinfo.AttrValue{
-								Value:    float64(*v.NumberOfCores),
-								StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
-							}] = ""
-						case cloudinfo.Memory:
-							valueSet[cloudinfo.AttrValue{
-								Value:    float64(*v.MemoryInMB) / 1024,
-								StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
-							}] = ""
-						}
-					}
-				}
-			}
-		default:
-			for _, v := range *vmSizes.Value {
-				switch attribute {
-				case cloudinfo.Cpu:
-					valueSet[cloudinfo.AttrValue{
-						Value:    float64(*v.NumberOfCores),
-						StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
-					}] = ""
-				case cloudinfo.Memory:
-					valueSet[cloudinfo.AttrValue{
-						Value:    float64(*v.MemoryInMB) / 1024,
-						StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
-					}] = ""
-				}
-			}
-		}
-	}
-
-	for attr := range valueSet {
-		values = append(values, attr)
-	}
-
-	log.Debug("found attribute values", map[string]interface{}{"values": len(values)})
-	return values, nil
-}
-
 func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 	log := log.WithFields(a.log, map[string]interface{}{"region": region})
 	log.Debug("getting product info")
@@ -553,16 +486,6 @@ func (a *AzureInfoer) HasShortLivedPriceInfo() bool {
 // GetCurrentPrices retrieves all the price info in a region
 func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	return nil, errors.New("azure prices cannot be queried on the fly")
-}
-
-// GetMemoryAttrName returns the provider representation of the memory attribute
-func (a *AzureInfoer) GetMemoryAttrName() string {
-	return cloudinfo.Memory
-}
-
-// GetCpuAttrName returns the provider representation of the cpu attribute
-func (a *AzureInfoer) GetCpuAttrName() string {
-	return cloudinfo.Cpu
 }
 
 // GetServices returns the available services on the  provider

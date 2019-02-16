@@ -16,7 +16,6 @@ package cloudinfo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -26,6 +25,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 )
 
 // cachingCloudInfo is the module struct, holds configuration and cache
@@ -166,24 +166,6 @@ func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider str
 		return
 	}
 
-	log.Info("start to renew attribute values")
-	for _, service := range services {
-		ctxLog := logger.ToContext(ctx,
-			logger.NewLogCtxBuilder().
-				WithService(service.ServiceName()).
-				Build())
-		attributes := []string{Cpu, Memory}
-		for _, attr := range attributes {
-			_, err := cpi.renewAttrValues(ctxLog, provider, service.ServiceName(), attr)
-			if err != nil {
-				cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-				logger.Extract(ctxLog).Error(emperror.Wrap(err, "failed to renew attribute values").Error(), map[string]interface{}{"attr": attr})
-				return
-			}
-		}
-	}
-	log.Info("finished to renew attribute values")
-
 	log.Info("start to renew products (vm-s)")
 
 	// todo spans to be created in individual method calls instead
@@ -282,47 +264,14 @@ func (cpi *cachingCloudInfo) GetAttributes(ctx context.Context) []string {
 
 // GetAttrValues returns a slice with the values for the given attribute name
 func (cpi *cachingCloudInfo) GetAttrValues(ctx context.Context, provider, service, attribute string) ([]float64, error) {
-	var (
-		err    error
-		values AttrValues
-	)
 	// check the cache
 	if cachedVal, ok := cpi.cloudInfoStore.GetAttribute(provider, service, attribute); ok {
 		logger.Extract(ctx).Debug("returning attribute values from cache")
 		return cachedVal.(AttrValues).floatValues(), nil
 	}
 
-	// scrape provider for attribute values
-	if values, err = cpi.renewAttrValues(ctx, provider, service, attribute); err == nil {
-		logger.Extract(ctx).Debug("returning freshly scraped attribute values")
-		return values.floatValues(), nil
-	}
+	return nil, errors.New("failed to retrieve attribute values")
 
-	return nil, emperror.Wrap(err, "failed to retrieve attribute values")
-
-}
-
-// renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
-func (cpi *cachingCloudInfo) renewAttrValues(ctx context.Context, provider, service, attribute string) (AttrValues, error) {
-	var (
-		attr   string
-		err    error
-		values AttrValues
-	)
-
-	ctx, _ = cpi.tracer.StartWithTags(ctx, "renew-attribute-values", map[string]interface{}{"provider": provider, "service": service, "attribute": attribute})
-	defer cpi.tracer.EndSpan(ctx)
-
-	if attr, err = cpi.toProviderAttribute(provider, attribute); err != nil {
-		return nil, emperror.With(err, "renewal")
-	}
-
-	if values, err = cpi.cloudInfoers[provider].GetAttributeValues(service, attr); err != nil {
-		return nil, emperror.With(err, "renewal")
-	}
-
-	cpi.cloudInfoStore.StoreAttribute(provider, service, attribute, values)
-	return values, nil
 }
 
 // GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
@@ -365,31 +314,18 @@ func (cpi *cachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider s
 		prices map[string]Price
 	)
 
-	if !cpi.cloudInfoers[provider].HasShortLivedPriceInfo() {
-		return nil, nil
+	if cpi.cloudInfoers[provider].HasShortLivedPriceInfo() {
+		if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(region); err != nil {
+			return nil, emperror.WrapWith(err, "failed to retrieve prices",
+				"provider", provider, "region", region)
+		}
+
+		for instType, price := range prices {
+			cpi.cloudInfoStore.StorePrice(provider, region, instType, price)
+		}
 	}
 
-	if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(region); err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve prices",
-			"provider", provider, "region", region)
-	}
-
-	for instType, price := range prices {
-		cpi.cloudInfoStore.StorePrice(provider, region, instType, price)
-	}
 	return prices, nil
-
-}
-
-func (cpi *cachingCloudInfo) toProviderAttribute(provider string, attr string) (string, error) {
-	switch attr {
-	case Cpu:
-		return cpi.cloudInfoers[provider].GetCpuAttrName(), nil
-	case Memory:
-		return cpi.cloudInfoers[provider].GetMemoryAttrName(), nil
-	}
-	return "", emperror.With(errors.New("unsupported attribute"),
-		"provider", provider, "attribute", attr)
 }
 
 func (cpi *cachingCloudInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {

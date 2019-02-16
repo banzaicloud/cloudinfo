@@ -21,9 +21,6 @@ type CloudInfoer interface {
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
 	Initialize() (map[string]map[string]Price, error)
 
-	// GetAttributeValues gets the attribute values for the given attribute from the external system
-	GetAttributeValues(service, attribute string) (AttrValues, error)
-
 	// GetVirtualMachines retrieves the available virtual machines in a region
 	GetVirtualMachines(region string) ([]VmInfo, error)
 
@@ -41,12 +38,6 @@ type CloudInfoer interface {
 
 	// GetCurrentPrices retrieves all the spot prices in a region
 	GetCurrentPrices(region string) (map[string]Price, error)
-
-	// GetMemoryAttrName returns the provider representation of the memory attribute
-	GetMemoryAttrName() string
-
-	// GetCpuAttrName returns the provider representation of the cpu attribute
-	GetCpuAttrName() string
 
 	// GetServices returns the available services on the given provider
 	GetServices() ([]Service, error)

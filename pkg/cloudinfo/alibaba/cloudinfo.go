@@ -119,61 +119,6 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]cloudinf
 	return priceInfo, nil
 }
 
-// GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AlibabaInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service, "attribute": attribute})
-	log.Debug("retrieving attribute values")
-
-	values := make(cloudinfo.AttrValues, 0)
-	valueSet := make(map[cloudinfo.AttrValue]interface{})
-
-	regions, err := a.GetRegions(service)
-	if err != nil {
-		return nil, err
-	}
-
-	instanceTypes, err := a.getInstanceTypes()
-	if err != nil {
-		return nil, err
-	}
-
-	for region := range regions {
-		zones, err := a.getZones(region)
-		if err != nil {
-			return nil, err
-		}
-		for _, zone := range zones {
-			for _, instanceType := range instanceTypes {
-				for _, resourcesInfo := range zone.AvailableResources.ResourcesInfo {
-					for _, availableInstanceType := range resourcesInfo.InstanceTypes.SupportedInstanceType {
-						if availableInstanceType == instanceType.InstanceTypeId {
-							switch attribute {
-							case cloudinfo.Cpu:
-								valueSet[cloudinfo.AttrValue{
-									Value:    float64(instanceType.CpuCoreCount),
-									StrValue: fmt.Sprintf("%v", instanceType.CpuCoreCount),
-								}] = ""
-							case cloudinfo.Memory:
-								valueSet[cloudinfo.AttrValue{
-									Value:    instanceType.MemorySize,
-									StrValue: fmt.Sprintf("%v", instanceType.MemorySize),
-								}] = ""
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	for attr := range valueSet {
-		values = append(values, attr)
-	}
-
-	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
-	return values, nil
-}
-
 func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
 	describeZones, err := a.client.ProcessCommonRequest(a.describeZonesRequest(region))
 	if err != nil {
@@ -468,16 +413,6 @@ func (a *AlibabaInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Pr
 	}
 
 	return prices, nil
-}
-
-// GetMemoryAttrName returns the provider representation of the memory attribute
-func (a *AlibabaInfoer) GetMemoryAttrName() string {
-	return cloudinfo.Memory
-}
-
-// GetCpuAttrName returns the provider representation of the cpu attribute
-func (a *AlibabaInfoer) GetCpuAttrName() string {
-	return cloudinfo.Cpu
 }
 
 // GetServices returns the available services on the provider

@@ -24,8 +24,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
-	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,14 +69,6 @@ func (dpi *DummyCloudInfoer) Initialize() (map[string]map[string]Price, error) {
 			"c3.large":   {"dummy": {OnDemandPrice: 0.11, SpotPrice: SpotPriceInfo{"dummyZone1": 0.053}}},
 		}, nil
 	}
-}
-
-func (dpi *DummyCloudInfoer) GetAttributeValues(service, attribute string) (AttrValues, error) {
-	switch dpi.TcId {
-	case GetAttributeValuesError:
-		return nil, errors.New(GetAttributeValuesError)
-	}
-	return dpi.AttrValues, nil
 }
 
 func (dpi *DummyCloudInfoer) GetVirtualMachines(region string) ([]VmInfo, error) {
@@ -142,14 +132,6 @@ func (dpi *DummyCloudInfoer) GetCurrentPrices(region string) (map[string]Price, 
 
 }
 
-func (dpi *DummyCloudInfoer) GetMemoryAttrName() string {
-	return "memory"
-}
-
-func (dpi *DummyCloudInfoer) GetCpuAttrName() string {
-	return "vcpu"
-}
-
 func (dpi *DummyCloudInfoer) GetNetworkPerformanceMapper() (NetworkPerfMapper, error) {
 	nm := newDummyNetworkMapper()
 	return &nm, nil
@@ -191,71 +173,6 @@ func TestNewCachingCloudInfo(t *testing.T) {
 		})
 	}
 
-}
-
-func TestCachingCloudInfo_GetAttrValues(t *testing.T) {
-	dummyAttrValues := AttrValues{
-		AttrValue{Value: 15},
-		AttrValue{Value: 16},
-		AttrValue{Value: 17},
-	}
-	tests := []struct {
-		name        string
-		CloudInfoer map[string]CloudInfoer
-		Attribute   string
-		checker     func(value []float64, err error)
-	}{
-		{
-			name: "successfully returned the attribute values for cpu",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{AttrValues: dummyAttrValues}},
-			Attribute: Cpu,
-			checker: func(value []float64, err error) {
-				assert.Nil(t, err, "the returned error must be nil")
-				assert.Equal(t, []float64{15, 16, 17}, value)
-			},
-		},
-		{
-			name: "successfully returned the attribute values for memory",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{AttrValues: dummyAttrValues}},
-			Attribute: Memory,
-			checker: func(value []float64, err error) {
-				assert.Nil(t, err, "the returned error must be nil")
-				assert.Equal(t, []float64{15, 16, 17}, value)
-			},
-		},
-		{
-			name: "the specified attribute is not supported",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{AttrValues: dummyAttrValues}},
-			Attribute: "invalidAttribute",
-			checker: func(value []float64, err error) {
-				assert.Equal(t, emperror.Context(err)[0], "provider", "unexpected context")
-				assert.Equal(t, emperror.Context(err)[1], "dummy", "unexpected context")
-				assert.EqualError(t, err, "failed to retrieve attribute values: unsupported attribute")
-				assert.Nil(t, value, "the retrieved values should be nil")
-			},
-		},
-		{
-			name: "could not retrieve attribute values",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetAttributeValuesError, AttrValues: dummyAttrValues}},
-			Attribute: Cpu,
-			checker: func(value []float64, err error) {
-				assert.EqualError(t, err, "failed to retrieve attribute values: "+GetAttributeValuesError)
-				assert.Nil(t, value, "the retrieved values should be nil")
-			},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			logger.Init(logur.NewTestLogger())
-			cloudInfo, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
-			test.checker(cloudInfo.GetAttrValues(context.Background(), "dummy", "dummyService", test.Attribute))
-		})
-	}
 }
 
 func TestCachingCloudInfo_Initialize(t *testing.T) {
