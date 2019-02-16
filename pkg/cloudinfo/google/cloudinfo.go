@@ -300,14 +300,12 @@ func (g *GceInfoer) GetAttributeValues(service, attribute string) (cloudinfo.Att
 	return values, nil
 }
 
-// GetProducts retrieves the available virtual machines based on the arguments provided
-// Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
-func (g *GceInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"service": service, "region": regionId})
+func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(g.log, map[string]interface{}{"region": region})
 	log.Debug("retrieving product information")
 	var vmsMap = make(map[string]cloudinfo.VmInfo)
 	var ntwPerf uint
-	zones, err := g.GetZones(regionId)
+	zones, err := g.GetZones(region)
 	if err != nil {
 		return nil, err
 	}
@@ -353,6 +351,17 @@ func (g *GceInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, e
 	}
 	log.Debug("found virtual machines", map[string]interface{}{"vms": len(vms)})
 	return vms, nil
+}
+
+// GetProducts retrieves the available virtual machines based on the arguments provided
+// Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
+func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	switch service {
+	case "gke":
+		return vms, nil
+	default:
+		return nil, errors.Wrap(errors.New(service), "invalid service")
+	}
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map

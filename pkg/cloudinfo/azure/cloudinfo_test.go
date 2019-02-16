@@ -540,16 +540,14 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 	}
 }
 
-func TestAzureInfoer_GetProducts(t *testing.T) {
+func TestAzureInfoer_GetVirtualMachines(t *testing.T) {
 	tests := []struct {
 		name    string
-		service string
 		vmSizes VmSizesRetriever
 		check   func(vms []cloudinfo.VmInfo, err error)
 	}{
 		{
-			name:    "retrieve the available virtual machines for compute service",
-			service: "compute",
+			name:    "retrieve the available virtual machines",
 			vmSizes: &testStruct{},
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
@@ -564,6 +562,42 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 				assert.ElementsMatch(t, mems, []float64{2, 32, 32})
 			},
 		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
+
+			azureInfoer.vmSizesClient = test.vmSizes
+			test.check(azureInfoer.GetVirtualMachines("dummyRegion"))
+		})
+	}
+}
+
+func TestAzureInfoer_GetProducts(t *testing.T) {
+	vms := []cloudinfo.VmInfo{
+		{
+			Type: "Standard_A1",
+			Mem:  32,
+			Cpus: 4,
+		},
+		{
+			Type: "Standard_A10",
+			Cpus: 8,
+			Mem:  32,
+		},
+		{
+			Type: "dummy",
+			Gpus: 1,
+			Mem:  5,
+			Cpus: 2,
+		},
+	}
+	tests := []struct {
+		name    string
+		service string
+		vmSizes VmSizesRetriever
+		check   func(vms []cloudinfo.VmInfo, err error)
+	}{
 		{
 			name:    "retrieve the available virtual machines for aks service",
 			service: "aks",
@@ -583,11 +617,11 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:    "could not retrieve virtual machines",
-			service: "compute",
+			service: "dummy",
 			vmSizes: &testStruct{GetVmsError},
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
-				assert.EqualError(t, err, GetVmsError)
+				assert.EqualError(t, err, "invalid service: dummy")
 			},
 		},
 	}
@@ -595,8 +629,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 
-			azureInfoer.vmSizesClient = test.vmSizes
-			test.check(azureInfoer.GetProducts(test.service, "dummyRegion"))
+			test.check(azureInfoer.GetProducts(vms, test.service, "dummyRegion"))
 		})
 	}
 }

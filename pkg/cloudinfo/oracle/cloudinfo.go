@@ -94,50 +94,7 @@ func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
 func (i *Infoer) Initialize() (prices map[string]map[string]cloudinfo.Price, err error) {
-	i.log.Info("initializing price info")
-
-	prices = make(map[string]map[string]cloudinfo.Price)
-
-	zonesInRegions := make(map[string][]string)
-	regions, err := i.GetRegions("compute")
-	if err != nil {
-		return nil, err
-	}
-
-	for r := range regions {
-		zones, err := i.GetZones(r)
-		if err != nil {
-			return nil, err
-		}
-		zonesInRegions[r] = zones
-	}
-
-	shapePrices, err := i.GetProductPrices()
-	if err != nil {
-		return nil, err
-	}
-
-	for region := range regions {
-		products, err := i.GetProducts("compute", region)
-		if err != nil {
-			return prices, emperror.With(err, "service", "compute", "region", region)
-		}
-
-		if prices[region] == nil {
-			prices[region] = make(map[string]cloudinfo.Price)
-		}
-		for _, product := range products {
-
-			shapePrice := shapePrices[product.Type]
-
-			price := prices[region][product.Type]
-			price.OnDemandPrice = shapePrice
-			prices[region][product.Type] = price
-		}
-	}
-
-	i.log.Debug("finished initializing price info")
-	return
+	return nil, nil
 }
 
 // GetAttributeValues gets the AttributeValues for the given attribute name
@@ -201,22 +158,66 @@ func (i *Infoer) GetCpuAttrName() string {
 }
 
 // GetProductPrices gets prices for available shapes from ITRA
-func (i *Infoer) GetProductPrices() (prices map[string]float64, err error) {
+func (i *Infoer) GetProductPrice(specs ShapeSpecs) (price float64, err error) {
+	info, err := i.GetCloudInfoFromITRA(specs.PartNumber)
+	if err != nil {
+		return 0, err
+	}
 
-	prices = make(map[string]float64)
-	for shape, specs := range i.shapeSpecs {
-		info, err := i.GetCloudInfoFromITRA(specs.PartNumber)
+	return info.GetPrice("PAY_AS_YOU_GO") * specs.Cpus, nil
+
+}
+
+func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo, err error) {
+	log := log.WithFields(i.log, map[string]interface{}{"region": region})
+
+	err = i.client.ChangeRegion(region)
+	if err != nil {
+		return
+	}
+
+	shapes, err := i.client.GetSupportedShapesInARegion(region, "compute")
+	if err != nil {
+		return
+	}
+
+	zones, err := i.GetZones(region)
+	if err != nil {
+		return
+	}
+
+	products = make([]cloudinfo.VmInfo, 0)
+	for _, shape := range shapes {
+		s := i.shapeSpecs[shape]
+		ntwMapper := newNetworkMapper()
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
+		if err != nil {
+			log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+				map[string]interface{}{"instanceType": shape})
+		}
+
+		price, err := i.GetProductPrice(s)
 		if err != nil {
 			return nil, err
 		}
-		prices[shape] = info.GetPrice("PAY_AS_YOU_GO") * specs.Cpus
+
+		products = append(products, cloudinfo.VmInfo{
+			Type:          shape,
+			OnDemandPrice: price,
+			NtwPerf:       s.NtwPerf,
+			NtwPerfCat:    ntwPerfCat,
+			Cpus:          s.Cpus,
+			Mem:           s.Mem,
+			Zones:         zones,
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat),
+		})
 	}
 
-	return prices, nil
+	return
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(service, regionId string) (products []cloudinfo.VmInfo, err error) {
+func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (products []cloudinfo.VmInfo, err error) {
 	log := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
 	err = i.client.ChangeRegion(regionId)
@@ -244,14 +245,20 @@ func (i *Infoer) GetProducts(service, regionId string) (products []cloudinfo.VmI
 				map[string]interface{}{"instanceType": shape})
 		}
 
+		price, err := i.GetProductPrice(s)
+		if err != nil {
+			return nil, err
+		}
+
 		products = append(products, cloudinfo.VmInfo{
-			Type:       shape,
-			NtwPerf:    s.NtwPerf,
-			NtwPerfCat: ntwPerfCat,
-			Cpus:       s.Cpus,
-			Mem:        s.Mem,
-			Zones:      zones,
-			Attributes: cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat),
+			Type:          shape,
+			OnDemandPrice: price,
+			NtwPerf:       s.NtwPerf,
+			NtwPerfCat:    ntwPerfCat,
+			Cpus:          s.Cpus,
+			Mem:           s.Mem,
+			Zones:         zones,
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat),
 		})
 	}
 

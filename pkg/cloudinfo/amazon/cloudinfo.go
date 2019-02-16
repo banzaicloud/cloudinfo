@@ -138,10 +138,8 @@ func (e *Ec2Infoer) GetAttributeValues(service, attribute string) (cloudinfo.Att
 	return values, nil
 }
 
-// GetProducts retrieves the available virtual machines based on the arguments provided
-// Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"service": service, "region": regionId})
+func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"region": region})
 	log.Debug("getting available instance types from AWS API")
 
 	missingAttributes := make(map[string][]string)
@@ -152,7 +150,7 @@ func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, e
 		err        error
 	)
 
-	if priceList, err = e.pricingSvc.GetPriceList(e.newGetProductsInput(regionId)); err != nil {
+	if priceList, err = e.pricingSvc.GetPriceList(e.newGetProductsInput(region)); err != nil {
 		return nil, err
 	}
 
@@ -227,15 +225,23 @@ func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, e
 		log.Debug("couldn't find any virtual machines to recommend")
 	}
 
-	if service == "eks" {
+	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
+	return vms, nil
+}
+
+// GetProducts retrieves the available virtual machines based on the arguments provided
+// Delegates to the underlying PricingSource instance and performs transformations
+func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	switch service {
+	case "eks":
 		vms = append(vms, cloudinfo.VmInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
 		})
+		return vms, nil
+	default:
+		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
-
-	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
-	return vms, nil
 }
 
 type priceData struct {

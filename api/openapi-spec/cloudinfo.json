@@ -579,9 +579,9 @@
           "type": "boolean",
           "x-go-name": "GpuAvailable"
         },
-        "image": {
+        "name": {
           "type": "string",
-          "x-go-name": "Image"
+          "x-go-name": "Name"
         },
         "version": {
           "type": "string",

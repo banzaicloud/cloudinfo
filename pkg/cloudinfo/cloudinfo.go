@@ -394,11 +394,16 @@ func (cpi *cachingCloudInfo) toProviderAttribute(provider string, attr string) (
 
 func (cpi *cachingCloudInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {
 	var (
+		vms    []VmInfo
 		values []VmInfo
 		err    error
 	)
 
-	if values, err = cpi.cloudInfoers[provider].GetProducts(service, regionId); err != nil {
+	if vms, err = cpi.cloudInfoers[provider].GetVirtualMachines(regionId); err != nil {
+		return nil, emperror.With(err, "provider", provider, "service", service, "region", regionId)
+	}
+
+	if values, err = cpi.cloudInfoers[provider].GetProducts(vms, service, regionId); err != nil {
 		return nil, emperror.With(err, "provider", provider, "service", service, "region", regionId)
 	}
 

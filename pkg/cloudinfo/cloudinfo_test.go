@@ -81,7 +81,11 @@ func (dpi *DummyCloudInfoer) GetAttributeValues(service, attribute string) (Attr
 	return dpi.AttrValues, nil
 }
 
-func (dpi *DummyCloudInfoer) GetProducts(service, regionId string) ([]VmInfo, error) {
+func (dpi *DummyCloudInfoer) GetVirtualMachines(region string) ([]VmInfo, error) {
+	return nil, nil
+}
+
+func (dpi *DummyCloudInfoer) GetProducts(vms []VmInfo, service, regionId string) ([]VmInfo, error) {
 	switch dpi.TcId {
 	case GetProductsError:
 		return nil, errors.New(GetProductsError)

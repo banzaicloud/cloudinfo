@@ -190,9 +190,8 @@ func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
 	return response.Zones.Zone, nil
 }
 
-// GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AlibabaInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service, "region": regionId})
+func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"region": region})
 	log.Debug("getting product info")
 	vms := make([]cloudinfo.VmInfo, 0)
 
@@ -201,7 +200,7 @@ func (a *AlibabaInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInf
 		return nil, err
 	}
 
-	availableZones, err := a.getZones(regionId)
+	availableZones, err := a.getZones(region)
 	if err != nil {
 		return nil, err
 	}
@@ -241,13 +240,23 @@ func (a *AlibabaInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInf
 		}
 	}
 
-	virtualMachines, err := a.getOnDemandPrice(vms, regionId)
+	virtualMachines, err := a.getOnDemandPrice(vms, region)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(virtualMachines)})
 	return virtualMachines, nil
+}
+
+// GetProducts retrieves the available virtual machines based on the arguments provided
+func (a *AlibabaInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	switch service {
+	case svcAck:
+		return vms, nil
+	default:
+		return nil, errors.Wrap(errors.New(service), "invalid service")
+	}
 }
 
 func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {

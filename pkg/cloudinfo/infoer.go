@@ -24,8 +24,11 @@ type CloudInfoer interface {
 	// GetAttributeValues gets the attribute values for the given attribute from the external system
 	GetAttributeValues(service, attribute string) (AttrValues, error)
 
+	// GetVirtualMachines retrieves the available virtual machines in a region
+	GetVirtualMachines(region string) ([]VmInfo, error)
+
 	// GetProducts gets product information based on the given arguments from an external system
-	GetProducts(service, regionId string) ([]VmInfo, error)
+	GetProducts(vms []VmInfo, service, regionId string) ([]VmInfo, error)
 
 	// GetZones returns the availability zones in a region
 	GetZones(region string) ([]string, error)
