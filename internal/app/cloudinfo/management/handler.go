@@ -29,7 +29,7 @@ import (
 // mngmntRouteHandler struct collecting handlers for the management service
 type mngmntRouteHandler struct {
 	cis cloudinfo.CloudInfoStore
-	ci  cloudinfo.CloudInfo
+	sd  cloudinfo.ScrapingDriver
 	log logur.Logger
 }
 
@@ -87,17 +87,17 @@ func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
 
 		// trigger the refresh process for the provider
 		mrh.log.Info("triggering refresh cloud information", map[string]interface{}{"provider": pathParams.Provider})
-		go mrh.ci.RefreshProvider(context.Background(), pathParams.Provider)
+		go mrh.sd.RefreshProvider(context.Background(), pathParams.Provider)
 		c.JSON(http.StatusOK, gin.H{"operation": "refresh", "provider": pathParams.Provider})
 	}
 }
 
-func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, ci cloudinfo.CloudInfo, log logur.Logger) *gin.Engine {
+func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, sd cloudinfo.ScrapingDriver, log logur.Logger) *gin.Engine {
 	if err := cfg.Validate(); err != nil {
 		emperror.Panic(err)
 	}
 
-	rh := &mngmntRouteHandler{cis, ci, log}
+	rh := &mngmntRouteHandler{cis, sd, log}
 
 	router := gin.New()
 	base := router.Group("/management/store")

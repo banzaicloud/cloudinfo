@@ -37,9 +37,6 @@ type CloudInfo interface {
 	// GetServices returns the supported services for a provider
 	GetServices(ctx context.Context, provider string) ([]Service, error)
 
-	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
-	Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error)
-
 	// GetAttributes returns the supported attribute names
 	GetAttributes(ctx context.Context) []string
 
@@ -51,11 +48,6 @@ type CloudInfo interface {
 
 	// GetRegions returns all the regions for a cloud provider
 	GetRegions(ctx context.Context, provider string, service string) (map[string]string, error)
-
-	// GetPrice returns the on demand price and the zone averaged computed spot price for a given instance type in a given region
-	GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error)
-
-	RefreshProvider(ctx context.Context, provider string)
 
 	GetStatus(provider string) (string, error)
 

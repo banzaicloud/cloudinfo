@@ -17,7 +17,6 @@ package cloudinfo
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -52,7 +51,6 @@ func (nm *dummyNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 const (
 	GetRegionsError         = "could not get regions"
 	GetCurrentPricesError   = "could not get current prices"
-	GetAttributeValuesError = "could not get attribute values"
 	GetProductsError        = "could not get products"
 	InitializeError         = "initialization failed"
 	GetZonesError           = "could not get zones"
@@ -173,141 +171,6 @@ func TestNewCachingCloudInfo(t *testing.T) {
 		})
 	}
 
-}
-
-func TestCachingCloudInfo_Initialize(t *testing.T) {
-	tests := []struct {
-		name        string
-		CloudInfoer map[string]CloudInfoer
-		checker     func(price map[string]map[string]Price, err error)
-	}{
-		{
-			name: "successful - store the result in cache",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{},
-			},
-			checker: func(price map[string]map[string]Price, err error) {
-				assert.Equal(t, 3, len(price))
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name: "could not get the output of the Infoer's Initialize function",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: InitializeError},
-			},
-			checker: func(price map[string]map[string]Price, err error) {
-				assert.Nil(t, price, "the price should be nil")
-				assert.EqualError(t, err, InitializeError)
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			cloudInfo, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
-			test.checker(cloudInfo.Initialize(context.Background(), "dummy"))
-		})
-	}
-}
-
-func TestCachingCloudInfo_renewShortLivedInfo(t *testing.T) {
-	tests := []struct {
-		name        string
-		CloudInfoer map[string]CloudInfoer
-		checker     func(price map[string]Price, err error)
-	}{
-		{
-			name: "successful - retrieve attribute values from the cloud provider",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{},
-			},
-			checker: func(price map[string]Price, err error) {
-				assert.Equal(t, 3, len(price))
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name: "could not retrieve current prices",
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetCurrentPricesError},
-			},
-			checker: func(price map[string]Price, err error) {
-				assert.Nil(t, price, "the price should be nil")
-				assert.True(t, strings.Contains(err.Error(), GetCurrentPricesError))
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
-			test.checker(info.renewShortLivedInfo(context.Background(), "dummy", "dummyRegion"))
-		})
-	}
-}
-
-func TestCachingCloudInfo_GetPrice(t *testing.T) {
-	tests := []struct {
-		name        string
-		zones       []string
-		CloudInfoer map[string]CloudInfoer
-		checker     func(i float64, f float64, err error)
-	}{
-		{
-			name:  "return on demand price and average spot price with 1 zone",
-			zones: []string{"dummyZone1"},
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{},
-			},
-			checker: func(ondemand float64, avg float64, err error) {
-				assert.Equal(t, float64(0.11), ondemand)
-				assert.Equal(t, float64(0.053), avg)
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:  "return on demand price and average spot price with 4 zones",
-			zones: []string{"dummyZone1", "dummyZone2", "dummyZone3", "dummyZone4"},
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{},
-			},
-			checker: func(ondemand float64, avg float64, err error) {
-				assert.Equal(t, float64(0.11), ondemand)
-				assert.Equal(t, float64(0.01325), avg)
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:  "return on demand price and average spot price without expected zone",
-			zones: []string{"dummyZone2", "dummyZone3", "dummyZone4"},
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{},
-			},
-			checker: func(ondemand float64, avg float64, err error) {
-				assert.Equal(t, float64(0.11), ondemand)
-				assert.Equal(t, float64(0), avg)
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:  "could not retrieve current prices",
-			zones: []string{"dummyZone1"},
-			CloudInfoer: map[string]CloudInfoer{
-				"dummy": &DummyCloudInfoer{TcId: GetCurrentPricesError},
-			},
-			checker: func(i float64, f float64, err error) {
-				assert.Equal(t, float64(0), i)
-				assert.Equal(t, float64(0), f)
-				assert.True(t, strings.Contains(err.Error(), GetCurrentPricesError))
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()), test.CloudInfoer, metrics.NewNoOpMetricsReporter(), tracing.NewNoOpTracer())
-			values, value, err := info.GetPrice(context.Background(), "dummy", "dummyRegion", "c3.large", test.zones)
-			test.checker(values, value, err)
-		})
-	}
 }
 
 func TestCachingCloudInfo_GetRegions(t *testing.T) {

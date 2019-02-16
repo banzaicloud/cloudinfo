@@ -117,7 +117,7 @@ func main() {
 
 	// start the management service
 	if config.Management.Enabled {
-		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
+		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logur)
 	}
 
 	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)

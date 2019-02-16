@@ -16,16 +16,12 @@ package cloudinfo
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 // cachingCloudInfo is the module struct, holds configuration and cache
@@ -36,13 +32,6 @@ type cachingCloudInfo struct {
 	cloudInfoStore CloudInfoStore
 	metrics        metrics.Reporter
 	tracer         tracing.Tracer
-}
-
-func (cpi *cachingCloudInfo) RefreshProvider(ctx context.Context, provider string) {
-	if _, ok := cpi.cloudInfoers[provider]; !ok {
-		logger.Extract(ctx).Error("refresh - unsupported provider", map[string]interface{}{"provider": provider, "op": "refreshProvider"})
-	}
-	cpi.renewProviderInfo(ctx, provider)
 }
 
 func (v AttrValues) floatValues() []float64 {
@@ -142,121 +131,6 @@ func (cpi *cachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 	return p, nil
 }
 
-// renewProviderInfo renews provider information for the provider argument. It optionally signals the end of renewal to the
-// provided WaitGroup (if provided)
-func (cpi *cachingCloudInfo) renewProviderInfo(ctx context.Context, provider string) {
-	ctx, _ = cpi.tracer.StartWithTags(ctx, fmt.Sprintf("renew-provider (%s)", provider), map[string]interface{}{"provider": provider})
-	defer cpi.tracer.EndSpan(ctx)
-
-	log := logger.Extract(ctx)
-
-	start := time.Now()
-
-	log.Info("renewing product info")
-	if _, err := cpi.Initialize(ctx, provider); err != nil {
-		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-		log.Error("failed to renew product info")
-		return
-	}
-
-	services, err := cpi.cloudInfoers[provider].GetServices()
-	if err != nil {
-		cpi.metrics.ReportScrapeFailure(provider, "N/A", "N/A")
-		log.Error(emperror.Wrap(err, "failed to renew products").Error())
-		return
-	}
-
-	log.Info("start to renew products (vm-s)")
-
-	// todo spans to be created in individual method calls instead
-	vmCtx, _ := cpi.tracer.StartWithTags(ctx, "renew-products", map[string]interface{}{"provider": provider})
-
-	for _, service := range services {
-		ctxLog := logger.ToContext(ctx,
-			logger.NewLogCtxBuilder().
-				WithService(service.ServiceName()).
-				Build())
-		regions, err := cpi.cloudInfoers[provider].GetRegions(service.ServiceName())
-		if err != nil {
-			cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), "N/A")
-			logger.Extract(ctxLog).Error(emperror.Wrap(err, "failed to renew products").Error())
-			return
-		}
-
-		for regionId := range regions {
-			c := logger.ToContext(ctxLog,
-				logger.NewLogCtxBuilder().
-					WithRegion(regionId).
-					Build())
-
-			start := time.Now()
-			_, err := cpi.renewVms(c, provider, service.ServiceName(), regionId)
-			if err != nil {
-				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-				logger.Extract(c).Error(emperror.Wrap(err, "failed to renew products").Error())
-			}
-			if cpi.cloudInfoers[provider].HasImages() {
-				_, imgErr := cpi.renewImages(c, provider, service.ServiceName(), regionId)
-				if imgErr != nil {
-					cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-					logger.Extract(c).Error("failed to renew images")
-				}
-			}
-			_, versionErr := cpi.renewVersions(c, provider, service.ServiceName(), regionId)
-			if versionErr != nil {
-				cpi.metrics.ReportScrapeFailure(provider, service.ServiceName(), regionId)
-				logger.Extract(c).Error("failed to renew versions")
-			}
-			if err == nil && versionErr == nil {
-				cpi.metrics.ReportScrapeRegionCompleted(provider, service.ServiceName(), regionId, start)
-			}
-		}
-	}
-	log.Info("finished to renew products (vm-s)")
-
-	// close the span
-	cpi.tracer.EndSpan(vmCtx)
-
-	if _, err := cpi.renewStatus(ctx, provider); err != nil {
-		log.Error("failed to renew status")
-		return
-	}
-
-	cpi.metrics.ReportScrapeProviderCompleted(provider, start)
-}
-
-func (cpi *cachingCloudInfo) renewStatus(ctx context.Context, provider string) (string, error) {
-	ctx, _ = cpi.tracer.StartWithTags(ctx, "renew-status", map[string]interface{}{"provider": provider})
-	defer cpi.tracer.EndSpan(ctx)
-
-	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
-
-	cpi.cloudInfoStore.StoreStatus(provider, values)
-	return values, nil
-}
-
-// Initialize stores the result of the Infoer's Initialize output in cache
-func (cpi *cachingCloudInfo) Initialize(ctx context.Context, provider string) (map[string]map[string]Price, error) {
-	ctx, _ = cpi.tracer.StartWithTags(ctx, "initialize", map[string]interface{}{"provider": provider})
-	defer cpi.tracer.EndSpan(ctx)
-	log := logger.Extract(ctx)
-	log.Info("initializing cloud product information")
-	allPrices, err := cpi.cloudInfoers[provider].Initialize()
-	if err != nil {
-		log.Warn("failed to initialize cloud product information")
-		return nil, err
-	}
-
-	for region, ap := range allPrices {
-		for instType, p := range ap {
-			cpi.cloudInfoStore.StorePrice(provider, region, instType, p)
-			metrics.OnDemandPriceGauge.WithLabelValues(provider, region, instType).Set(p.OnDemandPrice)
-		}
-	}
-	log.Info("finished initializing cloud product information")
-	return allPrices, nil
-}
-
 // GetAttributes returns the supported attribute names
 func (cpi *cachingCloudInfo) GetAttributes(ctx context.Context) []string {
 	return []string{Cpu, Memory}
@@ -272,85 +146,6 @@ func (cpi *cachingCloudInfo) GetAttrValues(ctx context.Context, provider, servic
 
 	return nil, errors.New("failed to retrieve attribute values")
 
-}
-
-// GetPrice returns the on demand price and zone averaged computed spot price for a given instance type in a given region
-func (cpi *cachingCloudInfo) GetPrice(ctx context.Context, provider string, region string, instanceType string, zones []string) (float64, float64, error) {
-	var p Price
-	ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().WithProvider(provider).WithRegion(region).Build())
-
-	if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, instanceType); !ok {
-		var (
-			allPriceInfo map[string]Price
-			err          error
-		)
-		if allPriceInfo, err = cpi.renewShortLivedInfo(ctx, provider, region); err != nil {
-			return 0, 0, emperror.Wrap(err, "failed to renew short lived info")
-		}
-		if allPriceInfo == nil {
-			return 0, 0, errors.New("no prices found or short lived info disabled")
-		}
-		p = allPriceInfo[instanceType]
-	} else {
-		p = cachedVal.(Price)
-	}
-
-	var sumPrice float64
-	for _, z := range zones {
-		for zone, price := range p.SpotPrice {
-			if zone == z {
-				sumPrice += price
-			}
-		}
-	}
-	return p.OnDemandPrice, sumPrice / float64(len(zones)), nil
-}
-
-// renewAttrValues retrieves attribute values from the cloud provider and refreshes the attribute store with them
-func (cpi *cachingCloudInfo) renewShortLivedInfo(ctx context.Context, provider string, region string) (map[string]Price, error) {
-
-	var (
-		err    error
-		prices map[string]Price
-	)
-
-	if cpi.cloudInfoers[provider].HasShortLivedPriceInfo() {
-		if prices, err = cpi.cloudInfoers[provider].GetCurrentPrices(region); err != nil {
-			return nil, emperror.WrapWith(err, "failed to retrieve prices",
-				"provider", provider, "region", region)
-		}
-
-		for instType, price := range prices {
-			cpi.cloudInfoStore.StorePrice(provider, region, instType, price)
-		}
-	}
-
-	return prices, nil
-}
-
-func (cpi *cachingCloudInfo) renewVms(ctx context.Context, provider, service, regionId string) ([]VmInfo, error) {
-	var (
-		vms    []VmInfo
-		values []VmInfo
-		err    error
-	)
-
-	if vms, err = cpi.cloudInfoers[provider].GetVirtualMachines(regionId); err != nil {
-		return nil, emperror.With(err, "provider", provider, "service", service, "region", regionId)
-	}
-
-	if values, err = cpi.cloudInfoers[provider].GetProducts(vms, service, regionId); err != nil {
-		return nil, emperror.With(err, "provider", provider, "service", service, "region", regionId)
-	}
-
-	for _, vm := range values {
-		if vm.OnDemandPrice > 0 {
-			metrics.OnDemandPriceGauge.WithLabelValues(provider, regionId, vm.Type).Set(vm.OnDemandPrice)
-		}
-	}
-
-	cpi.cloudInfoStore.StoreVm(provider, service, regionId, values)
-	return values, nil
 }
 
 // GetZones returns the availability zones in a region
@@ -484,20 +279,6 @@ func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
 	return "", emperror.With(errors.New("status not yet cached"), "provider", provider)
 }
 
-func (cpi *cachingCloudInfo) renewImages(ctx context.Context, provider, service, regionId string) ([]Image, error) {
-	var (
-		values []Image
-		err    error
-	)
-
-	if values, err = cpi.cloudInfoers[provider].GetServiceImages(service, regionId); err != nil {
-		return nil, emperror.With(err, "provider", provider, "service", service, "region", regionId)
-	}
-
-	cpi.cloudInfoStore.StoreImage(provider, service, regionId, values)
-	return values, nil
-}
-
 // GetServiceImages retrieves available images for the given provider, service and region
 func (cpi *cachingCloudInfo) GetServiceImages(ctx context.Context, provider, service, region string) ([]Image, error) {
 	logger.Extract(ctx).Debug("getting available images")
@@ -508,19 +289,6 @@ func (cpi *cachingCloudInfo) GetServiceImages(ctx context.Context, provider, ser
 
 	return nil, emperror.With(errors.New("images not yet cached"), "provider", provider,
 		"service", service, "region", region)
-
-}
-
-func (cpi *cachingCloudInfo) renewVersions(ctx context.Context, provider, service, region string) ([]string, error) {
-	var (
-		values []string
-		err    error
-	)
-	if values, err = cpi.cloudInfoers[provider].GetVersions(service, region); err != nil {
-		return nil, emperror.With(errors.New("failed to renew versions"), "provider", provider, "service", service, "region", region)
-	}
-	cpi.cloudInfoStore.StoreVersion(provider, service, region, values)
-	return values, nil
 
 }
 

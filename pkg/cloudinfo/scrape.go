@@ -400,6 +400,14 @@ func (sd *ScrapingDriver) renewShortLived(ctx context.Context) {
 	}
 }
 
+func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) {
+	for _, manager := range sd.scrapingManagers {
+		if manager.provider == provider {
+			manager.scrape(ctx)
+		}
+	}
+}
+
 func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
 	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer) *ScrapingDriver {
 	var managers []*scrapingManager
