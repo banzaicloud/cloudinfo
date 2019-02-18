@@ -41,7 +41,7 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 				"product": map[string]interface{}{
 					"attributes": map[string]interface{}{
 						"instanceType":       ec2.InstanceTypeT2Small,
-						Cpu:                  "1",
+						"vcpu":               "1",
 						cloudinfo.Memory:     "2",
 						"networkPerformance": "Low to Moderate",
 					}},
@@ -62,7 +62,7 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 				"product": map[string]interface{}{
 					"attributes": map[string]interface{}{
 						"instanceType":   ec2.InstanceTypeT2Small,
-						Cpu:              "1",
+						"vcpu":           "1",
 						cloudinfo.Memory: "2",
 					}},
 				"terms": map[string]interface{}{
@@ -79,7 +79,7 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 				"product": map[string]interface{}{
 					"attributes": map[string]interface{}{
 						"instanceType": ec2.InstanceTypeT2Small,
-						Cpu:            "1",
+						"vcpu":         "1",
 					}}},
 		}, nil
 	case 8:
@@ -99,55 +99,6 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 		}, nil
 
 	}
-	return nil, nil
-}
-
-func (dps *testStruct) GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error) {
-
-	// example json sequence
-	//{
-	//	"Value": "256 GiB"
-	//},
-	//{
-	//"Value": "3,904 GiB"
-	//},
-	//{
-	//"Value": "3.75 GiB"
-	//},
-
-	switch dps.TcId {
-	case 1:
-		return &pricing.GetAttributeValuesOutput{
-			AttributeValues: []*pricing.AttributeValue{
-				{
-					Value: dps.strPointer("256 GiB"),
-				},
-				{
-					Value: dps.strPointer("3,904 GiB"),
-				},
-				{
-					Value: dps.strPointer("3.75 GiB"),
-				},
-			},
-		}, nil
-	case 2:
-		return &pricing.GetAttributeValuesOutput{
-			AttributeValues: []*pricing.AttributeValue{
-				{
-					Value: dps.strPointer("invalid float 256 GiB"),
-				},
-				{
-					Value: dps.strPointer("3,904 GiB"),
-				},
-				{
-					Value: dps.strPointer("3.75 GiB"),
-				},
-			},
-		}, nil
-	case 3:
-		return nil, errors.New("failed to retrieve values")
-	}
-
 	return nil, nil
 }
 
@@ -214,53 +165,6 @@ func TestNewEc2Infoer(t *testing.T) {
 		logger.Init(logur.NewTestLogger())
 		t.Run(test.name, func(t *testing.T) {
 			test.check(newInfoer(test.prom, "", "", "", logur.NewTestLogger()))
-		})
-	}
-}
-
-func TestEc2Infoer_GetAttributeValues(t *testing.T) {
-	tests := []struct {
-		name           string
-		pricingService PricingSource
-		attrName       string
-		check          func(values cloudinfo.AttrValues, err error)
-	}{
-		{
-			name:           "successfully retrieve attributes",
-			pricingService: &testStruct{TcId: 1},
-			check: func(values cloudinfo.AttrValues, err error) {
-				assert.Equal(t, 3, len(values), "invalid number of values returned")
-				assert.Nil(t, err, "should not get error")
-			},
-		},
-		{
-			name:           "error - invalid values zeroed out",
-			pricingService: &testStruct{TcId: 2},
-			check: func(values cloudinfo.AttrValues, err error) {
-				assert.Equal(t, values[0].StrValue, "invalid float 256 GiB", "the invalid value is not the first element")
-				assert.Equal(t, values[0].Value, float64(0), "the invalid value is not zeroed out")
-				assert.Equal(t, 3, len(values))
-			},
-		},
-		{
-			name:           "error - error when retrieving values",
-			pricingService: &testStruct{TcId: 3},
-			check: func(values cloudinfo.AttrValues, err error) {
-				assert.Equal(t, "failed to retrieve values", err.Error())
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			cloudinfoer, err := newInfoer("", "", "", "", logur.NewTestLogger())
-			// override pricingSvc
-			cloudinfoer.pricingSvc = test.pricingService
-			if err != nil {
-				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
-			}
-
-			test.check(cloudinfoer.GetAttributeValues("compute", test.attrName))
-
 		})
 	}
 }
@@ -434,7 +338,7 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 }
 
-func TestPriceData_GetDataForKey(t *testing.T) {
+func TestPriceData_getDataForKey(t *testing.T) {
 	var missingData = priceData{
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
@@ -444,7 +348,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
 					"instanceType":   0,
-					Cpu:              1,
+					"vcpu":           1,
 					cloudinfo.Memory: 2,
 					"gpu":            3,
 				}},
@@ -455,7 +359,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
 					"instanceType":   ec2.InstanceTypeT2Small,
-					Cpu:              "1",
+					"vcpu":           "1",
 					cloudinfo.Memory: "2",
 					"gpu":            "5",
 				}},
@@ -504,7 +408,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		},
 		{
 			name:  "successful - get cpu",
-			attr:  Cpu,
+			attr:  "vcpu",
 			price: data,
 			check: func(s string, err error) {
 				assert.Nil(t, err, "the error should be nil")
@@ -513,7 +417,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		},
 		{
 			name:  "cast problem - get cpu",
-			attr:  Cpu,
+			attr:  "vcpu",
 			price: wrongCast,
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
@@ -522,7 +426,7 @@ func TestPriceData_GetDataForKey(t *testing.T) {
 		},
 		{
 			name:  "missing data - get cpu",
-			attr:  Cpu,
+			attr:  "vcpu",
 			price: missingData,
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
@@ -598,7 +502,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
 					"instanceType":   ec2.InstanceTypeT2Small,
-					Cpu:              "1",
+					"vcpu":           "1",
 					cloudinfo.Memory: "2",
 					"gpu":            "5",
 				}},

@@ -38,11 +38,6 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-const (
-	// Cpu represents the cpu attribute for the recommender
-	Cpu = "vcpu"
-)
-
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {
 	pricingSvc   PricingSource
@@ -113,35 +108,8 @@ func (e *Ec2Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 	return nil, nil
 }
 
-// GetAttributeValues gets the AttributeValues for the given attribute name
-// Delegates to the underlying PricingSource instance and unifies (transforms) the response
-func (e *Ec2Infoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"service": service, "attribute": attribute})
-	apiValues, err := e.pricingSvc.GetAttributeValues(e.newAttributeValuesInput(attribute))
-	if err != nil {
-		return nil, err
-	}
-	var values cloudinfo.AttrValues
-	for _, v := range apiValues.AttributeValues {
-		dotValue := strings.Replace(*v.Value, ",", ".", -1)
-		floatValue, err := strconv.ParseFloat(strings.Split(dotValue, " ")[0], 64)
-		if err != nil {
-			log.Warn("could not parse attribute value", map[string]interface{}{"value": dotValue})
-		}
-		values = append(values, cloudinfo.AttrValue{
-			Value:    floatValue,
-			StrValue: *v.Value,
-		})
-	}
-
-	log.Debug("found attribute values", map[string]interface{}{"numberOfValues": len(values)})
-	return values, nil
-}
-
-// GetProducts retrieves the available virtual machines based on the arguments provided
-// Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"service": service, "region": regionId})
+func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(e.log, map[string]interface{}{"region": region})
 	log.Debug("getting available instance types from AWS API")
 
 	missingAttributes := make(map[string][]string)
@@ -152,7 +120,7 @@ func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, e
 		err        error
 	)
 
-	if priceList, err = e.pricingSvc.GetPriceList(e.newGetProductsInput(regionId)); err != nil {
+	if priceList, err = e.pricingSvc.GetPriceList(e.newGetProductsInput(region)); err != nil {
 		return nil, err
 	}
 
@@ -168,7 +136,7 @@ func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, e
 			log.Warn("could not retrieve instance type", map[string]interface{}{"instancetype": instanceType})
 			continue
 		}
-		cpusStr, err := pd.getDataForKey(Cpu)
+		cpusStr, err := pd.getDataForKey("vcpu")
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "cpu")
 		}
@@ -227,15 +195,23 @@ func (e *Ec2Infoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, e
 		log.Debug("couldn't find any virtual machines to recommend")
 	}
 
-	if service == "eks" {
+	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
+	return vms, nil
+}
+
+// GetProducts retrieves the available virtual machines based on the arguments provided
+// Delegates to the underlying PricingSource instance and performs transformations
+func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	switch service {
+	case "eks":
 		vms = append(vms, cloudinfo.VmInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
 		})
+		return vms, nil
+	default:
+		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
-
-	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
-	return vms, nil
 }
 
 type priceData struct {
@@ -322,15 +298,7 @@ func (e *Ec2Infoer) GetRegion(id string) *endpoints.Region {
 	return nil
 }
 
-// newAttributeValuesInput assembles a GetAttributeValuesInput instance for querying the provider
-func (e *Ec2Infoer) newAttributeValuesInput(attr string) *pricing.GetAttributeValuesInput {
-	return &pricing.GetAttributeValuesInput{
-		ServiceCode:   aws.String("AmazonEC2"),
-		AttributeName: aws.String(attr),
-	}
-}
-
-// newAttributeValuesInput assembles a GetAttributeValuesInput instance for querying the provider
+// newAttributeValuesInput assembles a GetProductsInput instance for querying the provider
 func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInput {
 	return &pricing.GetProductsInput{
 
@@ -527,16 +495,6 @@ func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price,
 		}
 	}
 	return prices, nil
-}
-
-// GetMemoryAttrName returns the provider representation of the memory attribute
-func (e *Ec2Infoer) GetMemoryAttrName() string {
-	return cloudinfo.Memory
-}
-
-// GetCpuAttrName returns the provider representation of the cpu attribute
-func (e *Ec2Infoer) GetCpuAttrName() string {
-	return Cpu
 }
 
 // GetServices returns the available services on the provider

@@ -106,7 +106,7 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer)
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore)
 
 	emperror.Panic(err)
 
@@ -117,7 +117,7 @@ func main() {
 
 	// start the management service
 	if config.Management.Enabled {
-		go management.StartManagementEngine(config.Management, cloudInfoStore, prodInfo, logur)
+		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logur)
 	}
 
 	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)

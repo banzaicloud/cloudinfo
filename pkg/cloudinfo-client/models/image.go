@@ -18,8 +18,8 @@ type Image struct {
 	// gpu available
 	GpuAvailable bool `json:"gpu,omitempty"`
 
-	// image
-	Image string `json:"image,omitempty"`
+	// name
+	Name string `json:"name,omitempty"`
 
 	// version
 	Version string `json:"version,omitempty"`

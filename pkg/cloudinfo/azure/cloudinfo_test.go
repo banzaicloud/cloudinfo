@@ -540,16 +540,14 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 	}
 }
 
-func TestAzureInfoer_GetProducts(t *testing.T) {
+func TestAzureInfoer_GetVirtualMachines(t *testing.T) {
 	tests := []struct {
 		name    string
-		service string
 		vmSizes VmSizesRetriever
 		check   func(vms []cloudinfo.VmInfo, err error)
 	}{
 		{
-			name:    "retrieve the available virtual machines for compute service",
-			service: "compute",
+			name:    "retrieve the available virtual machines",
 			vmSizes: &testStruct{},
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
@@ -564,6 +562,42 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 				assert.ElementsMatch(t, mems, []float64{2, 32, 32})
 			},
 		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
+
+			azureInfoer.vmSizesClient = test.vmSizes
+			test.check(azureInfoer.GetVirtualMachines("dummyRegion"))
+		})
+	}
+}
+
+func TestAzureInfoer_GetProducts(t *testing.T) {
+	vms := []cloudinfo.VmInfo{
+		{
+			Type: "Standard_A1",
+			Mem:  32,
+			Cpus: 4,
+		},
+		{
+			Type: "Standard_A10",
+			Cpus: 8,
+			Mem:  32,
+		},
+		{
+			Type: "dummy",
+			Gpus: 1,
+			Mem:  5,
+			Cpus: 2,
+		},
+	}
+	tests := []struct {
+		name    string
+		service string
+		vmSizes VmSizesRetriever
+		check   func(vms []cloudinfo.VmInfo, err error)
+	}{
 		{
 			name:    "retrieve the available virtual machines for aks service",
 			service: "aks",
@@ -583,11 +617,11 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		},
 		{
 			name:    "could not retrieve virtual machines",
-			service: "compute",
+			service: "dummy",
 			vmSizes: &testStruct{GetVmsError},
 			check: func(vms []cloudinfo.VmInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
-				assert.EqualError(t, err, GetVmsError)
+				assert.EqualError(t, err, "invalid service: dummy")
 			},
 		},
 	}
@@ -595,8 +629,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
 
-			azureInfoer.vmSizesClient = test.vmSizes
-			test.check(azureInfoer.GetProducts(test.service, "dummyRegion"))
+			test.check(azureInfoer.GetProducts(vms, test.service, "dummyRegion"))
 		})
 	}
 }
@@ -667,97 +700,6 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			azureInfoer.subscriptionsClient = test.location
 			azureInfoer.providersClient = test.providers
 			test.check(azureInfoer.GetRegions(test.service))
-		})
-	}
-}
-
-func TestAzureInfoer_GetAttributeValues(t *testing.T) {
-	tests := []struct {
-		name      string
-		service   string
-		attribute string
-		vmSizes   VmSizesRetriever
-		location  LocationRetriever
-		providers ProviderSource
-		check     func(attrVals cloudinfo.AttrValues, err error)
-	}{
-		{
-			name:      "retrieve memory for compute service",
-			service:   "compute",
-			attribute: "memory",
-			vmSizes:   &testStruct{},
-			location:  &testStruct{},
-			providers: &testStruct{},
-			check: func(attrVals cloudinfo.AttrValues, err error) {
-				var mems []float64
-				for _, attrVal := range attrVals {
-					mems = append(mems, attrVal.Value)
-				}
-				assert.ElementsMatch(t, mems, []float64{2, 32})
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:      "retrieve memory for aks service",
-			service:   "aks",
-			attribute: "memory",
-			vmSizes:   &testStruct{},
-			location:  &testStruct{},
-			providers: &testStruct{},
-			check: func(attrVals cloudinfo.AttrValues, err error) {
-				assert.Equal(t, cloudinfo.AttrValues(cloudinfo.AttrValues{cloudinfo.AttrValue{StrValue: "32768", Value: 32}}), attrVals)
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:      "retrieve cpu for compute service",
-			service:   "compute",
-			attribute: "cpu",
-			vmSizes:   &testStruct{},
-			location:  &testStruct{},
-			providers: &testStruct{},
-			check: func(attrVals cloudinfo.AttrValues, err error) {
-				var cpus []float64
-				for _, attrVal := range attrVals {
-					cpus = append(cpus, attrVal.Value)
-				}
-				assert.ElementsMatch(t, cpus, []float64{1, 4, 8})
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:      "could not retrieve virtual machines",
-			service:   "compute",
-			attribute: "cpu",
-			vmSizes:   &testStruct{GetVmsError},
-			location:  &testStruct{},
-			providers: &testStruct{},
-			check: func(attrVals cloudinfo.AttrValues, err error) {
-				assert.Equal(t, cloudinfo.AttrValues{}, attrVals)
-				assert.Nil(t, err, "the error should be nil")
-			},
-		},
-		{
-			name:      "could not retrieve regions",
-			service:   "compute",
-			attribute: "cpu",
-			vmSizes:   &testStruct{},
-			location:  &testStruct{GetRegionsError},
-			providers: &testStruct{},
-			check: func(attrVals cloudinfo.AttrValues, err error) {
-				assert.Nil(t, attrVals, "the attribute values should be nil")
-				assert.EqualError(t, err, GetRegionsError)
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
-
-			azureInfoer.vmSizesClient = test.vmSizes
-			azureInfoer.subscriptionsClient = test.location
-			azureInfoer.providersClient = test.providers
-			test.check(azureInfoer.GetAttributeValues(test.service, test.attribute))
 		})
 	}
 }

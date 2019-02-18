@@ -358,112 +358,46 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	return result
 }
 
-// GetAttributeValues gets the AttributeValues for the given attribute name
-func (a *AzureInfoer) GetAttributeValues(service, attribute string) (cloudinfo.AttrValues, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service, "attribute": attribute})
-
-	log.Debug("getting attribute values")
-
-	values := make(cloudinfo.AttrValues, 0)
-	valueSet := make(map[cloudinfo.AttrValue]interface{})
-
-	regions, err := a.GetRegions(service)
-	if err != nil {
-		return nil, err
-	}
-
-	for region := range regions {
-		vmSizes, err := a.vmSizesClient.List(context.TODO(), region)
-		if err != nil {
-			log.Warn("failed to retrieve VM sizes", map[string]interface{}{"region": region})
-			continue
-		}
-		switch service {
-		case "aks":
-			possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
-			for _, v := range *vmSizes.Value {
-				for _, vm := range possibleVmTypes {
-					if string(vm) == *v.Name {
-						switch attribute {
-						case cloudinfo.Cpu:
-							valueSet[cloudinfo.AttrValue{
-								Value:    float64(*v.NumberOfCores),
-								StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
-							}] = ""
-						case cloudinfo.Memory:
-							valueSet[cloudinfo.AttrValue{
-								Value:    float64(*v.MemoryInMB) / 1024,
-								StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
-							}] = ""
-						}
-					}
-				}
-			}
-		default:
-			for _, v := range *vmSizes.Value {
-				switch attribute {
-				case cloudinfo.Cpu:
-					valueSet[cloudinfo.AttrValue{
-						Value:    float64(*v.NumberOfCores),
-						StrValue: fmt.Sprintf("%v", *v.NumberOfCores),
-					}] = ""
-				case cloudinfo.Memory:
-					valueSet[cloudinfo.AttrValue{
-						Value:    float64(*v.MemoryInMB) / 1024,
-						StrValue: fmt.Sprintf("%v", *v.MemoryInMB),
-					}] = ""
-				}
-			}
-		}
-	}
-
-	for attr := range valueSet {
-		values = append(values, attr)
-	}
-
-	log.Debug("found attribute values", map[string]interface{}{"values": len(values)})
-	return values, nil
-}
-
-// GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AzureInfoer) GetProducts(service, regionId string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service, "region": regionId})
+func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+	log := log.WithFields(a.log, map[string]interface{}{"region": region})
 	log.Debug("getting product info")
 	var vms []cloudinfo.VmInfo
-	vmSizes, err := a.vmSizesClient.List(context.TODO(), regionId)
+	vmSizes, err := a.vmSizesClient.List(context.TODO(), region)
 	if err != nil {
 		return nil, err
 	}
-	switch service {
-	case "aks":
-		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
-		for _, v := range *vmSizes.Value {
-			for _, vm := range possibleVmTypes {
-				if string(vm) == *v.Name {
-					vms = append(vms, cloudinfo.VmInfo{
-						Type:       *v.Name,
-						Cpus:       float64(*v.NumberOfCores),
-						Mem:        float64(*v.MemoryInMB) / 1024,
-						Attributes: cloudinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
-						// TODO: netw perf
-					})
-				}
-			}
-		}
-	default:
-		for _, v := range *vmSizes.Value {
-			vms = append(vms, cloudinfo.VmInfo{
-				Type:       *v.Name,
-				Cpus:       float64(*v.NumberOfCores),
-				Mem:        float64(*v.MemoryInMB) / 1024,
-				Attributes: cloudinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
-				// TODO: netw perf
-			})
-		}
+	for _, v := range *vmSizes.Value {
+		vms = append(vms, cloudinfo.VmInfo{
+			Type:       *v.Name,
+			Cpus:       float64(*v.NumberOfCores),
+			Mem:        float64(*v.MemoryInMB) / 1024,
+			Attributes: cloudinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
+			// TODO: netw perf
+		})
 	}
 
 	log.Debug("found virtual machines", map[string]interface{}{"numberOfVms": len(vms)})
 	return vms, nil
+}
+
+// GetProducts retrieves the available virtual machines based on the arguments provided
+func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	switch service {
+	case "aks":
+		var virtualMachines []cloudinfo.VmInfo
+		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
+		for _, vm := range possibleVmTypes {
+			for _, virtualMachine := range vms {
+				if string(vm) == virtualMachine.Type {
+					virtualMachines = append(virtualMachines, virtualMachine)
+					break
+				}
+			}
+		}
+		return virtualMachines, nil
+	default:
+		return nil, errors.Wrap(errors.New(service), "invalid service")
+	}
 }
 
 // GetZones returns the availability zones in a region
@@ -552,16 +486,6 @@ func (a *AzureInfoer) HasShortLivedPriceInfo() bool {
 // GetCurrentPrices retrieves all the price info in a region
 func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	return nil, errors.New("azure prices cannot be queried on the fly")
-}
-
-// GetMemoryAttrName returns the provider representation of the memory attribute
-func (a *AzureInfoer) GetMemoryAttrName() string {
-	return cloudinfo.Memory
-}
-
-// GetCpuAttrName returns the provider representation of the cpu attribute
-func (a *AzureInfoer) GetCpuAttrName() string {
-	return cloudinfo.Cpu
 }
 
 // GetServices returns the available services on the  provider

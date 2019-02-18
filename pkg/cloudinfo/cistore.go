@@ -25,32 +25,32 @@ import (
 )
 
 const (
-	// VmKeyTemplate format for generating vm cache keys
-	VmKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/vms"
+	// vmKeyTemplate format for generating vm cache keys
+	vmKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/vms"
 
-	// AttrKeyTemplate format for generating attribute cache keys
-	AttrKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/attrValues/%s"
+	// attrKeyTemplate format for generating attribute cache keys
+	attrKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/attrValues/%s"
 
-	// PriceKeyTemplate format for generating price cache keys
-	PriceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
+	// priceKeyTemplate format for generating price cache keys
+	priceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
 
-	// ZoneKeyTemplate format for generating zone cache keys
-	ZoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/zones/"
+	// zoneKeyTemplate format for generating zone cache keys
+	zoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/zones/"
 
-	// RegionKeyTemplate format for generating region cache keys
-	RegionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/"
+	// regionKeyTemplate format for generating region cache keys
+	regionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/"
 
-	// StatusKeyTemplate format for generating status cache keys
-	StatusKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/status/"
+	// statusKeyTemplate format for generating status cache keys
+	statusKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/status/"
 
-	// ImageKeyTemplate format for generating image cache keys
-	ImageKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/images"
+	// imageKeyTemplate format for generating image cache keys
+	imageKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/images"
 
-	// VersionKeyTemplate format for generating kubernetes version cache keys
-	VersionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
+	// versionKeyTemplate format for generating kubernetes version cache keys
+	versionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/versions"
 
-	// ServicesKeyTemplate key for storing provider specific services
-	ServicesKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services"
+	// servicesKeyTemplate key for storing provider specific services
+	servicesKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services"
 )
 
 // Storage operations for cloud information
@@ -69,6 +69,7 @@ type CloudInfoStore interface {
 
 	StoreVm(provider, service, region string, val interface{})
 	GetVm(provider, service, region string) (interface{}, bool)
+	DeleteVm(provider, service, region string)
 
 	StoreImage(provider, service, regionId string, val interface{})
 	GetImage(provider, service, regionId string) (interface{}, bool)
@@ -113,75 +114,79 @@ func (cis *cacheProductStore) Import(r io.Reader) error {
 }
 
 func (cis *cacheProductStore) StoreRegions(provider, service string, val interface{}) {
-	cis.Set(cis.getKey(RegionKeyTemplate, provider, service), val, cis.itemExpiry)
+	cis.Set(cis.getKey(regionKeyTemplate, provider, service), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetRegions(provider, service string) (interface{}, bool) {
-	return cis.Get(cis.getKey(RegionKeyTemplate, provider, service))
+	return cis.Get(cis.getKey(regionKeyTemplate, provider, service))
 }
 
 func (cis *cacheProductStore) StoreZones(provider, region string, val interface{}) {
-	cis.Set(cis.getKey(ZoneKeyTemplate, provider, region), val, cis.itemExpiry)
+	cis.Set(cis.getKey(zoneKeyTemplate, provider, region), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetZones(provider, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(ZoneKeyTemplate, provider, region))
+	return cis.Get(cis.getKey(zoneKeyTemplate, provider, region))
 }
 
 func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val interface{}) {
-	cis.Set(cis.getKey(PriceKeyTemplate, provider, region, instanceType), val, cis.itemExpiry)
+	cis.Set(cis.getKey(priceKeyTemplate, provider, region, instanceType), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (interface{}, bool) {
-	return cis.Get(cis.getKey(PriceKeyTemplate, provider, region, instanceType))
+	return cis.Get(cis.getKey(priceKeyTemplate, provider, region, instanceType))
 }
 
 func (cis *cacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
-	cis.Set(cis.getKey(AttrKeyTemplate, provider, service, attribute), val, cis.itemExpiry)
+	cis.Set(cis.getKey(attrKeyTemplate, provider, service, attribute), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
-	return cis.Get(cis.getKey(AttrKeyTemplate, provider, service, attribute))
+	return cis.Get(cis.getKey(attrKeyTemplate, provider, service, attribute))
 }
 
 func (cis *cacheProductStore) StoreVm(provider, service, region string, val interface{}) {
-	cis.Set(cis.getKey(VmKeyTemplate, provider, service, region), val, cis.itemExpiry)
+	cis.Set(cis.getKey(vmKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetVm(provider, service, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(VmKeyTemplate, provider, service, region))
+	return cis.Get(cis.getKey(vmKeyTemplate, provider, service, region))
+}
+
+func (cis *cacheProductStore) DeleteVm(provider, service, region string) {
+	cis.Delete(cis.getKey(vmKeyTemplate, provider, service, region))
 }
 
 func (cis *cacheProductStore) StoreImage(provider, service, regionId string, val interface{}) {
-	cis.Set(cis.getKey(ImageKeyTemplate, provider, service, regionId), val, cis.itemExpiry)
+	cis.Set(cis.getKey(imageKeyTemplate, provider, service, regionId), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
-	return cis.Get(cis.getKey(ImageKeyTemplate, provider, service, regionId))
+	return cis.Get(cis.getKey(imageKeyTemplate, provider, service, regionId))
 }
 
 func (cis *cacheProductStore) StoreVersion(provider, service, region string, val interface{}) {
-	cis.Set(cis.getKey(VersionKeyTemplate, provider, service, region), val, cis.itemExpiry)
+	cis.Set(cis.getKey(versionKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(VersionKeyTemplate, provider, service, region))
+	return cis.Get(cis.getKey(versionKeyTemplate, provider, service, region))
 }
 
 func (cis *cacheProductStore) StoreStatus(provider string, val interface{}) {
-	cis.Set(cis.getKey(StatusKeyTemplate, provider), val, cis.itemExpiry)
+	cis.Set(cis.getKey(statusKeyTemplate, provider), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetStatus(provider string) (interface{}, bool) {
-	return cis.Get(cis.getKey(StatusKeyTemplate, provider))
+	return cis.Get(cis.getKey(statusKeyTemplate, provider))
 }
 
 func (cis *cacheProductStore) StoreServices(provider string, services interface{}) {
-	cis.Set(cis.getKey(ServicesKeyTemplate, provider), services, cis.itemExpiry)
+	cis.Set(cis.getKey(servicesKeyTemplate, provider), services, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetServices(provider string) (interface{}, bool) {
-	return cis.Get(cis.getKey(ServicesKeyTemplate, provider))
+	return cis.Get(cis.getKey(servicesKeyTemplate, provider))
 }
 
 // NewCacheProductStore creates a new store instance.
