@@ -102,55 +102,6 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 	return nil, nil
 }
 
-func (dps *testStruct) GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error) {
-
-	// example json sequence
-	//{
-	//	"Value": "256 GiB"
-	//},
-	//{
-	//"Value": "3,904 GiB"
-	//},
-	//{
-	//"Value": "3.75 GiB"
-	//},
-
-	switch dps.TcId {
-	case 1:
-		return &pricing.GetAttributeValuesOutput{
-			AttributeValues: []*pricing.AttributeValue{
-				{
-					Value: dps.strPointer("256 GiB"),
-				},
-				{
-					Value: dps.strPointer("3,904 GiB"),
-				},
-				{
-					Value: dps.strPointer("3.75 GiB"),
-				},
-			},
-		}, nil
-	case 2:
-		return &pricing.GetAttributeValuesOutput{
-			AttributeValues: []*pricing.AttributeValue{
-				{
-					Value: dps.strPointer("invalid float 256 GiB"),
-				},
-				{
-					Value: dps.strPointer("3,904 GiB"),
-				},
-				{
-					Value: dps.strPointer("3.75 GiB"),
-				},
-			},
-		}, nil
-	case 3:
-		return nil, errors.New("failed to retrieve values")
-	}
-
-	return nil, nil
-}
-
 // strPointer gets the pointer to the passed string
 func (dps *testStruct) strPointer(str string) *string {
 	return &str
@@ -387,7 +338,7 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 }
 
-func TestPriceData_GetDataForKey(t *testing.T) {
+func TestPriceData_getDataForKey(t *testing.T) {
 	var missingData = priceData{
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{

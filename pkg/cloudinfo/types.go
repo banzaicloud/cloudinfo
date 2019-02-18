@@ -32,30 +32,30 @@ type CloudInfo interface {
 	GetProviders(ctx context.Context) []Provider
 
 	// GetProvider retrieves information about the provider
-	GetProvider(ctx context.Context, provider string) (Provider, error)
+	GetProvider(provider string) (Provider, error)
 
 	// GetServices returns the supported services for a provider
-	GetServices(ctx context.Context, provider string) ([]Service, error)
+	GetServices(provider string) ([]Service, error)
 
 	// GetAttributes returns the supported attribute names
-	GetAttributes(ctx context.Context) []string
+	GetAttributes() []string
 
 	// GetAttrValues returns a slice with the possible values for a given attribute on a specific provider
-	GetAttrValues(ctx context.Context, provider string, service string, attribute string) ([]float64, error)
+	GetAttrValues(provider string, service string, attribute string) ([]float64, error)
 
 	// GetZones returns all the availability zones for a region
-	GetZones(ctx context.Context, provider string, region string) ([]string, error)
+	GetZones(provider string, region string) ([]string, error)
 
 	// GetRegions returns all the regions for a cloud provider
-	GetRegions(ctx context.Context, provider string, service string) (map[string]string, error)
+	GetRegions(provider string, service string) (map[string]string, error)
 
 	GetStatus(provider string) (string, error)
 
 	GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error)
 
-	GetServiceImages(ctx context.Context, provider, service, region string) ([]Image, error)
+	GetServiceImages(provider, service, region string) ([]Image, error)
 
-	GetVersions(ctx context.Context, provider, service, region string) ([]string, error)
+	GetVersions(provider, service, region string) ([]string, error)
 }
 
 // AttrValue represents an attribute value

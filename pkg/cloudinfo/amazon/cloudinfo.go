@@ -298,7 +298,7 @@ func (e *Ec2Infoer) GetRegion(id string) *endpoints.Region {
 	return nil
 }
 
-// newAttributeValuesInput assembles a GetAttributeValuesInput instance for querying the provider
+// newAttributeValuesInput assembles a GetProductsInput instance for querying the provider
 func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInput {
 	return &pricing.GetProductsInput{
 

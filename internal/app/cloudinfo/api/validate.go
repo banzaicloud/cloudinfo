@@ -26,7 +26,7 @@ import (
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.CloudInfo) error {
+func ConfigureValidator(ctx context.Context, providers []string, ci cloudinfo.CloudInfo) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
@@ -35,7 +35,7 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 	}
 
 	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range pi.GetAttributes(ctx) {
+		for _, p := range ci.GetAttributes() {
 			if field.String() == p {
 				return true
 			}
@@ -46,12 +46,12 @@ func ConfigureValidator(ctx context.Context, providers []string, pi cloudinfo.Cl
 	}
 
 	// register validator for the service parameter in the request path
-	if err := v.RegisterValidation("service", serviceValidator(ctx, pi)); err != nil {
+	if err := v.RegisterValidation("service", serviceValidator(ctx, ci)); err != nil {
 		return errors.Wrap(err, "could not register service validator")
 	}
 
 	// register validator for the region parameter in the request path
-	if err := v.RegisterValidation("region", regionValidator(ctx, pi)); err != nil {
+	if err := v.RegisterValidation("region", regionValidator(ctx, ci)); err != nil {
 		return errors.Wrap(err, "could not register region validator")
 	}
 	return nil
@@ -73,7 +73,7 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 
 		log := logger.Extract(ctx)
 
-		regions, err := cpi.GetRegions(ctx, currentProvider, currentService)
+		regions, err := cpi.GetRegions(currentProvider, currentService)
 		if err != nil {
 			log.Error("could not get regions")
 			return false
@@ -103,7 +103,7 @@ func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fu
 			Build())
 
 		log := logger.Extract(ctx)
-		services, err := cpi.GetServices(ctx, currentProvider)
+		services, err := cpi.GetServices(currentProvider)
 		if err != nil {
 			log.Error("could not get services")
 			return false

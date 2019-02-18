@@ -250,7 +250,6 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.updateServiceRegionAttributes(ctx, service.ServiceName(), regionId); err != nil {
-				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {
@@ -350,7 +349,6 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 		pr              Price
 		virtualMachines []VmInfo
 	)
-	sm.log.Info("start updating virtual machines")
 
 	if vms, ok = sm.store.GetVm(sm.provider, service, region); !ok {
 		return emperror.With(errors.New("vms not yet cached"),
@@ -372,6 +370,8 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 	}
 
 	sm.store.DeleteVm(sm.provider, service, region)
+
+	sm.log.Debug("updated products information", map[string]interface{}{"numberOfVms": len(virtualMachines)})
 
 	sm.store.StoreVm(sm.provider, service, region, virtualMachines)
 
@@ -413,12 +413,12 @@ type ScrapingDriver struct {
 
 func (sd *ScrapingDriver) StartScraping(ctx context.Context) error {
 
-	if err := NewPeriodicExecutor(sd.renewalInterval).Execute(ctx, sd.renewAll); err != nil {
+	if err := NewPeriodicExecutor(sd.renewalInterval, sd.log).Execute(ctx, sd.renewAll); err != nil {
 		return emperror.Wrap(err, "failed to scrape cloud information")
 	}
 
 	// start scraping providers for pricing information
-	if err := NewPeriodicExecutor(4*time.Minute).Execute(ctx, sd.renewShortLived); err != nil {
+	if err := NewPeriodicExecutor(4*time.Minute, sd.log).Execute(ctx, sd.renewShortLived); err != nil {
 		return emperror.Wrap(err, "failed to scrape spot price info")
 	}
 

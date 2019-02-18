@@ -24,7 +24,6 @@ import (
 // PricingSource list of operations for retrieving pricing information
 // Decouples the pricing logic from the amazon api
 type PricingSource interface {
-	GetAttributeValues(input *pricing.GetAttributeValuesInput) (*pricing.GetAttributeValuesOutput, error)
 	GetPriceList(input *pricing.GetProductsInput) ([]aws.JSONValue, error)
 }
 

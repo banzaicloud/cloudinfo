@@ -106,7 +106,7 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(cloudInfoStore, infoers, reporter, tracer)
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore)
 
 	emperror.Panic(err)
 

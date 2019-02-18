@@ -16,12 +16,11 @@ package cloudinfo
 
 import (
 	"context"
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
+	"strings"
+
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 // cachingCloudInfo is the module struct, holds configuration and cache
@@ -30,8 +29,6 @@ import (
 type cachingCloudInfo struct {
 	cloudInfoers   map[string]CloudInfoer
 	cloudInfoStore CloudInfoStore
-	metrics        metrics.Reporter
-	tracer         tracing.Tracer
 }
 
 func (v AttrValues) floatValues() []float64 {
@@ -74,7 +71,7 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new cachingCloudInfo instance
-func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer, reporter metrics.Reporter, tracer tracing.Tracer) (*cachingCloudInfo, error) {
+func NewCachingCloudInfo(infoers map[string]CloudInfoer, ciStore CloudInfoStore) (*cachingCloudInfo, error) {
 	if infoers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
@@ -82,8 +79,6 @@ func NewCachingCloudInfo(ciStore CloudInfoStore, infoers map[string]CloudInfoer,
 	pi := cachingCloudInfo{
 		cloudInfoers:   infoers,
 		cloudInfoStore: ciStore,
-		metrics:        reporter,
-		tracer:         tracer,
 	}
 	return &pi, nil
 }
@@ -99,7 +94,7 @@ func (cpi *cachingCloudInfo) GetProviders(ctx context.Context) []Provider {
 
 	// iterate over supported provider names only
 	for pn := range cpi.cloudInfoers {
-		if provider, err = cpi.GetProvider(ctx, pn); err != nil {
+		if provider, err = cpi.GetProvider(pn); err != nil {
 			log.Warn("could not retrieve provider", map[string]interface{}{"provider": provider})
 		}
 
@@ -110,7 +105,7 @@ func (cpi *cachingCloudInfo) GetProviders(ctx context.Context) []Provider {
 }
 
 // GetProvider returns the supported provider
-func (cpi *cachingCloudInfo) GetProvider(ctx context.Context, provider string) (Provider, error) {
+func (cpi *cachingCloudInfo) GetProvider(provider string) (Provider, error) {
 	var (
 		srvcs []Service
 		err   error
@@ -120,7 +115,7 @@ func (cpi *cachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 		return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
 	}
 
-	if srvcs, err = cpi.GetServices(ctx, provider); err != nil {
+	if srvcs, err = cpi.GetServices(provider); err != nil {
 		return Provider{}, emperror.With(errors.New("no supported services for provider"), "provider", provider)
 	}
 
@@ -132,22 +127,22 @@ func (cpi *cachingCloudInfo) GetProvider(ctx context.Context, provider string) (
 }
 
 // GetAttributes returns the supported attribute names
-func (cpi *cachingCloudInfo) GetAttributes(ctx context.Context) []string {
+func (cpi *cachingCloudInfo) GetAttributes() []string {
 	return []string{Cpu, Memory}
 }
 
 // GetAttrValues returns a slice with the values for the given attribute name
-func (cpi *cachingCloudInfo) GetAttrValues(ctx context.Context, provider, service, attribute string) ([]float64, error) {
+func (cpi *cachingCloudInfo) GetAttrValues(provider, service, attribute string) ([]float64, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetAttribute(provider, service, attribute); ok {
 		return cachedVal.(AttrValues).floatValues(), nil
 	}
 
-	return nil, emperror.With(errors.New("attributes not yet cached"),
+	return nil, emperror.With(errors.New("attribute not yet cached"),
 		"provider", provider, "service", service, "attribute", attribute)
 }
 
 // GetZones returns the availability zones in a region
-func (cpi *cachingCloudInfo) GetZones(ctx context.Context, provider string, region string) ([]string, error) {
+func (cpi *cachingCloudInfo) GetZones(provider string, region string) ([]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, region); ok {
 		return cachedVal.([]string), nil
 	}
@@ -156,7 +151,7 @@ func (cpi *cachingCloudInfo) GetZones(ctx context.Context, provider string, regi
 }
 
 // GetRegions gets the regions for the provided provider
-func (cpi *cachingCloudInfo) GetRegions(ctx context.Context, provider, service string) (map[string]string, error) {
+func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
 		return cachedVal.(map[string]string), nil
 	}
@@ -164,7 +159,7 @@ func (cpi *cachingCloudInfo) GetRegions(ctx context.Context, provider, service s
 	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
 }
 
-func (cpi *cachingCloudInfo) GetServices(ctx context.Context, provider string) ([]Service, error) {
+func (cpi *cachingCloudInfo) GetServices(provider string) ([]Service, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetServices(provider); ok {
 		return cachedVal.([]Service), nil
 	}
@@ -214,28 +209,22 @@ func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
 }
 
 // GetServiceImages retrieves available images for the given provider, service and region
-func (cpi *cachingCloudInfo) GetServiceImages(ctx context.Context, provider, service, region string) ([]Image, error) {
-	logger.Extract(ctx).Debug("getting available images")
-
+func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) ([]Image, error) {
 	if cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region); ok {
 		return cachedImages.([]Image), nil
 	}
 
 	return nil, emperror.With(errors.New("images not yet cached"), "provider", provider,
 		"service", service, "region", region)
-
 }
 
 // GetVersions retrieves available versions for the given provider, service and region
-func (cpi *cachingCloudInfo) GetVersions(ctx context.Context, provider, service, region string) ([]string, error) {
-	logger.Extract(ctx).Debug("getting available versions")
-
+func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]string, error) {
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
 		return cachedVersions.([]string), nil
 	}
 	return nil, emperror.With(errors.New("versions not yet cached"),
 		"provider", provider, "service", service, "region", region)
-
 }
 
 // Contains is a helper function to check if a slice contains a string
