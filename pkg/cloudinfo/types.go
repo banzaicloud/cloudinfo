@@ -44,7 +44,7 @@ type CloudInfo interface {
 	GetAttrValues(provider string, service string, attribute string) ([]float64, error)
 
 	// GetZones returns all the availability zones for a region
-	GetZones(provider string, region string) ([]string, error)
+	GetZones(provider, service, region string) ([]string, error)
 
 	// GetRegions returns all the regions for a cloud provider
 	GetRegions(provider string, service string) (map[string]string, error)

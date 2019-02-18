@@ -174,19 +174,19 @@ func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, serv
 	return nil
 }
 
-func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, region string) error {
+func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, service, region string) error {
 	var (
 		zones []string
 		err   error
 	)
 
-	sm.log.Debug("retrieving regional zone information", map[string]interface{}{"region": region})
+	sm.log.Debug("retrieving regional zone information", map[string]interface{}{"service": service, "region": region})
 
 	if zones, err = sm.infoer.GetZones(region); err != nil {
 		return emperror.Wrap(err, "failed to retrieve zones for region")
 	}
 
-	sm.store.StoreZones(sm.provider, region, zones)
+	sm.store.StoreZones(sm.provider, service, region, zones)
 
 	return nil
 }
@@ -215,6 +215,11 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				"provider", sm.provider, "service", "compute")
 		}
 		sm.store.StoreVm(sm.provider, "compute", regionId, vms)
+
+		if err = sm.scrapeServiceRegionZones(ctx, "compute", regionId); err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
+			return emperror.With(err, "provider", sm.provider, "service", "compute", "region", regionId)
+		}
 	}
 
 	sm.log.Info("start to scrape service region information")
@@ -247,8 +252,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		for regionId := range regions {
 
 			start := time.Now()
-			if err = sm.scrapeServiceRegionZones(ctx, regionId); err != nil {
-				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+			if err = sm.updateServiceRegionZones(ctx, service.ServiceName(), regionId); err != nil {
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionProducts(ctx, service.ServiceName(), regionId); err != nil {
@@ -269,6 +273,23 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 			sm.metrics.ReportScrapeRegionCompleted(sm.provider, service.ServiceName(), regionId, start)
 		}
 	}
+	return nil
+}
+
+func (sm *scrapingManager) updateServiceRegionZones(ctx context.Context, service string, region string) error {
+	var (
+		ok    bool
+		zones interface{}
+	)
+	if service != "compute" {
+		if zones, ok = sm.store.GetZones(sm.provider, "compute", region); !ok {
+			return emperror.With(errors.New("zones not yet cached"),
+				"provider", sm.provider, "service", service, "region", region)
+		}
+
+		sm.store.StoreZones(sm.provider, service, region, zones.([]string))
+	}
+
 	return nil
 }
 

@@ -142,8 +142,8 @@ func (cpi *cachingCloudInfo) GetAttrValues(provider, service, attribute string) 
 }
 
 // GetZones returns the availability zones in a region
-func (cpi *cachingCloudInfo) GetZones(provider string, region string) ([]string, error) {
-	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, region); ok {
+func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]string, error) {
+	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, service, region); ok {
 		return cachedVal.([]string), nil
 	}
 

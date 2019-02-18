@@ -35,7 +35,7 @@ const (
 	priceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
 
 	// zoneKeyTemplate format for generating zone cache keys
-	zoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/zones/"
+	zoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/zones/"
 
 	// regionKeyTemplate format for generating region cache keys
 	regionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/"
@@ -58,8 +58,8 @@ type CloudInfoStore interface {
 	StoreRegions(provider, service string, val interface{})
 	GetRegions(provider, service string) (interface{}, bool)
 
-	StoreZones(provider, region string, val interface{})
-	GetZones(provider, region string) (interface{}, bool)
+	StoreZones(provider, service, region string, val interface{})
+	GetZones(provider, service, region string) (interface{}, bool)
 
 	StorePrice(provider, region, instanceType string, val interface{})
 	GetPrice(provider, region, instanceType string) (interface{}, bool)
@@ -121,12 +121,12 @@ func (cis *cacheProductStore) GetRegions(provider, service string) (interface{},
 	return cis.Get(cis.getKey(regionKeyTemplate, provider, service))
 }
 
-func (cis *cacheProductStore) StoreZones(provider, region string, val interface{}) {
-	cis.Set(cis.getKey(zoneKeyTemplate, provider, region), val, cis.itemExpiry)
+func (cis *cacheProductStore) StoreZones(provider, service, region string, val interface{}) {
+	cis.Set(cis.getKey(zoneKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetZones(provider, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(zoneKeyTemplate, provider, region))
+func (cis *cacheProductStore) GetZones(provider, service, region string) (interface{}, bool) {
+	return cis.Get(cis.getKey(zoneKeyTemplate, provider, service, region))
 }
 
 func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val interface{}) {

@@ -46,7 +46,7 @@ func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (interface
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetZones(provider, region string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) (interface{}, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -113,10 +113,12 @@ func (dcis *DummyCloudInfoStore) GetServices(provider string) (interface{}, bool
 	default:
 		return []Service{
 				{
-					"dummy1",
+					Service:  "dummy1",
+					IsStatic: false,
 				},
 				{
-					"dummy2",
+					Service:  "dummy2",
+					IsStatic: false,
 				},
 			},
 			true
@@ -281,7 +283,7 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
 			info.cloudInfoStore = test.ciStore
-			test.checker(info.GetZones("dummyProvider", "dummyRegion"))
+			test.checker(info.GetZones("dummyProvider", "dummyService", "dummyRegion"))
 		})
 	}
 }

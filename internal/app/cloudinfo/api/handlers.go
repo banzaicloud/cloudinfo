@@ -303,7 +303,7 @@ func (r *RouteHandler) getRegion(ctx context.Context) gin.HandlerFunc {
 				"failed to retrieve regions. provider [%s], service [%s]", pathParams.Provider, pathParams.Service))
 			return
 		}
-		zones, err := r.prod.GetZones(pathParams.Provider, pathParams.Region)
+		zones, err := r.prod.GetZones(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
 				"failed to retrieve zones. provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
