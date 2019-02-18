@@ -219,6 +219,12 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 
 	sm.log.Info("start to scrape service region information")
 	for _, service := range services {
+
+		if service.IsStatic {
+			sm.log.Info("skipping scraping for region information - service is statics", map[string]interface{}{"service": service})
+			continue
+		}
+
 		if service.ServiceName() == "compute" {
 			_regions, ok := sm.store.GetRegions(sm.provider, service.ServiceName())
 			if !ok {
@@ -276,17 +282,22 @@ func (sm *scrapingManager) updateStatus(ctx context.Context) {
 func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 	var (
 		err      error
+		cached   interface{}
 		services []Service
+		ok       bool
 	)
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-service-info", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
 
-	if services, err = sm.infoer.GetServices(); err != nil {
+	if cached, ok = sm.store.GetServices(sm.provider); !ok {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
 		sm.log.Error(emperror.Wrap(err, "failed to retrieve services").Error(), logger.ToMap(emperror.Context(err)))
 	}
 
-	sm.store.StoreServices(sm.provider, services)
+	if services, ok = cached.([]Service); !ok {
+		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
+		sm.log.Error("invalid services stored in the store")
+	}
 
 	if err := sm.scrapeServiceRegionInfo(ctx, services); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to load service region information").Error(), logger.ToMap(emperror.Context(err)))

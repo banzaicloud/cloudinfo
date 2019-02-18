@@ -1,0 +1,69 @@
+isstatic: true
+name: test
+provider: amazon
+regions:
+  -
+    attributes:
+      -
+        name: memory
+        values:
+          -
+            strvalue: "12.24"
+            value: 12.24
+          -
+            strvalue: "55.24"
+            value: 55.24
+      -
+        name: cpu
+        values:
+          -
+            strvalue: "2"
+            value: 2
+          -
+            strvalue: "8"
+            value: 8
+    images:
+      -
+        gpuavailable: false
+        image: img-1
+        version: img-version
+      -
+        gpuavailable: false
+        image: img-2
+        version: img-version
+    prices:
+      -
+        instancetype: xlarge
+        price:
+          ondemandprice: 0.3
+          spotprice:
+            zonea: 0.3
+            zoneb: 0.2
+    region: region-1
+    regionId: region-id-1
+    versions:
+      - version-1
+      - version-2
+    vms:
+      -
+        Attributes:
+          - ~
+        Cpus: 4
+        Gpus: ~
+        Mem: 16
+        NtwPerf: ~
+        NtwPerfCat: ~
+        OnDemandPrice: 0.5
+        Type: xlarge
+        Zones:
+          - ~
+    zones:
+      - zonea
+      - zoneb
+      - zonec
+  -
+    region: region-2
+    regionId: region-id-2
+source:
+status: ~
+strategy: "exact | filter"

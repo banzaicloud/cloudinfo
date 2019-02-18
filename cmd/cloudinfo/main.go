@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
@@ -105,6 +106,11 @@ func main() {
 	infoers := loadInfoers(config, logur)
 
 	reporter := metrics.NewDefaultMetricsReporter()
+
+	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logur)
+	serviceManager.ConfigureServices(ctx, config.Providers)
+
+	serviceManager.LoadServiceInformation(ctx, config.Providers)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore)
 

@@ -35,10 +35,7 @@ type AlibabaInfoer struct {
 	log    logur.Logger
 }
 
-const (
-	svcCompute = "compute"
-	svcAck     = "ack"
-)
+const svcAck = "ack"
 
 // newInfoer creates a new instance of the Alibaba infoer
 func newInfoer(regionId, accessKeyId, accessKeySecret string, log logur.Logger) (*AlibabaInfoer, error) {
@@ -413,14 +410,6 @@ func (a *AlibabaInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Pr
 	}
 
 	return prices, nil
-}
-
-// GetServices returns the available services on the provider
-func (a *AlibabaInfoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService(svcCompute),
-		cloudinfo.NewService(svcAck)}
-	return services, nil
 }
 
 // HasImages - Alibaba doesn't support images
