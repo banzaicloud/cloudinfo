@@ -36,77 +36,6 @@ type CloudInfoLoader interface {
 	Load(ctx context.Context)
 }
 
-// defaultCloudInfoLoader component is in charge for loading service related information into the Cloud Information Store
-// from yaml files in the filesystem
-type defaultCloudInfoLoader struct {
-	// stores the data parsed from the data file
-	serviceData ServiceData
-
-	// the destination of the loaded data
-	store cloudinfo.CloudInfoStore
-
-	// component logger
-	log logur.Logger
-}
-
-func (sl *defaultCloudInfoLoader) Load(ctx context.Context) {
-	sl.LoadRegions(ctx, sl.serviceData)
-}
-
-// loadRegions loads regions in the cloud info store
-func (sl *defaultCloudInfoLoader) LoadRegions(ctx context.Context, sd ServiceData) {
-	sl.log.Debug("loading region data...")
-
-	regionMap := make(map[string]string)
-	for _, region := range sd.Regions {
-		regionMap[region.Id] = region.Name
-
-		sl.LoadZones(ctx, sd.Provider, sd.Name, region)
-
-		sl.LoadVersions(ctx, sd.Provider, sd.Name, region)
-
-		sl.LoadImages(ctx, sd.Provider, sd.Name, region)
-
-		sl.LoadVms(ctx, sd.Provider, sd.Name, region)
-	}
-
-	sl.store.StoreRegions(sd.Provider, sd.Name, regionMap)
-	sl.log.Debug("regions loaded")
-
-	// set the status
-	sl.store.StoreStatus(sd.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
-	sl.log.Debug("status updated")
-
-}
-
-// loadZones loads zones for a given region in the store
-func (sl *defaultCloudInfoLoader) LoadZones(ctx context.Context, provider string, service string, region Region) {
-	sl.log.Debug("loading zones...")
-	sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
-	sl.log.Debug("zones loaded")
-}
-
-// loadVersions loads versions for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVersions(ctx context.Context, provider string, service string, region Region) {
-	sl.log.Debug("loading versions...")
-	sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-	sl.log.Debug("versions loaded")
-}
-
-// loadImages loads images for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadImages(ctx context.Context, provider string, service string, region Region) {
-	sl.log.Debug("loading images...")
-	sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
-	sl.log.Debug("images loaded")
-}
-
-// loadVms loads vms for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVms(ctx context.Context, provider string, service string, region Region) {
-	sl.log.Debug("loading vms...")
-	sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
-	sl.log.Debug("vms loaded")
-}
-
 type storeCloudInfoLoader struct {
 	store       cloudinfo.CloudInfoStore
 	log         logur.Logger
@@ -144,37 +73,213 @@ func (scil *storeCloudInfoLoader) LoadRegions(ctx context.Context, sd ServiceDat
 }
 
 func (scil *storeCloudInfoLoader) LoadZones(ctx context.Context, provider string, service string, region Region) {
-
-	scil.log.Debug("copying zones...")
-	if zones, ok := scil.store.GetZones(provider, scil.serviceData.Source, region.Id); ok {
-		scil.store.StoreZones(provider, service, region.Id, zones)
+	switch region.Data.Zones.Strategy {
+	case exact:
+		scil.log.Debug("loading zones...")
+		scil.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
+		scil.log.Debug("zones loaded")
+	case exclude:
+		var (
+			zones interface{}
+			ok    bool
+		)
+		if zones, ok = scil.store.GetZones(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("zones not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableZones []string
+			for _, zone := range zones.([]string) {
+				if !cloudinfo.Contains(region.Data.Zones.Data, zone) {
+					availableZones = append(availableZones, zone)
+				}
+			}
+			scil.store.StoreZones(provider, service, region.Id, availableZones)
+		}
+	case include:
+		var (
+			zones interface{}
+			ok    bool
+		)
+		if zones, ok = scil.store.GetZones(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("zones not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableZones []string
+			for _, zone := range region.Data.Zones.Data {
+				if cloudinfo.Contains(zones.([]string), zone) {
+					availableZones = append(availableZones, zone)
+				}
+			}
+			scil.store.StoreZones(provider, service, region.Id, availableZones)
+		}
+	default:
+		scil.log.Error("invalid zone strategy",
+			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Zones.Strategy})
 	}
-	scil.log.Debug("zones copied")
-
 }
 
 func (scil *storeCloudInfoLoader) LoadVersions(ctx context.Context, provider string, service string, region Region) {
-	scil.log.Debug("copying versions...")
-	if versions, ok := scil.store.GetVersion(provider, scil.serviceData.Source, region.Id); ok {
-		scil.store.StoreVersion(provider, service, region.Id, versions)
+	switch region.Data.Versions.Strategy {
+	case exact:
+		scil.log.Debug("loading versions...")
+		scil.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
+		scil.log.Debug("versions loaded")
+	case exclude:
+		var (
+			versions interface{}
+			ok       bool
+		)
+		if versions, ok = scil.store.GetVersion(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("versions not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableVersions []string
+			for _, version := range versions.([]string) {
+				if !cloudinfo.Contains(region.Data.Versions.Data, version) {
+					availableVersions = append(availableVersions, version)
+				}
+			}
+			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
+		}
+	case include:
+		var (
+			versions interface{}
+			ok       bool
+		)
+		if versions, ok = scil.store.GetVersion(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("versions not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableVersions []string
+			for _, version := range region.Data.Versions.Data {
+				if cloudinfo.Contains(versions.([]string), version) {
+					availableVersions = append(availableVersions, version)
+				}
+			}
+			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
+		}
+	default:
+		scil.log.Error("invalid version strategy",
+			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Versions.Strategy})
 	}
-	scil.log.Debug("versions copied")
 }
 
 func (scil *storeCloudInfoLoader) LoadImages(ctx context.Context, provider string, service string, region Region) {
-	scil.log.Debug("copying images...")
-	if images, ok := scil.store.GetImage(provider, scil.serviceData.Source, region.Id); ok {
-		scil.store.StoreImage(provider, service, region.Id, images)
+	switch region.Data.Images.Strategy {
+	case exact:
+		scil.log.Debug("loading images...")
+		scil.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
+		scil.log.Debug("images loaded")
+	case exclude:
+		var (
+			images interface{}
+			ok     bool
+		)
+		if images, ok = scil.store.GetImage(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("images not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableImages []cloudinfo.Image
+			var unavailableImages []string
+			for _, image := range images.([]cloudinfo.Image) {
+				for _, img := range region.Data.Images.Data {
+					if img.Name == image.Name {
+						unavailableImages = append(unavailableImages, image.Name)
+						break
+					}
+				}
+			}
+
+			for _, image := range images.([]cloudinfo.Image) {
+				if !cloudinfo.Contains(unavailableImages, image.Name) {
+					availableImages = append(availableImages, image)
+				}
+			}
+
+			scil.store.StoreImage(provider, service, region.Id, availableImages)
+		}
+	case include:
+		var (
+			images interface{}
+			ok     bool
+		)
+		if images, ok = scil.store.GetImage(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("images not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableImages []cloudinfo.Image
+			for _, image := range region.Data.Images.Data {
+				for _, img := range images.([]cloudinfo.Image) {
+					if image.Name == img.Name {
+						availableImages = append(availableImages, img)
+					}
+				}
+			}
+			scil.store.StoreVersion(provider, service, region.Id, availableImages)
+		}
+	default:
+		scil.log.Error("invalid image strategy",
+			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Images.Strategy})
 	}
-	scil.log.Debug("images copied")
 }
 
 func (scil *storeCloudInfoLoader) LoadVms(ctx context.Context, provider string, service string, region Region) {
-	scil.log.Debug("copying vms...")
-	if vms, ok := scil.store.GetVm(provider, scil.serviceData.Source, region.Id); ok {
-		scil.store.StoreVm(provider, service, region.Id, vms)
+	switch region.Data.Vms.Strategy {
+	case exact:
+		scil.log.Debug("loading vms...")
+		scil.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
+		scil.log.Debug("vms loaded")
+	case exclude:
+		var (
+			vms interface{}
+			ok  bool
+		)
+		if vms, ok = scil.store.GetVm(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("vms not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableVms []cloudinfo.VmInfo
+			var unavailableVms []string
+			for _, vm := range vms.([]cloudinfo.VmInfo) {
+				for _, _vm := range region.Data.Vms.Data {
+					if _vm.Type == vm.Type {
+						unavailableVms = append(unavailableVms, vm.Type)
+						break
+					}
+				}
+			}
+
+			for _, vm := range vms.([]cloudinfo.VmInfo) {
+				if !cloudinfo.Contains(unavailableVms, vm.Type) {
+					availableVms = append(availableVms, vm)
+				}
+			}
+
+			scil.store.StoreVm(provider, service, region.Id, availableVms)
+		}
+	case include:
+		var (
+			vms interface{}
+			ok  bool
+		)
+		if vms, ok = scil.store.GetVm(provider, scil.serviceData.Source, region.Id); !ok {
+			scil.log.Error("vms not yet cached",
+				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
+		} else {
+			var availableVms []cloudinfo.VmInfo
+			for _, _vm := range region.Data.Vms.Data {
+				for _, vm := range vms.([]cloudinfo.VmInfo) {
+					if _vm.Type == vm.Type {
+						availableVms = append(availableVms, vm)
+					}
+				}
+			}
+			scil.store.StoreVm(provider, service, region.Id, availableVms)
+		}
+	default:
+		scil.log.Error("invalid vm strategy",
+			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Vms.Strategy})
 	}
-	scil.log.Debug("vms copied")
 }
 
 func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log logur.Logger) CloudInfoLoader {
@@ -194,18 +299,9 @@ func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.Clo
 		emperror.Panic(err)
 	}
 
-	if serviceData.Source != "" {
-		// serviceloader implementation that uses another service as source
-		return &storeCloudInfoLoader{
-			log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
-			store:       store,
-			serviceData: serviceData,
-		}
-	}
-
-	return &defaultCloudInfoLoader{
-		serviceData: serviceData,
-		store:       store,
+	return &storeCloudInfoLoader{
 		log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
+		store:       store,
+		serviceData: serviceData,
 	}
 }

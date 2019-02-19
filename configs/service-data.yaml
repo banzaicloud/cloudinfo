@@ -1,7 +1,7 @@
 isstatic: true
 name: test
 provider: amazon
-source:
+source: eks
 regions:
   -
     name: region-1
@@ -30,10 +30,10 @@ regions:
           - version-1
           - version-2
       vms:
-        strategy: exact
+        strategy: exclude
         data:
           -
-            Type: xlarge
+            Type: EKS Control Plane
             Cpus: 4
             Gpus: 0
             Mem: 16

@@ -17,7 +17,6 @@ package cloudinfo
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
 	"sync"
 	"time"
@@ -27,6 +26,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
+	"github.com/pkg/errors"
 )
 
 // scrapingManager manages data renewal for a given provider

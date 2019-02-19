@@ -16,6 +16,12 @@ package loader
 
 import "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 
+const (
+	exact   = "exact"
+	exclude = "exclude"
+	include = "include"
+)
+
 // ServiceData service data representation corresponding to the data to parsed from the external yaml / json
 type ServiceData struct {
 	// embedded service
