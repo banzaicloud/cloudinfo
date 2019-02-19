@@ -156,11 +156,6 @@ func (s Service) ServiceName() string {
 	return s.Service
 }
 
-// NewService creates a new servicedescriptor struct
-func NewService(name string) Service {
-	return Service{Service: name}
-}
-
 // ProviderDescriber describes a provider
 type ProviderDescriber interface {
 	// ProviderName returns the name of the provider

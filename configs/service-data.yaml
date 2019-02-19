@@ -1,50 +1,49 @@
 isstatic: true
 name: test
 provider: amazon
+source:
 regions:
   -
-    images:
-      -
-        gpuavailable: false
-        image: img-1
-        version: img-version
-      -
-        gpuavailable: false
-        image: img-2
-        version: img-version
-    prices:
-      -
-        instancetype: xlarge
-        price:
-          ondemandprice: 0.3
-          spotprice:
-            zonea: 0.3
-            zoneb: 0.2
-    region: region-1
-    regionId: region-id-1
-    versions:
-      - version-1
-      - version-2
-    vms:
-      -
-        Attributes:
-          - ~
-        Cpus: 4
-        Gpus: ~
-        Mem: 16
-        NtwPerf: ~
-        NtwPerfCat: ~
-        OnDemandPrice: 0.5
-        Type: xlarge
-        Zones:
-          - ~
-    zones:
-      - zonea
-      - zoneb
-      - zonec
+    name: region-1
+    id: region-id-1
+    data:
+      zones:
+        strategy: exact
+        data:
+          - zone-a
+          - zone-b
+          - zone-c
+      images:
+        strategy: exact
+        data:
+          -
+            name: img-1
+            gpuavailable: false
+            version: img-version
+          -
+            name: img-2
+            gpuavailable: false
+            version: img-version
+      versions:
+        strategy: exact
+        data:
+          - version-1
+          - version-2
+      vms:
+        strategy: exact
+        data:
+          -
+            Type: xlarge
+            Cpus: 4
+            Gpus: 0
+            Mem: 16
+            NtwPerf:
+            NtwPerfCat:
+            OnDemandPrice: 0.5
+            Zones:
+              -
+            Attributes:
+              -
   -
-    region: region-2
-    regionId: region-id-2
-source:
-status: ~
-strategy: "exact | filter"
+    name: region-2
+    id: region-id-2

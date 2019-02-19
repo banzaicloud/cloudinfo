@@ -21,29 +21,46 @@ type ServiceData struct {
 	// embedded service
 	Service  `mapstructure:",squash"`
 	Provider string
-	Regions  []RegionData
+	Regions  []Region
+}
+
+type Region struct {
+	Name string
+	Id   string
+	Data RegionData
 }
 
 type RegionData struct {
-	RegionId string
-	Region   string
-	Zones    []string
-	Images   []cloudinfo.Image
-	Versions []string
-	Vms      []cloudinfo.VmInfo
-	Prices   []PriceData
+	Zones    ZoneData
+	Images   ImageData
+	Versions VersionData
+	Vms      VmData
 }
 
-type PriceData struct {
-	Instancetype string
-	Price        cloudinfo.Price
+type ZoneData struct {
+	Strategy string
+	Data     []string
+}
+
+type ImageData struct {
+	Strategy string
+	Data     []cloudinfo.Image
+}
+
+type VersionData struct {
+	Strategy string
+	Data     []string
+}
+
+type VmData struct {
+	Strategy string
+	Data     []cloudinfo.VmInfo
 }
 
 type Service struct {
 	Name         string
 	IsStatic     bool
 	Source       string
-	Strategy     string
 	DataLocation string
 	DataFile     string
 	DataType     string
