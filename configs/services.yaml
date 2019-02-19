@@ -9,9 +9,9 @@ amazon:
     name: eks
     isstatic: false
   -
-    name: test
+    name: pke
     isstatic: true
-    dataLocation: /Users/preko/go/src/github.com/banzaicloud/cloudinfo/configs/
+    dataLocation: ./configs/
     dataFile: service-data
     dataType: yaml
 alibaba:

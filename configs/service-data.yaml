@@ -1,49 +1,229 @@
 isstatic: true
-name: test
+name: pke
 provider: amazon
-source: eks
+source: compute
 regions:
   -
-    name: region-1
-    id: region-id-1
+    name: EU (Stockholm)
+    id: eu-north-1
     data:
       zones:
-        strategy: exact
-        data:
-          - zone-a
-          - zone-b
-          - zone-c
+        strategy: exclude
       images:
-        strategy: exact
-        data:
-          -
-            name: img-1
-            gpuavailable: false
-            version: img-version
-          -
-            name: img-2
-            gpuavailable: false
-            version: img-version
+        strategy: exclude
       versions:
         strategy: exact
         data:
-          - version-1
-          - version-2
+          - v1.12.2
       vms:
         strategy: exclude
-        data:
-          -
-            Type: EKS Control Plane
-            Cpus: 4
-            Gpus: 0
-            Mem: 16
-            NtwPerf:
-            NtwPerfCat:
-            OnDemandPrice: 0.5
-            Zones:
-              -
-            Attributes:
-              -
   -
-    name: region-2
-    id: region-id-2
+    name: Asia Pacific (Seoul)
+    id: ap-northeast-2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: South America (Sao Paulo)
+    id: sa-east-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: US West (Oregon)
+    id: us-west-2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: EU (Frankfurt)
+    id: eu-central-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: Canada (Central)
+    id: ca-central-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: Asia Pacific (Mumbai)
+    id: ap-south-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: US West (N. California)
+    id: us-west-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: Asia Pacific (Singapore)
+    id: ap-southeast-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: EU (Ireland)
+    id: eu-west-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: US East (Ohio)
+    id: us-east-2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: US East (N. Virginia)
+    id: us-east-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: Asia Pacific (Tokyo)
+    id: ap-northeast-1
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: EU (London)
+    id: eu-west-2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: Asia Pacific (Sydney)
+    id: ap-southeast-2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude
+  -
+    name: EU (Paris)
+    id: eu-west-3
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exclude
+      versions:
+        strategy: exact
+        data:
+          - v1.12.2
+      vms:
+        strategy: exclude

@@ -16,10 +16,10 @@ package loader
 
 import (
 	"context"
-
-	"github.com/goph/emperror"
+	"time"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/spf13/viper"
 )
@@ -55,9 +55,18 @@ func (sm *defaultServiceManager) LoadServiceInformation(ctx context.Context, pro
 				continue
 			}
 
-			cloudInfoLoader := NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log)
-			// todo async?
-			cloudInfoLoader.Load(ctx)
+			//TODO
+			go func(provider string, service ServiceData) {
+				for i := 0; i < 30; i++ {
+					if _, ok := sm.store.GetStatus(provider); !ok {
+						time.Sleep(30 * time.Second)
+					} else {
+						cloudInfoLoader := NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log)
+						cloudInfoLoader.Load(ctx)
+						break
+					}
+				}
+			}(provider, service)
 		}
 
 	}

@@ -145,10 +145,24 @@ func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, service
 	return nil
 }
 
+func (sm *scrapingManager) scrapeServiceRegionVms(ctx context.Context, region string) error {
+	var (
+		vms []VmInfo
+		err error
+	)
+	if vms, err = sm.infoer.GetVirtualMachines(region); err != nil {
+		sm.metrics.ReportScrapeFailure(sm.provider, "compute", "N/A")
+		return emperror.WrapWith(err, "failed to retrieve regions",
+			"provider", sm.provider, "service", "compute")
+	}
+	sm.store.StoreVm(sm.provider, "compute", region, vms)
+
+	return nil
+}
+
 func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services []Service) error {
 	var (
 		regions map[string]string
-		vms     []VmInfo
 		err     error
 	)
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-info", map[string]interface{}{"provider": sm.provider})
@@ -163,12 +177,10 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 	sm.store.StoreRegions(sm.provider, "compute", regions)
 
 	for regionId := range regions {
-		if vms, err = sm.infoer.GetVirtualMachines(regionId); err != nil {
-			sm.metrics.ReportScrapeFailure(sm.provider, "compute", "N/A")
-			return emperror.WrapWith(err, "failed to retrieve regions",
-				"provider", sm.provider, "service", "compute")
+		if err = sm.scrapeServiceRegionVms(ctx, regionId); err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
+			return emperror.With(err, "provider", sm.provider, "service", "compute", "region", regionId)
 		}
-		sm.store.StoreVm(sm.provider, "compute", regionId, vms)
 
 		if err = sm.scrapeServiceRegionZones(ctx, "compute", regionId); err != nil {
 			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
