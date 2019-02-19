@@ -524,7 +524,7 @@ func (r *RouteHandler) getAttrValues(ctx context.Context) gin.HandlerFunc {
 		log := logger.Extract(ctxLog)
 		log.Info("getting attribute details", map[string]interface{}{"attribute": pathParams.Attribute})
 
-		attributes, err := r.prod.GetAttrValues(pathParams.Provider, pathParams.Service, pathParams.Attribute)
+		attributes, err := r.prod.GetAttrValues(pathParams.Provider, pathParams.Service, pathParams.Region, pathParams.Attribute)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve attribute values. provider [%s], "+
 				"service [%s], attributes [%s]", pathParams.Provider, pathParams.Service, pathParams.Attribute))

@@ -30,7 +30,6 @@ import (
 type CloudInfoLoader interface {
 	LoadRegions(ctx context.Context, sd ServiceData)
 	LoadZones(ctx context.Context, provider string, service string, rd RegionData)
-	LoadAttributes(ctx context.Context, provider string, service string, rd RegionData)
 	LoadVersions(ctx context.Context, provider string, service string, rd RegionData)
 	LoadImages(ctx context.Context, provider string, service string, rd RegionData)
 	LoadVms(ctx context.Context, provider string, service string, rd RegionData)
@@ -65,8 +64,6 @@ func (sl *defaultCloudInfoLoader) LoadRegions(ctx context.Context, sd ServiceDat
 
 		sl.LoadZones(ctx, sd.Provider, sd.Name, rd)
 
-		sl.LoadAttributes(ctx, sd.Provider, sd.Name, rd)
-
 		sl.LoadVersions(ctx, sd.Provider, sd.Name, rd)
 
 		sl.LoadImages(ctx, sd.Provider, sd.Name, rd)
@@ -90,15 +87,6 @@ func (sl *defaultCloudInfoLoader) LoadZones(ctx context.Context, provider string
 	sl.log.Debug("loading zones...")
 	sl.store.StoreZones(provider, service, rd.RegionId, rd.Zones)
 	sl.log.Debug("zones loaded")
-}
-
-// loadAttributes loads attribute values for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadAttributes(ctx context.Context, provider string, service string, rd RegionData) {
-	sl.log.Debug("loading attributes...")
-	for _, attr := range rd.Attributes {
-		sl.store.StoreAttribute(provider, service, attr.Name, attr.Values)
-	}
-	sl.log.Debug("attributes loaded")
 }
 
 // loadVersions loads versions for a given region into the store
@@ -152,8 +140,6 @@ func (scil *storeCloudInfoLoader) LoadRegions(ctx context.Context, sd ServiceDat
 
 		scil.LoadZones(ctx, sd.Provider, sd.Name, rd)
 
-		scil.LoadAttributes(ctx, sd.Provider, sd.Name, rd)
-
 		scil.LoadVersions(ctx, sd.Provider, sd.Name, rd)
 
 		scil.LoadImages(ctx, sd.Provider, sd.Name, rd)
@@ -180,19 +166,6 @@ func (scil *storeCloudInfoLoader) LoadZones(ctx context.Context, provider string
 	}
 	scil.log.Debug("zones copied")
 
-}
-
-func (scil *storeCloudInfoLoader) LoadAttributes(ctx context.Context, provider string, service string, rd RegionData) {
-	scil.log.Debug("loading attributes...")
-	for _, attr := range rd.Attributes {
-		if attrs, ok := scil.store.GetAttribute(provider, scil.serviceData.Source, attr.Name); ok {
-			scil.log.Debug("copy attributes from source", map[string]interface{}{"attribute": attr.Name})
-			scil.store.StoreAttribute(provider, service, attr.Name, attrs)
-			continue
-		}
-		scil.log.Warn("couldn't copy attributes from source", map[string]interface{}{"attribute": attr.Name})
-	}
-	scil.log.Debug("attributes loaded")
 }
 
 func (scil *storeCloudInfoLoader) LoadVersions(ctx context.Context, provider string, service string, rd RegionData) {

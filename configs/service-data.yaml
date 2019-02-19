@@ -3,25 +3,6 @@ name: test
 provider: amazon
 regions:
   -
-    attributes:
-      -
-        name: memory
-        values:
-          -
-            strvalue: "12.24"
-            value: 12.24
-          -
-            strvalue: "55.24"
-            value: 55.24
-      -
-        name: cpu
-        values:
-          -
-            strvalue: "2"
-            value: 2
-          -
-            strvalue: "8"
-            value: 8
     images:
       -
         gpuavailable: false

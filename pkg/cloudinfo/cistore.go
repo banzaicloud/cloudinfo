@@ -28,9 +28,6 @@ const (
 	// vmKeyTemplate format for generating vm cache keys
 	vmKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/vms"
 
-	// attrKeyTemplate format for generating attribute cache keys
-	attrKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/attrValues/%s"
-
 	// priceKeyTemplate format for generating price cache keys
 	priceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
 
@@ -63,9 +60,6 @@ type CloudInfoStore interface {
 
 	StorePrice(provider, region, instanceType string, val interface{})
 	GetPrice(provider, region, instanceType string) (interface{}, bool)
-
-	StoreAttribute(provider, service, attribute string, val interface{})
-	GetAttribute(provider, service, attribute string) (interface{}, bool)
 
 	StoreVm(provider, service, region string, val interface{})
 	GetVm(provider, service, region string) (interface{}, bool)
@@ -135,14 +129,6 @@ func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, 
 
 func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (interface{}, bool) {
 	return cis.Get(cis.getKey(priceKeyTemplate, provider, region, instanceType))
-}
-
-func (cis *cacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
-	cis.Set(cis.getKey(attrKeyTemplate, provider, service, attribute), val, cis.itemExpiry)
-}
-
-func (cis *cacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
-	return cis.Get(cis.getKey(attrKeyTemplate, provider, service, attribute))
 }
 
 func (cis *cacheProductStore) StoreVm(provider, service, region string, val interface{}) {

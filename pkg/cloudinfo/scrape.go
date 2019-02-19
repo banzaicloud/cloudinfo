@@ -96,52 +96,6 @@ func (sm *scrapingManager) scrapeServiceRegionProducts(ctx context.Context, serv
 	return nil
 }
 
-func (sm *scrapingManager) updateServiceRegionAttributes(ctx context.Context, service, region string) error {
-	var (
-		vms interface{}
-		ok  bool
-	)
-	sm.log.Info("updating attributes")
-
-	if vms, ok = sm.store.GetVm(sm.provider, service, region); !ok {
-		return emperror.With(errors.New("vms not yet cached"),
-			"provider", sm.provider, "service", service, "region", region)
-	}
-
-	memory := make(AttrValues, 0)
-	memorySet := make(map[AttrValue]interface{})
-
-	cpu := make(AttrValues, 0)
-	cpuSet := make(map[AttrValue]interface{})
-
-	for _, vm := range vms.([]VmInfo) {
-		memorySet[AttrValue{
-			Value:    vm.Mem,
-			StrValue: fmt.Sprintf("%v", vm.Mem),
-		}] = ""
-		cpuSet[AttrValue{
-			Value:    vm.Cpus,
-			StrValue: fmt.Sprintf("%v", vm.Cpus),
-		}] = ""
-	}
-
-	for attr := range memorySet {
-		memory = append(memory, attr)
-	}
-
-	for attr := range cpuSet {
-		cpu = append(cpu, attr)
-	}
-
-	sm.log.Debug("found attribute values",
-		map[string]interface{}{"numberOfMemory": len(memory), "numberOfCpu": len(cpu), "service": service, "region": region})
-
-	sm.store.StoreAttribute(sm.provider, service, Memory, memory)
-	sm.store.StoreAttribute(sm.provider, service, Cpu, cpu)
-
-	return nil
-}
-
 func (sm *scrapingManager) scrapeServiceRegionImages(ctx context.Context, service string, regionId string) error {
 	var (
 		images []Image
@@ -226,7 +180,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 	for _, service := range services {
 
 		if service.IsStatic {
-			sm.log.Info("skipping scraping for region information - service is statics", map[string]interface{}{"service": service})
+			sm.log.Info("skipping scraping for region information - service is statics", map[string]interface{}{"service": service.ServiceName()})
 			continue
 		}
 
@@ -257,9 +211,6 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 			}
 			if err = sm.scrapeServiceRegionProducts(ctx, service.ServiceName(), regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
-				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
-			}
-			if err = sm.updateServiceRegionAttributes(ctx, service.ServiceName(), regionId); err != nil {
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {

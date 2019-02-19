@@ -25,19 +25,13 @@ type ServiceData struct {
 }
 
 type RegionData struct {
-	RegionId   string
-	Region     string
-	Zones      []string
-	Images     []cloudinfo.Image
-	Versions   []string
-	Attributes []AttributeData
-	Vms        []cloudinfo.VmInfo
-	Prices     []PriceData
-}
-
-type AttributeData struct {
-	Name   string
-	Values cloudinfo.AttrValues
+	RegionId string
+	Region   string
+	Zones    []string
+	Images   []cloudinfo.Image
+	Versions []string
+	Vms      []cloudinfo.VmInfo
+	Prices   []PriceData
 }
 
 type PriceData struct {

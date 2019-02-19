@@ -41,7 +41,7 @@ type CloudInfo interface {
 	GetAttributes() []string
 
 	// GetAttrValues returns a slice with the possible values for a given attribute on a specific provider
-	GetAttrValues(provider string, service string, attribute string) ([]float64, error)
+	GetAttrValues(provider string, service string, region string, attribute string) ([]float64, error)
 
 	// GetZones returns all the availability zones for a region
 	GetZones(provider, service, region string) ([]string, error)
@@ -121,9 +121,6 @@ type ProductDetails struct {
 
 	// Burst this is derived for now
 	Burst bool `json:"burst,omitempty"`
-
-	// ZonePrice holds spot price information per zone
-	SpotInfo []ZonePrice `json:"spotPrice,omitempty"`
 }
 
 // ProductDetailSource product details related set of operations
