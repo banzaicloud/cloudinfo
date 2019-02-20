@@ -219,9 +219,9 @@ func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) 
 }
 
 // GetVersions retrieves available versions for the given provider, service and region
-func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]string, error) {
+func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]ZoneVersion, error) {
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
-		return cachedVersions.([]string), nil
+		return cachedVersions.([]ZoneVersion), nil
 	}
 	return nil, emperror.With(errors.New("versions not yet cached"),
 		"provider", provider, "service", service, "region", region)

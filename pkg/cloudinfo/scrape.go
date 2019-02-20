@@ -160,7 +160,7 @@ func (sm *scrapingManager) scrapeServiceRegionImages(ctx context.Context, servic
 
 func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, service string, regionId string) error {
 	var (
-		versions []string
+		versions []ZoneVersion
 		err      error
 	)
 
