@@ -444,11 +444,11 @@ func (a *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) 
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (a *AlibabaInfoer) GetVersions(service, region string) ([]string, error) {
+func (a *AlibabaInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
 	case svcAck:
-		return []string{"1.11.2"}, nil
+		return []cloudinfo.ZoneVersion{cloudinfo.NewZoneVersion(region, []string{"1.11.2"})}, nil
 	default:
-		return []string{}, nil
+		return []cloudinfo.ZoneVersion{}, nil
 	}
 }

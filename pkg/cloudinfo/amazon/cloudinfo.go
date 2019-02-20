@@ -584,11 +584,11 @@ func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (clo
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (e *Ec2Infoer) GetVersions(service, region string) ([]string, error) {
+func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
 	case "eks":
-		return []string{"1.10", "1.11"}, nil
+		return []cloudinfo.ZoneVersion{cloudinfo.NewZoneVersion(region, []string{"1.10", "1.11"})}, nil
 	default:
-		return []string{}, nil
+		return []cloudinfo.ZoneVersion{}, nil
 	}
 }

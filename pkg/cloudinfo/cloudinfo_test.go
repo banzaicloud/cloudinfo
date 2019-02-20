@@ -85,9 +85,14 @@ func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) (i
 	case notCached:
 		return nil, false
 	default:
-		return []string{
-				"1.10",
-				"1.11"},
+		return []ZoneVersion{
+				{
+					Versions: []string{
+						"1.10",
+						"1.11",
+					},
+				},
+			},
 			true
 	}
 }
@@ -189,20 +194,20 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 	tests := []struct {
 		name    string
 		ciStore CloudInfoStore
-		checker func(versions []string, err error)
+		checker func(versions []ZoneVersion, err error)
 	}{
 		{
 			name:    "successfully retrieved the versions",
 			ciStore: &DummyCloudInfoStore{},
-			checker: func(versions []string, err error) {
-				assert.Equal(t, []string{"1.10", "1.11"}, versions)
+			checker: func(versions []ZoneVersion, err error) {
+				assert.Equal(t, []ZoneVersion{{Versions: []string{"1.10", "1.11"}}}, versions)
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},
 		{
 			name:    "failed to retrieve versions",
 			ciStore: &DummyCloudInfoStore{TcId: notCached},
-			checker: func(versions []string, err error) {
+			checker: func(versions []ZoneVersion, err error) {
 				assert.Nil(t, versions, "the versions should be nil")
 				assert.EqualError(t, err, "versions not yet cached")
 			},

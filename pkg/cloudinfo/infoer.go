@@ -49,7 +49,7 @@ type CloudInfoer interface {
 	GetServiceImages(service, region string) ([]Image, error)
 
 	// GetVersions retrieves the  versions supported by the given service in the given region
-	GetVersions(service, region string) ([]string, error)
+	GetVersions(service, region string) ([]ZoneVersion, error)
 
 	// GetServiceProducts retrieves the products supported by the given service in the given region
 	GetServiceProducts(region, service string) ([]ProductDetails, error)

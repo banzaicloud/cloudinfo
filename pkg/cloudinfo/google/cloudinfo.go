@@ -410,28 +410,35 @@ func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (clo
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (g *GceInfoer) GetVersions(service, region string) ([]string, error) {
+func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
 	case "gke":
-		var versions []string
+		var zoneVersions []cloudinfo.ZoneVersion
 		zones, err := g.GetZones(region)
 		if err != nil {
 			return nil, err
 		}
-		serverConf, err := g.containerSvc.Projects.Zones.GetServerconfig(g.projectId, zones[0]).Context(context.Background()).Do()
-		if err != nil {
-			return nil, err
-		}
-		for _, masterVersion := range serverConf.ValidMasterVersions {
-			for _, nodeVersion := range serverConf.ValidNodeVersions {
-				if masterVersion == nodeVersion {
-					versions = append(versions, masterVersion)
-					break
+
+		for _, zone := range zones {
+			var versions []string
+
+			serverConf, err := g.containerSvc.Projects.Zones.GetServerconfig(g.projectId, zone).Context(context.Background()).Do()
+			if err != nil {
+				return nil, err
+			}
+			for _, masterVersion := range serverConf.ValidMasterVersions {
+				for _, nodeVersion := range serverConf.ValidNodeVersions {
+					if masterVersion == nodeVersion {
+						versions = append(versions, masterVersion)
+						break
+					}
 				}
 			}
+			zoneVersions = append(zoneVersions, cloudinfo.NewZoneVersion(zone, versions))
 		}
-		return versions, nil
+
+		return zoneVersions, nil
 	default:
-		return []string{}, nil
+		return []cloudinfo.ZoneVersion{}, nil
 	}
 }
