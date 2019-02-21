@@ -129,9 +129,9 @@ type VersionsResponse struct {
 }
 
 // NewServiceResponse assembles a service response
-func NewServiceResponse(sd cloudinfo.ServiceDescriber) ServiceResponse {
+func NewServiceResponse(sd cloudinfo.Service) ServiceResponse {
 	return ServiceResponse{
-		Service: cloudinfo.NewService(sd.ServiceName()),
+		Service: sd,
 	}
 }
 

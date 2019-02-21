@@ -45,14 +45,14 @@ type ProductDetails struct {
 	// on demand price
 	OnDemandPrice float64 `json:"onDemandPrice,omitempty"`
 
+	// spot price
+	SpotPrice []*ZonePrice `json:"spotPrice"`
+
 	// type
 	Type string `json:"type,omitempty"`
 
 	// zones
 	Zones []string `json:"zones"`
-
-	// spot price
-	SpotPrice []*ZonePrice `json:"spotPrice"`
 }
 
 // Validate validates this product details

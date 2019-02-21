@@ -28,14 +28,11 @@ const (
 	// vmKeyTemplate format for generating vm cache keys
 	vmKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/vms"
 
-	// attrKeyTemplate format for generating attribute cache keys
-	attrKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/attrValues/%s"
-
 	// priceKeyTemplate format for generating price cache keys
 	priceKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/prices/%s"
 
 	// zoneKeyTemplate format for generating zone cache keys
-	zoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/regions/%s/zones/"
+	zoneKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/%s/zones/"
 
 	// regionKeyTemplate format for generating region cache keys
 	regionKeyTemplate = "/banzaicloud.com/cloudinfo/providers/%s/services/%s/regions/"
@@ -58,14 +55,11 @@ type CloudInfoStore interface {
 	StoreRegions(provider, service string, val interface{})
 	GetRegions(provider, service string) (interface{}, bool)
 
-	StoreZones(provider, region string, val interface{})
-	GetZones(provider, region string) (interface{}, bool)
+	StoreZones(provider, service, region string, val interface{})
+	GetZones(provider, service, region string) (interface{}, bool)
 
 	StorePrice(provider, region, instanceType string, val interface{})
 	GetPrice(provider, region, instanceType string) (interface{}, bool)
-
-	StoreAttribute(provider, service, attribute string, val interface{})
-	GetAttribute(provider, service, attribute string) (interface{}, bool)
 
 	StoreVm(provider, service, region string, val interface{})
 	GetVm(provider, service, region string) (interface{}, bool)
@@ -121,12 +115,12 @@ func (cis *cacheProductStore) GetRegions(provider, service string) (interface{},
 	return cis.Get(cis.getKey(regionKeyTemplate, provider, service))
 }
 
-func (cis *cacheProductStore) StoreZones(provider, region string, val interface{}) {
-	cis.Set(cis.getKey(zoneKeyTemplate, provider, region), val, cis.itemExpiry)
+func (cis *cacheProductStore) StoreZones(provider, service, region string, val interface{}) {
+	cis.Set(cis.getKey(zoneKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetZones(provider, region string) (interface{}, bool) {
-	return cis.Get(cis.getKey(zoneKeyTemplate, provider, region))
+func (cis *cacheProductStore) GetZones(provider, service, region string) (interface{}, bool) {
+	return cis.Get(cis.getKey(zoneKeyTemplate, provider, service, region))
 }
 
 func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val interface{}) {
@@ -135,14 +129,6 @@ func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, 
 
 func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (interface{}, bool) {
 	return cis.Get(cis.getKey(priceKeyTemplate, provider, region, instanceType))
-}
-
-func (cis *cacheProductStore) StoreAttribute(provider, service, attribute string, val interface{}) {
-	cis.Set(cis.getKey(attrKeyTemplate, provider, service, attribute), val, cis.itemExpiry)
-}
-
-func (cis *cacheProductStore) GetAttribute(provider, service, attribute string) (interface{}, bool) {
-	return cis.Get(cis.getKey(attrKeyTemplate, provider, service, attribute))
 }
 
 func (cis *cacheProductStore) StoreVm(provider, service, region string, val interface{}) {

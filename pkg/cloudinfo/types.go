@@ -41,10 +41,10 @@ type CloudInfo interface {
 	GetAttributes() []string
 
 	// GetAttrValues returns a slice with the possible values for a given attribute on a specific provider
-	GetAttrValues(provider string, service string, attribute string) ([]float64, error)
+	GetAttrValues(provider string, service string, region string, attribute string) ([]float64, error)
 
 	// GetZones returns all the availability zones for a region
-	GetZones(provider string, region string) ([]string, error)
+	GetZones(provider, service, region string) ([]string, error)
 
 	// GetRegions returns all the regions for a cloud provider
 	GetRegions(provider string, service string) (map[string]string, error)
@@ -121,9 +121,6 @@ type ProductDetails struct {
 
 	// Burst this is derived for now
 	Burst bool `json:"burst,omitempty"`
-
-	// ZonePrice holds spot price information per zone
-	SpotInfo []ZonePrice `json:"spotPrice,omitempty"`
 }
 
 // ProductDetailSource product details related set of operations
@@ -150,17 +147,13 @@ type ServiceDescriber interface {
 // Service represents a service supported by a given provider.
 // it's intended to implement the ServiceDescriber interface
 type Service struct {
-	Service string `json:"service"`
+	Service  string `json:"service"`
+	IsStatic bool
 }
 
 // ServiceName returns the service name
 func (s Service) ServiceName() string {
 	return s.Service
-}
-
-// NewService creates a new servicedescriptor struct
-func NewService(name string) Service {
-	return Service{Service: name}
 }
 
 // ProviderDescriber describes a provider

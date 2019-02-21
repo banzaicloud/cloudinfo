@@ -17,16 +17,17 @@ package cloudinfo
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
 	"sync"
 	"time"
 
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
+	"github.com/pkg/errors"
 )
 
 // scrapingManager manages data renewal for a given provider
@@ -38,6 +39,7 @@ type scrapingManager struct {
 	metrics  metrics.Reporter
 	tracer   tracing.Tracer
 	log      logur.Logger
+	bus      evbus.Bus
 }
 
 func (sm *scrapingManager) initialize(ctx context.Context) {
@@ -96,52 +98,6 @@ func (sm *scrapingManager) scrapeServiceRegionProducts(ctx context.Context, serv
 	return nil
 }
 
-func (sm *scrapingManager) updateServiceRegionAttributes(ctx context.Context, service, region string) error {
-	var (
-		vms interface{}
-		ok  bool
-	)
-	sm.log.Info("updating attributes")
-
-	if vms, ok = sm.store.GetVm(sm.provider, service, region); !ok {
-		return emperror.With(errors.New("vms not yet cached"),
-			"provider", sm.provider, "service", service, "region", region)
-	}
-
-	memory := make(AttrValues, 0)
-	memorySet := make(map[AttrValue]interface{})
-
-	cpu := make(AttrValues, 0)
-	cpuSet := make(map[AttrValue]interface{})
-
-	for _, vm := range vms.([]VmInfo) {
-		memorySet[AttrValue{
-			Value:    vm.Mem,
-			StrValue: fmt.Sprintf("%v", vm.Mem),
-		}] = ""
-		cpuSet[AttrValue{
-			Value:    vm.Cpus,
-			StrValue: fmt.Sprintf("%v", vm.Cpus),
-		}] = ""
-	}
-
-	for attr := range memorySet {
-		memory = append(memory, attr)
-	}
-
-	for attr := range cpuSet {
-		cpu = append(cpu, attr)
-	}
-
-	sm.log.Debug("found attribute values",
-		map[string]interface{}{"numberOfMemory": len(memory), "numberOfCpu": len(cpu), "service": service, "region": region})
-
-	sm.store.StoreAttribute(sm.provider, service, Memory, memory)
-	sm.store.StoreAttribute(sm.provider, service, Cpu, cpu)
-
-	return nil
-}
-
 func (sm *scrapingManager) scrapeServiceRegionImages(ctx context.Context, service string, regionId string) error {
 	var (
 		images []Image
@@ -174,19 +130,34 @@ func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, serv
 	return nil
 }
 
-func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, region string) error {
+func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, service, region string) error {
 	var (
 		zones []string
 		err   error
 	)
 
-	sm.log.Debug("retrieving regional zone information", map[string]interface{}{"region": region})
+	sm.log.Debug("retrieving regional zone information", map[string]interface{}{"service": service, "region": region})
 
 	if zones, err = sm.infoer.GetZones(region); err != nil {
 		return emperror.Wrap(err, "failed to retrieve zones for region")
 	}
 
-	sm.store.StoreZones(sm.provider, region, zones)
+	sm.store.StoreZones(sm.provider, service, region, zones)
+
+	return nil
+}
+
+func (sm *scrapingManager) scrapeServiceRegionVms(ctx context.Context, region string) error {
+	var (
+		vms []VmInfo
+		err error
+	)
+	if vms, err = sm.infoer.GetVirtualMachines(region); err != nil {
+		sm.metrics.ReportScrapeFailure(sm.provider, "compute", "N/A")
+		return emperror.WrapWith(err, "failed to retrieve regions",
+			"provider", sm.provider, "service", "compute")
+	}
+	sm.store.StoreVm(sm.provider, "compute", region, vms)
 
 	return nil
 }
@@ -194,7 +165,6 @@ func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, region 
 func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services []Service) error {
 	var (
 		regions map[string]string
-		vms     []VmInfo
 		err     error
 	)
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-info", map[string]interface{}{"provider": sm.provider})
@@ -209,16 +179,25 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 	sm.store.StoreRegions(sm.provider, "compute", regions)
 
 	for regionId := range regions {
-		if vms, err = sm.infoer.GetVirtualMachines(regionId); err != nil {
-			sm.metrics.ReportScrapeFailure(sm.provider, "compute", "N/A")
-			return emperror.WrapWith(err, "failed to retrieve regions",
-				"provider", sm.provider, "service", "compute")
+		if err = sm.scrapeServiceRegionVms(ctx, regionId); err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
+			return emperror.With(err, "provider", sm.provider, "service", "compute", "region", regionId)
 		}
-		sm.store.StoreVm(sm.provider, "compute", regionId, vms)
+
+		if err = sm.scrapeServiceRegionZones(ctx, "compute", regionId); err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
+			return emperror.With(err, "provider", sm.provider, "service", "compute", "region", regionId)
+		}
 	}
 
 	sm.log.Info("start to scrape service region information")
 	for _, service := range services {
+
+		if service.IsStatic {
+			sm.log.Info("skipping scraping for region information - service is statics", map[string]interface{}{"service": service.ServiceName()})
+			continue
+		}
+
 		if service.ServiceName() == "compute" {
 			_regions, ok := sm.store.GetRegions(sm.provider, service.ServiceName())
 			if !ok {
@@ -241,15 +220,11 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		for regionId := range regions {
 
 			start := time.Now()
-			if err = sm.scrapeServiceRegionZones(ctx, regionId); err != nil {
-				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+			if err = sm.updateServiceRegionZones(ctx, service.ServiceName(), regionId); err != nil {
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionProducts(ctx, service.ServiceName(), regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
-				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
-			}
-			if err = sm.updateServiceRegionAttributes(ctx, service.ServiceName(), regionId); err != nil {
 				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {
@@ -266,6 +241,23 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 	return nil
 }
 
+func (sm *scrapingManager) updateServiceRegionZones(ctx context.Context, service string, region string) error {
+	var (
+		ok    bool
+		zones interface{}
+	)
+	if service != "compute" {
+		if zones, ok = sm.store.GetZones(sm.provider, "compute", region); !ok {
+			return emperror.With(errors.New("zones not yet cached"),
+				"provider", sm.provider, "service", service, "region", region)
+		}
+
+		sm.store.StoreZones(sm.provider, service, region, zones.([]string))
+	}
+
+	return nil
+}
+
 func (sm *scrapingManager) updateStatus(ctx context.Context) {
 	values := strconv.Itoa(int(time.Now().UnixNano() / 1e6))
 	sm.log.Info("updating status for provider")
@@ -276,17 +268,22 @@ func (sm *scrapingManager) updateStatus(ctx context.Context) {
 func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 	var (
 		err      error
+		cached   interface{}
 		services []Service
+		ok       bool
 	)
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-service-info", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
 
-	if services, err = sm.infoer.GetServices(); err != nil {
+	if cached, ok = sm.store.GetServices(sm.provider); !ok {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
 		sm.log.Error(emperror.Wrap(err, "failed to retrieve services").Error(), logger.ToMap(emperror.Context(err)))
 	}
 
-	sm.store.StoreServices(sm.provider, services)
+	if services, ok = cached.([]Service); !ok {
+		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
+		sm.log.Error("invalid services stored in the store")
+	}
 
 	if err := sm.scrapeServiceRegionInfo(ctx, services); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to load service region information").Error(), logger.ToMap(emperror.Context(err)))
@@ -390,10 +387,13 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 
 	sm.scrapeServiceInformation(ctx)
 
+	NewLoaderEvents(sm.bus).LoadConfig(ctx, sm.provider)
+
 	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 }
 
-func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer) *scrapingManager {
+func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger,
+	metrics metrics.Reporter, tracer tracing.Tracer, bus evbus.Bus) *scrapingManager {
 
 	return &scrapingManager{
 		provider: provider,
@@ -402,6 +402,7 @@ func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStor
 		log:      logur.WithFields(log, map[string]interface{}{"provider": provider}),
 		metrics:  metrics,
 		tracer:   tracer,
+		bus:      bus,
 	}
 }
 
@@ -426,6 +427,7 @@ func (sd *ScrapingDriver) StartScraping(ctx context.Context) error {
 }
 
 func (sd *ScrapingDriver) renewAll(ctx context.Context) {
+
 	for _, manager := range sd.scrapingManagers {
 		go manager.scrape(ctx)
 	}
@@ -452,16 +454,16 @@ func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) 
 }
 
 func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
-	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer) *ScrapingDriver {
+	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer, bus evbus.Bus) *ScrapingDriver {
 	var managers []*scrapingManager
 
 	for provider, infoer := range infoers {
-		managers = append(managers, NewScrapingManager(provider, infoer, store, log, metrics, tracer))
+		managers = append(managers, NewScrapingManager(provider, infoer, store, log, metrics, tracer, bus))
 	}
 
 	return &ScrapingDriver{
-		managers,
-		renewalInterval,
-		log,
+		scrapingManagers: managers,
+		renewalInterval:  renewalInterval,
+		log:              log,
 	}
 }

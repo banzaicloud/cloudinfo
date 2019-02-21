@@ -1,0 +1,44 @@
+# part of the application configuration this file lists the supported services and related meta information
+# services define cloud product information available for a given cloud provider offered service (eg: vm-s that can be part
+# of kubernetes clusters with a given kubernetes version
+amazon:
+  -
+    name: compute
+    isstatic: false
+  -
+    name: eks
+    isstatic: false
+  -
+    name: pke
+    isstatic: true
+    dataLocation: ./configs/
+    dataFile: service-data
+    dataType: yaml
+alibaba:
+  -
+    name: compute
+    isstatic: false
+  -
+    name: ack
+    isstatic: false
+azure:
+  -
+    name: compute
+    isstatic: false
+  -
+    name: aks
+    isstatic: false
+google:
+  -
+    name: compute
+    isstatic: false
+  -
+    name: gke
+    isstatic: false
+oracle:
+  -
+    name: compute
+    isstatic: false
+  -
+    name: oke
+    isstatic: false

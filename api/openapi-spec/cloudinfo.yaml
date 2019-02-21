@@ -492,7 +492,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ZonePrice'
-          $ref: '#/components/schemas/SpotPriceInfo'
+          x-go-name: SpotPrice
         type:
           type: string
           x-go-name: Type
@@ -573,6 +573,8 @@ components:
       type: object
       title: Service represents a service supported by a given provider.
       properties:
+        IsStatic:
+          type: boolean
         service:
           type: string
           x-go-name: Service
@@ -594,13 +596,6 @@ components:
             $ref: '#/components/schemas/Service'
           x-go-name: Services
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    SpotPriceInfo:
-      description: SpotPriceInfo represents different prices per availability zones
-      type: object
-      additionalProperties:
-        type: number
-        format: double
-      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
     Version:
       description: Version represents a version
       type: object

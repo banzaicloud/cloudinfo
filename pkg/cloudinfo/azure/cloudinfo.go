@@ -38,6 +38,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const svcAks = "aks"
+
 var (
 	regionCodeMappings = map[string]string{
 		"ap": "asia",
@@ -383,7 +385,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 // GetProducts retrieves the available virtual machines based on the arguments provided
 func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	switch service {
-	case "aks":
+	case svcAks:
 		var virtualMachines []cloudinfo.VmInfo
 		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
 		for _, vm := range possibleVmTypes {
@@ -488,14 +490,6 @@ func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Pric
 	return nil, errors.New("azure prices cannot be queried on the fly")
 }
 
-// GetServices returns the available services on the  provider
-func (a *AzureInfoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("aks")}
-	return services, nil
-}
-
 // HasImages - Azure doesn't support images
 func (a *AzureInfoer) HasImages() bool {
 	return false
@@ -519,7 +513,7 @@ func (a *AzureInfoer) GetServiceAttributes(region, service, attribute string) (c
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
-	case "aks":
+	case svcAks:
 		const resourceTypeForAks = "managedClusters"
 		var versions []string
 		resp, err := a.containerSvcClient.ListOrchestrators(context.TODO(), region, resourceTypeForAks)

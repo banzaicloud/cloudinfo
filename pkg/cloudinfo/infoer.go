@@ -39,9 +39,6 @@ type CloudInfoer interface {
 	// GetCurrentPrices retrieves all the spot prices in a region
 	GetCurrentPrices(region string) (map[string]Price, error)
 
-	// GetServices returns the available services on the given provider
-	GetServices() ([]Service, error)
-
 	// HasImages signals if a product info provider has image support
 	HasImages() bool
 

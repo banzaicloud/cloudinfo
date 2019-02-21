@@ -658,7 +658,7 @@
           "items": {
             "$ref": "#/definitions/ZonePrice"
           },
-          "$ref": "#/definitions/SpotPriceInfo"
+          "x-go-name": "SpotPrice"
         },
         "type": {
           "type": "string",
@@ -764,6 +764,9 @@
       "type": "object",
       "title": "Service represents a service supported by a given provider.",
       "properties": {
+        "IsStatic": {
+          "type": "boolean"
+        },
         "service": {
           "type": "string",
           "x-go-name": "Service"
@@ -794,15 +797,6 @@
         }
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
-    "SpotPriceInfo": {
-      "description": "SpotPriceInfo represents different prices per availability zones",
-      "type": "object",
-      "additionalProperties": {
-        "type": "number",
-        "format": "double"
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
     },
     "Version": {
       "description": "Version represents a version",

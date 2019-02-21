@@ -17,6 +17,9 @@ import (
 // swagger:model Service
 type Service struct {
 
+	// is static
+	IsStatic bool `json:"IsStatic,omitempty"`
+
 	// service
 	Service string `json:"service,omitempty"`
 }

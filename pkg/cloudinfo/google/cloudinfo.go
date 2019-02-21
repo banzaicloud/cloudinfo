@@ -34,6 +34,8 @@ import (
 	"google.golang.org/api/googleapi/transport"
 )
 
+const svcGke = "gke"
+
 var regionNames = map[string]string{
 	"asia-east1":              "Asia Pacific (Taiwan)",
 	"asia-east2":              "Asia Pacific (Hong Kong)",
@@ -318,7 +320,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
 func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	switch service {
-	case "gke":
+	case svcGke:
 		return vms, nil
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
@@ -381,14 +383,6 @@ func (g *GceInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price,
 	return nil, errors.New("google prices cannot be queried on the fly")
 }
 
-// GetServices returns the available services on the  provider
-func (g *GceInfoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("gke")}
-	return services, nil
-}
-
 // HasImages - Google doesn't support images
 func (g *GceInfoer) HasImages() bool {
 	return false
@@ -412,7 +406,7 @@ func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (clo
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
-	case "gke":
+	case svcGke:
 		var zoneVersions []cloudinfo.ZoneVersion
 		zones, err := g.GetZones(region)
 		if err != nil {

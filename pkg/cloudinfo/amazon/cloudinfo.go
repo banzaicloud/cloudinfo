@@ -38,6 +38,8 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+const svcEks = "eks"
+
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {
 	pricingSvc   PricingSource
@@ -203,7 +205,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 // Delegates to the underlying PricingSource instance and performs transformations
 func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	switch service {
-	case "eks":
+	case svcEks:
 		vms = append(vms, cloudinfo.VmInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
@@ -345,7 +347,7 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 	}
 
 	switch service {
-	case "eks":
+	case svcEks:
 		eksRegionIdMap := make(map[string]string)
 
 		eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
@@ -515,14 +517,6 @@ func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price,
 	return prices, nil
 }
 
-// GetServices returns the available services on the provider
-func (e *Ec2Infoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("eks")}
-	return services, nil
-}
-
 // HasImages - Amazon support images
 func (e *Ec2Infoer) HasImages() bool {
 	return true
@@ -604,7 +598,7 @@ func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (clo
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
-	case "eks":
+	case svcEks:
 		return []cloudinfo.ZoneVersion{cloudinfo.NewZoneVersion(region, []string{"1.10", "1.11"})}, nil
 	default:
 		return []cloudinfo.ZoneVersion{}, nil

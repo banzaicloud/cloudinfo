@@ -25,6 +25,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const svcOke = "oke"
+
 // Infoer encapsulates the data and operations needed to access external resources
 type Infoer struct {
 	client         *client.OCI
@@ -266,14 +268,6 @@ func (i *Infoer) HasShortLivedPriceInfo() bool {
 	return false
 }
 
-// GetServices returns the available services on the  given region
-func (i *Infoer) GetServices() ([]cloudinfo.Service, error) {
-	services := []cloudinfo.Service{
-		cloudinfo.NewService("compute"),
-		cloudinfo.NewService("oke")}
-	return services, nil
-}
-
 // HasImages - Oracle support images
 func (i *Infoer) HasImages() bool {
 	return true
@@ -307,7 +301,7 @@ func (i *Infoer) GetServiceAttributes(region, service, attribute string) (cloudi
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
 	switch service {
-	case "oke":
+	case svcOke:
 		err := i.client.ChangeRegion(region)
 		if err != nil {
 			return nil, err

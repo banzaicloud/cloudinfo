@@ -52,7 +52,7 @@ type Price struct {
 type VmInfo struct {
 	Type          string            `json:"type"`
 	OnDemandPrice float64           `json:"onDemandPrice"`
-	SpotPrice     SpotPriceInfo     `json:"spotPrice"`
+	SpotPrice     []ZonePrice       `json:"spotPrice"`
 	Cpus          float64           `json:"cpusPerVm"`
 	Mem           float64           `json:"memPerVm"`
 	Gpus          float64           `json:"gpusPerVm"`
@@ -132,18 +132,38 @@ func (cpi *cachingCloudInfo) GetAttributes() []string {
 }
 
 // GetAttrValues returns a slice with the values for the given attribute name
-func (cpi *cachingCloudInfo) GetAttrValues(provider, service, attribute string) ([]float64, error) {
-	if cachedVal, ok := cpi.cloudInfoStore.GetAttribute(provider, service, attribute); ok {
-		return cachedVal.(AttrValues).floatValues(), nil
+func (cpi *cachingCloudInfo) GetAttrValues(provider, service, region, attribute string) ([]float64, error) {
+	var (
+		vms interface{}
+		ok  bool
+	)
+
+	if vms, ok = cpi.cloudInfoStore.GetVm(provider, service, region); !ok {
+		return nil, emperror.With(errors.New("vms not yet cached"),
+			"provider", provider, "service", service, "region", region)
 	}
 
-	return nil, emperror.With(errors.New("attribute not yet cached"),
-		"provider", provider, "service", service, "attribute", attribute)
+	value := make([]float64, 0)
+	valueSet := make(map[float64]interface{})
+
+	for _, vm := range vms.([]VmInfo) {
+		switch attribute {
+		case Cpu:
+			valueSet[vm.Cpus] = ""
+		case Memory:
+			valueSet[vm.Mem] = ""
+		}
+	}
+	for attr := range valueSet {
+		value = append(value, attr)
+	}
+
+	return value, nil
 }
 
 // GetZones returns the availability zones in a region
-func (cpi *cachingCloudInfo) GetZones(provider string, region string) ([]string, error) {
-	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, region); ok {
+func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]string, error) {
+	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, service, region); ok {
 		return cachedVal.([]string), nil
 	}
 
@@ -188,7 +208,7 @@ func (cpi *cachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
 			pr = cachedVal.(Price)
 			for zone, price := range pr.SpotPrice {
-				pd.SpotInfo = append(pd.SpotInfo, *newZonePrice(zone, price))
+				pd.SpotPrice = append(pd.SpotPrice, *newZonePrice(zone, price))
 			}
 		} else {
 			log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
