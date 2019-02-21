@@ -347,7 +347,7 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 	}
 
 	switch service {
-	case "eks":
+	case svcEks:
 		eksRegionIdMap := make(map[string]string)
 
 		eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"

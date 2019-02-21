@@ -16,8 +16,7 @@ package loader
 
 import (
 	"context"
-	"time"
-
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -43,6 +42,9 @@ type defaultServiceManager struct {
 
 	// component logger instance
 	log logur.Logger
+
+	// component eventbus instance
+	bus evbus.Bus
 }
 
 func (sm *defaultServiceManager) LoadServiceInformation(ctx context.Context, providers []string) {
@@ -55,18 +57,8 @@ func (sm *defaultServiceManager) LoadServiceInformation(ctx context.Context, pro
 				continue
 			}
 
-			//TODO
-			go func(provider string, service ServiceData) {
-				for i := 0; i < 30; i++ {
-					if _, ok := sm.store.GetStatus(provider); !ok {
-						time.Sleep(30 * time.Second)
-					} else {
-						cloudInfoLoader := NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log)
-						cloudInfoLoader.Load(ctx)
-						break
-					}
-				}
-			}(provider, service)
+			NewLoaderEvents(sm.bus).NotifyScrapeCompleted(
+				NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log).Load)
 		}
 
 	}
@@ -89,7 +81,7 @@ func (sm *defaultServiceManager) ConfigureServices(ctx context.Context, provider
 	sm.log.Info("services initialized")
 }
 
-func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log logur.Logger) ServiceManager {
+func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log logur.Logger, bus evbus.Bus) ServiceManager {
 	// using a viper instance for loading data
 	vp := viper.New()
 	vp.AddConfigPath(config.ServiceConfigLocation)
@@ -113,5 +105,6 @@ func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log
 		store:    store,
 		log:      logur.WithFields(log, map[string]interface{}{"component": "service-manager"}),
 		services: sds,
+		bus:      bus,
 	}
 }

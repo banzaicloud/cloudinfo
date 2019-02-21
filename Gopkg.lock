@@ -97,6 +97,13 @@
   version = "1.51.10"
 
 [[projects]]
+  digest = "1:7a438550c05cb99c9022258d145dc1126aa8d1616b7111b5ce80b65adc815fec"
+  name = "github.com/asaskevich/EventBus"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "d46933a9"
+
+[[projects]]
   digest = "1:5a23cd3a5496a0b2da7e3b348d14e77b11a210738c398200d7d6f04ea8cf3bd8"
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
@@ -900,6 +907,7 @@
     "github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
+    "github.com/asaskevich/EventBus",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/endpoints",

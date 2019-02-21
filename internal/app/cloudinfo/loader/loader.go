@@ -180,18 +180,15 @@ func (scil *storeCloudInfoLoader) LoadImages(ctx context.Context, provider strin
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
 			var availableImages []cloudinfo.Image
-			var unavailableImages []string
+			var unavailableImage string
 			for _, image := range images.([]cloudinfo.Image) {
 				for _, img := range region.Data.Images.Data {
 					if img.Name == image.Name {
-						unavailableImages = append(unavailableImages, image.Name)
+						unavailableImage = image.Name
 						break
 					}
 				}
-			}
-
-			for _, image := range images.([]cloudinfo.Image) {
-				if !cloudinfo.Contains(unavailableImages, image.Name) {
+				if unavailableImage != image.Name {
 					availableImages = append(availableImages, image)
 				}
 			}
@@ -239,18 +236,15 @@ func (scil *storeCloudInfoLoader) LoadVms(ctx context.Context, provider string, 
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
 			var availableVms []cloudinfo.VmInfo
-			var unavailableVms []string
+			var unavailableVm string
 			for _, vm := range vms.([]cloudinfo.VmInfo) {
 				for _, _vm := range region.Data.Vms.Data {
 					if _vm.Type == vm.Type {
-						unavailableVms = append(unavailableVms, vm.Type)
+						unavailableVm = vm.Type
 						break
 					}
 				}
-			}
-
-			for _, vm := range vms.([]cloudinfo.VmInfo) {
-				if !cloudinfo.Contains(unavailableVms, vm.Type) {
+				if unavailableVm != vm.Type {
 					availableVms = append(availableVms, vm)
 				}
 			}

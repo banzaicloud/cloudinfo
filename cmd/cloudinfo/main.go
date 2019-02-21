@@ -30,6 +30,7 @@ import (
 	"context"
 	"time"
 
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
@@ -107,7 +108,9 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logur)
+	eventBus := evbus.New()
+
+	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logur, eventBus)
 	serviceManager.ConfigureServices(ctx, config.Providers)
 
 	serviceManager.LoadServiceInformation(ctx, config.Providers)
@@ -116,7 +119,7 @@ func main() {
 
 	emperror.Panic(err)
 
-	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logur, reporter, tracer)
+	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logur, reporter, tracer, eventBus)
 
 	err = scrapingDriver.StartScraping(ctx)
 	emperror.Panic(err)

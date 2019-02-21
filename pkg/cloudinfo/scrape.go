@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/logger"
@@ -374,9 +375,13 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 }
 
 // scrape implements the scraping logic for a provider
-func (sm *scrapingManager) scrape(ctx context.Context) {
+func (sm *scrapingManager) scrape(ctx context.Context, wg *sync.WaitGroup) {
 	ctx, _ = sm.tracer.StartWithTags(ctx, fmt.Sprintf("scraping-%s", sm.provider), map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
+
+	if wg != nil {
+		defer wg.Done()
+	}
 
 	sm.log.Info("start scraping for provider information")
 	start := time.Now()
@@ -388,7 +393,8 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 }
 
-func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer) *scrapingManager {
+func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger,
+	metrics metrics.Reporter, tracer tracing.Tracer) *scrapingManager {
 
 	return &scrapingManager{
 		provider: provider,
@@ -404,6 +410,7 @@ type ScrapingDriver struct {
 	scrapingManagers []*scrapingManager
 	renewalInterval  time.Duration
 	log              logur.Logger
+	bus              evbus.Bus
 }
 
 func (sd *ScrapingDriver) StartScraping(ctx context.Context) error {
@@ -421,9 +428,15 @@ func (sd *ScrapingDriver) StartScraping(ctx context.Context) error {
 }
 
 func (sd *ScrapingDriver) renewAll(ctx context.Context) {
+	var providerWg sync.WaitGroup
+
 	for _, manager := range sd.scrapingManagers {
-		go manager.scrape(ctx)
+		providerWg.Add(1)
+		go manager.scrape(ctx, &providerWg)
 	}
+	providerWg.Wait()
+
+	NewLoaderEvents(sd.bus).LoadConfig(ctx)
 }
 
 func (sd *ScrapingDriver) renewShortLived(ctx context.Context) {
@@ -441,13 +454,13 @@ func (sd *ScrapingDriver) renewShortLived(ctx context.Context) {
 func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) {
 	for _, manager := range sd.scrapingManagers {
 		if manager.provider == provider {
-			manager.scrape(ctx)
+			manager.scrape(ctx, nil)
 		}
 	}
 }
 
 func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
-	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer) *ScrapingDriver {
+	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer, bus evbus.Bus) *ScrapingDriver {
 	var managers []*scrapingManager
 
 	for provider, infoer := range infoers {
@@ -455,8 +468,9 @@ func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudIn
 	}
 
 	return &ScrapingDriver{
-		managers,
-		renewalInterval,
-		log,
+		scrapingManagers: managers,
+		renewalInterval:  renewalInterval,
+		log:              log,
+		bus:              bus,
 	}
 }
