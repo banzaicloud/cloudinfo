@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"time"
 
+	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -28,7 +29,7 @@ import (
 // CloudInfoLoader operations for loading cloud information into the cloud info application
 // Add specialized implementations for different information sources
 type CloudInfoLoader interface {
-	LoadRegions(ctx context.Context, sd ServiceData)
+	LoadRegions(ctx context.Context)
 	LoadZones(ctx context.Context, provider string, service string, region Region)
 	LoadVersions(ctx context.Context, provider string, service string, region Region)
 	LoadImages(ctx context.Context, provider string, service string, region Region)
@@ -36,38 +37,110 @@ type CloudInfoLoader interface {
 	Load(ctx context.Context)
 }
 
+// defaultCloudInfoLoader component is in charge for loading service related information into the Cloud Information Store
+// from yaml files in the filesystem
+type defaultCloudInfoLoader struct {
+	// stores the data parsed from the data file
+	serviceData ServiceData
+
+	// the destination of the loaded data
+	store cloudinfo.CloudInfoStore
+
+	// component logger
+	log logur.Logger
+}
+
+func (sl *defaultCloudInfoLoader) Load(ctx context.Context) {
+	sl.LoadRegions(ctx)
+}
+
+// loadRegions loads regions in the cloud info store
+func (sl *defaultCloudInfoLoader) LoadRegions(ctx context.Context) {
+	sl.log.Debug("loading region data...")
+
+	regionMap := make(map[string]string)
+	for _, region := range sl.serviceData.Regions {
+		regionMap[region.Id] = region.Name
+
+		sl.LoadZones(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+
+		sl.LoadVersions(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+
+		sl.LoadImages(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+
+		sl.LoadVms(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+	}
+
+	sl.store.StoreRegions(sl.serviceData.Provider, sl.serviceData.Name, regionMap)
+	sl.log.Debug("regions loaded")
+
+	// set the status
+	sl.store.StoreStatus(sl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
+	sl.log.Debug("status updated")
+
+}
+
+// loadZones loads zones for a given region in the store
+func (sl *defaultCloudInfoLoader) LoadZones(ctx context.Context, provider, service string, region Region) {
+	sl.log.Debug("loading zones...")
+	sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
+	sl.log.Debug("zones loaded")
+}
+
+// loadVersions loads versions for a given region into the store
+func (sl *defaultCloudInfoLoader) LoadVersions(ctx context.Context, provider string, service string, region Region) {
+	sl.log.Debug("loading versions...")
+	sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
+	sl.log.Debug("versions loaded")
+}
+
+// loadImages loads images for a given region into the store
+func (sl *defaultCloudInfoLoader) LoadImages(ctx context.Context, provider string, service string, region Region) {
+	sl.log.Debug("loading images...")
+	sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
+	sl.log.Debug("images loaded")
+}
+
+// loadVms loads vms for a given region into the store
+func (sl *defaultCloudInfoLoader) LoadVms(ctx context.Context, provider string, service string, region Region) {
+	sl.log.Debug("loading vms...")
+	sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
+	sl.log.Debug("vms loaded")
+}
+
 type storeCloudInfoLoader struct {
 	store       cloudinfo.CloudInfoStore
 	log         logur.Logger
 	serviceData ServiceData
+	bus         evbus.Bus
 }
 
 func (scil *storeCloudInfoLoader) Load(ctx context.Context) {
-	scil.LoadRegions(ctx, scil.serviceData)
+	NewLoaderEvents(scil.bus).NotifyScrapeCompleted(scil.serviceData.Provider, scil.LoadRegions)
 }
 
 // loadRegions loads regions in the cloud info store
-func (scil *storeCloudInfoLoader) LoadRegions(ctx context.Context, sd ServiceData) {
+func (scil *storeCloudInfoLoader) LoadRegions(ctx context.Context) {
 	scil.log.Debug("loading region data...")
 
 	regionMap := make(map[string]string)
-	for _, region := range sd.Regions {
+	for _, region := range scil.serviceData.Regions {
 		regionMap[region.Id] = region.Name
 
-		scil.LoadZones(ctx, sd.Provider, sd.Name, region)
+		scil.LoadZones(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadVersions(ctx, sd.Provider, sd.Name, region)
+		scil.LoadVersions(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadImages(ctx, sd.Provider, sd.Name, region)
+		scil.LoadImages(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadVms(ctx, sd.Provider, sd.Name, region)
+		scil.LoadVms(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
 	}
 
-	scil.store.StoreRegions(sd.Provider, sd.Name, regionMap)
+	scil.store.StoreRegions(scil.serviceData.Provider, scil.serviceData.Name, regionMap)
 	scil.log.Debug("regions loaded")
 
 	// set the status
-	scil.store.StoreStatus(sd.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
+	scil.store.StoreStatus(scil.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
 	scil.log.Debug("status updated")
 
 }
@@ -180,15 +253,15 @@ func (scil *storeCloudInfoLoader) LoadImages(ctx context.Context, provider strin
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
 			var availableImages []cloudinfo.Image
-			var unavailableImage string
 			for _, image := range images.([]cloudinfo.Image) {
-				for _, img := range region.Data.Images.Data {
-					if img.Name == image.Name {
-						unavailableImage = image.Name
+				keep := true
+				for _, excludeImage := range region.Data.Images.Data {
+					if excludeImage.Name == image.Name {
+						keep = false
 						break
 					}
 				}
-				if unavailableImage != image.Name {
+				if keep {
 					availableImages = append(availableImages, image)
 				}
 			}
@@ -236,15 +309,15 @@ func (scil *storeCloudInfoLoader) LoadVms(ctx context.Context, provider string, 
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
 			var availableVms []cloudinfo.VmInfo
-			var unavailableVm string
 			for _, vm := range vms.([]cloudinfo.VmInfo) {
-				for _, _vm := range region.Data.Vms.Data {
-					if _vm.Type == vm.Type {
-						unavailableVm = vm.Type
+				keep := true
+				for _, excludeVm := range region.Data.Vms.Data {
+					if excludeVm.Type == vm.Type {
+						keep = false
 						break
 					}
 				}
-				if unavailableVm != vm.Type {
+				if keep {
 					availableVms = append(availableVms, vm)
 				}
 			}
@@ -276,7 +349,7 @@ func (scil *storeCloudInfoLoader) LoadVms(ctx context.Context, provider string, 
 	}
 }
 
-func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log logur.Logger) CloudInfoLoader {
+func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log logur.Logger, bus evbus.Bus) CloudInfoLoader {
 
 	dataViper := viper.New()
 	dataViper.SetConfigName(datafile)
@@ -293,9 +366,19 @@ func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.Clo
 		emperror.Panic(err)
 	}
 
-	return &storeCloudInfoLoader{
-		log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
-		store:       store,
+	if serviceData.Source != "" {
+		// servicloader implementation that uses another service as source
+		return &storeCloudInfoLoader{
+			log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
+			store:       store,
+			serviceData: serviceData,
+			bus:         bus,
+		}
+	}
+
+	return &defaultCloudInfoLoader{
 		serviceData: serviceData,
+		store:       store,
+		log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
 	}
 }

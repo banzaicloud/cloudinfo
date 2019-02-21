@@ -20,8 +20,6 @@ type eventBus interface {
 	Publish(topic string, args ...interface{})
 }
 
-const loadConfig = "load_config"
-
 type loaderEventBus struct {
 	eb eventBus
 }
@@ -32,6 +30,6 @@ func NewLoaderEvents(eb eventBus) *loaderEventBus {
 	}
 }
 
-func (c *loaderEventBus) LoadConfig(ctx context.Context) {
-	c.eb.Publish(loadConfig, ctx)
+func (c *loaderEventBus) LoadConfig(ctx context.Context, provider string) {
+	c.eb.Publish(CreateString("load_config_", provider), ctx)
 }

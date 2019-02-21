@@ -14,7 +14,7 @@
 
 package loader
 
-const loadConfig = "load_config"
+import "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 
 type loaderEventBus struct {
 	eb eventBus
@@ -30,6 +30,6 @@ func NewLoaderEvents(eb eventBus) *loaderEventBus {
 	}
 }
 
-func (c *loaderEventBus) NotifyScrapeCompleted(fn interface{}) {
-	c.eb.SubscribeAsync(loadConfig, fn, false)
+func (c *loaderEventBus) NotifyScrapeCompleted(provider string, fn interface{}) {
+	c.eb.SubscribeAsync(cloudinfo.CreateString("load_config_", provider), fn, false)
 }

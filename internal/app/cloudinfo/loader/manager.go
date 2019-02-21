@@ -16,6 +16,7 @@ package loader
 
 import (
 	"context"
+
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
@@ -57,8 +58,9 @@ func (sm *defaultServiceManager) LoadServiceInformation(ctx context.Context, pro
 				continue
 			}
 
-			NewLoaderEvents(sm.bus).NotifyScrapeCompleted(
-				NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log).Load)
+			cloudInfoLoader := NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log, sm.bus)
+
+			cloudInfoLoader.Load(ctx)
 		}
 
 	}
