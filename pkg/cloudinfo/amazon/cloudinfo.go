@@ -346,6 +346,24 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 
 	switch service {
 	case "eks":
+		eksRegionIdMap := make(map[string]string)
+
+		eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
+		eksRegionIdMap[endpoints.UsEast2RegionID] = "US East (Ohio)"
+		eksRegionIdMap[endpoints.UsWest2RegionID] = "US West (Oregon)"
+		eksRegionIdMap[endpoints.EuWest1RegionID] = "EU (Ireland)"
+		eksRegionIdMap[endpoints.EuWest2RegionID] = "EU (London)"
+		eksRegionIdMap[endpoints.EuWest3RegionID] = "EU (Paris)"
+		eksRegionIdMap[endpoints.EuNorth1RegionID] = "EU (Stockholm)"
+		eksRegionIdMap[endpoints.EuCentral1RegionID] = "EU (Frankfurt)"
+		eksRegionIdMap[endpoints.ApNortheast1RegionID] = "Asia Pacific (Tokyo)"
+		eksRegionIdMap[endpoints.ApNortheast2RegionID] = "Asia Pacific (Seoul)"
+		eksRegionIdMap[endpoints.ApSoutheast1RegionID] = "Asia Pacific (Singapore)"
+		eksRegionIdMap[endpoints.ApSoutheast2RegionID] = "Asia Pacific (Sydney)"
+		eksRegionIdMap[endpoints.ApSouth1RegionID] = "Asia Pacific (Mumbai)"
+
+		return eksRegionIdMap, nil
+	case "_eks":
 		input := &ec2.DescribeImagesInput{
 			Filters: []*ec2.Filter{
 				{
@@ -514,7 +532,7 @@ func (e *Ec2Infoer) HasImages() bool {
 func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
 	imageDescribers := make([]cloudinfo.Image, 0)
 
-	if service == "eks" {
+	if service == "_eks" {
 		for _, version := range []string{"1.10", "1.11"} {
 			input := &ec2.DescribeImagesInput{
 				Filters: []*ec2.Filter{
