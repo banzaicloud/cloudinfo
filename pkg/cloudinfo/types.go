@@ -14,9 +14,7 @@
 
 package cloudinfo
 
-import (
-	"context"
-)
+import "github.com/goph/logur"
 
 const (
 	// Memory represents the memory attribute for the product info
@@ -29,7 +27,7 @@ const (
 // CloudInfo is the main entry point for retrieving vm type characteristics and pricing information on different cloud providers
 type CloudInfo interface {
 	// GetProviders returns the supported providers
-	GetProviders(ctx context.Context) []Provider
+	GetProviders() ([]Provider, error)
 
 	// GetProvider retrieves information about the provider
 	GetProvider(provider string) (Provider, error)
@@ -51,7 +49,7 @@ type CloudInfo interface {
 
 	GetStatus(provider string) (string, error)
 
-	GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error)
+	GetProductDetails(provider, service, region string, logger logur.Logger) ([]ProductDetails, error)
 
 	GetServiceImages(provider, service, region string) ([]Image, error)
 

@@ -15,67 +15,58 @@
 package api
 
 import (
-	"context"
 	"reflect"
 
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v8"
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(ctx context.Context, providers []string, ci cloudinfo.CloudInfo) error {
+func ConfigureValidator(providers []string, ci cloudinfo.CloudInfo, logger logur.Logger) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
+	// register validator for the provider parameter in the request path
 	if err := v.RegisterValidation("provider", providerValidator(providers)); err != nil {
 		return errors.Wrap(err, "could not register provider validator")
 	}
 
-	if err := v.RegisterValidation("attribute", func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range ci.GetAttributes() {
-			if field.String() == p {
-				return true
-			}
-		}
-		return false
-	}); err != nil {
-		return errors.Wrap(err, "could not register attribute validator")
-	}
-
 	// register validator for the service parameter in the request path
-	if err := v.RegisterValidation("service", serviceValidator(ctx, ci)); err != nil {
+	if err := v.RegisterValidation("service", serviceValidator(ci, logger)); err != nil {
 		return errors.Wrap(err, "could not register service validator")
 	}
 
 	// register validator for the region parameter in the request path
-	if err := v.RegisterValidation("region", regionValidator(ctx, ci)); err != nil {
+	if err := v.RegisterValidation("region", regionValidator(ci, logger)); err != nil {
 		return errors.Wrap(err, "could not register region validator")
 	}
+
+	// register validator for the attribute parameter in the request path
+	if err := v.RegisterValidation("attribute", attributeValidator(ci)); err != nil {
+		return errors.Wrap(err, "could not register attribute validator")
+	}
+
 	return nil
 }
 
 // regionValidator validates the `region` path parameter
-func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
+func regionValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 		currentRegion := digValueForName(currentStruct, "Region")
 
-		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
-			WithProvider(currentProvider).
-			WithService(currentService).
-			WithRegion(currentRegion).
-			Build())
-
-		log := logger.Extract(ctx)
+		logger = log.WithFields(logger,
+			map[string]interface{}{"provider": currentProvider, "service": currentService, "region": currentRegion})
 
 		regions, err := cpi.GetRegions(currentProvider, currentService)
 		if err != nil {
-			log.Error("could not get regions")
+			logger.Error("could not get regions")
 			return false
 		}
 
@@ -89,7 +80,7 @@ func regionValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fun
 }
 
 // serviceValidator validates the `service` path parameter
-func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Func {
+func serviceValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
 		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -97,15 +88,12 @@ func serviceValidator(ctx context.Context, cpi cloudinfo.CloudInfo) validator.Fu
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 
-		ctx = logger.ToContext(ctx, logger.NewLogCtxBuilder().
-			WithProvider(currentProvider).
-			WithService(currentService).
-			Build())
+		logger = log.WithFields(logger,
+			map[string]interface{}{"provider": currentProvider, "service": currentService})
 
-		log := logger.Extract(ctx)
 		services, err := cpi.GetServices(currentProvider)
 		if err != nil {
-			log.Error("could not get services")
+			logger.Error("could not get services")
 			return false
 		}
 
@@ -139,7 +127,19 @@ func providerValidator(providers []string) validator.Func {
 			}
 		}
 		return false
+	}
+}
 
+// attributeValidator validates the `attribute` path parameter
+func attributeValidator(cpi cloudinfo.CloudInfo) validator.Func {
+
+	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+		for _, p := range cpi.GetAttributes() {
+			if field.String() == p {
+				return true
+			}
+		}
+		return false
 	}
 }
 
