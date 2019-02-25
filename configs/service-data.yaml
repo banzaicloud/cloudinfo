@@ -14,7 +14,10 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          -
+            location: eu-north-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -28,7 +31,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: ap-northeast-2
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -42,7 +47,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: sa-east-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -56,7 +63,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: us-west-2
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -70,7 +79,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: eu-central-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -84,7 +95,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: ca-central-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -98,7 +111,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: ap-south-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -112,7 +127,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: us-west-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -126,7 +143,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: ap-southeast-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -140,7 +159,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: eu-west-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -154,7 +175,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: us-east-2
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -168,7 +191,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: us-east-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -182,7 +207,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: ap-northeast-1
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -196,7 +223,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: eu-west-2
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -210,7 +239,9 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: ap-southeast-2
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude
   -
@@ -224,6 +255,8 @@ regions:
       versions:
         strategy: exact
         data:
-          - v1.12.2
+          - location: eu-west-3
+            versions:
+              - v1.12.2
       vms:
         strategy: exclude

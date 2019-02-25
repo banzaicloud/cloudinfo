@@ -53,7 +53,7 @@ type CloudInfo interface {
 
 	GetServiceImages(provider, service, region string) ([]Image, error)
 
-	GetVersions(provider, service, region string) ([]ZoneVersion, error)
+	GetVersions(provider, service, region string) ([]LocationVersion, error)
 }
 
 // AttrValue represents an attribute value
@@ -98,16 +98,16 @@ func newZonePrice(zone string, price float64) *ZonePrice {
 	}
 }
 
-// ZoneVersion struct for displaying version information per zone
-type ZoneVersion struct {
-	Zone     string   `json:"zone"`
+// LocationVersion struct for displaying version information per location
+type LocationVersion struct {
+	Location string   `json:"location"`
 	Versions []string `json:"versions"`
 }
 
-// NewZoneVersion creates a new zone version struct
-func NewZoneVersion(zone string, versions []string) ZoneVersion {
-	return ZoneVersion{
-		Zone:     zone,
+// NewLocationVersion creates a new location version struct
+func NewLocationVersion(location string, versions []string) LocationVersion {
+	return LocationVersion{
+		Location: location,
 		Versions: versions,
 	}
 }

@@ -299,7 +299,7 @@ func (i *Infoer) GetServiceAttributes(region, service, attribute string) (cloudi
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
+func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcOke:
 		err := i.client.ChangeRegion(region)
@@ -317,8 +317,8 @@ func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, e
 			return nil, err
 		}
 
-		return []cloudinfo.ZoneVersion{cloudinfo.NewZoneVersion(region, options.KubernetesVersions.Get())}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, options.KubernetesVersions.Get())}, nil
 	default:
-		return []cloudinfo.ZoneVersion{}, nil
+		return []cloudinfo.LocationVersion{}, nil
 	}
 }

@@ -205,10 +205,22 @@ func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, 
 			scil.log.Error("versions not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVersions []string
-			for _, version := range versions.([]string) {
-				if !cloudinfo.Contains(region.Data.Versions.Data, version) {
-					availableVersions = append(availableVersions, version)
+			var availableVersions []cloudinfo.LocationVersion
+			for _, version := range versions.([]cloudinfo.LocationVersion) {
+				for _, data := range region.Data.Versions.Data {
+					if data.Location == version.Location {
+						var v []string
+						for _, _version := range version.Versions {
+							if !cloudinfo.Contains(data.Versions, _version) {
+								v = append(v, _version)
+							}
+						}
+						availableVersions = append(availableVersions, cloudinfo.LocationVersion{
+							Location: version.Location,
+							Versions: v,
+						})
+					}
+
 				}
 			}
 			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
@@ -222,10 +234,21 @@ func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, 
 			scil.log.Error("versions not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVersions []string
+			var availableVersions []cloudinfo.LocationVersion
 			for _, version := range region.Data.Versions.Data {
-				if cloudinfo.Contains(versions.([]string), version) {
-					availableVersions = append(availableVersions, version)
+				for _, data := range versions.([]cloudinfo.LocationVersion) {
+					if data.Location == version.Location {
+						var v []string
+						for _, _version := range version.Versions {
+							if cloudinfo.Contains(data.Versions, _version) {
+								v = append(v, _version)
+							}
+						}
+						availableVersions = append(availableVersions, cloudinfo.LocationVersion{
+							Location: version.Location,
+							Versions: v,
+						})
+					}
 				}
 			}
 			scil.store.StoreVersion(provider, service, region.Id, availableVersions)

@@ -55,7 +55,7 @@ type ImageData struct {
 
 type VersionData struct {
 	Strategy string
-	Data     []string
+	Data     []cloudinfo.LocationVersion
 }
 
 type VmData struct {
