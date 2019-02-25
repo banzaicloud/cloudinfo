@@ -17,10 +17,10 @@ package main
 const (
 	// It identifies the service itself, the actual instance needs to be identified via environment
 	// and other details.
-	ServiceName = "cloudinfo"
+	serviceName = "cloudinfo"
 
-	// FriendlyServiceName is the visible name of the service.
-	FriendlyServiceName = "Banzai Cloud Cloudinfo Service"
+	// friendlyServiceName is the visible name of the service.
+	friendlyServiceName = "Banzai Cloud Cloudinfo Service"
 
 	// the list of flags supported by the application
 	// these constants can be used to retrieve the passed in values or defaults via viper

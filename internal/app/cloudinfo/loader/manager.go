@@ -15,8 +15,6 @@
 package loader
 
 import (
-	"context"
-
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
@@ -27,10 +25,10 @@ import (
 // ServiceManager abstracts the operations related to cloud info services
 type ServiceManager interface {
 	// ConfigureServices parses the service configuration file and registers supported services
-	ConfigureServices(ctx context.Context, providers []string)
+	ConfigureServices(providers []string)
 
 	// LoadServiceInformation triggers importing cloud information based on the available service information
-	LoadServiceInformation(ctx context.Context, providers []string)
+	LoadServiceInformation(providers []string)
 }
 
 // defaultServiceManager default implementation for the service manager
@@ -48,7 +46,7 @@ type defaultServiceManager struct {
 	bus evbus.Bus
 }
 
-func (sm *defaultServiceManager) LoadServiceInformation(ctx context.Context, providers []string) {
+func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 	sm.log.Info("triggering cloud information importing ...")
 	for _, provider := range providers {
 
@@ -60,14 +58,14 @@ func (sm *defaultServiceManager) LoadServiceInformation(ctx context.Context, pro
 
 			cloudInfoLoader := NewCloudInfoLoader(service.DataLocation, service.DataFile, service.DataType, sm.store, sm.log, sm.bus)
 
-			cloudInfoLoader.Load(ctx)
+			cloudInfoLoader.Load()
 		}
 
 	}
 	sm.log.Info("triggering cloud information importing ...")
 }
 
-func (sm *defaultServiceManager) ConfigureServices(ctx context.Context, providers []string) {
+func (sm *defaultServiceManager) ConfigureServices(providers []string) {
 	sm.log.Info("initializing services for providers...")
 	for p, psvcs := range sm.services {
 		if !cloudinfo.Contains(providers, p) {

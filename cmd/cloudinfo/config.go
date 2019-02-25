@@ -127,7 +127,7 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// Viper check for an environment variable
 
 	// Application constants
-	v.Set("serviceName", ServiceName)
+	v.Set("serviceName", serviceName)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
@@ -182,8 +182,9 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// ServiceLoader
 	v.SetDefault("serviceloader.serviceconfiglocation", "./configs")
 	v.SetDefault("serviceloader.serviceconfigname", "services")
+	v.SetDefault("serviceloader.format", "yaml")
 
-	pf.Init(FriendlyServiceName, pflag.ExitOnError)
+	pf.Init(friendlyServiceName, pflag.ExitOnError)
 
 	// define flags
 	defineFlags(pf)

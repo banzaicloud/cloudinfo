@@ -404,10 +404,10 @@ func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (clo
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
+func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcGke:
-		var zoneVersions []cloudinfo.ZoneVersion
+		var zoneVersions []cloudinfo.LocationVersion
 		zones, err := g.GetZones(region)
 		if err != nil {
 			return nil, err
@@ -428,11 +428,11 @@ func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion
 					}
 				}
 			}
-			zoneVersions = append(zoneVersions, cloudinfo.NewZoneVersion(zone, versions))
+			zoneVersions = append(zoneVersions, cloudinfo.NewLocationVersion(zone, versions))
 		}
 
 		return zoneVersions, nil
 	default:
-		return []cloudinfo.ZoneVersion{}, nil
+		return []cloudinfo.LocationVersion{}, nil
 	}
 }

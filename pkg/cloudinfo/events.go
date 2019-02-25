@@ -14,8 +14,6 @@
 
 package cloudinfo
 
-import "context"
-
 type eventBus interface {
 	Publish(topic string, args ...interface{})
 }
@@ -30,6 +28,6 @@ func NewLoaderEvents(eb eventBus) *loaderEventBus {
 	}
 }
 
-func (c *loaderEventBus) LoadConfig(ctx context.Context, provider string) {
-	c.eb.Publish(CreateString("load_config_", provider), ctx)
+func (c *loaderEventBus) LoadConfig(provider string) {
+	c.eb.Publish(CreateString("load_config_", provider))
 }

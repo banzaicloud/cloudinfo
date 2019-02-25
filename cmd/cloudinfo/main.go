@@ -27,7 +27,6 @@
 package main
 
 import (
-	"context"
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
@@ -44,7 +43,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -78,17 +76,12 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	// Create logger (first thing after configuration loading)
-	logur := log.NewLogger(config.Log)
+	logger := log.NewLogger(config.Log)
 
 	// Provide some basic context to all log lines
-	logur = log.WithFields(logur, map[string]interface{}{"environment": config.Environment, "application": ServiceName})
+	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": serviceName})
 
-	// inject the configured logger instance
-	logger.Init(logur)
-
-	ctx := logger.ToContext(context.Background(), logger.NewLogCtxBuilder().WithField("application", ServiceName).Build())
-
-	logger.Extract(ctx).Info("initializing the application",
+	logger.Info("initializing the application",
 		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
 
 	// default tracer
@@ -96,58 +89,56 @@ func main() {
 
 	// Configure Jaeger
 	if config.Instrumentation.Jaeger.Enabled {
-		logur.Info("jaeger exporter enabled")
+		logger.Info("jaeger exporter enabled")
 		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
 		// set the app tracer
 		tracer = tracing.NewTracer()
 	}
 
-	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
+	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logger)
 
-	infoers := loadInfoers(config, logur)
+	infoers := loadInfoers(config, logger)
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
 	eventBus := evbus.New()
 
-	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logur, eventBus)
-	serviceManager.ConfigureServices(ctx, config.Providers)
+	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
+	serviceManager.ConfigureServices(config.Providers)
 
-	serviceManager.LoadServiceInformation(ctx, config.Providers)
+	serviceManager.LoadServiceInformation(config.Providers)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore)
-
 	emperror.Panic(err)
 
-	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logur, reporter, tracer, eventBus)
+	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
 
-	err = scrapingDriver.StartScraping(ctx)
+	err = scrapingDriver.StartScraping()
 	emperror.Panic(err)
 
 	// start the management service
 	if config.Management.Enabled {
-		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logur)
+		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logger)
 	}
 
-	err = api.ConfigureValidator(ctx, config.Providers, prodInfo)
+	err = api.ConfigureValidator(config.Providers, prodInfo, logger)
 	emperror.Panic(err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
-	routeHandler := api.NewRouteHandler(prodInfo, buildInfo)
+	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, logger)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()
 
 	// add prometheus metric endpoint
 	if config.Metrics.Enabled {
-		routeHandler.EnableMetrics(ctx, router, config.Metrics.Address)
+		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
-	routeHandler.ConfigureRoutes(ctx, router)
+	routeHandler.ConfigureRoutes(router)
 
-	if err := router.Run(viper.GetString(listenAddressFlag)); err != nil {
-		emperror.Panic(errors.Wrap(err, "failed to run router"))
-	}
+	err = router.Run(viper.GetString(listenAddressFlag))
+	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
 func loadInfoers(config Config, log logur.Logger) map[string]cloudinfo.CloudInfoer {

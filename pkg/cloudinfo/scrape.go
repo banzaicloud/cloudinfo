@@ -23,8 +23,8 @@ import (
 
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
@@ -53,7 +53,7 @@ func (sm *scrapingManager) initialize(ctx context.Context) {
 	sm.log.Info("initializing cloud product information")
 	if prices, err = sm.infoer.Initialize(); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to initialize cloud product information").Error(),
-			logger.ToMap(emperror.Context(err)))
+			log.ToMap(emperror.Context(err)))
 	}
 	for region, ap := range prices {
 		for instType, p := range ap {
@@ -116,7 +116,7 @@ func (sm *scrapingManager) scrapeServiceRegionImages(ctx context.Context, servic
 
 func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, service string, regionId string) error {
 	var (
-		versions []ZoneVersion
+		versions []LocationVersion
 		err      error
 	)
 
@@ -277,7 +277,7 @@ func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 
 	if cached, ok = sm.store.GetServices(sm.provider); !ok {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
-		sm.log.Error(emperror.Wrap(err, "failed to retrieve services").Error(), logger.ToMap(emperror.Context(err)))
+		sm.log.Error(emperror.Wrap(err, "failed to retrieve services").Error(), log.ToMap(emperror.Context(err)))
 	}
 
 	if services, ok = cached.([]Service); !ok {
@@ -286,7 +286,7 @@ func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 	}
 
 	if err := sm.scrapeServiceRegionInfo(ctx, services); err != nil {
-		sm.log.Error(emperror.Wrap(err, "failed to load service region information").Error(), logger.ToMap(emperror.Context(err)))
+		sm.log.Error(emperror.Wrap(err, "failed to load service region information").Error(), log.ToMap(emperror.Context(err)))
 	}
 
 	sm.updateStatus(ctx)
@@ -387,7 +387,7 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 
 	sm.scrapeServiceInformation(ctx)
 
-	NewLoaderEvents(sm.bus).LoadConfig(ctx, sm.provider)
+	NewLoaderEvents(sm.bus).LoadConfig(sm.provider)
 
 	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 }
@@ -412,7 +412,9 @@ type ScrapingDriver struct {
 	log              logur.Logger
 }
 
-func (sd *ScrapingDriver) StartScraping(ctx context.Context) error {
+func (sd *ScrapingDriver) StartScraping() error {
+
+	ctx := context.Background()
 
 	if err := NewPeriodicExecutor(sd.renewalInterval, sd.log).Execute(ctx, sd.renewAll); err != nil {
 		return emperror.Wrap(err, "failed to scrape cloud information")

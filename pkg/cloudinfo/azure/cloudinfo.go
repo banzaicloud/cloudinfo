@@ -511,7 +511,7 @@ func (a *AzureInfoer) GetServiceAttributes(region, service, attribute string) (c
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersion, error) {
+func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcAks:
 		const resourceTypeForAks = "managedClusters"
@@ -532,9 +532,9 @@ func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.ZoneVersi
 				}
 			}
 		}
-		return []cloudinfo.ZoneVersion{cloudinfo.NewZoneVersion(region, versions)}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions)}, nil
 	default:
-		return []cloudinfo.ZoneVersion{}, nil
+		return []cloudinfo.LocationVersion{}, nil
 	}
 }
 

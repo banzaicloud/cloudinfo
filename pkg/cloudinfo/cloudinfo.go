@@ -15,11 +15,10 @@
 package cloudinfo
 
 import (
-	"context"
 	"strings"
 
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 )
 
@@ -84,24 +83,23 @@ func NewCachingCloudInfo(infoers map[string]CloudInfoer, ciStore CloudInfoStore)
 }
 
 // GetProviders returns the supported providers
-func (cpi *cachingCloudInfo) GetProviders(ctx context.Context) []Provider {
+func (cpi *cachingCloudInfo) GetProviders() ([]Provider, error) {
 	var (
 		providers []Provider
 		provider  Provider
 		err       error
 	)
-	log := logger.Extract(ctx)
 
 	// iterate over supported provider names only
 	for pn := range cpi.cloudInfoers {
 		if provider, err = cpi.GetProvider(pn); err != nil {
-			log.Warn("could not retrieve provider", map[string]interface{}{"provider": provider})
+			return nil, err
 		}
 
 		providers = append(providers, provider)
 	}
 
-	return providers
+	return providers, nil
 }
 
 // GetProvider returns the supported provider
@@ -188,13 +186,12 @@ func (cpi *cachingCloudInfo) GetServices(provider string) ([]Service, error) {
 }
 
 // GetProductDetails retrieves product details form the given provider and region
-func (cpi *cachingCloudInfo) GetProductDetails(ctx context.Context, provider, service, region string) ([]ProductDetails, error) {
+func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string, logger logur.Logger) ([]ProductDetails, error) {
 	var (
 		vms interface{}
 		ok  bool
 	)
-	log := logger.Extract(ctx)
-	log.Info("retrieving product details")
+
 	if vms, ok = cpi.cloudInfoStore.GetVm(provider, service, region); !ok {
 		return nil, emperror.With(errors.New("vms not yet cached"),
 			"provider", provider, "service", service, "region", region)
@@ -211,7 +208,7 @@ func (cpi *cachingCloudInfo) GetProductDetails(ctx context.Context, provider, se
 				pd.SpotPrice = append(pd.SpotPrice, *newZonePrice(zone, price))
 			}
 		} else {
-			log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
+			logger.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
 		}
 
 		details = append(details, *pd)
@@ -239,9 +236,9 @@ func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) 
 }
 
 // GetVersions retrieves available versions for the given provider, service and region
-func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]ZoneVersion, error) {
+func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]LocationVersion, error) {
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
-		return cachedVersions.([]ZoneVersion), nil
+		return cachedVersions.([]LocationVersion), nil
 	}
 	return nil, emperror.With(errors.New("versions not yet cached"),
 		"provider", provider, "service", service, "region", region)

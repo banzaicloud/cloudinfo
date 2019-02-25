@@ -15,18 +15,18 @@
 package api
 
 import (
-	"context"
 	"net/http"
 	"os"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/logger"
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/logur"
 )
 
 // RouteHandler configures the REST API routes in the gin router
@@ -34,28 +34,30 @@ type RouteHandler struct {
 	prod           cloudinfo.CloudInfo
 	buildInfo      buildinfo.BuildInfo
 	errorResponder Responder
+	log            logur.Logger
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
-func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo) *RouteHandler {
+func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo, log logur.Logger) *RouteHandler {
 	return &RouteHandler{
 		prod:           p,
 		buildInfo:      bi,
 		errorResponder: NewErrorResponder(),
+		log:            log,
 	}
 }
 
 // ConfigureRoutes configures the gin engine, defines the rest API for this application
-func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) {
-	logger.Extract(ctx).Info("configuring routes")
+func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
+	r.log.Info("configuring routes")
 
 	basePath := "/"
 	if basePathFromEnv := os.Getenv("CLOUDINFO_BASEPATH"); basePathFromEnv != "" {
 		basePath = basePathFromEnv
 	}
 
-	router.Use(logger.MiddlewareCorrelationId())
-	router.Use(logger.Middleware())
+	router.Use(log.MiddlewareCorrelationId())
+	router.Use(log.Middleware())
 	router.Use(cors.Default())
 	router.Use(static.Serve(basePath, static.LocalFile("./web/dist/ui", true)))
 
@@ -70,16 +72,16 @@ func (r *RouteHandler) ConfigureRoutes(ctx context.Context, router *gin.Engine) 
 	providerGroup := v1.Group("/providers")
 	{
 
-		providerGroup.GET("/", r.getProviders(ctx))
-		providerGroup.GET("/:provider", r.getProvider(ctx))
-		providerGroup.GET("/:provider/services", r.getServices(ctx))
-		providerGroup.GET("/:provider/services/:service", r.getService(ctx))
-		providerGroup.GET("/:provider/services/:service/regions", r.getRegions(ctx))
-		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion(ctx))
-		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages(ctx))
-		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions(ctx))
-		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts(ctx))
-		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues(ctx))
+		providerGroup.GET("/", r.getProviders())
+		providerGroup.GET("/:provider", r.getProvider())
+		providerGroup.GET("/:provider/services", r.getServices())
+		providerGroup.GET("/:provider/services/:service", r.getService())
+		providerGroup.GET("/:provider/services/:service/regions", r.getRegions())
+		providerGroup.GET("/:provider/services/:service/regions/:region", r.getRegion())
+		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages())
+		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions())
+		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts())
+		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues())
 	}
 
 }
@@ -92,7 +94,7 @@ func (r *RouteHandler) versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, r.buildInfo)
 }
 
-func (r *RouteHandler) EnableMetrics(ctx context.Context, router *gin.Engine, metricsAddr string) {
+func (r *RouteHandler) EnableMetrics(router *gin.Engine, metricsAddr string) {
 	p := ginprometheus.NewPrometheus("http", []string{"provider", "service", "region"})
 	p.SetListenAddress(metricsAddr)
 	p.Use(router, "/metrics")

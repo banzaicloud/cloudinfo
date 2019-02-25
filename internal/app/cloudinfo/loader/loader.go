@@ -15,7 +15,6 @@
 package loader
 
 import (
-	"context"
 	"strconv"
 	"time"
 
@@ -29,12 +28,12 @@ import (
 // CloudInfoLoader operations for loading cloud information into the cloud info application
 // Add specialized implementations for different information sources
 type CloudInfoLoader interface {
-	LoadRegions(ctx context.Context)
-	LoadZones(ctx context.Context, provider string, service string, region Region)
-	LoadVersions(ctx context.Context, provider string, service string, region Region)
-	LoadImages(ctx context.Context, provider string, service string, region Region)
-	LoadVms(ctx context.Context, provider string, service string, region Region)
-	Load(ctx context.Context)
+	LoadRegions()
+	LoadZones(provider string, service string, region Region)
+	LoadVersions(provider string, service string, region Region)
+	LoadImages(provider string, service string, region Region)
+	LoadVms(provider string, service string, region Region)
+	Load()
 }
 
 // defaultCloudInfoLoader component is in charge for loading service related information into the Cloud Information Store
@@ -50,25 +49,25 @@ type defaultCloudInfoLoader struct {
 	log logur.Logger
 }
 
-func (sl *defaultCloudInfoLoader) Load(ctx context.Context) {
-	sl.LoadRegions(ctx)
+func (sl *defaultCloudInfoLoader) Load() {
+	sl.LoadRegions()
 }
 
 // loadRegions loads regions in the cloud info store
-func (sl *defaultCloudInfoLoader) LoadRegions(ctx context.Context) {
+func (sl *defaultCloudInfoLoader) LoadRegions() {
 	sl.log.Debug("loading region data...")
 
 	regionMap := make(map[string]string)
 	for _, region := range sl.serviceData.Regions {
 		regionMap[region.Id] = region.Name
 
-		sl.LoadZones(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+		sl.LoadZones(sl.serviceData.Provider, sl.serviceData.Name, region)
 
-		sl.LoadVersions(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+		sl.LoadVersions(sl.serviceData.Provider, sl.serviceData.Name, region)
 
-		sl.LoadImages(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+		sl.LoadImages(sl.serviceData.Provider, sl.serviceData.Name, region)
 
-		sl.LoadVms(ctx, sl.serviceData.Provider, sl.serviceData.Name, region)
+		sl.LoadVms(sl.serviceData.Provider, sl.serviceData.Name, region)
 	}
 
 	sl.store.StoreRegions(sl.serviceData.Provider, sl.serviceData.Name, regionMap)
@@ -81,28 +80,28 @@ func (sl *defaultCloudInfoLoader) LoadRegions(ctx context.Context) {
 }
 
 // loadZones loads zones for a given region in the store
-func (sl *defaultCloudInfoLoader) LoadZones(ctx context.Context, provider, service string, region Region) {
+func (sl *defaultCloudInfoLoader) LoadZones(provider, service string, region Region) {
 	sl.log.Debug("loading zones...")
 	sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
 	sl.log.Debug("zones loaded")
 }
 
 // loadVersions loads versions for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVersions(ctx context.Context, provider string, service string, region Region) {
+func (sl *defaultCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
 	sl.log.Debug("loading versions...")
 	sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
 	sl.log.Debug("versions loaded")
 }
 
 // loadImages loads images for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadImages(ctx context.Context, provider string, service string, region Region) {
+func (sl *defaultCloudInfoLoader) LoadImages(provider string, service string, region Region) {
 	sl.log.Debug("loading images...")
 	sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
 	sl.log.Debug("images loaded")
 }
 
 // loadVms loads vms for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVms(ctx context.Context, provider string, service string, region Region) {
+func (sl *defaultCloudInfoLoader) LoadVms(provider string, service string, region Region) {
 	sl.log.Debug("loading vms...")
 	sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
 	sl.log.Debug("vms loaded")
@@ -115,25 +114,25 @@ type storeCloudInfoLoader struct {
 	bus         evbus.Bus
 }
 
-func (scil *storeCloudInfoLoader) Load(ctx context.Context) {
+func (scil *storeCloudInfoLoader) Load() {
 	NewLoaderEvents(scil.bus).NotifyScrapeCompleted(scil.serviceData.Provider, scil.LoadRegions)
 }
 
 // loadRegions loads regions in the cloud info store
-func (scil *storeCloudInfoLoader) LoadRegions(ctx context.Context) {
+func (scil *storeCloudInfoLoader) LoadRegions() {
 	scil.log.Debug("loading region data...")
 
 	regionMap := make(map[string]string)
 	for _, region := range scil.serviceData.Regions {
 		regionMap[region.Id] = region.Name
 
-		scil.LoadZones(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
+		scil.LoadZones(scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadVersions(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
+		scil.LoadVersions(scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadImages(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
+		scil.LoadImages(scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadVms(ctx, scil.serviceData.Provider, scil.serviceData.Name, region)
+		scil.LoadVms(scil.serviceData.Provider, scil.serviceData.Name, region)
 	}
 
 	scil.store.StoreRegions(scil.serviceData.Provider, scil.serviceData.Name, regionMap)
@@ -145,7 +144,7 @@ func (scil *storeCloudInfoLoader) LoadRegions(ctx context.Context) {
 
 }
 
-func (scil *storeCloudInfoLoader) LoadZones(ctx context.Context, provider string, service string, region Region) {
+func (scil *storeCloudInfoLoader) LoadZones(provider string, service string, region Region) {
 	switch region.Data.Zones.Strategy {
 	case exact:
 		scil.log.Debug("loading zones...")
@@ -191,7 +190,7 @@ func (scil *storeCloudInfoLoader) LoadZones(ctx context.Context, provider string
 	}
 }
 
-func (scil *storeCloudInfoLoader) LoadVersions(ctx context.Context, provider string, service string, region Region) {
+func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
 	switch region.Data.Versions.Strategy {
 	case exact:
 		scil.log.Debug("loading versions...")
@@ -206,10 +205,22 @@ func (scil *storeCloudInfoLoader) LoadVersions(ctx context.Context, provider str
 			scil.log.Error("versions not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVersions []string
-			for _, version := range versions.([]string) {
-				if !cloudinfo.Contains(region.Data.Versions.Data, version) {
-					availableVersions = append(availableVersions, version)
+			var availableVersions []cloudinfo.LocationVersion
+			for _, version := range versions.([]cloudinfo.LocationVersion) {
+				for _, data := range region.Data.Versions.Data {
+					if data.Location == version.Location {
+						var v []string
+						for _, _version := range version.Versions {
+							if !cloudinfo.Contains(data.Versions, _version) {
+								v = append(v, _version)
+							}
+						}
+						availableVersions = append(availableVersions, cloudinfo.LocationVersion{
+							Location: version.Location,
+							Versions: v,
+						})
+					}
+
 				}
 			}
 			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
@@ -223,10 +234,21 @@ func (scil *storeCloudInfoLoader) LoadVersions(ctx context.Context, provider str
 			scil.log.Error("versions not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVersions []string
+			var availableVersions []cloudinfo.LocationVersion
 			for _, version := range region.Data.Versions.Data {
-				if cloudinfo.Contains(versions.([]string), version) {
-					availableVersions = append(availableVersions, version)
+				for _, data := range versions.([]cloudinfo.LocationVersion) {
+					if data.Location == version.Location {
+						var v []string
+						for _, _version := range version.Versions {
+							if cloudinfo.Contains(data.Versions, _version) {
+								v = append(v, _version)
+							}
+						}
+						availableVersions = append(availableVersions, cloudinfo.LocationVersion{
+							Location: version.Location,
+							Versions: v,
+						})
+					}
 				}
 			}
 			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
@@ -237,7 +259,7 @@ func (scil *storeCloudInfoLoader) LoadVersions(ctx context.Context, provider str
 	}
 }
 
-func (scil *storeCloudInfoLoader) LoadImages(ctx context.Context, provider string, service string, region Region) {
+func (scil *storeCloudInfoLoader) LoadImages(provider string, service string, region Region) {
 	switch region.Data.Images.Strategy {
 	case exact:
 		scil.log.Debug("loading images...")
@@ -293,7 +315,7 @@ func (scil *storeCloudInfoLoader) LoadImages(ctx context.Context, provider strin
 	}
 }
 
-func (scil *storeCloudInfoLoader) LoadVms(ctx context.Context, provider string, service string, region Region) {
+func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, region Region) {
 	switch region.Data.Vms.Strategy {
 	case exact:
 		scil.log.Debug("loading vms...")

@@ -354,6 +354,14 @@
   version = "v0.18.0"
 
 [[projects]]
+  digest = "1:bde9f189072512ba353f3641d4839cb4c9c7edf421e467f2c03f267b402bd16c"
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "6b08a5c5172ba18946672b49749cde22873dd7c2"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:479e958ad7ae540d7a3c565d1839cc7c8ab9b627640144443f1e88d11d4023d0"
   name = "github.com/golang/protobuf"
   packages = [
@@ -377,15 +385,15 @@
   version = "v0.16.0"
 
 [[projects]]
-  digest = "1:36fbc4dc37d6169fa672d7f62c8e899d8de9018d84f9acb692f3415aea475810"
+  digest = "1:3a441554e83ca3b1b26f18de3a32d979a32de57bf2e69b8f16f508dfa4232029"
   name = "github.com/goph/logur"
   packages = [
     ".",
     "adapters/logrusadapter",
   ]
   pruneopts = "NUT"
-  revision = "f26f8cefccfb6837e0d36561467cf67d2d0b65b1"
-  version = "v0.9.0"
+  revision = "72381de18a2f0fb8cd421a6316af719950ce3bef"
+  version = "v0.10.0"
 
 [[projects]]
   digest = "1:11c6c696067d3127ecf332b10f89394d386d9083f82baf71f40f2da31841a009"
@@ -924,6 +932,7 @@
     "github.com/go-openapi/runtime/client",
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
+    "github.com/gofrs/uuid",
     "github.com/goph/emperror",
     "github.com/goph/logur",
     "github.com/goph/logur/adapters/logrusadapter",
@@ -939,7 +948,6 @@
     "github.com/prometheus/client_golang/api/prometheus/v1",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/common/model",
-    "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
