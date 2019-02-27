@@ -28,8 +28,6 @@ package main
 
 import (
 	"context"
-	"time"
-
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
@@ -100,7 +98,8 @@ func main() {
 		tracer = tracing.NewTracer()
 	}
 
-	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logur)
+	// expiration set to  0 - entries never expire
+	cloudInfoStore := cloudinfo.NewCacheProductStore(0, config.RenewalInterval, logur)
 
 	infoers := loadInfoers(config, logur)
 
