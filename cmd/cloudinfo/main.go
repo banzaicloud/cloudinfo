@@ -27,8 +27,6 @@
 package main
 
 import (
-	"time"
-
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
@@ -95,7 +93,8 @@ func main() {
 		tracer = tracing.NewTracer()
 	}
 
-	cloudInfoStore := cloudinfo.NewCacheProductStore(24*time.Hour, config.RenewalInterval, logger)
+	// expiration set to  0 - entries never expire
+	cloudInfoStore := cloudinfo.NewCacheProductStore(0, config.RenewalInterval, logger)
 
 	infoers := loadInfoers(config, logger)
 
