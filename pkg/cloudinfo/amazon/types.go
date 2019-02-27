@@ -15,10 +15,10 @@
 package amazon
 
 import (
-	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/pricing"
+	"github.com/goph/emperror"
 )
 
 // PricingSource list of operations for retrieving pricing information
@@ -47,8 +47,7 @@ func (pd *pricingDetails) GetPriceList(input *pricing.GetProductsInput) ([]aws.J
 		list = append(list, output.PriceList...)
 		return !b
 	}); err != nil {
-		// todo use emperror and wrap the original error
-		return nil, errors.New("failed to retrieve pricelist")
+		return nil, emperror.Wrap(err, "failed to retrieve pricelist")
 	}
 
 	return list, nil

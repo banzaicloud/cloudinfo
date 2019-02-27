@@ -244,7 +244,7 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 	}
 }
 
-// swagger:route GET /providers/{provider}/services/{service}/regions/{region} regions getRegion
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region} region getRegion
 //
 // Provides the detailed info of a specific region of a cloud provider
 //
@@ -451,7 +451,7 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 	}
 }
 
-// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attributes getAttrValues
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attribute getAttrValues
 //
 // Provides a list of available attribute values in a provider's region.
 //

@@ -111,8 +111,8 @@ func (e *Ec2Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 }
 
 func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"region": region})
-	log.Debug("getting available instance types from AWS API")
+	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
+	logger.Debug("getting available instance types from AWS API")
 
 	missingAttributes := make(map[string][]string)
 	var (
@@ -129,13 +129,13 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 	for i, price := range priceList {
 		pd, err := newPriceData(price)
 		if err != nil {
-			log.Warn("could not extract pricing info", map[string]interface{}{"itemindex": i})
+			logger.Warn("could not extract pricing info", map[string]interface{}{"itemindex": i})
 			continue
 		}
 
 		instanceType, err := pd.getDataForKey("instanceType")
 		if err != nil {
-			log.Warn("could not retrieve instance type", map[string]interface{}{"instancetype": instanceType})
+			logger.Warn("could not retrieve instance type", map[string]interface{}{"instancetype": instanceType})
 			continue
 		}
 		cpusStr, err := pd.getDataForKey("vcpu")
@@ -169,7 +169,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 		ntwMapper := newAmazonNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 		if err != nil {
-			log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 				map[string]interface{}{"instanceType": instanceType})
 		}
 
@@ -190,14 +190,14 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 		}
 		vms = append(vms, vm)
 	}
-	log.Debug("instance types with missing attributes", map[string]interface{}{"missingAttrs": missingAttributes})
-	log.Debug("instance types with missing gpu", map[string]interface{}{"missingGPU": missingGpu})
+	logger.Debug("instance types with missing attributes", map[string]interface{}{"missingAttrs": missingAttributes})
+	logger.Debug("instance types with missing gpu", map[string]interface{}{"missingGPU": missingGpu})
 
 	if vms == nil {
-		log.Debug("couldn't find any virtual machines to recommend")
+		logger.Debug("couldn't find any virtual machines to recommend")
 	}
 
-	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
+	logger.Debug("found vms", map[string]interface{}{"numberOfVms": len(vms)})
 	return vms, nil
 }
 
@@ -338,8 +338,8 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
 func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"service": service})
-	log.Debug("getting regions")
+	logger := log.WithFields(e.log, map[string]interface{}{"service": service})
+	logger.Debug("getting regions")
 
 	regionIdMap := make(map[string]string)
 	for key, region := range endpoints.AwsPartition().Regions() {
@@ -394,18 +394,18 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 				eksRegionIdMap[key] = value
 			}
 		}
-		log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(eksRegionIdMap)})
+		logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(eksRegionIdMap)})
 		return eksRegionIdMap, nil
 	default:
-		log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
+		logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
 		return regionIdMap, nil
 	}
 }
 
 // GetZones returns the availability zones in a region
 func (e *Ec2Infoer) GetZones(region string) ([]string, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"region": region})
-	log.Debug("getting zones")
+	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
+	logger.Debug("getting zones")
 
 	var zones []string
 	azs, err := e.ec2Describer(region).DescribeAvailabilityZones(&ec2.DescribeAvailabilityZonesInput{})
@@ -418,7 +418,7 @@ func (e *Ec2Infoer) GetZones(region string) ([]string, error) {
 		}
 	}
 
-	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
+	logger.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return zones, nil
 }
 
@@ -428,17 +428,17 @@ func (e *Ec2Infoer) HasShortLivedPriceInfo() bool {
 }
 
 func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"region": region})
-	log.Debug("getting spot price averages from Prometheus API")
+	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
+	logger.Debug("getting spot price averages from Prometheus API")
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
-	log.Debug("sending prometheus query", map[string]interface{}{"query": query})
+	logger.Debug("sending prometheus query", map[string]interface{}{"query": query})
 	result, err := e.prometheus.Query(context.Background(), query, time.Now())
 	if err != nil {
 		return nil, err
 	}
 	if result.String() == "" {
-		log.Warn("Prometheus metric is empty")
+		logger.Warn("Prometheus metric is empty")
 	} else {
 		r := result.(model.Vector)
 		for _, value := range r {
@@ -458,7 +458,7 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]cloud
 }
 
 func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"region": region})
+	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 	err := e.ec2Describer(region).DescribeSpotPriceHistoryPages(&ec2.DescribeSpotPriceHistoryInput{
 		StartTime:           aws.Time(time.Now()),
@@ -467,7 +467,7 @@ func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.Sp
 		for _, pe := range history.SpotPriceHistory {
 			price, err := strconv.ParseFloat(*pe.SpotPrice, 64)
 			if err != nil {
-				log.Error("couldn't parse spot price from history")
+				logger.Error("couldn't parse spot price from history")
 				continue
 			}
 			if priceInfo[*pe.InstanceType] == nil {
@@ -485,21 +485,21 @@ func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.Sp
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
 func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
-	log := log.WithFields(e.log, map[string]interface{}{"region": region})
+	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
 	var spotPrices map[string]cloudinfo.SpotPriceInfo
 	var err error
 	if e.prometheus != nil {
 		spotPrices, err = e.getSpotPricesFromPrometheus(region)
 		if err != nil {
-			log.Warn("could not get spot price info from Prometheus API, fallback to direct AWS API access.")
+			logger.Warn("could not get spot price info from Prometheus API, fallback to direct AWS API access.")
 		}
 	}
 
 	if len(spotPrices) == 0 {
-		log.Debug("getting current spot prices directly from the AWS API")
+		logger.Debug("getting current spot prices directly from the AWS API")
 		spotPrices, err = e.getCurrentSpotPrices(region)
 		if err != nil {
-			log.Error("failed to retrieve current spot prices")
+			logger.Error("failed to retrieve current spot prices")
 			return nil, err
 		}
 	}

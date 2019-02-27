@@ -126,7 +126,7 @@ paths:
     get:
       description: Provides the detailed info of a specific region of a cloud provider
       tags:
-        - regions
+        - region
       operationId: getRegion
       parameters:
         - x-go-name: Provider
@@ -235,7 +235,7 @@ paths:
   '/providers/{provider}/services/{service}/regions/{region}/products/{attribute}':
     get:
       tags:
-        - attributes
+        - attribute
       summary: Provides a list of available attribute values in a provider's region.
       operationId: getAttrValues
       parameters:

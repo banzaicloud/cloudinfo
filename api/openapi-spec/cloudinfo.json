@@ -194,7 +194,7 @@
           "http"
         ],
         "tags": [
-          "regions"
+          "region"
         ],
         "operationId": "getRegion",
         "parameters": [
@@ -343,7 +343,7 @@
           "http"
         ],
         "tags": [
-          "attributes"
+          "attribute"
         ],
         "summary": "Provides a list of available attribute values in a provider's region.",
         "operationId": "getAttrValues",
