@@ -71,7 +71,6 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 
 	providerGroup := v1.Group("/providers")
 	{
-
 		providerGroup.GET("/", r.getProviders())
 		providerGroup.GET("/:provider", r.getProvider())
 		providerGroup.GET("/:provider/services", r.getServices())
@@ -83,7 +82,6 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts())
 		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues())
 	}
-
 }
 
 func (r *RouteHandler) signalStatus(c *gin.Context) {

@@ -11,11 +11,12 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/attributes"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/attribute"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/images"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/products"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/provider"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/providers"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/region"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/regions"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/service"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/services"
@@ -65,7 +66,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Cloudinfo 
 	cli := new(Cloudinfo)
 	cli.Transport = transport
 
-	cli.Attributes = attributes.New(transport, formats)
+	cli.Attribute = attribute.New(transport, formats)
 
 	cli.Images = images.New(transport, formats)
 
@@ -74,6 +75,8 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Cloudinfo 
 	cli.Provider = provider.New(transport, formats)
 
 	cli.Providers = providers.New(transport, formats)
+
+	cli.Region = region.New(transport, formats)
 
 	cli.Regions = regions.New(transport, formats)
 
@@ -127,7 +130,7 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // Cloudinfo is a client for cloudinfo
 type Cloudinfo struct {
-	Attributes *attributes.Client
+	Attribute *attribute.Client
 
 	Images *images.Client
 
@@ -136,6 +139,8 @@ type Cloudinfo struct {
 	Provider *provider.Client
 
 	Providers *providers.Client
+
+	Region *region.Client
 
 	Regions *regions.Client
 
@@ -152,7 +157,7 @@ type Cloudinfo struct {
 func (c *Cloudinfo) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 
-	c.Attributes.SetTransport(transport)
+	c.Attribute.SetTransport(transport)
 
 	c.Images.SetTransport(transport)
 
@@ -161,6 +166,8 @@ func (c *Cloudinfo) SetTransport(transport runtime.ClientTransport) {
 	c.Provider.SetTransport(transport)
 
 	c.Providers.SetTransport(transport)
+
+	c.Region.SetTransport(transport)
 
 	c.Regions.SetTransport(transport)
 
