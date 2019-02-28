@@ -23,8 +23,8 @@ The context path for management operations is:
 
     This operation exports the content of the Cloud Product Store
 ```bash
-curl -X PUT \
-  http://localhost:8099/management/store/export
+curl -X GET \
+  http://localhost:8099/management/store/export > store.txt
 ```
 
 * Import
@@ -32,18 +32,15 @@ curl -X PUT \
     The operation loads data into the Cloud Product Store
 
 ```bash
-curl -X PUT \
-  http://localhost:8099/management/store/export
+curl -X PUT -F "data=@store.txt" \
+  http://localhost:8099/management/store/import
 ```
 
 * Refresh
 Initiates a scraping process for the given provider for cloud product information. The refresh operation is performed asynchronously so it should only be used to trigger it.
 ```bash
 curl -X PUT \
-  http://localhost:8099/management/store/import \
-  -H 'cache-control: no-cache' \
-  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
-  -F data=@/Users/<store-data>/<data>.txt
+  http://localhost:8099/management/store/refresh/<provider>
 ```
 
 
