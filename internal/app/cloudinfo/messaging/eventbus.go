@@ -14,38 +14,46 @@
 
 package messaging
 
-import evbus "github.com/asaskevich/EventBus"
+import (
+	"strings"
+
+	evbus "github.com/asaskevich/EventBus"
+)
 
 // EventBus event bus abstraction for the application to decouple vendor or lib specifics
+
 type EventBus interface {
-	Subscribe(topic string)
-	Unsubscribe(topic string)
-	Publish(topic string, args ...interface{})
+	// PublishScrapingComplete emits a "scraping complete" message for the given provider
+	PublishScrapingComplete(provider string)
+
+	// SubscribeScrapingComplete
+	SubscribeScrapingComplete(provider string, callback interface{})
 }
 
+const (
+	topicPrefix = "load:service"
+)
+
+// defaultEventBus default EventBus component implementation backed by https://github.com/asaskevich/EventBus
 type defaultEventBus struct {
 	eventBus evbus.Bus
-	fn       interface{}
 }
 
-func (eb *defaultEventBus) Subscribe(topic string) {
-	eb.eventBus.SubscribeAsync(topic, eb.fn, false)
+func (eb *defaultEventBus) PublishScrapingComplete(provider string) {
+	eb.eventBus.Publish(eb.providerScrapingTopic(provider))
 }
 
-func (eb *defaultEventBus) Unsubscribe(topic string) {
-	eb.eventBus.Unsubscribe(topic, nil)
+func (eb *defaultEventBus) SubscribeScrapingComplete(provider string, callback interface{}) {
+	eb.eventBus.SubscribeAsync(eb.providerScrapingTopic(provider), callback, false)
 }
 
-func (eb *defaultEventBus) Publish(topic string, args ...interface{}) {
-	eb.eventBus.Publish(topic, args)
+func (eb *defaultEventBus) providerScrapingTopic(provider string) string {
+	return strings.Join([]string{topicPrefix, provider}, ":")
 }
 
 //NewDefaultEventBus creates an event bus backed by  https://github.com/asaskevich/EventBus
-func NewDefaultEventBus(callback interface{}) EventBus {
-
+func NewDefaultEventBus() EventBus {
 	return &defaultEventBus{
 		eventBus: evbus.New(),
-		fn:       callback,
 	}
-
 }
