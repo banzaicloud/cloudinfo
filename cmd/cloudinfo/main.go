@@ -27,10 +27,10 @@
 package main
 
 import (
-	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
@@ -100,7 +100,7 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	eventBus := evbus.New()
+	eventBus := messaging.NewDefaultEventBus()
 
 	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
 	serviceManager.ConfigureServices(config.Providers)

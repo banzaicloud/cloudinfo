@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	evbus "github.com/asaskevich/EventBus"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
@@ -39,7 +39,7 @@ type scrapingManager struct {
 	metrics  metrics.Reporter
 	tracer   tracing.Tracer
 	log      logur.Logger
-	bus      evbus.Bus
+	eventBus messaging.EventBus
 }
 
 func (sm *scrapingManager) initialize(ctx context.Context) {
@@ -194,7 +194,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 	for _, service := range services {
 
 		if service.IsStatic {
-			sm.log.Info("skipping scraping for region information - service is statics", map[string]interface{}{"service": service.ServiceName()})
+			sm.log.Info("skipping scraping for region information - service is static", map[string]interface{}{"service": service.ServiceName()})
 			continue
 		}
 
@@ -387,13 +387,14 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 
 	sm.scrapeServiceInformation(ctx)
 
-	NewLoaderEvents(sm.bus).LoadConfig(sm.provider)
+	// emit a scraping complete event to notify potential subscribers
+	sm.eventBus.PublishScrapingComplete(sm.provider)
 
 	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 }
 
 func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger,
-	metrics metrics.Reporter, tracer tracing.Tracer, bus evbus.Bus) *scrapingManager {
+	metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus) *scrapingManager {
 
 	return &scrapingManager{
 		provider: provider,
@@ -402,7 +403,7 @@ func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStor
 		log:      logur.WithFields(log, map[string]interface{}{"provider": provider}),
 		metrics:  metrics,
 		tracer:   tracer,
-		bus:      bus,
+		eventBus: eventBus,
 	}
 }
 
@@ -456,11 +457,11 @@ func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) 
 }
 
 func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
-	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer, bus evbus.Bus) *ScrapingDriver {
+	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus) *ScrapingDriver {
 	var managers []*scrapingManager
 
 	for provider, infoer := range infoers {
-		managers = append(managers, NewScrapingManager(provider, infoer, store, log, metrics, tracer, bus))
+		managers = append(managers, NewScrapingManager(provider, infoer, store, log, metrics, tracer, eventBus))
 	}
 
 	return &ScrapingDriver{
