@@ -161,8 +161,8 @@ func (scil *storeCloudInfoLoader) LoadZones(provider string, service string, reg
 		} else {
 			var availableZones []string
 			for _, zone := range zones.([]string) {
-				if !cloudinfo.Contains(region.Data.Zones.Data, zone) {
-					availableZones = append(availableZones, zone)
+				if !cloudinfo.Contains(region.Data.Zones.Data, string(zone)) {
+					availableZones = append(availableZones, string(zone))
 				}
 			}
 			scil.store.StoreZones(provider, service, region.Id, availableZones)
