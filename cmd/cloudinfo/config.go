@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 	"strings"
 	"time"
 
@@ -76,6 +77,8 @@ type Config struct {
 	Instrumentation InstrumentationConfig
 
 	ServiceLoader loader.Config
+
+	Redis redis.Config
 }
 
 // InstrumentationConfig represents the instrumentation related configuration.
@@ -183,6 +186,10 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.SetDefault("serviceloader.serviceconfiglocation", "./configs")
 	v.SetDefault("serviceloader.serviceconfigname", "services")
 	v.SetDefault("serviceloader.format", "yaml")
+
+	// Redis
+	v.SetDefault("redis.host", "localhost")
+	v.SetDefault("redis.port", "6379")
 
 	pf.Init(friendlyServiceName, pflag.ExitOnError)
 

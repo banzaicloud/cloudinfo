@@ -378,6 +378,17 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:38ec74012390146c45af1f92d46e5382b50531247929ff3a685d2b2be65155ac"
+  name = "github.com/gomodule/redigo"
+  packages = [
+    "internal",
+    "redis",
+  ]
+  pruneopts = "NUT"
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:749bb04f4077e36f539cc90dc2b99a907f4ace8b39760e7d00e19d65732c7440"
   name = "github.com/goph/emperror"
   packages = ["."]
@@ -935,6 +946,7 @@
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
     "github.com/gofrs/uuid",
+    "github.com/gomodule/redigo/redis",
     "github.com/goph/emperror",
     "github.com/goph/logur",
     "github.com/goph/logur/adapters/logrusadapter",
