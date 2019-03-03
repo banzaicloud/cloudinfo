@@ -194,7 +194,7 @@ func (cis *cacheProductStore) GetServices(provider string) (interface{}, bool) {
 func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration, logger logur.Logger) CloudInfoStore {
 	return &cacheProductStore{
 		cache.New(cloudInfoExpiration, cleanupInterval),
-		cleanupInterval,
+		cloudInfoExpiration,
 		logger,
 	}
 }
