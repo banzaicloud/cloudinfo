@@ -260,7 +260,7 @@ func Attributes(cpu, memory, ntwPerfCat string) map[string]string {
 
 	attributes[Cpu] = cpu
 	attributes[Memory] = memory
-	attributes["NetworkPerfCategory"] = ntwPerfCat
+	attributes["networkPerfCategory"] = ntwPerfCat
 
 	return attributes
 }
