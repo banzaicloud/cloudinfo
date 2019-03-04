@@ -15,10 +15,10 @@
 package main
 
 import (
-	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
@@ -78,7 +78,7 @@ type Config struct {
 
 	ServiceLoader loader.Config
 
-	Redis redis.Config
+	Store cistore.Config
 }
 
 // InstrumentationConfig represents the instrumentation related configuration.
@@ -187,9 +187,12 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.SetDefault("serviceloader.serviceconfigname", "services")
 	v.SetDefault("serviceloader.format", "yaml")
 
-	// Redis
-	v.SetDefault("redis.host", "localhost")
-	v.SetDefault("redis.port", "6379")
+	// CloudInfoStore
+	v.SetDefault("store.redis.host", "localhost")
+	v.SetDefault("store.redis.port", "6379")
+	v.SetDefault("store.redis.enabled", true)
+	v.SetDefault("store.gocache.expiration", 0)
+	v.SetDefault("store.gocache.cleanupinterval", 0)
 
 	pf.Init(friendlyServiceName, pflag.ExitOnError)
 

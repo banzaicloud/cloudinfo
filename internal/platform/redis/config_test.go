@@ -23,10 +23,12 @@ import (
 func TestConfig_Validate(t *testing.T) {
 	tests := map[string]Config{
 		"redis host is required": {
-			Port: 6379,
+			Enabled: true,
+			Port:    6379,
 		},
 		"redis port is required": {
-			Host: "127.0.0.1",
+			Enabled: true,
+			Host:    "127.0.0.1",
 		},
 	}
 
@@ -43,8 +45,9 @@ func TestConfig_Validate(t *testing.T) {
 
 func TestConfig_Server(t *testing.T) {
 	config := Config{
-		Host: "127.0.0.1",
-		Port: 6379,
+		Enabled: true,
+		Host:    "127.0.0.1",
+		Port:    6379,
 	}
 
 	server := config.Server()

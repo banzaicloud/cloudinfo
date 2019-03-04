@@ -30,10 +30,15 @@ type Config struct {
 
 	// Password list supports passing multiple passwords making password changes easier
 	Password []string
+
+	Enabled bool
 }
 
 // Validate checks that the configuration is valid.
 func (c Config) Validate() error {
+	if !c.Enabled {
+		return nil
+	}
 	if c.Host == "" {
 		return errors.New("redis host is required")
 	}

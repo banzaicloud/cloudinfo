@@ -94,10 +94,8 @@ func main() {
 		tracer = tracing.NewTracer()
 	}
 
-	// expiration set to  0 - entries never expire
-	//cloudInfoStore := cistore.NewCacheProductStore(0, config.RenewalInterval, logger)
-
-	cloudInfoStore := cistore.NewRedisProductStore(config.Redis, logger)
+	// use the configured store implementation
+	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, logger)
 
 	infoers := loadInfoers(config, logger)
 

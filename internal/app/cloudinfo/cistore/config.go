@@ -14,10 +14,36 @@
 
 package cistore
 
-type Config struct {
+import (
+	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/goph/logur"
+	"time"
+)
 
+// CloudInfoStore configuration
+type Config struct {
+	Redis   redis.Config
+	GoCache GoCacheConfig
 }
 
-func NewCiStore(conf Config) {
+// GoCacheConfig configuration
+type GoCacheConfig struct {
+	expiration      time.Duration
+	cleanupInterval time.Duration
+}
 
+// NewCloudInfoStore builds a new cloudinfo store based on the passed in configuration
+// This method is in charge to create the appropriate store instance eventually to implement a fallback mechanism to the default store
+func NewCloudInfoStore(conf Config, log logur.Logger) cloudinfo.CloudInfoStore {
+
+	// use redis if enabled
+	if conf.Redis.Enabled {
+		log.Info("using Redis as product store")
+		return NewRedisProductStore(conf.Redis, log)
+	}
+
+	// fallback to the "initial" implementation
+	log.Info("using in-mem cache as product store")
+	return NewCacheProductStore(conf.GoCache.expiration, conf.GoCache.cleanupInterval, log)
 }
