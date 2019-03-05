@@ -30,6 +30,8 @@ type redisProductStore struct {
 	log  logur.Logger
 }
 
+// set sets a key value into the configured redis
+// the passed in value is serialized to json format before it's saved
 func (rps *redisProductStore) set(key string, value interface{}) {
 	conn := rps.pool.Get()
 	defer conn.Close()
@@ -48,6 +50,7 @@ func (rps *redisProductStore) set(key string, value interface{}) {
 	}
 }
 
+// get retrieves the value of the passed in key in it's raw format
 func (rps *redisProductStore) get(key string) (interface{}, bool) {
 	conn := rps.pool.Get()
 	defer conn.Close()
@@ -68,7 +71,8 @@ func (rps *redisProductStore) get(key string) (interface{}, bool) {
 	return val, true
 }
 
-func (rps *redisProductStore) getUnmarshalled(key string, toType interface{}) (interface{}, bool) {
+// getUnmarshalled retrieves the value for the given key and transforms it to the passed in toType
+func (rps *redisProductStore) getUnmarshalled(key string, toTypePtr interface{}) (interface{}, bool) {
 	var (
 		cacheJson interface{}
 		ok        bool
@@ -78,11 +82,11 @@ func (rps *redisProductStore) getUnmarshalled(key string, toType interface{}) (i
 		return nil, ok
 	}
 
-	if err := json.Unmarshal(cacheJson.([]byte), toType); err != nil {
+	if err := json.Unmarshal(cacheJson.([]byte), toTypePtr); err != nil {
 		return nil, false
 	}
 
-	return toType, true
+	return toTypePtr, true
 
 }
 
@@ -123,6 +127,7 @@ func (rps *redisProductStore) StoreRegions(provider, service string, val interfa
 func (rps *redisProductStore) GetRegions(provider, service string) (interface{}, bool) {
 	var res map[string]string
 	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service), &res)
+
 	return res, ok
 }
 
@@ -131,12 +136,10 @@ func (rps *redisProductStore) StoreZones(provider, service, region string, val i
 }
 
 func (rps *redisProductStore) GetZones(provider, service, region string) (interface{}, bool) {
-	raw, _ := rps.get(rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region))
 	var z []string
-	if err := json.Unmarshal(raw.([]byte), &z); err != nil {
-		rps.log.Error("failed to get zones", map[string]interface{}{"key": rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region)})
-	}
-	return z, true
+	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region), &z)
+
+	return z, ok
 }
 
 func (rps *redisProductStore) StorePrice(provider, region, instanceType string, val interface{}) {
@@ -156,22 +159,12 @@ func (rps *redisProductStore) StoreVm(provider, service, region string, val inte
 
 func (rps *redisProductStore) GetVm(provider, service, region string) (interface{}, bool) {
 	var (
-		err       error
-		vms       []cloudinfo.VmInfo
-		cacheJson interface{}
-		found     bool
+		vms []cloudinfo.VmInfo
+		ok  bool
 	)
-	if cacheJson, found = rps.get(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region)); !found {
-		rps.log.Debug("cache entry not found", map[string]interface{}{"key": rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region)})
-		return nil, false
-	}
+	_, ok = rps.getUnmarshalled(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &vms)
 
-	if err = json.Unmarshal(cacheJson.([]byte), &vms); err != nil {
-		rps.log.Error("failed to unmarshal cached data", map[string]interface{}{"key": rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region)})
-		return nil, false
-	}
-
-	return vms, true
+	return vms, ok
 }
 
 func (rps *redisProductStore) DeleteVm(provider, service, region string) {
@@ -185,6 +178,7 @@ func (rps *redisProductStore) StoreImage(provider, service, regionId string, val
 func (rps *redisProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
 	var imgs []cloudinfo.Image
 	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), imgs)
+
 	return imgs, ok
 }
 
@@ -193,7 +187,9 @@ func (rps *redisProductStore) StoreVersion(provider, service, region string, val
 }
 
 func (rps *redisProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
-	return rps.get(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region))
+	var res []cloudinfo.LocationVersion
+	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), &res)
+	return res, ok
 }
 
 func (rps *redisProductStore) StoreStatus(provider string, val interface{}) {
@@ -203,6 +199,7 @@ func (rps *redisProductStore) StoreStatus(provider string, val interface{}) {
 func (rps *redisProductStore) GetStatus(provider string) (interface{}, bool) {
 	var str string
 	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.StatusKeyTemplate, provider), &str)
+
 	return str, ok
 }
 
@@ -213,6 +210,7 @@ func (rps *redisProductStore) StoreServices(provider string, services interface{
 func (rps *redisProductStore) GetServices(provider string) (interface{}, bool) {
 	svcs := make([]cloudinfo.Service, 0)
 	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.ServicesKeyTemplate, provider), &svcs)
+
 	return svcs, ok
 }
 
