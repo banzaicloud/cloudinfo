@@ -38,8 +38,10 @@ func (cis *cacheProductStore) StoreRegions(provider, service string, val map[str
 }
 
 func (cis *cacheProductStore) GetRegions(provider, service string) (map[string]string, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service))
-	return res.(map[string]string), ok
+	if res, ok := cis.get(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service)); ok {
+		return res.(map[string]string), ok
+	}
+	return nil, false
 }
 
 func (cis *cacheProductStore) StoreZones(provider, service, region string, val []string) {
@@ -47,9 +49,11 @@ func (cis *cacheProductStore) StoreZones(provider, service, region string, val [
 }
 
 func (cis *cacheProductStore) GetZones(provider, service, region string) ([]string, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region))
+	if res, ok := cis.get(cis.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region)); ok {
+		return res.([]string), ok
+	}
 
-	return res.([]string), ok
+	return nil, false
 }
 
 func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val cloudinfo.Price) {
@@ -57,8 +61,10 @@ func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, 
 }
 
 func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (cloudinfo.Price, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType))
-	return res.(cloudinfo.Price), ok
+	if res, ok := cis.get(cis.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType)); ok {
+		return res.(cloudinfo.Price), ok
+	}
+	return cloudinfo.Price{}, false
 }
 
 func (cis *cacheProductStore) StoreVm(provider, service, region string, val []cloudinfo.VmInfo) {
@@ -66,8 +72,11 @@ func (cis *cacheProductStore) StoreVm(provider, service, region string, val []cl
 }
 
 func (cis *cacheProductStore) GetVm(provider, service, region string) ([]cloudinfo.VmInfo, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region))
-	return res.([]cloudinfo.VmInfo), ok
+	if res, ok := cis.get(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region)); ok {
+		return res.([]cloudinfo.VmInfo), ok
+	}
+
+	return nil, false
 }
 
 func (cis *cacheProductStore) StoreImage(provider, service, regionId string, val []cloudinfo.Image) {
@@ -75,9 +84,11 @@ func (cis *cacheProductStore) StoreImage(provider, service, regionId string, val
 }
 
 func (cis *cacheProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId))
+	if res, ok := cis.get(cis.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId)); ok {
+		return res.([]cloudinfo.Image), ok
+	}
 
-	return res.([]cloudinfo.Image), ok
+	return nil, false
 }
 
 func (cis *cacheProductStore) StoreVersion(provider, service, region string, val []cloudinfo.LocationVersion) {
@@ -85,9 +96,11 @@ func (cis *cacheProductStore) StoreVersion(provider, service, region string, val
 }
 
 func (cis *cacheProductStore) GetVersion(provider, service, region string) ([]cloudinfo.LocationVersion, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.VersionKeyTemplate, provider, service, region))
+	if res, ok := cis.get(cis.getKey(cloudinfo.VersionKeyTemplate, provider, service, region)); ok {
+		return res.([]cloudinfo.LocationVersion), ok
+	}
 
-	return res.([]cloudinfo.LocationVersion), ok
+	return nil, false
 }
 
 func (cis *cacheProductStore) StoreStatus(provider string, val string) {
@@ -95,9 +108,11 @@ func (cis *cacheProductStore) StoreStatus(provider string, val string) {
 }
 
 func (cis *cacheProductStore) GetStatus(provider string) (string, bool) {
-	res, ok := cis.Get(cis.getKey(cloudinfo.StatusKeyTemplate, provider))
+	if res, ok := cis.Get(cis.getKey(cloudinfo.StatusKeyTemplate, provider)); ok {
+		return res.(string), ok
+	}
 
-	return res.(string), ok
+	return "", false
 }
 
 // Export writes the content of the store into the passed in writer
@@ -143,4 +158,12 @@ func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration, lo
 
 func (cis *cacheProductStore) getKey(keyTemplate string, args ...interface{}) string {
 	return fmt.Sprintf(keyTemplate, args...)
+}
+
+func (cis *cacheProductStore) get(key string) (interface{}, bool) {
+	if val, ok := cis.Get(key); ok && val != nil {
+		return val, true
+	}
+
+	return nil, false
 }

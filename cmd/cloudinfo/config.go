@@ -190,7 +190,7 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	// CloudInfoStore
 	v.SetDefault("store.redis.host", "localhost")
 	v.SetDefault("store.redis.port", "6379")
-	v.SetDefault("store.redis.enabled", true)
+	v.SetDefault("store.redis.enabled", false)
 	v.SetDefault("store.gocache.expiration", 0)
 	v.SetDefault("store.gocache.cleanupinterval", 0)
 
