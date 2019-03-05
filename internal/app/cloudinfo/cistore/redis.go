@@ -30,9 +30,37 @@ type redisProductStore struct {
 	log  logur.Logger
 }
 
-// set sets a key value into the configured redis
-// the passed in value is serialized to json format before it's saved
-func (rps *redisProductStore) set(key string, value interface{}) {
+// get retrieves the value of the passed in key in it's raw format
+func (rps *redisProductStore) get(key string, toTypePtr interface{}) (interface{}, bool) {
+	conn := rps.pool.Get()
+	defer conn.Close()
+
+	var (
+		cachedJson interface{}
+		err        error
+	)
+
+	if cachedJson, err = conn.Do("GET", key); err != nil {
+		rps.log.Debug("failed to get entry", map[string]interface{}{"key": key})
+		return nil, false
+	}
+
+	if cachedJson == nil {
+		rps.log.Debug("nil value for key", map[string]interface{}{"key": key})
+		return nil, false
+	}
+
+	// unmarshal the cache value into th desired struct
+	if err = json.Unmarshal(cachedJson.([]byte), toTypePtr); err != nil {
+		rps.log.Debug("failed to unmarshal cache entry", map[string]interface{}{"val": cachedJson})
+		return nil, false
+	}
+
+	return &toTypePtr, true
+}
+
+// set sets the value of the given key to the json representation of the value
+func (rps *redisProductStore) set(key string, value interface{}) (interface{}, bool) {
 	conn := rps.pool.Get()
 	defer conn.Close()
 
@@ -40,54 +68,19 @@ func (rps *redisProductStore) set(key string, value interface{}) {
 		mJson []byte
 		err   error
 	)
+
 	// marshal the value into a json representation
 	if mJson, err = json.Marshal(value); err != nil {
-		rps.log.Debug("failed to marshal values", map[string]interface{}{"key": key, "value": value})
+		rps.log.Debug("failed to marshal value into json", map[string]interface{}{"key": key, "value": value})
+		return nil, false
 	}
 
 	if _, err = conn.Do("SET", key, mJson); err != nil {
-		rps.log.Debug("failed to save entry", map[string]interface{}{"key": key, "value": value})
-	}
-}
-
-// get retrieves the value of the passed in key in it's raw format
-func (rps *redisProductStore) get(key string) (interface{}, bool) {
-	conn := rps.pool.Get()
-	defer conn.Close()
-
-	var (
-		val interface{}
-		err error
-	)
-
-	if val, err = conn.Do("GET", key); err != nil {
-		rps.log.Debug("failed to get entry", map[string]interface{}{"key": key})
-	}
-
-	if val == nil {
+		rps.log.Debug("failed to set key to value", map[string]interface{}{"key": key, "value": value})
 		return nil, false
 	}
 
-	return val, true
-}
-
-// getUnmarshalled retrieves the value for the given key and transforms it to the passed in toType
-func (rps *redisProductStore) getUnmarshalled(key string, toTypePtr interface{}) (interface{}, bool) {
-	var (
-		cacheJson interface{}
-		ok        bool
-	)
-
-	if cacheJson, ok = rps.get(key); !ok {
-		return nil, ok
-	}
-
-	if err := json.Unmarshal(cacheJson.([]byte), toTypePtr); err != nil {
-		return nil, false
-	}
-
-	return toTypePtr, true
-
+	return mJson, true
 }
 
 func (rps *redisProductStore) delete(key string) {
@@ -120,98 +113,112 @@ func (rps *redisProductStore) Import(r io.Reader) error {
 	return nil
 }
 
-func (rps *redisProductStore) StoreRegions(provider, service string, val interface{}) {
+func (rps *redisProductStore) StoreRegions(provider, service string, val map[string]string) {
 	rps.set(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service), val)
 }
 
-func (rps *redisProductStore) GetRegions(provider, service string) (interface{}, bool) {
-	var res map[string]string
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service), &res)
+func (rps *redisProductStore) GetRegions(provider, service string) (map[string]string, bool) {
+	var (
+		res = make(map[string]string)
+	)
+	_, ok := rps.get(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service), &res)
 
 	return res, ok
 }
 
-func (rps *redisProductStore) StoreZones(provider, service, region string, val interface{}) {
+func (rps *redisProductStore) StoreZones(provider, service, region string, val []string) {
 	rps.set(rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region), val)
 }
 
-func (rps *redisProductStore) GetZones(provider, service, region string) (interface{}, bool) {
-	var z []string
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region), &z)
+func (rps *redisProductStore) GetZones(provider, service, region string) ([]string, bool) {
+	var (
+		res = make([]string, 0)
+	)
 
-	return z, ok
+	_, ok := rps.get(rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region), &res)
+	return res, ok
 }
 
-func (rps *redisProductStore) StorePrice(provider, region, instanceType string, val interface{}) {
+func (rps *redisProductStore) StorePrice(provider, region, instanceType string, val cloudinfo.Price) {
 	rps.set(rps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), val)
 }
 
-func (rps *redisProductStore) GetPrice(provider, region, instanceType string) (interface{}, bool) {
-	var price cloudinfo.Price
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), &price)
+func (rps *redisProductStore) GetPrice(provider, region, instanceType string) (cloudinfo.Price, bool) {
+	var (
+		res = cloudinfo.Price{}
+	)
+	_, ok := rps.get(rps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), &res)
 
-	return price, ok
+	return res, ok
 }
 
-func (rps *redisProductStore) StoreVm(provider, service, region string, val interface{}) {
+func (rps *redisProductStore) StoreVm(provider, service, region string, val []cloudinfo.VmInfo) {
 	rps.set(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val)
 }
 
-func (rps *redisProductStore) GetVm(provider, service, region string) (interface{}, bool) {
+func (rps *redisProductStore) GetVm(provider, service, region string) ([]cloudinfo.VmInfo, bool) {
 	var (
-		vms []cloudinfo.VmInfo
-		ok  bool
+		res = make([]cloudinfo.VmInfo, 0)
 	)
-	_, ok = rps.getUnmarshalled(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &vms)
+	_, ok := rps.get(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &res)
 
-	return vms, ok
+	return res, ok
 }
 
 func (rps *redisProductStore) DeleteVm(provider, service, region string) {
 	rps.delete(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region))
 }
 
-func (rps *redisProductStore) StoreImage(provider, service, regionId string, val interface{}) {
+func (rps *redisProductStore) StoreImage(provider, service, regionId string, val []cloudinfo.Image) {
 	rps.set(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), val)
 }
 
-func (rps *redisProductStore) GetImage(provider, service, regionId string) (interface{}, bool) {
-	var imgs []cloudinfo.Image
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), imgs)
+func (rps *redisProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
+	var (
+		res = make([]cloudinfo.Image, 0)
+	)
+	_, ok := rps.get(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), &res)
 
-	return imgs, ok
-}
-
-func (rps *redisProductStore) StoreVersion(provider, service, region string, val interface{}) {
-	rps.set(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), val)
-}
-
-func (rps *redisProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
-	var res []cloudinfo.LocationVersion
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), &res)
 	return res, ok
 }
 
-func (rps *redisProductStore) StoreStatus(provider string, val interface{}) {
+func (rps *redisProductStore) StoreVersion(provider, service, region string, val []cloudinfo.LocationVersion) {
+	rps.set(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), val)
+}
+
+func (rps *redisProductStore) GetVersion(provider, service, region string) ([]cloudinfo.LocationVersion, bool) {
+	var (
+		res = make([]cloudinfo.LocationVersion, 0)
+	)
+	_, ok := rps.get(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), &res)
+
+	return res, ok
+}
+
+func (rps *redisProductStore) StoreStatus(provider string, val string) {
 	rps.set(rps.getKey(cloudinfo.StatusKeyTemplate, provider), val)
 }
 
-func (rps *redisProductStore) GetStatus(provider string) (interface{}, bool) {
-	var str string
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.StatusKeyTemplate, provider), &str)
+func (rps *redisProductStore) GetStatus(provider string) (string, bool) {
+	var (
+		res string
+	)
+	_, ok := rps.get(rps.getKey(cloudinfo.StatusKeyTemplate, provider), &res)
 
-	return str, ok
+	return res, ok
 }
 
-func (rps *redisProductStore) StoreServices(provider string, services interface{}) {
+func (rps *redisProductStore) StoreServices(provider string, services []cloudinfo.Service) {
 	rps.set(rps.getKey(cloudinfo.ServicesKeyTemplate, provider), services)
 }
 
-func (rps *redisProductStore) GetServices(provider string) (interface{}, bool) {
-	svcs := make([]cloudinfo.Service, 0)
-	_, ok := rps.getUnmarshalled(rps.getKey(cloudinfo.ServicesKeyTemplate, provider), &svcs)
+func (rps *redisProductStore) GetServices(provider string) ([]cloudinfo.Service, bool) {
+	var (
+		res = make([]cloudinfo.Service, 0)
+	)
+	_, ok := rps.get(rps.getKey(cloudinfo.ServicesKeyTemplate, provider), &res)
 
-	return svcs, ok
+	return res, ok
 }
 
 func (rps *redisProductStore) getKey(keyTemplate string, args ...interface{}) string {

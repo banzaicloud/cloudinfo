@@ -44,30 +44,30 @@ const (
 
 // Storage operations for cloud information
 type CloudInfoStore interface {
-	StoreRegions(provider, service string, val interface{})
-	GetRegions(provider, service string) (interface{}, bool)
+	StoreRegions(provider, service string, val map[string]string)
+	GetRegions(provider, service string) (map[string]string, bool)
 
-	StoreZones(provider, service, region string, val interface{})
-	GetZones(provider, service, region string) (interface{}, bool)
+	StoreZones(provider, service, region string, val []string)
+	GetZones(provider, service, region string) ([]string, bool)
 
-	StorePrice(provider, region, instanceType string, val interface{})
-	GetPrice(provider, region, instanceType string) (interface{}, bool)
+	StorePrice(provider, region, instanceType string, val Price)
+	GetPrice(provider, region, instanceType string) (Price, bool)
 
-	StoreVm(provider, service, region string, val interface{})
-	GetVm(provider, service, region string) (interface{}, bool)
+	StoreVm(provider, service, region string, val []VmInfo)
+	GetVm(provider, service, region string) ([]VmInfo, bool)
 	DeleteVm(provider, service, region string)
 
-	StoreImage(provider, service, regionId string, val interface{})
-	GetImage(provider, service, regionId string) (interface{}, bool)
+	StoreImage(provider, service, regionId string, val []Image)
+	GetImage(provider, service, regionId string) ([]Image, bool)
 
-	StoreVersion(provider, service, region string, val interface{})
-	GetVersion(provider, service, region string) (interface{}, bool)
+	StoreVersion(provider, service, region string, val []LocationVersion)
+	GetVersion(provider, service, region string) ([]LocationVersion, bool)
 
-	StoreStatus(provider string, val interface{})
-	GetStatus(provider string) (interface{}, bool)
+	StoreStatus(provider string, val string)
+	GetStatus(provider string) (string, bool)
 
-	StoreServices(provider string, services interface{})
-	GetServices(provider string) (interface{}, bool)
+	StoreServices(provider string, services []Service)
+	GetServices(provider string) ([]Service, bool)
 
 	Export(w io.Writer) error
 	Import(r io.Reader) error

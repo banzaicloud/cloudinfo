@@ -30,7 +30,7 @@ type DummyCloudInfoStore struct {
 
 const notCached = "error"
 
-func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[string]string, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -44,7 +44,7 @@ func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (interface
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) ([]string, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -57,7 +57,7 @@ func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) (int
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) ([]Image, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -78,7 +78,7 @@ func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) (i
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) ([]LocationVersion, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -95,16 +95,16 @@ func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) (i
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetStatus(provider string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetStatus(provider string) (string, bool) {
 	switch dcis.TcId {
 	case notCached:
-		return nil, false
+		return "", false
 	default:
 		return "dummyStatus", true
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetServices(provider string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetServices(provider string) ([]Service, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false

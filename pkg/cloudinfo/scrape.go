@@ -212,7 +212,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				return emperror.WrapWith(err, "failed to retrieve regions",
 					"provider", sm.provider, "service", service.ServiceName())
 			}
-			regions = _regions.(map[string]string)
+			regions = _regions
 		} else {
 			if regions, err = sm.infoer.GetRegions(service.ServiceName()); err != nil {
 

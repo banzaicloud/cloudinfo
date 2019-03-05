@@ -307,7 +307,7 @@ func (scil *storeCloudInfoLoader) LoadImages(provider string, service string, re
 					}
 				}
 			}
-			scil.store.StoreVersion(provider, service, region.Id, availableImages)
+			scil.store.StoreImage(provider, service, region.Id, availableImages)
 		}
 	default:
 		scil.log.Error("invalid image strategy",
