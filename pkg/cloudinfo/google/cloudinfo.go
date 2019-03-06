@@ -327,25 +327,7 @@ func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"service": service})
-	log.Debug("getting regions")
-
-	regionList, err := g.computeSvc.Regions.List(g.projectId).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	regionIdMap := make(map[string]string)
-	for _, region := range regionList.Items {
-		description := region.Description
-		if displayName, ok := regionNames[region.Name]; ok {
-			description = displayName
-		}
-		regionIdMap[region.Name] = description
-	}
-
-	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
-	return regionIdMap, nil
+	return regionNames, nil
 }
 
 // GetZones returns the availability zones in a region
