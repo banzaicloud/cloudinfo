@@ -111,7 +111,7 @@ func (i *Infoer) GetProductPrice(specs ShapeSpecs) (price float64, err error) {
 }
 
 func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo, err error) {
-	log := log.WithFields(i.log, map[string]interface{}{"region": region})
+	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
 
 	err = i.client.ChangeRegion(region)
 	if err != nil {
@@ -134,7 +134,7 @@ func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo,
 		ntwMapper := newNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
 		if err != nil {
-			log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 				map[string]interface{}{"instanceType": shape})
 		}
 
@@ -144,6 +144,7 @@ func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo,
 		}
 
 		products = append(products, cloudinfo.VmInfo{
+			Category:      cloudinfo.CategoryMemory,
 			Type:          shape,
 			OnDemandPrice: price,
 			NtwPerf:       s.NtwPerf,
@@ -160,7 +161,7 @@ func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo,
 
 // GetProducts retrieves the available virtual machines types in a region
 func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (products []cloudinfo.VmInfo, err error) {
-	log := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
+	logger := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
 	err = i.client.ChangeRegion(regionId)
 	if err != nil {
@@ -183,7 +184,7 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 		ntwMapper := newNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
 		if err != nil {
-			log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 				map[string]interface{}{"instanceType": shape})
 		}
 
@@ -209,8 +210,8 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 
 // GetRegions returns a map with available regions
 func (i *Infoer) GetRegions(service string) (regions map[string]string, err error) {
-	log := log.WithFields(i.log, map[string]interface{}{"service": service})
-	log.Debug("getting regions")
+	logger := log.WithFields(i.log, map[string]interface{}{"service": service})
+	logger.Debug("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
@@ -231,14 +232,14 @@ func (i *Infoer) GetRegions(service string) (regions map[string]string, err erro
 		regions[region] = description
 	}
 
-	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regions)})
+	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regions)})
 	return
 }
 
 // GetZones returns the availability zones in a region
 func (i *Infoer) GetZones(region string) (zones []string, err error) {
-	log := log.WithFields(i.log, map[string]interface{}{"region": region})
-	log.Debug("getting zones")
+	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
+	logger.Debug("getting zones")
 
 	err = i.client.ChangeRegion(region)
 	if err != nil {
@@ -259,7 +260,7 @@ func (i *Infoer) GetZones(region string) (zones []string, err error) {
 		zones = append(zones, *ad.Name)
 	}
 
-	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
+	logger.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return
 }
 

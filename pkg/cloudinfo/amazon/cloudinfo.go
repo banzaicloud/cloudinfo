@@ -138,6 +138,10 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 			logger.Warn("could not retrieve instance type", map[string]interface{}{"instancetype": instanceType})
 			continue
 		}
+		instanceFamily, err := pd.getDataForKey("instanceFamily")
+		if err != nil {
+			logger.Warn("could not retrieve instance family", map[string]interface{}{"instanceFamily": instanceFamily})
+		}
 		cpusStr, err := pd.getDataForKey("vcpu")
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "cpu")
@@ -178,6 +182,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 		mem, _ := strconv.ParseFloat(strings.Split(memStr, " ")[0], 64)
 		gpus, _ := strconv.ParseFloat(gpu, 64)
 		vm := cloudinfo.VmInfo{
+			Category:      instanceFamily,
 			Type:          instanceType,
 			OnDemandPrice: onDemandPrice,
 			Cpus:          cpus,

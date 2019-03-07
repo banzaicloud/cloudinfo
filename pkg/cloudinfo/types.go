@@ -68,14 +68,22 @@ type AttrValues []AttrValue
 var (
 	// telescope supported network performance of vm-s
 
-	// NetwLow the low network performance category
-	NetwLow = "low"
+	// NtwLow the low network performance category
+	NtwLow = "low"
 	// NtwMedium the medium network performance category
 	NtwMedium = "medium"
 	// NtwHight the high network performance category
 	NtwHight = "high"
 	// NtwExtra the highest network performance category
 	NtwExtra = "extra"
+
+	// Telescopes supports categories of virtual machines
+
+	CategoryGeneral = "General purpose"
+	CategoryCompute = "Compute optimized"
+	CategoryMemory  = "Memory optimized"
+	CategoryGpu     = "GPU instance"
+	CategoryStorage = "Storage optimized"
 )
 
 // NetworkPerfMapper operations related  to mapping between virtual machines to network performance categories
