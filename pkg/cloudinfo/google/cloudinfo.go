@@ -300,7 +300,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 					NtwPerf:    fmt.Sprintf("%d Gbit/s", ntwPerf),
 					NtwPerfCat: ntwPerfCat,
 					Zones:      zones,
-					Attributes: cloudinfo.Attributes(fmt.Sprint(mt.GuestCpus), fmt.Sprint(float64(mt.MemoryMb)/1024), ntwPerfCat),
+					Attributes: cloudinfo.Attributes(fmt.Sprint(mt.GuestCpus), fmt.Sprint(float64(mt.MemoryMb)/1024), ntwPerfCat, g.getCategory(mt.Name)),
 				}
 			}
 		}

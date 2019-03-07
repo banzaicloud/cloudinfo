@@ -383,10 +383,11 @@ func (a *AzureInfoer) getCategory(vms []cloudinfo.VmInfo, log logur.Logger) ([]c
 					}
 
 					virtualMachines = append(virtualMachines, cloudinfo.VmInfo{
-						Category: category,
-						Type:     vm.Type,
-						Mem:      vm.Mem,
-						Cpus:     vm.Cpus,
+						Category:   category,
+						Type:       vm.Type,
+						Mem:        vm.Mem,
+						Cpus:       vm.Cpus,
+						Attributes: cloudinfo.Attributes(fmt.Sprint(vm.Mem), fmt.Sprint(vm.Cpus), "unknown", category),
 					})
 					break
 				}
@@ -406,10 +407,9 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 	}
 	for _, v := range *vmSizes.Value {
 		vms = append(vms, cloudinfo.VmInfo{
-			Type:       *v.Name,
-			Cpus:       float64(*v.NumberOfCores),
-			Mem:        float64(*v.MemoryInMB) / 1024,
-			Attributes: cloudinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
+			Type: *v.Name,
+			Cpus: float64(*v.NumberOfCores),
+			Mem:  float64(*v.MemoryInMB) / 1024,
 			// TODO: netw perf
 		})
 	}

@@ -191,7 +191,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 			NtwPerf:       ntwPerf,
 			NtwPerfCat:    ntwPerfCat,
 			CurrentGen:    currGen,
-			Attributes:    cloudinfo.Attributes(cpusStr, strings.Split(memStr, " ")[0], ntwPerfCat),
+			Attributes:    cloudinfo.Attributes(cpusStr, strings.Split(memStr, " ")[0], ntwPerfCat, instanceFamily),
 		}
 		vms = append(vms, vm)
 	}

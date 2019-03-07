@@ -40,7 +40,7 @@ func newAlibabaCategoryMapper() *AlibabaCategoryMapper {
 	return &AlibabaCategoryMapper{}
 }
 
-// MapCategory maps the family of the alibaba instance to the category supported by telescopes
+// MapCategory maps the family of the alibaba instance to category
 func (nm *AlibabaCategoryMapper) MapCategory(name string) (string, error) {
 	family := strings.Split(name, ".")[1]
 	if strings.Contains(family, "-") {

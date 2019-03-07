@@ -40,7 +40,7 @@ func newAzureCategoryMapper() *AzureCategoryMapper {
 	return &AzureCategoryMapper{}
 }
 
-// MapCategory maps the family of the azure instance to the category supported by telescopes
+// MapCategory maps the family of the azure instance to category
 func (nm *AzureCategoryMapper) MapCategory(name string) (string, error) {
 	family := strings.TrimRight(name, "Family")
 	family = strings.TrimLeft(family, "standard")

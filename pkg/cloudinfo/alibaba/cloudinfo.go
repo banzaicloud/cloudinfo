@@ -185,7 +185,7 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, e
 				NtwPerf:    ntwPerf,
 				NtwPerfCat: ntwPerfCat,
 				Zones:      zones,
-				Attributes: cloudinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat),
+				Attributes: cloudinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat, category),
 			})
 		}
 	}

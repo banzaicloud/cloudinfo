@@ -152,7 +152,7 @@ func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo,
 			Cpus:          s.Cpus,
 			Mem:           s.Mem,
 			Zones:         zones,
-			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat),
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat, cloudinfo.CategoryMemory),
 		})
 	}
 
@@ -194,6 +194,7 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 		}
 
 		products = append(products, cloudinfo.VmInfo{
+			Category:      cloudinfo.CategoryMemory,
 			Type:          shape,
 			OnDemandPrice: price,
 			NtwPerf:       s.NtwPerf,
@@ -201,7 +202,7 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 			Cpus:          s.Cpus,
 			Mem:           s.Mem,
 			Zones:         zones,
-			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat),
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat, cloudinfo.CategoryMemory),
 		})
 	}
 

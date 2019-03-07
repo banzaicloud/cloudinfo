@@ -256,12 +256,13 @@ func Contains(slice []string, s string) bool {
 }
 
 // Attributes create a map with the specified parameters
-func Attributes(cpu, memory, ntwPerfCat string) map[string]string {
+func Attributes(cpu, memory, ntwPerfCat, vmCategory string) map[string]string {
 	var attributes = make(map[string]string)
 
 	attributes[Cpu] = cpu
 	attributes[Memory] = memory
 	attributes["networkPerfCategory"] = ntwPerfCat
+	attributes["instanceTypeCategory"] = vmCategory
 
 	return attributes
 }
