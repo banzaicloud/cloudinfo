@@ -21,7 +21,7 @@ import (
 var (
 	// TODO
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NetwLow:   {"Low"},
+		cloudinfo.NtwLow:    {"Low"},
 		cloudinfo.NtwMedium: {"Moderate"},
 		cloudinfo.NtwHight:  {""},
 	}

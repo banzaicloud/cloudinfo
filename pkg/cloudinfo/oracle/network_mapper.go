@@ -21,7 +21,7 @@ import (
 
 var (
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NetwLow:   {"0.6 Gbps"},
+		cloudinfo.NtwLow:    {"0.6 Gbps"},
 		cloudinfo.NtwMedium: {"1 Gbps", "1.2 Gbps", "2 Gbps", "2.4 Gbps"},
 		cloudinfo.NtwHight:  {"4.1 Gbps", "4.8 Gbps", "8.2 Gbps"},
 		cloudinfo.NtwExtra:  {"16.4 Gbps", "24.6 Gbps"},

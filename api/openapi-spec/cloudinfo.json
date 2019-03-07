@@ -620,6 +620,10 @@
           "type": "boolean",
           "x-go-name": "Burst"
         },
+        "category": {
+          "type": "string",
+          "x-go-name": "Category"
+        },
         "cpusPerVm": {
           "type": "number",
           "format": "double",

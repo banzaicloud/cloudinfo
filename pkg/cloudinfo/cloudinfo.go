@@ -49,6 +49,7 @@ type Price struct {
 
 // VmInfo representation of a virtual machine
 type VmInfo struct {
+	Category      string            `json:"category"`
 	Type          string            `json:"type"`
 	OnDemandPrice float64           `json:"onDemandPrice"`
 	SpotPrice     []ZonePrice       `json:"spotPrice"`

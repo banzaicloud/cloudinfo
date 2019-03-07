@@ -27,9 +27,10 @@
   source = "github.com/apache/thrift"
 
 [[projects]]
-  digest = "1:aa9951e969a5db808d125fca856fe00660d471a8ba9d9063d4600437f7f85dda"
+  digest = "1:0361aac45bd3acbaf3b3b81b30be3587ace855686cbe4695e6e7aa3fba0d06d8"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
+    "services/compute/mgmt/2017-09-01/skus",
     "services/compute/mgmt/2018-04-01/compute",
     "services/containerservice/mgmt/2018-03-31/containerservice",
     "services/preview/commerce/mgmt/2015-06-01-preview/commerce",
@@ -903,6 +904,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus",
     "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
     "github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce",

@@ -263,8 +263,8 @@ func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64,
 }
 
 func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"region": region})
-	log.Debug("retrieving product information")
+	logger := log.WithFields(g.log, map[string]interface{}{"region": region})
+	logger.Debug("retrieving product information")
 	var vmsMap = make(map[string]cloudinfo.VmInfo)
 	var ntwPerf uint
 
@@ -289,10 +289,11 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 				ntwMapper := newGceNetworkMapper()
 				ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(ntwPerf, " Gbit/s"))
 				if err != nil {
-					log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+					logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 						map[string]interface{}{"instanceType": mt.Name})
 				}
 				vmsMap[mt.Name] = cloudinfo.VmInfo{
+					Category:   g.getCategory(mt.Name),
 					Type:       mt.Name,
 					Cpus:       float64(mt.GuestCpus),
 					Mem:        float64(mt.MemoryMb) / 1024,
@@ -312,8 +313,19 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 	for _, vm := range vmsMap {
 		vms = append(vms, vm)
 	}
-	log.Debug("found virtual machines", map[string]interface{}{"vms": len(vms)})
+	logger.Debug("found virtual machines", map[string]interface{}{"vms": len(vms)})
 	return vms, nil
+}
+
+func (g *GceInfoer) getCategory(name string) string {
+	switch {
+	case strings.Contains(name, "highmem"):
+		return cloudinfo.CategoryMemory
+	case strings.Contains(name, "highcpu"):
+		return cloudinfo.CategoryCompute
+	default:
+		return cloudinfo.CategoryGeneral
+	}
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
@@ -329,8 +341,8 @@ func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"service": service})
-	log.Debug("getting regions")
+	logger := log.WithFields(g.log, map[string]interface{}{"service": service})
+	logger.Debug("getting regions")
 
 	regionList, err := g.computeSvc.Regions.List(g.projectId).Do()
 	if err != nil {
@@ -346,14 +358,14 @@ func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
 		regionIdMap[region.Name] = description
 	}
 
-	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
+	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
 	return regionIdMap, nil
 }
 
 // GetZones returns the availability zones in a region
 func (g *GceInfoer) GetZones(region string) ([]string, error) {
-	log := log.WithFields(g.log, map[string]interface{}{"region": region})
-	log.Debug("getting zones")
+	logger := log.WithFields(g.log, map[string]interface{}{"region": region})
+	logger.Debug("getting zones")
 
 	zones := make([]string, 0)
 	err := g.computeSvc.Zones.List(g.projectId).Pages(context.TODO(), func(zoneList *compute.ZoneList) error {
@@ -369,7 +381,7 @@ func (g *GceInfoer) GetZones(region string) ([]string, error) {
 		return nil, err
 	}
 
-	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
+	logger.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return zones, nil
 }
 

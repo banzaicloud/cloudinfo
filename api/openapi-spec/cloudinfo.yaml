@@ -460,6 +460,9 @@ components:
           description: Burst this is derived for now
           type: boolean
           x-go-name: Burst
+        category:
+          type: string
+          x-go-name: Category
         cpusPerVm:
           type: number
           format: double
