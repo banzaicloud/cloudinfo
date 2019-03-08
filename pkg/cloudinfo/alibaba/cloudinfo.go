@@ -73,8 +73,8 @@ func (a *AlibabaInfoer) Initialize() (map[string]map[string]cloudinfo.Price, err
 }
 
 func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"region": region})
-	log.Debug("start retrieving spot price data")
+	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
+	logger.Debug("start retrieving spot price data")
 	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
 
 	zones, err := a.getZones(region)
@@ -88,7 +88,7 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]cloudinf
 
 				describeSpotPriceHistory, err := a.client.ProcessCommonRequest(a.describeSpotPriceHistoryRequest(region, instanceType))
 				if err != nil {
-					log.Error("failed to get spot price history", map[string]interface{}{"instancetype": instanceType})
+					logger.Error("failed to get spot price history", map[string]interface{}{"instancetype": instanceType})
 					continue
 				}
 
@@ -112,7 +112,7 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]cloudinf
 			}
 		}
 	}
-	log.Debug("retrieved spot price data")
+	logger.Debug("retrieved spot price data")
 	return priceInfo, nil
 }
 
@@ -133,8 +133,8 @@ func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
 }
 
 func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"region": region})
-	log.Debug("getting product info")
+	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
+	logger.Debug("getting product info")
 	vms := make([]cloudinfo.VmInfo, 0)
 
 	instanceTypes, err := a.getInstanceTypes()
@@ -165,11 +165,18 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, e
 			ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
 			ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 			if err != nil {
-				log.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+				logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
+					map[string]interface{}{"instanceType": instanceType.InstanceTypeId})
+			}
+
+			category, err := a.mapCategory(instanceType.InstanceTypeId)
+			if err != nil {
+				logger.Debug(emperror.Wrap(err, "failed to get virtual machine category").Error(),
 					map[string]interface{}{"instanceType": instanceType.InstanceTypeId})
 			}
 
 			vms = append(vms, cloudinfo.VmInfo{
+				Category:   category,
 				Type:       instanceType.InstanceTypeId,
 				Cpus:       float64(instanceType.CpuCoreCount),
 				Mem:        instanceType.MemorySize,
@@ -177,7 +184,7 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, e
 				NtwPerf:    ntwPerf,
 				NtwPerfCat: ntwPerfCat,
 				Zones:      zones,
-				Attributes: cloudinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat),
+				Attributes: cloudinfo.Attributes(fmt.Sprint(instanceType.CpuCoreCount), fmt.Sprint(instanceType.MemorySize), ntwPerfCat, category),
 			})
 		}
 	}
@@ -187,7 +194,7 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, e
 		return nil, err
 	}
 
-	log.Debug("found vms", map[string]interface{}{"numberOfVms": len(virtualMachines)})
+	logger.Debug("found vms", map[string]interface{}{"numberOfVms": len(virtualMachines)})
 	return virtualMachines, nil
 }
 
@@ -306,6 +313,7 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 
 	for _, vm := range vms {
 		vmsWithPrice = append(vmsWithPrice, cloudinfo.VmInfo{
+			Category:      vm.Category,
 			Type:          vm.Type,
 			OnDemandPrice: price[vm.Type],
 			Cpus:          vm.Cpus,
@@ -339,8 +347,8 @@ func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) (bssopen
 
 // GetZones returns the availability zones in a region
 func (a *AlibabaInfoer) GetZones(region string) ([]string, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"region": region})
-	log.Debug("getting zones")
+	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
+	logger.Debug("getting zones")
 
 	var zones []string
 
@@ -353,14 +361,14 @@ func (a *AlibabaInfoer) GetZones(region string) ([]string, error) {
 		zones = append(zones, zone.ZoneId)
 	}
 
-	log.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
+	logger.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
 	return zones, nil
 }
 
 // GetRegions returns a map with available regions
 func (a *AlibabaInfoer) GetRegions(service string) (map[string]string, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service})
-	log.Debug("getting regions")
+	logger := log.WithFields(a.log, map[string]interface{}{"service": service})
+	logger.Debug("getting regions")
 
 	describeRegions, err := a.client.ProcessCommonRequest(a.describeRegionsRequest())
 	if err != nil {
@@ -379,7 +387,7 @@ func (a *AlibabaInfoer) GetRegions(service string) (map[string]string, error) {
 		regionIdMap[region.RegionId] = region.LocalName
 	}
 
-	log.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
+	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
 	return regionIdMap, nil
 }
 

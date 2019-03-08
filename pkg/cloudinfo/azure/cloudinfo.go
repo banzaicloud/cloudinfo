@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
@@ -34,6 +35,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
+	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 )
@@ -68,16 +70,7 @@ var (
 )
 
 type authentication struct {
-	ClientID                string `json:"clientId,omitempty"`
-	ClientSecret            string `json:"clientSecret,omitempty"`
-	SubscriptionID          string `json:"subscriptionId,omitempty"`
-	TenantID                string `json:"tenantId,omitempty"`
-	ActiveDirectoryEndpoint string `json:"activeDirectoryEndpointUrl,omitempty"`
-	ResourceManagerEndpoint string `json:"resourceManagerEndpointUrl,omitempty"`
-	GraphResourceID         string `json:"activeDirectoryGraphResourceId,omitempty"`
-	SQLManagementEndpoint   string `json:"sqlManagementEndpointUrl,omitempty"`
-	GalleryEndpoint         string `json:"galleryEndpointUrl,omitempty"`
-	ManagementEndpoint      string `json:"managementEndpointUrl,omitempty"`
+	SubscriptionID string `json:"subscriptionId,omitempty"`
 }
 
 // AzureInfoer encapsulates the data and operations needed to access external Azure resources
@@ -86,6 +79,7 @@ type AzureInfoer struct {
 	subscriptionsClient LocationRetriever
 	vmSizesClient       VmSizesRetriever
 	rateCardClient      PriceRetriever
+	skusClient          CategoryRetriever
 	providersClient     ProviderSource
 	containerSvcClient  VersionRetriever
 	log                 logur.Logger
@@ -116,6 +110,11 @@ type VersionRetriever interface {
 	ListOrchestrators(ctx context.Context, location string, resourceType string) (result containerservice.OrchestratorVersionProfileListResult, err error)
 }
 
+// CategoryRetriever collects virtual machines family
+type CategoryRetriever interface {
+	List(ctx context.Context) (result skus.ResourceSkusResultPage, err error)
+}
+
 // newInfoer creates a new instance of the Azure infoer
 func newInfoer(authLocation string, log logur.Logger) (*AzureInfoer, error) {
 	err := os.Setenv("AZURE_AUTH_LOCATION", authLocation)
@@ -132,8 +131,8 @@ func newInfoer(authLocation string, log logur.Logger) (*AzureInfoer, error) {
 	if err != nil {
 		return nil, err
 	}
-	auth := authentication{}
-	err = json.Unmarshal(contents, &auth)
+	a := authentication{}
+	err = json.Unmarshal(contents, &a)
 	if err != nil {
 		return nil, err
 	}
@@ -141,22 +140,26 @@ func newInfoer(authLocation string, log logur.Logger) (*AzureInfoer, error) {
 	sClient := subscriptions.NewClient()
 	sClient.Authorizer = authorizer
 
-	vmClient := compute.NewVirtualMachineSizesClient(auth.SubscriptionID)
+	vmClient := compute.NewVirtualMachineSizesClient(a.SubscriptionID)
 	vmClient.Authorizer = authorizer
 
-	rcClient := commerce.NewRateCardClient(auth.SubscriptionID)
+	rcClient := commerce.NewRateCardClient(a.SubscriptionID)
 	rcClient.Authorizer = authorizer
 
-	providersClient := resources.NewProvidersClient(auth.SubscriptionID)
+	skusClient := skus.NewResourceSkusClient(a.SubscriptionID)
+	skusClient.Authorizer = authorizer
+
+	providersClient := resources.NewProvidersClient(a.SubscriptionID)
 	providersClient.Authorizer = authorizer
 
-	containerServiceClient := containerservice.NewContainerServicesClient(auth.SubscriptionID)
+	containerServiceClient := containerservice.NewContainerServicesClient(a.SubscriptionID)
 	containerServiceClient.Authorizer = authorizer
 
 	return &AzureInfoer{
-		subscriptionId:      auth.SubscriptionID,
+		subscriptionId:      a.SubscriptionID,
 		subscriptionsClient: sClient,
 		vmSizesClient:       vmClient,
+		skusClient:          skusClient,
 		rateCardClient:      rcClient,
 		providersClient:     providersClient,
 		containerSvcClient:  &containerServiceClient,
@@ -233,7 +236,7 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error
 			if !strings.Contains(*v.MeterSubCategory, "Windows") {
 				region, err := a.toRegionID(*v.MeterRegion, regions)
 				if err != nil {
-					missingRegions = append(missingRegions, *v.MeterRegion)
+					missingRegions = appendIfMissing(missingRegions, *v.MeterRegion)
 					continue
 				}
 
@@ -360,9 +363,42 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	return result
 }
 
+func (a *AzureInfoer) getCategory(vms []cloudinfo.VmInfo, log logur.Logger) ([]cloudinfo.VmInfo, error) {
+	skusResultPage, err := a.skusClient.List(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	var virtualMachines []cloudinfo.VmInfo
+	for _, vm := range vms {
+		for _, sku := range skusResultPage.Values() {
+			if *sku.ResourceType == "virtualMachines" {
+				if *sku.Name == vm.Type {
+
+					category, err := a.mapCategory(*sku.Family)
+					if err != nil {
+						log.Debug(emperror.Wrap(err, "failed to get virtual machine category").Error(),
+							map[string]interface{}{"instanceType": vm.Type})
+					}
+
+					virtualMachines = append(virtualMachines, cloudinfo.VmInfo{
+						Category:   category,
+						Type:       vm.Type,
+						Mem:        vm.Mem,
+						Cpus:       vm.Cpus,
+						Attributes: cloudinfo.Attributes(fmt.Sprint(vm.Mem), fmt.Sprint(vm.Cpus), "unknown", category),
+					})
+					break
+				}
+			}
+		}
+	}
+	return virtualMachines, nil
+}
+
 func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"region": region})
-	log.Debug("getting product info")
+	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
+	logger.Debug("getting product info")
 	var vms []cloudinfo.VmInfo
 	vmSizes, err := a.vmSizesClient.List(context.TODO(), region)
 	if err != nil {
@@ -370,16 +406,20 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 	}
 	for _, v := range *vmSizes.Value {
 		vms = append(vms, cloudinfo.VmInfo{
-			Type:       *v.Name,
-			Cpus:       float64(*v.NumberOfCores),
-			Mem:        float64(*v.MemoryInMB) / 1024,
-			Attributes: cloudinfo.Attributes(fmt.Sprint(*v.NumberOfCores), fmt.Sprint(float64(*v.MemoryInMB)/1024), "unknown"),
+			Type: *v.Name,
+			Cpus: float64(*v.NumberOfCores),
+			Mem:  float64(*v.MemoryInMB) / 1024,
 			// TODO: netw perf
 		})
 	}
 
-	log.Debug("found virtual machines", map[string]interface{}{"numberOfVms": len(vms)})
-	return vms, nil
+	virtualMachines, err := a.getCategory(vms, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug("found virtual machines", map[string]interface{}{"numberOfVms": len(vms)})
+	return virtualMachines, nil
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
@@ -409,8 +449,8 @@ func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
-	log := log.WithFields(a.log, map[string]interface{}{"service": service})
-	log.Debug("getting locations")
+	logger := log.WithFields(a.log, map[string]interface{}{"service": service})
+	logger.Debug("getting locations")
 
 	allLocations := make(map[string]string)
 	supLocations := make(map[string]string)
@@ -422,7 +462,7 @@ func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
 			allLocations[*loc.DisplayName] = *loc.Name
 		}
 	} else {
-		log.Error("error while retrieving azure locations")
+		logger.Error("error while retrieving azure locations")
 		return nil, err
 	}
 
@@ -443,18 +483,18 @@ func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
 						if loc, ok := allLocations[displName]; ok {
 							supLocations[loc] = displName
 						} else {
-							log.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
+							logger.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
 						}
 					}
 					break
 				}
 			}
 		} else {
-			log.Error("failed to retrieve supported locations", map[string]interface{}{"resource": resourceTypeForAks})
+			logger.Error("failed to retrieve supported locations", map[string]interface{}{"resource": resourceTypeForAks})
 			return nil, err
 		}
 
-		log.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
+		logger.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
 		return supLocations, nil
 	default:
 		if providers, err := a.providersClient.Get(context.TODO(), providerNamespaceForCompute, ""); err == nil {
@@ -464,18 +504,18 @@ func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
 						if loc, ok := allLocations[displName]; ok {
 							supLocations[loc] = displName
 						} else {
-							log.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
+							logger.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
 						}
 					}
 					break
 				}
 			}
 		} else {
-			log.Error("failed to retrieve supported locations", map[string]interface{}{"resource": resourceTypeForCompute})
+			logger.Error("failed to retrieve supported locations", map[string]interface{}{"resource": resourceTypeForCompute})
 			return nil, err
 		}
 
-		log.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
+		logger.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
 		return supLocations, nil
 	}
 }

@@ -24,6 +24,9 @@ type ProductDetails struct {
 	// Burst this is derived for now
 	Burst bool `json:"burst,omitempty"`
 
+	// category
+	Category string `json:"category,omitempty"`
+
 	// cpus
 	Cpus float64 `json:"cpusPerVm,omitempty"`
 

@@ -540,39 +540,6 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 	}
 }
 
-func TestAzureInfoer_GetVirtualMachines(t *testing.T) {
-	tests := []struct {
-		name    string
-		vmSizes VmSizesRetriever
-		check   func(vms []cloudinfo.VmInfo, err error)
-	}{
-		{
-			name:    "retrieve the available virtual machines",
-			vmSizes: &testStruct{},
-			check: func(vms []cloudinfo.VmInfo, err error) {
-				assert.Nil(t, err, "the error should be nil")
-				var cpus []float64
-				var mems []float64
-
-				for _, vm := range vms {
-					cpus = append(cpus, vm.Cpus)
-					mems = append(mems, vm.Mem)
-				}
-				assert.ElementsMatch(t, cpus, []float64{1, 4, 8})
-				assert.ElementsMatch(t, mems, []float64{2, 32, 32})
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: logur.NewTestLogger()}
-
-			azureInfoer.vmSizesClient = test.vmSizes
-			test.check(azureInfoer.GetVirtualMachines("dummyRegion"))
-		})
-	}
-}
-
 func TestAzureInfoer_GetProducts(t *testing.T) {
 	vms := []cloudinfo.VmInfo{
 		{
