@@ -169,8 +169,7 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, e
 					map[string]interface{}{"instanceType": instanceType.InstanceTypeId})
 			}
 
-			categoryMapper := newAlibabaCategoryMapper()
-			category, err := categoryMapper.MapCategory(instanceType.InstanceTypeId)
+			category, err := a.mapCategory(instanceType.InstanceTypeId)
 			if err != nil {
 				logger.Debug(emperror.Wrap(err, "failed to get virtual machine category").Error(),
 					map[string]interface{}{"instanceType": instanceType.InstanceTypeId})

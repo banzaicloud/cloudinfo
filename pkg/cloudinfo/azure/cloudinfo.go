@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/goph/emperror"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -36,6 +35,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
+	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 )
@@ -375,8 +375,7 @@ func (a *AzureInfoer) getCategory(vms []cloudinfo.VmInfo, log logur.Logger) ([]c
 			if *sku.ResourceType == "virtualMachines" {
 				if *sku.Name == vm.Type {
 
-					categoryMapper := newAzureCategoryMapper()
-					category, err := categoryMapper.MapCategory(*sku.Family)
+					category, err := a.mapCategory(*sku.Family)
 					if err != nil {
 						log.Debug(emperror.Wrap(err, "failed to get virtual machine category").Error(),
 							map[string]interface{}{"instanceType": vm.Type})

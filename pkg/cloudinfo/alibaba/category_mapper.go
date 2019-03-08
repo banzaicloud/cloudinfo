@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 
@@ -31,17 +32,8 @@ var (
 	}
 )
 
-// AlibabaCategoryMapper module object for sort virtual machines into categories
-type AlibabaCategoryMapper struct {
-}
-
-// newAlibabaNetworkMapper initializes the category mapper struct
-func newAlibabaCategoryMapper() *AlibabaCategoryMapper {
-	return &AlibabaCategoryMapper{}
-}
-
-// MapCategory maps the family of the alibaba instance to category
-func (nm *AlibabaCategoryMapper) MapCategory(name string) (string, error) {
+// mapCategory maps the family of the alibaba instance to category
+func (a *AlibabaInfoer) mapCategory(name string) (string, error) {
 	family := strings.Split(name, ".")[1]
 	if strings.Contains(family, "-") {
 		family = strings.Split(family, "-")[0]
@@ -52,5 +44,5 @@ func (nm *AlibabaCategoryMapper) MapCategory(name string) (string, error) {
 			return category, nil
 		}
 	}
-	return "", errors.Wrap(errors.New(family), "could not determine the category")
+	return "", emperror.Wrap(errors.New(family), "could not determine the category")
 }

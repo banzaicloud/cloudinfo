@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 
@@ -31,17 +32,8 @@ var (
 	}
 )
 
-// AzureCategoryMapper module object for sort virtual machines into categories
-type AzureCategoryMapper struct {
-}
-
-// newAzureCategoryMapper initializes the category mapper struct
-func newAzureCategoryMapper() *AzureCategoryMapper {
-	return &AzureCategoryMapper{}
-}
-
-// MapCategory maps the family of the azure instance to category
-func (nm *AzureCategoryMapper) MapCategory(name string) (string, error) {
+// mapCategory maps the family of the azure instance to category
+func (a *AzureInfoer) mapCategory(name string) (string, error) {
 	family := strings.TrimRight(name, "Family")
 	family = strings.TrimLeft(family, "standard")
 	family = strings.TrimRight(family, "Promo")
@@ -52,5 +44,5 @@ func (nm *AzureCategoryMapper) MapCategory(name string) (string, error) {
 			return category, nil
 		}
 	}
-	return "", errors.Wrap(errors.New(family), "could not determine the category")
+	return "", emperror.Wrap(errors.New(family), "could not determine the category")
 }
