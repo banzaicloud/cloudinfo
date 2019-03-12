@@ -451,50 +451,6 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 	}
 }
 
-// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{attribute} attribute getAttrValues
-//
-// Provides a list of available attribute values in a provider's region.
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: AttributeResponse
-func (r *RouteHandler) getAttrValues() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		pathParams := GetAttributeValuesPathParams{}
-		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
-			return
-		}
-
-		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
-			return
-		}
-
-		logger := log.WithFieldsForHandlers(c, r.log,
-			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service,
-				"region": pathParams.Region, "attribute": pathParams.Attribute})
-
-		logger.Info("getting attribute details")
-
-		attributes, err := r.prod.GetAttrValues(pathParams.Provider, pathParams.Service, pathParams.Region, pathParams.Attribute)
-		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve attribute values. provider [%s], "+
-				"service [%s], attributes [%s]", pathParams.Provider, pathParams.Service, pathParams.Attribute))
-			return
-		}
-
-		logger.Debug("successfully retrieved attribute details")
-		c.JSON(http.StatusOK, AttributeResponse{pathParams.Attribute, attributes})
-	}
-}
-
 // getPathParamMap transforms the path params into a map to be able to easily bind to param structs
 func getPathParamMap(c *gin.Context) map[string]string {
 	pm := make(map[string]string)

@@ -35,12 +35,6 @@ type CloudInfo interface {
 	// GetServices returns the supported services for a provider
 	GetServices(provider string) ([]Service, error)
 
-	// GetAttributes returns the supported attribute names
-	GetAttributes() []string
-
-	// GetAttrValues returns a slice with the possible values for a given attribute on a specific provider
-	GetAttrValues(provider string, service string, region string, attribute string) ([]float64, error)
-
 	// GetZones returns all the availability zones for a region
 	GetZones(provider, service, region string) ([]string, error)
 

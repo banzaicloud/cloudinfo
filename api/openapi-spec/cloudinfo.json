@@ -334,59 +334,6 @@
         }
       }
     },
-    "/providers/{provider}/services/{service}/regions/{region}/products/{attribute}": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "http"
-        ],
-        "tags": [
-          "attribute"
-        ],
-        "summary": "Provides a list of available attribute values in a provider's region.",
-        "operationId": "getAttrValues",
-        "parameters": [
-          {
-            "type": "string",
-            "x-go-name": "Provider",
-            "name": "provider",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Service",
-            "name": "service",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Region",
-            "name": "region",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "x-go-name": "Attribute",
-            "name": "attribute",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "AttributeResponse",
-            "schema": {
-              "$ref": "#/definitions/AttributeResponse"
-            }
-          }
-        }
-      }
-    },
     "/providers/{provider}/services/{service}/regions/{region}/versions": {
       "get": {
         "produces": [

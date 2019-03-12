@@ -11,7 +11,6 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/attribute"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/images"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/products"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo-client/client/provider"
@@ -65,8 +64,6 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Cloudinfo 
 
 	cli := new(Cloudinfo)
 	cli.Transport = transport
-
-	cli.Attribute = attribute.New(transport, formats)
 
 	cli.Images = images.New(transport, formats)
 
@@ -130,8 +127,6 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // Cloudinfo is a client for cloudinfo
 type Cloudinfo struct {
-	Attribute *attribute.Client
-
 	Images *images.Client
 
 	Products *products.Client
@@ -156,8 +151,6 @@ type Cloudinfo struct {
 // SetTransport changes the transport on the client and all its subresources
 func (c *Cloudinfo) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
-
-	c.Attribute.SetTransport(transport)
 
 	c.Images.SetTransport(transport)
 

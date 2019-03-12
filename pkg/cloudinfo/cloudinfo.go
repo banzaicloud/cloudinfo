@@ -125,41 +125,6 @@ func (cpi *cachingCloudInfo) GetProvider(provider string) (Provider, error) {
 	return p, nil
 }
 
-// GetAttributes returns the supported attribute names
-func (cpi *cachingCloudInfo) GetAttributes() []string {
-	return []string{Cpu, Memory}
-}
-
-// GetAttrValues returns a slice with the values for the given attribute name
-func (cpi *cachingCloudInfo) GetAttrValues(provider, service, region, attribute string) ([]float64, error) {
-	var (
-		vms interface{}
-		ok  bool
-	)
-
-	if vms, ok = cpi.cloudInfoStore.GetVm(provider, service, region); !ok {
-		return nil, emperror.With(errors.New("vms not yet cached"),
-			"provider", provider, "service", service, "region", region)
-	}
-
-	value := make([]float64, 0)
-	valueSet := make(map[float64]interface{})
-
-	for _, vm := range vms.([]VmInfo) {
-		switch attribute {
-		case Cpu:
-			valueSet[vm.Cpus] = ""
-		case Memory:
-			valueSet[vm.Mem] = ""
-		}
-	}
-	for attr := range valueSet {
-		value = append(value, attr)
-	}
-
-	return value, nil
-}
-
 // GetZones returns the availability zones in a region
 func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, service, region); ok {

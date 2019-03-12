@@ -80,7 +80,6 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages())
 		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions())
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts())
-		providerGroup.GET("/:provider/services/:service/regions/:region/products/:attribute", r.getAttrValues())
 	}
 }
 
