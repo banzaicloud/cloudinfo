@@ -45,11 +45,6 @@ func ConfigureValidator(providers []string, ci cloudinfo.CloudInfo, logger logur
 		return errors.Wrap(err, "could not register region validator")
 	}
 
-	// register validator for the attribute parameter in the request path
-	if err := v.RegisterValidation("attribute", attributeValidator(ci)); err != nil {
-		return errors.Wrap(err, "could not register attribute validator")
-	}
-
 	return nil
 }
 
@@ -122,19 +117,6 @@ func providerValidator(providers []string) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		for _, p := range providers {
-			if field.String() == p {
-				return true
-			}
-		}
-		return false
-	}
-}
-
-// attributeValidator validates the `attribute` path parameter
-func attributeValidator(cpi cloudinfo.CloudInfo) validator.Func {
-
-	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		for _, p := range cpi.GetAttributes() {
 			if field.String() == p {
 				return true
 			}

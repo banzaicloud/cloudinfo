@@ -232,44 +232,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductDetailsResponse'
-  '/providers/{provider}/services/{service}/regions/{region}/products/{attribute}':
-    get:
-      tags:
-        - attribute
-      summary: Provides a list of available attribute values in a provider's region.
-      operationId: getAttrValues
-      parameters:
-        - x-go-name: Provider
-          name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Service
-          name: service
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Region
-          name: region
-          in: path
-          required: true
-          schema:
-            type: string
-        - x-go-name: Attribute
-          name: attribute
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: AttributeResponse
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AttributeResponse'
   '/providers/{provider}/services/{service}/regions/{region}/versions':
     get:
       tags:
