@@ -54,9 +54,11 @@ const (
 type CloudInfoStore interface {
 	StoreRegions(provider, service string, val interface{})
 	GetRegions(provider, service string) (interface{}, bool)
+	DeleteRegions(provider, service string)
 
 	StoreZones(provider, service, region string, val interface{})
 	GetZones(provider, service, region string) (interface{}, bool)
+	DeleteZones(provider, service, region string)
 
 	StorePrice(provider, region, instanceType string, val interface{})
 	GetPrice(provider, region, instanceType string) (interface{}, bool)
@@ -67,9 +69,11 @@ type CloudInfoStore interface {
 
 	StoreImage(provider, service, regionId string, val interface{})
 	GetImage(provider, service, regionId string) (interface{}, bool)
+	DeleteImage(provider, service, regionId string)
 
 	StoreVersion(provider, service, region string, val interface{})
 	GetVersion(provider, service, region string) (interface{}, bool)
+	DeleteVersion(provider, service, region string)
 
 	StoreStatus(provider string, val interface{})
 	GetStatus(provider string) (interface{}, bool)
@@ -115,12 +119,20 @@ func (cis *cacheProductStore) GetRegions(provider, service string) (interface{},
 	return cis.Get(cis.getKey(regionKeyTemplate, provider, service))
 }
 
+func (cis *cacheProductStore) DeleteRegions(provider, service string) {
+	cis.Delete(cis.getKey(regionKeyTemplate, provider, service))
+}
+
 func (cis *cacheProductStore) StoreZones(provider, service, region string, val interface{}) {
 	cis.Set(cis.getKey(zoneKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetZones(provider, service, region string) (interface{}, bool) {
 	return cis.Get(cis.getKey(zoneKeyTemplate, provider, service, region))
+}
+
+func (cis *cacheProductStore) DeleteZones(provider, service, region string) {
+	cis.Delete(cis.getKey(zoneKeyTemplate, provider, service, region))
 }
 
 func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val interface{}) {
@@ -151,12 +163,20 @@ func (cis *cacheProductStore) GetImage(provider, service, regionId string) (inte
 	return cis.Get(cis.getKey(imageKeyTemplate, provider, service, regionId))
 }
 
+func (cis *cacheProductStore) DeleteImage(provider, service, regionId string) {
+	cis.Delete(cis.getKey(imageKeyTemplate, provider, service, regionId))
+}
+
 func (cis *cacheProductStore) StoreVersion(provider, service, region string, val interface{}) {
 	cis.Set(cis.getKey(versionKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
 func (cis *cacheProductStore) GetVersion(provider, service, region string) (interface{}, bool) {
 	return cis.Get(cis.getKey(versionKeyTemplate, provider, service, region))
+}
+
+func (cis *cacheProductStore) DeleteVersion(provider, service, region string) {
+	cis.Delete(cis.getKey(versionKeyTemplate, provider, service, region))
 }
 
 func (cis *cacheProductStore) StoreStatus(provider string, val interface{}) {

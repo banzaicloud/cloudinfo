@@ -109,6 +109,8 @@ func (sm *scrapingManager) scrapeServiceRegionImages(ctx context.Context, servic
 		if images, err = sm.infoer.GetServiceImages(service, regionId); err != nil {
 			return emperror.Wrap(err, "failed to retrieve service images for region")
 		}
+		sm.store.DeleteImage(sm.provider, service, regionId)
+
 		sm.store.StoreImage(sm.provider, service, regionId, images)
 	}
 	return nil
@@ -125,6 +127,8 @@ func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, serv
 	if versions, err = sm.infoer.GetVersions(service, regionId); err != nil {
 		return emperror.Wrap(err, "failed to retrieve service versions for region")
 	}
+	sm.store.DeleteVersion(sm.provider, service, regionId)
+
 	sm.store.StoreVersion(sm.provider, service, regionId, versions)
 
 	return nil
@@ -141,6 +145,7 @@ func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, service
 	if zones, err = sm.infoer.GetZones(region); err != nil {
 		return emperror.Wrap(err, "failed to retrieve zones for region")
 	}
+	sm.store.DeleteZones(sm.provider, service, region)
 
 	sm.store.StoreZones(sm.provider, service, region, zones)
 
@@ -175,6 +180,8 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		return emperror.WrapWith(err, "failed to retrieve regions",
 			"provider", sm.provider, "service", "compute")
 	}
+
+	sm.store.DeleteRegions(sm.provider, "compute")
 
 	sm.store.StoreRegions(sm.provider, "compute", regions)
 
@@ -213,6 +220,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				return emperror.WrapWith(err, "failed to retrieve regions",
 					"provider", sm.provider, "service", service.ServiceName())
 			}
+			sm.store.DeleteRegions(sm.provider, service.ServiceName())
 
 			sm.store.StoreRegions(sm.provider, service.ServiceName(), regions)
 		}
@@ -251,6 +259,7 @@ func (sm *scrapingManager) updateServiceRegionZones(ctx context.Context, service
 			return emperror.With(errors.New("zones not yet cached"),
 				"provider", sm.provider, "service", service, "region", region)
 		}
+		sm.store.DeleteZones(sm.provider, service, region)
 
 		sm.store.StoreZones(sm.provider, service, region, zones.([]string))
 	}
