@@ -351,11 +351,9 @@ func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
 
 	regionIdMap := make(map[string]string)
 	for _, region := range regionList.Items {
-		description := region.Description
 		if displayName, ok := regionNames[region.Name]; ok {
-			description = displayName
+			regionIdMap[region.Name] = displayName
 		}
-		regionIdMap[region.Name] = description
 	}
 
 	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
