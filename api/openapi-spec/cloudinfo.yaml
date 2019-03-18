@@ -538,8 +538,9 @@ components:
       type: object
       title: Service represents a service supported by a given provider.
       properties:
-        IsStatic:
+        isStatic:
           type: boolean
+          x-go-name: IsStatic
         service:
           type: string
           x-go-name: Service

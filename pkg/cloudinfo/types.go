@@ -148,7 +148,7 @@ type ServiceDescriber interface {
 // it's intended to implement the ServiceDescriber interface
 type Service struct {
 	Service  string `json:"service"`
-	IsStatic bool
+	IsStatic bool   `json:"isStatic"`
 }
 
 // ServiceName returns the service name

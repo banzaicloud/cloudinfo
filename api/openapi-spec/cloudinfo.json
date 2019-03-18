@@ -715,8 +715,9 @@
       "type": "object",
       "title": "Service represents a service supported by a given provider.",
       "properties": {
-        "IsStatic": {
-          "type": "boolean"
+        "isStatic": {
+          "type": "boolean",
+          "x-go-name": "IsStatic"
         },
         "service": {
           "type": "string",
