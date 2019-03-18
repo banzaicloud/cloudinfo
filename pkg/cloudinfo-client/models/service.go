@@ -18,7 +18,7 @@ import (
 type Service struct {
 
 	// is static
-	IsStatic bool `json:"IsStatic,omitempty"`
+	IsStatic bool `json:"isStatic,omitempty"`
 
 	// service
 	Service string `json:"service,omitempty"`
