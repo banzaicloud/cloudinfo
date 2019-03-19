@@ -81,30 +81,30 @@ func (sl *defaultCloudInfoLoader) LoadRegions() {
 
 // loadZones loads zones for a given region in the store
 func (sl *defaultCloudInfoLoader) LoadZones(provider, service string, region Region) {
-	sl.log.Debug("loading zones...", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("loading zones...", map[string]interface{}{"service": service, "region": region.Id})
 	sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
-	sl.log.Debug("zones loaded", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("zones loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 // loadVersions loads versions for a given region into the store
 func (sl *defaultCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
-	sl.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Id})
 	sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-	sl.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 // loadImages loads images for a given region into the store
 func (sl *defaultCloudInfoLoader) LoadImages(provider string, service string, region Region) {
-	sl.log.Debug("loading images...", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("loading images...", map[string]interface{}{"service": service, "region": region.Id})
 	sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
-	sl.log.Debug("images loaded", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("images loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 // loadVms loads vms for a given region into the store
 func (sl *defaultCloudInfoLoader) LoadVms(provider string, service string, region Region) {
-	sl.log.Debug("loading vms...", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("loading vms...", map[string]interface{}{"service": service, "region": region.Id})
 	sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
-	sl.log.Debug("vms loaded", map[string]interface{}{"service": service, "region": region.Name})
+	sl.log.Debug("vms loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 type storeCloudInfoLoader struct {
@@ -193,9 +193,9 @@ func (scil *storeCloudInfoLoader) LoadZones(provider string, service string, reg
 func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
 	switch region.Data.Versions.Strategy {
 	case exact:
-		scil.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Name})
+		scil.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Id})
 		scil.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-		scil.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Name})
+		scil.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Id})
 	case exclude:
 		var (
 			versions interface{}
