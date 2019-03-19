@@ -26,7 +26,9 @@ COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=backend /go/src/github.com/banzaicloud/cloudinfo/build/cloudinfo /bin
 COPY --from=frontend /web/dist/ui /web/dist/ui
 ADD ./entrypoint.sh /entrypoint.sh
+ADD ./configs /configs
 
 ENV CLOUDINFO_BASEPATH "/cloudinfo"
+ENV SERVICELOADER_SERVICECONFIGLOCATION "/configs"
 
 ENTRYPOINT ["/entrypoint.sh"]
