@@ -15,6 +15,7 @@
 package cistore
 
 import (
+	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
 	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/logur"
@@ -23,8 +24,9 @@ import (
 
 // CloudInfoStore configuration
 type Config struct {
-	Redis   redis.Config
-	GoCache GoCacheConfig
+	Redis     redis.Config
+	GoCache   GoCacheConfig
+	Cassandra cassandra.Config
 }
 
 // GoCacheConfig configuration
@@ -41,6 +43,11 @@ func NewCloudInfoStore(conf Config, log logur.Logger) cloudinfo.CloudInfoStore {
 	if conf.Redis.Enabled {
 		log.Info("using Redis as product store")
 		return NewRedisProductStore(conf.Redis, log)
+	}
+
+	if conf.Cassandra.Enabled {
+		log.Info("using Cassandra as product store")
+		return NewCassandraProductStore(conf.Cassandra, log)
 	}
 
 	// fallback to the "initial" implementation
