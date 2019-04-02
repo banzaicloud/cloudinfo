@@ -46,9 +46,11 @@ const (
 type CloudInfoStore interface {
 	StoreRegions(provider, service string, val map[string]string)
 	GetRegions(provider, service string) (map[string]string, bool)
+	DeleteRegions(provider, service string)
 
 	StoreZones(provider, service, region string, val []string)
 	GetZones(provider, service, region string) ([]string, bool)
+	DeleteZones(provider, service, region string)
 
 	StorePrice(provider, region, instanceType string, val Price)
 	GetPrice(provider, region, instanceType string) (Price, bool)
@@ -59,9 +61,11 @@ type CloudInfoStore interface {
 
 	StoreImage(provider, service, regionId string, val []Image)
 	GetImage(provider, service, regionId string) ([]Image, bool)
+	DeleteImage(provider, service, regionId string)
 
 	StoreVersion(provider, service, region string, val []LocationVersion)
 	GetVersion(provider, service, region string) ([]LocationVersion, bool)
+	DeleteVersion(provider, service, region string)
 
 	StoreStatus(provider string, val string)
 	GetStatus(provider string) (string, bool)

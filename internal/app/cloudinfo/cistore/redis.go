@@ -30,6 +30,22 @@ type redisProductStore struct {
 	log  logur.Logger
 }
 
+func (rps *redisProductStore) DeleteRegions(provider, service string) {
+	rps.delete(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service))
+}
+
+func (rps *redisProductStore) DeleteZones(provider, service, region string) {
+	rps.delete(rps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region))
+}
+
+func (rps *redisProductStore) DeleteImage(provider, service, regionId string) {
+	rps.delete(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId))
+}
+
+func (rps *redisProductStore) DeleteVersion(provider, service, region string) {
+	rps.delete(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region))
+}
+
 // get retrieves the value of the passed in key in it's raw format
 func (rps *redisProductStore) get(key string, toTypePtr interface{}) (interface{}, bool) {
 	conn := rps.pool.Get()

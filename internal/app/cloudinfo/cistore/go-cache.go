@@ -33,6 +33,22 @@ type cacheProductStore struct {
 	log        logur.Logger
 }
 
+func (cis *cacheProductStore) DeleteRegions(provider, service string) {
+	cis.Delete(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service))
+}
+
+func (cis *cacheProductStore) DeleteZones(provider, service, region string) {
+	cis.Delete(cis.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region))
+}
+
+func (cis *cacheProductStore) DeleteImage(provider, service, regionId string) {
+	cis.Delete(cis.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId))
+}
+
+func (cis *cacheProductStore) DeleteVersion(provider, service, region string) {
+	cis.Delete(cis.getKey(cloudinfo.VersionKeyTemplate, provider, service, region))
+}
+
 func (cis *cacheProductStore) StoreRegions(provider, service string, val map[string]string) {
 	cis.Set(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service), val, cis.itemExpiry)
 }
