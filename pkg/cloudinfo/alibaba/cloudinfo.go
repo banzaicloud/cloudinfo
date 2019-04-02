@@ -17,6 +17,7 @@ package alibaba
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
@@ -420,14 +421,36 @@ func (a *AlibabaInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Pr
 	return prices, nil
 }
 
-// HasImages - Alibaba doesn't support images
+// HasImages - Alibaba support images
 func (a *AlibabaInfoer) HasImages() bool {
-	return false
+	return true
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (a *AlibabaInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
-	return nil, errors.New("GetServiceImages - not yet implemented")
+	describeImages, err := a.client.ProcessCommonRequest(a.describeImagesRequest(region))
+	if err != nil {
+		return nil, emperror.Wrap(err, "DescribeImages API call problem")
+	}
+
+	response := &ecs.DescribeImagesResponse{}
+
+	err = json.Unmarshal(describeImages.BaseResponse.GetHttpContentBytes(), response)
+	if err != nil {
+		return nil, err
+	}
+
+	var images []cloudinfo.Image
+
+	for _, image := range response.Images.Image {
+		if strings.Contains(image.ImageId, "centos_7") {
+			images = append(images, cloudinfo.Image{
+				Name: image.ImageId,
+			})
+		}
+	}
+
+	return images, nil
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region

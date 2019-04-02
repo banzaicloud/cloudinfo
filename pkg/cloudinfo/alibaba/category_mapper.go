@@ -28,7 +28,7 @@ var (
 		cloudinfo.CategoryCompute: {"ic5", "c5", "sn1ne", "hfc5", "ebmc4", "scch5", "sn1", "c4", "ce4", "cm4", "c1", "c2"},
 		cloudinfo.CategoryMemory:  {"r5", "re4", "re4e", "se1ne", "se1", "e4", "e3", "m1", "m2"},
 		cloudinfo.CategoryStorage: {"d1ne", "d1", "i2", "i2g", "i1"},
-		cloudinfo.CategoryGpu:     {"gn6v", "gn5", "gn5i", "gn4", "ga1", "f1", "f3"},
+		cloudinfo.CategoryGpu:     {"gn6v", "gn5", "gn5i", "gn4", "ga1", "f1", "f3", "vgn5i"},
 	}
 )
 
