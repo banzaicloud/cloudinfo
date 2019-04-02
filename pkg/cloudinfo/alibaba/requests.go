@@ -93,3 +93,15 @@ func (a *AlibabaInfoer) describeRegionsRequest() *requests.CommonRequest {
 
 	return request
 }
+
+func (a *AlibabaInfoer) describeImagesRequest(region string) *requests.CommonRequest {
+	request := requests.NewCommonRequest()
+	request.Method = "POST"
+	request.ApiName = "DescribeImages"
+	request.Domain = "ecs.aliyuncs.com"
+	request.Version = "2014-05-26"
+	request.QueryParams["OSType"] = "linux"
+	request.QueryParams["RegionId"] = region
+
+	return request
+}

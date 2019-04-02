@@ -152,6 +152,15 @@ export ALIBABA_REGION_ID=<region-id>
 ./build/cloudinfo --provider alibaba
 ```
 
+Create Alibaba credentials with Alibaba Cloud CLI:
+
+```
+aliyun ram CreateUser --UserName CloudInfo --DisplayName CloudInfo
+aliyun ram AttachPolicyToUser --UserName CloudInfo --PolicyName AliyunECSReadOnlyAccess --PolicyType System
+aliyun ram AttachPolicyToUser --UserName CloudInfo --PolicyName AliyunBSSReadOnlyAccess --PolicyType System
+aliyun ram CreateAccessKey --UserName CloudInfo
+```
+
 ### Configuring multiple providers
 
 Cloud providers can be configured one by one. To configure multiple providers simply list all of them and configure the credentials for all of them.
