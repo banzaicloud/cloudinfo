@@ -409,7 +409,7 @@ func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStor
 		provider: provider,
 		infoer:   infoer,
 		store:    store,
-		log:      logur.WithFields(log, map[string]interface{}{"provider": provider}),
+		log:      logur.WithFields(log, map[string]interface{}{"component": "scraping-manager", "provider": provider}),
 		metrics:  metrics,
 		tracer:   tracer,
 		eventBus: eventBus,
@@ -476,6 +476,6 @@ func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudIn
 	return &ScrapingDriver{
 		scrapingManagers: managers,
 		renewalInterval:  renewalInterval,
-		log:              log,
+		log:              logur.WithFields(log, map[string]interface{}{"component": "scraping-driver"}),
 	}
 }
