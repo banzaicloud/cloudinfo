@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sync"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -246,7 +247,9 @@ func (cps *cassandraProductStore) delete(key string) {
 
 // initSession connects to the cassandra backend if necessary
 func (cps *cassandraProductStore) initSession() error {
-
+	var mutex = &sync.Mutex{}
+	mutex.Lock()
+	defer mutex.Unlock()
 	if cps.session != nil && !cps.session.Closed() {
 		return nil
 	}
