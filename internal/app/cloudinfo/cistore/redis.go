@@ -242,3 +242,6 @@ func (rps *redisProductStore) getKey(keyTemplate string, args ...interface{}) st
 
 	return key
 }
+
+func (rps *redisProductStore) Close() {
+}

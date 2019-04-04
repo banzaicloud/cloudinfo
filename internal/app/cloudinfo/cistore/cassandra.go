@@ -30,41 +30,17 @@ type cassandraProductStore struct {
 	log       logur.Logger
 	keySpace  string
 	tableName string
+	cluster   *gocql.ClusterConfig
 	session   *gocql.Session
 }
 
 func NewCassandraProductStore(config cassandra.Config, logger logur.Logger) cloudinfo.CloudInfoStore {
 
-	var (
-		session *gocql.Session
-		err     error
-	)
-	clusterCfg := cassandra.NewCluster(config)
-
-	if session, err = clusterCfg.CreateSession(); err != nil {
-		emperror.Panic(err)
-	}
-	//defer session.Close()
-
-	// init cassandra store
-	keyspaceQuery := fmt.Sprintf("CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}", config.Keyspace)
-	tableQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s.%s (	key text, value text, PRIMARY KEY(key))", config.Keyspace, config.Table)
-
-	if e := session.Query(keyspaceQuery).Exec(); e != nil {
-		logger.Error("failed to create keyspace", map[string]interface{}{"cistore": "cassandra"})
-		emperror.Panic(err)
-	}
-
-	if e := session.Query(tableQuery).Exec(); e != nil {
-		logger.Error("failed to create product table", map[string]interface{}{"cistore": "cassandra"})
-		emperror.Panic(err)
-	}
-
 	return &cassandraProductStore{
 		log:       logur.WithFields(logger, map[string]interface{}{"cistore": "cassandra"}),
 		keySpace:  config.Keyspace,
 		tableName: config.Table,
-		session:   session,
+		cluster:   cassandra.NewCluster(config),
 	}
 }
 
@@ -73,13 +49,10 @@ func (cps *cassandraProductStore) StoreRegions(provider, service string, val map
 }
 
 func (cps *cassandraProductStore) GetRegions(provider, service string) (map[string]string, bool) {
-	var (
-		res = make(map[string]string)
-	)
+	res := make(map[string]string)
 	_, ok := cps.get(cps.getKey(cloudinfo.RegionKeyTemplate, provider, service), &res)
 
 	return res, ok
-
 }
 
 func (cps *cassandraProductStore) DeleteRegions(provider, service string) {
@@ -95,7 +68,6 @@ func (cps *cassandraProductStore) GetZones(provider, service, region string) ([]
 
 	_, ok := cps.get(cps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region), &res)
 	return res, ok
-
 }
 
 func (cps *cassandraProductStore) DeleteZones(provider, service, region string) {
@@ -119,8 +91,8 @@ func (cps *cassandraProductStore) StoreVm(provider, service, region string, val 
 func (cps *cassandraProductStore) GetVm(provider, service, region string) ([]cloudinfo.VmInfo, bool) {
 	res := make([]cloudinfo.VmInfo, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &res)
-	return res, ok
 
+	return res, ok
 }
 
 func (cps *cassandraProductStore) DeleteVm(provider, service, region string) {
@@ -132,11 +104,7 @@ func (cps *cassandraProductStore) StoreImage(provider, service, regionId string,
 }
 
 func (cps *cassandraProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
-
-	var (
-		res = make([]cloudinfo.Image, 0)
-	)
-
+	res := make([]cloudinfo.Image, 0)
 	cps.get(cps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), &res)
 
 	return res, false
@@ -153,8 +121,8 @@ func (cps *cassandraProductStore) StoreVersion(provider, service, region string,
 func (cps *cassandraProductStore) GetVersion(provider, service, region string) ([]cloudinfo.LocationVersion, bool) {
 	res := make([]cloudinfo.LocationVersion, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), &res)
-	return res, ok
 
+	return res, ok
 }
 
 func (cps *cassandraProductStore) DeleteVersion(provider, service, region string) {
@@ -168,8 +136,8 @@ func (cps *cassandraProductStore) StoreStatus(provider string, val string) {
 func (cps *cassandraProductStore) GetStatus(provider string) (string, bool) {
 	var res string
 	_, ok := cps.get(cps.getKey(cloudinfo.StatusKeyTemplate, provider), &res)
-	return res, ok
 
+	return res, ok
 }
 
 func (cps *cassandraProductStore) StoreServices(provider string, services []cloudinfo.Service) {
@@ -179,6 +147,7 @@ func (cps *cassandraProductStore) StoreServices(provider string, services []clou
 func (cps *cassandraProductStore) GetServices(provider string) ([]cloudinfo.Service, bool) {
 	res := make([]cloudinfo.Service, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.ServicesKeyTemplate, provider), &res)
+
 	return res, ok
 }
 
@@ -190,6 +159,13 @@ func (cps *cassandraProductStore) Import(r io.Reader) error {
 	panic("implement me")
 }
 
+func (cps *cassandraProductStore) Close() {
+	if !cps.session.Closed() {
+		cps.log.Debug("closing cassandra session ...")
+		cps.session.Close()
+	}
+}
+
 func (cps *cassandraProductStore) getKey(keyTemplate string, args ...interface{}) string {
 	key := fmt.Sprintf(keyTemplate, args...)
 
@@ -197,8 +173,11 @@ func (cps *cassandraProductStore) getKey(keyTemplate string, args ...interface{}
 }
 
 func (cps *cassandraProductStore) set(key string, value interface{}) (interface{}, bool) {
-	//session, _ := cps.clusterCfg.CreateSession()
-	//defer session.Close()
+
+	if err := cps.initSession(); err != nil {
+		cps.log.Error("failed to connect to backend")
+		return nil, false
+	}
 
 	var (
 		mJson []byte
@@ -222,8 +201,11 @@ func (cps *cassandraProductStore) set(key string, value interface{}) (interface{
 
 // get retrieves the value of the passed in key in it's raw format
 func (cps *cassandraProductStore) get(key string, toTypePtr interface{}) (interface{}, bool) {
-	//session, _ := cps.clusterCfg.CreateSession()
-	//defer session.Close()
+
+	if err := cps.initSession(); err != nil {
+		cps.log.Error("failed to connect to backend")
+		return nil, false
+	}
 
 	var (
 		cachedJson string
@@ -243,7 +225,7 @@ func (cps *cassandraProductStore) get(key string, toTypePtr interface{}) (interf
 
 	// unmarshal the cache value into th desired struct
 	if err = json.Unmarshal([]byte(cachedJson), &toTypePtr); err != nil {
-		cps.log.Debug("failed to unmarshal cache entry", map[string]interface{}{"val": cachedJson})
+		cps.log.Debug("failed to unmarshal cache entry", map[string]interface{}{"key": key})
 		return nil, false
 	}
 
@@ -251,11 +233,44 @@ func (cps *cassandraProductStore) get(key string, toTypePtr interface{}) (interf
 }
 
 func (cps *cassandraProductStore) delete(key string) {
-	//session, _ := cps.clusterCfg.CreateSession()
-	//defer session.Close()
+	if err := cps.initSession(); err != nil {
+		cps.log.Error("failed to connect to backend")
+		return
+	}
 
 	delQ := fmt.Sprintf("DELETE FROM %s.%s WHERE key = ?", cps.keySpace, cps.tableName)
 	if err := cps.session.Query(delQ, key).Exec(); err != nil {
 		cps.log.Error("failed to delete key", map[string]interface{}{"key": key})
 	}
+}
+
+// initSession connects to the cassandra backend if necessary
+func (cps *cassandraProductStore) initSession() error {
+
+	if cps.session != nil && !cps.session.Closed() {
+		return nil
+	}
+
+	var err error
+	cps.log.Debug("creating new session...")
+	if cps.session, err = cps.cluster.CreateSession(); err != nil {
+		cps.log.Error("failed to create session")
+		return emperror.Wrap(err, "failed to create cassandra session")
+	}
+
+	// init cassandra store
+	keyspaceQuery := fmt.Sprintf("CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}", cps.keySpace)
+	tableQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s.%s (	key text, value text, PRIMARY KEY(key))", cps.keySpace, cps.tableName)
+
+	if err = cps.session.Query(keyspaceQuery).Exec(); err != nil {
+		cps.log.Error("failed to create keyspace")
+		return emperror.Wrap(err, "failed to create keyspace")
+	}
+
+	if err := cps.session.Query(tableQuery).Exec(); err != nil {
+		cps.log.Error("failed to create product table")
+		return emperror.Wrap(err, "failed to create product table")
+	}
+
+	return nil
 }

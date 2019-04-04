@@ -96,6 +96,7 @@ func main() {
 
 	// use the configured store implementation
 	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, logger)
+	defer cloudInfoStore.Close()
 
 	infoers := loadInfoers(config, logger)
 

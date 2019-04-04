@@ -183,3 +183,6 @@ func (cis *cacheProductStore) get(key string) (interface{}, bool) {
 
 	return nil, false
 }
+
+func (cis *cacheProductStore) Close() {
+}

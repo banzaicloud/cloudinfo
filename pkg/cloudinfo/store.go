@@ -75,4 +75,6 @@ type CloudInfoStore interface {
 
 	Export(w io.Writer) error
 	Import(r io.Reader) error
+
+	Close()
 }
