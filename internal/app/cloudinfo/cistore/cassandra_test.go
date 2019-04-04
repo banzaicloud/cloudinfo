@@ -12,13 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cassandra
+package cistore
 
-// Cassandra related configuration collector
-type Config struct {
-	Enabled  bool
-	Hosts    []string
-	Port     int
-	Keyspace string
-	Table    string
+import (
+	"testing"
+)
+
+func TestCassandraStore(t *testing.T) {
+	//cps := NewCassandraProductStore(cassandra.Config{
+	//	Hosts: []string{"localhost"},
+	//	Port:  9042,
+	//},
+	//	logur.NewTestLogger())
+	//
+	////cps.StoreImage("amazon", "eks", "eu", []cloudinfo.Image{{Name: "tst"}})
+	//cps.DeleteImage("amazon", "eks", "eu")
+
+	//val, _ := cps.GetImage("amazon", "eks", "eu")
+	//
+	//print(val)
+
 }

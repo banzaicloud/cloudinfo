@@ -194,9 +194,11 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.SetDefault("store.gocache.expiration", 0)
 	v.SetDefault("store.gocache.cleanupinterval", 0)
 
-	v.SetDefault("store.cassandra.host", "localhost")
-	v.SetDefault("store.cassandra.port", "6379")
+	v.SetDefault("store.cassandra.hosts", "localhost")
+	v.SetDefault("store.cassandra.port", "9042")
 	v.SetDefault("store.cassandra.enabled", true)
+	v.SetDefault("store.cassandra.keyspace", "cloudinfo")
+	v.SetDefault("store.cassandra.table", "products")
 
 	pf.Init(friendlyServiceName, pflag.ExitOnError)
 

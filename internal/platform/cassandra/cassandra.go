@@ -17,5 +17,5 @@ package cassandra
 import "github.com/gocql/gocql"
 
 func NewCluster(config Config) *gocql.ClusterConfig {
-	return gocql.NewCluster(config.Hosts ...)
+	return gocql.NewCluster(config.Hosts...)
 }
