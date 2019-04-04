@@ -204,7 +204,6 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.SetDefault("store.gocache.expiration", 0)
 	v.SetDefault("store.gocache.cleanupinterval", 0)
 
-
 	pf.Init(friendlyServiceName, pflag.ExitOnError)
 
 	// define flags
