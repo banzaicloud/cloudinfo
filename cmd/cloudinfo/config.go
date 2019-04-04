@@ -188,17 +188,22 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.SetDefault("serviceloader.format", "yaml")
 
 	// CloudInfoStore
+	// Redis product store
 	v.SetDefault("store.redis.host", "localhost")
 	v.SetDefault("store.redis.port", "6379")
 	v.SetDefault("store.redis.enabled", false)
+
+	// Cassandra product store
+	v.SetDefault("store.cassandra.hosts", "localhost")
+	v.SetDefault("store.cassandra.port", "9042")
+	v.SetDefault("store.cassandra.enabled", false)
+	v.SetDefault("store.cassandra.keyspace", "cloudinfo")
+	v.SetDefault("store.cassandra.table", "products")
+
+	// in mem product store
 	v.SetDefault("store.gocache.expiration", 0)
 	v.SetDefault("store.gocache.cleanupinterval", 0)
 
-	v.SetDefault("store.cassandra.hosts", "localhost")
-	v.SetDefault("store.cassandra.port", "9042")
-	v.SetDefault("store.cassandra.enabled", true)
-	v.SetDefault("store.cassandra.keyspace", "cloudinfo")
-	v.SetDefault("store.cassandra.table", "products")
 
 	pf.Init(friendlyServiceName, pflag.ExitOnError)
 

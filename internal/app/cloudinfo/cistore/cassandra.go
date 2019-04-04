@@ -26,43 +26,45 @@ import (
 	"github.com/goph/logur"
 )
 
-const (
-	keySpace  = "cloudinfo"
-	tableName = "products"
-)
-
 type cassandraProductStore struct {
-	log        logur.Logger
-	clusterCfg *gocql.ClusterConfig
+	log       logur.Logger
+	keySpace  string
+	tableName string
+	session   *gocql.Session
 }
 
 func NewCassandraProductStore(config cassandra.Config, logger logur.Logger) cloudinfo.CloudInfoStore {
 
+	var (
+		session *gocql.Session
+		err     error
+	)
 	clusterCfg := cassandra.NewCluster(config)
-	if session, err := clusterCfg.CreateSession(); err != nil {
+
+	if session, err = clusterCfg.CreateSession(); err != nil {
 		emperror.Panic(err)
+	}
+	//defer session.Close()
 
-	} else {
-		defer session.Close()
+	// init cassandra store
+	keyspaceQuery := fmt.Sprintf("CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}", config.Keyspace)
+	tableQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s.%s (	key text, value text, PRIMARY KEY(key))", config.Keyspace, config.Table)
 
-		// init cassandra store
-		keyspaceQuery := fmt.Sprintf("CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}", config.Keyspace)
-		tableQuery := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s.%s (	key text, value text, PRIMARY KEY(key))", config.Keyspace, config.Table)
+	if e := session.Query(keyspaceQuery).Exec(); e != nil {
+		logger.Error("failed to create keyspace", map[string]interface{}{"cistore": "cassandra"})
+		emperror.Panic(err)
+	}
 
-		if e := session.Query(keyspaceQuery).Exec(); e != nil {
-			logger.Error("failed to create keyspace", map[string]interface{}{"cistore": "cassandra"})
-			emperror.Panic(err)
-		}
-
-		if e := session.Query(tableQuery).Exec(); e != nil {
-			logger.Error("failed to create product table", map[string]interface{}{"cistore": "cassandra"})
-			emperror.Panic(err)
-		}
+	if e := session.Query(tableQuery).Exec(); e != nil {
+		logger.Error("failed to create product table", map[string]interface{}{"cistore": "cassandra"})
+		emperror.Panic(err)
 	}
 
 	return &cassandraProductStore{
-		log:        logur.WithFields(logger, map[string]interface{}{"cistore": "cassandra"}),
-		clusterCfg: clusterCfg,
+		log:       logur.WithFields(logger, map[string]interface{}{"cistore": "cassandra"}),
+		keySpace:  config.Keyspace,
+		tableName: config.Table,
+		session:   session,
 	}
 }
 
@@ -126,11 +128,7 @@ func (cps *cassandraProductStore) DeleteVm(provider, service, region string) {
 }
 
 func (cps *cassandraProductStore) StoreImage(provider, service, regionId string, val []cloudinfo.Image) {
-	session, _ := cps.clusterCfg.CreateSession()
-	defer session.Close()
-
 	cps.set(cps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), val)
-
 }
 
 func (cps *cassandraProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
@@ -199,8 +197,8 @@ func (cps *cassandraProductStore) getKey(keyTemplate string, args ...interface{}
 }
 
 func (cps *cassandraProductStore) set(key string, value interface{}) (interface{}, bool) {
-	session, _ := cps.clusterCfg.CreateSession()
-	defer session.Close()
+	//session, _ := cps.clusterCfg.CreateSession()
+	//defer session.Close()
 
 	var (
 		mJson []byte
@@ -213,8 +211,8 @@ func (cps *cassandraProductStore) set(key string, value interface{}) (interface{
 		return nil, false
 	}
 
-	ins := fmt.Sprintf("INSERT INTO %s.%s (key, value) VALUES (?, ?)", keySpace, tableName)
-	if err = session.Query(ins, key, mJson).Exec(); err != nil {
+	ins := fmt.Sprintf("INSERT INTO %s.%s (key, value) VALUES (?, ?)", cps.keySpace, cps.tableName)
+	if err = cps.session.Query(ins, key, mJson).Exec(); err != nil {
 		cps.log.Debug("failed to save value", map[string]interface{}{"key": key, "value": value})
 		return nil, false
 	}
@@ -224,16 +222,16 @@ func (cps *cassandraProductStore) set(key string, value interface{}) (interface{
 
 // get retrieves the value of the passed in key in it's raw format
 func (cps *cassandraProductStore) get(key string, toTypePtr interface{}) (interface{}, bool) {
-	session, _ := cps.clusterCfg.CreateSession()
-	defer session.Close()
+	//session, _ := cps.clusterCfg.CreateSession()
+	//defer session.Close()
 
 	var (
 		cachedJson string
 		err        error
 	)
 
-	getQ := fmt.Sprintf("SELECT value FROM  %s.%s WHERE key = ?", keySpace, tableName)
-	if err = session.Query(getQ, key).Scan(&cachedJson); err != nil {
+	getQ := fmt.Sprintf("SELECT value FROM  %s.%s WHERE key = ?", cps.keySpace, cps.tableName)
+	if err = cps.session.Query(getQ, key).Scan(&cachedJson); err != nil {
 		cps.log.Debug("failed to get entry", map[string]interface{}{"key": key})
 		return nil, false
 	}
@@ -253,12 +251,11 @@ func (cps *cassandraProductStore) get(key string, toTypePtr interface{}) (interf
 }
 
 func (cps *cassandraProductStore) delete(key string) {
-	session, _ := cps.clusterCfg.CreateSession()
-	defer session.Close()
+	//session, _ := cps.clusterCfg.CreateSession()
+	//defer session.Close()
 
-	delQ := fmt.Sprintf("DELETE FROM %s.%s WHERE key = ?", keySpace, tableName)
-	if err := session.Query(delQ, key).Exec(); err != nil {
+	delQ := fmt.Sprintf("DELETE FROM %s.%s WHERE key = ?", cps.keySpace, cps.tableName)
+	if err := cps.session.Query(delQ, key).Exec(); err != nil {
 		cps.log.Error("failed to delete key", map[string]interface{}{"key": key})
 	}
-
 }
