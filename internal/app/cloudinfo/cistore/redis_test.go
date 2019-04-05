@@ -16,20 +16,29 @@ package cistore
 
 import (
 	"testing"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
+	"github.com/goph/logur"
+	"github.com/stretchr/testify/assert"
 )
 
 // Skeleton for dev testing the redis store
 // use the attached docker-compose.yaml compose file
-func Test(t *testing.T) {
+func testRedisStore(t *testing.T) {
 
-	//cfg := redis.Config{
-	//	Host: "localhost",
-	//	Port: 6379,
-	//}
-	//
-	//ps := NewRedisProductStore(cfg, logur.NewTestLogger())
-	//
-	//// /banzaicloud.com/cloudinfo/providers/amazon/regions/ca-central-1/prices
-	//ps.DeleteVm("amazon", "eks", "eu-central-1")
+	cfg := redis.Config{
+		Host: "localhost",
+		Port: 6379,
+	}
+
+	ps := NewRedisProductStore(cfg, logur.NewTestLogger())
+
+	// insert an entry
+	ps.StoreStatus("amazon", "status")
+
+	// retrieve it
+	status, ok := ps.GetStatus("amazon")
+	assert.True(t, ok)
+	assert.Equal(t, "status", status)
 
 }

@@ -15,29 +15,20 @@
 package cistore
 
 import (
+	"flag"
 	"testing"
-
-	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
-	"github.com/goph/logur"
-	"github.com/stretchr/testify/assert"
 )
 
-func testCassandraStore(t *testing.T) {
+// TestIntegration test suite for functional testing cloud
+// Note: use the attached docker-compose file for quickly setup the environment
+func TestIntegration(t *testing.T) {
 
-	cps := NewCassandraProductStore(cassandra.Config{
-		Hosts:    []string{"localhost"},
-		Port:     9042,
-		Keyspace: "test",
-		Table:    "testPi",
-	},
-		logur.NewTestLogger())
+	if m := flag.Lookup("test.run").Value.String(); m == "" {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
+	}
 
-	// insert an entry
-	cps.StoreStatus("amazon", "status")
+	t.Parallel()
 
-	// retrieve it
-	status, ok := cps.GetStatus("amazon")
-	assert.True(t, ok)
-	assert.Equal(t, "status", status)
-
+	t.Run("testCassandraStore", testCassandraStore)
+	t.Run("testRedisStore", testRedisStore)
 }
