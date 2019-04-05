@@ -16,6 +16,7 @@ package cistore
 
 import (
 	"flag"
+	"regexp"
 	"testing"
 )
 
@@ -23,7 +24,7 @@ import (
 // Note: use the attached docker-compose file for quickly setup the environment
 func TestIntegration(t *testing.T) {
 
-	if m := flag.Lookup("test.run").Value.String(); m == "" {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
