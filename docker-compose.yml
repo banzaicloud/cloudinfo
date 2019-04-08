@@ -1,7 +1,6 @@
-version: '3.1'
+version: "3.1"
 
 services:
-
     #    jaeger:
     #        image: jaegertracing/all-in-one:${JAEGER_TAG:-latest}
     #        restart: always
@@ -11,20 +10,16 @@ services:
     #            - 5778:5778
     #            - 16686:16686
     #            - 14268:14268
+
     redis:
-        image: redis:${REDIS_TAG:-latest}
-        restart: always
+        image: redis:5.0
         environment:
             - REDIS
-        ports:
-            - 6379:6379
+
     cassandra:
         image: cassandra:3.11
-        restart: always
         environment:
             - CASSANDRA
-        ports:
-            - 9042:9042
 
 #    cloudinfo:
 #        image: banzaicloud/cloudinfo:${TAG:-test}
@@ -43,8 +38,3 @@ services:
 #        volumes:
 #            - ${HOME}/.aws:/root/.aws
 #            - ${HOME}/.oci:/root/.oci
-
-
-
-
-
