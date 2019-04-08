@@ -110,3 +110,11 @@
 [[constraint]]
   name = "gopkg.in/go-playground/validator.v8"
   version = "v8.18.2"
+
+[[constraint]]
+  name = "github.com/gomodule/redigo"
+  version = "2.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gocql/gocql"

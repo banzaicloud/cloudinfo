@@ -1,36 +1,12 @@
-version: '3.1'
+version: "3.1"
 
 services:
-
     jaeger:
         image: jaegertracing/all-in-one:${JAEGER_TAG:-latest}
-        restart: always
-        environment:
-            - JAEGER
-        ports:
-            - 5778:5778
-            - 16686:16686
-            - 14268:14268
 
-    cloudinfo:
-        image: banzaicloud/cloudinfo:${TAG:-test}
-        restart: always
-        environment:
-            - PROVIDER=amazon
-            - LOG_LEVEL=debug
-            - ORACLE_CLI_CONFIG_LOCATION=/root/.oci/config
-            - INSTRUMENTATION_JAEGER_ENABLED=true
-            - INSTRUMENTATION_JAEGER_COLLECTORENDPOINT=http://jaeger:14268/api/traces?format=jaeger.thrift
-        links:
-            - "jaeger:jaeger"
-        ports:
-            - 9090:9090
-            - 8099:8099
-        volumes:
-            - ${HOME}/.aws:/root/.aws
-            - ${HOME}/.oci:/root/.oci
+    redis:
+        image: redis:5.0
 
-
-
-
+    cassandra:
+        image: cassandra:3.11
 

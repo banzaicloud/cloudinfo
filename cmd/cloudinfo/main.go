@@ -28,6 +28,7 @@ package main
 
 import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
@@ -93,8 +94,9 @@ func main() {
 		tracer = tracing.NewTracer()
 	}
 
-	// expiration set to  0 - entries never expire
-	cloudInfoStore := cloudinfo.NewCacheProductStore(0, config.RenewalInterval, logger)
+	// use the configured store implementation
+	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, logger)
+	defer cloudInfoStore.Close()
 
 	infoers := loadInfoers(config, logger)
 

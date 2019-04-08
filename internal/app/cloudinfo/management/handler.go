@@ -35,8 +35,8 @@ type mngmntRouteHandler struct {
 
 // Export exports the content of the Store into the response body
 func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
-	mrh.log.Info("exporting cloud information")
 	return func(c *gin.Context) {
+		mrh.log.Info("exporting cloud information")
 		if err := mrh.cis.Export(c.Writer); err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
@@ -48,9 +48,9 @@ func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
 
 // Import loads the data into the underlying store implementation from the stdin
 func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
-	mrh.log.Info("importing cloud information")
-	return func(c *gin.Context) {
 
+	return func(c *gin.Context) {
+		mrh.log.Info("importing cloud information")
 		f, fh, err := c.Request.FormFile("data")
 		if err != nil {
 			mrh.log.Error("failed to import data", map[string]interface{}{"err": err})

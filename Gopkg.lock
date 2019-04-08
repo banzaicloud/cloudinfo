@@ -355,6 +355,19 @@
   version = "v0.18.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:8da3a3df9ccb4fdfd6c14074d2b43c5e139fab03a68abe7f619fadde4c0c0515"
+  name = "github.com/gocql/gocql"
+  packages = [
+    ".",
+    "internal/lru",
+    "internal/murmur",
+    "internal/streams",
+  ]
+  pruneopts = "NUT"
+  revision = "0e1d5de854dfd269e343440b9807f43a5f2e62cf"
+
+[[projects]]
   digest = "1:bde9f189072512ba353f3641d4839cb4c9c7edf421e467f2c03f267b402bd16c"
   name = "github.com/gofrs/uuid"
   packages = ["."]
@@ -378,6 +391,25 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:7f114b78210bf5b75f307fc97cff293633c835bab1e0ea8a744a44b39c042dfe"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "2a8bb927dd31d8daada140a5d09578521ce5c36a"
+  version = "v0.0.1"
+
+[[projects]]
+  digest = "1:38ec74012390146c45af1f92d46e5382b50531247929ff3a685d2b2be65155ac"
+  name = "github.com/gomodule/redigo"
+  packages = [
+    "internal",
+    "redis",
+  ]
+  pruneopts = "NUT"
+  revision = "9c11da706d9b7902c6da69c592f75637793fe121"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:749bb04f4077e36f539cc90dc2b99a907f4ace8b39760e7d00e19d65732c7440"
   name = "github.com/goph/emperror"
   packages = ["."]
@@ -395,6 +427,14 @@
   pruneopts = "NUT"
   revision = "72381de18a2f0fb8cd421a6316af719950ce3bef"
   version = "v0.10.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:414b0b85f897039eb35308a0f7f1beaf16c073cfdc6fccd325ddd8a7f7dca7a3"
+  name = "github.com/hailocab/go-hostpool"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "e80d13ce29ede4452c43dea11e79b9bc8a15b478"
 
 [[projects]]
   digest = "1:11c6c696067d3127ecf332b10f89394d386d9083f82baf71f40f2da31841a009"
@@ -893,6 +933,14 @@
   version = "v8.18.2"
 
 [[projects]]
+  digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"
+  name = "gopkg.in/inf.v0"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "d2d2541c53f18d2a059457998ce2876cc8e67cbf"
+  version = "v0.9.1"
+
+[[projects]]
   digest = "1:18108594151654e9e696b27b181b953f9a90b16bf14d253dd1b397b025a1487f"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -934,7 +982,9 @@
     "github.com/go-openapi/runtime/client",
     "github.com/go-openapi/strfmt",
     "github.com/go-openapi/swag",
+    "github.com/gocql/gocql",
     "github.com/gofrs/uuid",
+    "github.com/gomodule/redigo/redis",
     "github.com/goph/emperror",
     "github.com/goph/logur",
     "github.com/goph/logur/adapters/logrusadapter",

@@ -212,7 +212,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 				return emperror.WrapWith(err, "failed to retrieve regions",
 					"provider", sm.provider, "service", service.ServiceName())
 			}
-			regions = _regions.(map[string]string)
+			regions = _regions
 		} else {
 			if regions, err = sm.infoer.GetRegions(service.ServiceName()); err != nil {
 
@@ -276,7 +276,6 @@ func (sm *scrapingManager) updateStatus(ctx context.Context) {
 // scrapeServiceInformation scrapes service and region dependant cloud information and stores its
 func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 	var (
-		err      error
 		cached   interface{}
 		services []Service
 		ok       bool
@@ -286,16 +285,19 @@ func (sm *scrapingManager) scrapeServiceInformation(ctx context.Context) {
 
 	if cached, ok = sm.store.GetServices(sm.provider); !ok {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
-		sm.log.Error(emperror.Wrap(err, "failed to retrieve services").Error(), log.ToMap(emperror.Context(err)))
+		sm.log.Error("failed to retrieve services")
+		return
 	}
 
 	if services, ok = cached.([]Service); !ok {
 		sm.metrics.ReportScrapeFailure(sm.provider, "N/A", "N/A")
 		sm.log.Error("invalid services stored in the store")
+		return
 	}
 
 	if err := sm.scrapeServiceRegionInfo(ctx, services); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to load service region information").Error(), log.ToMap(emperror.Context(err)))
+		return
 	}
 
 	sm.updateStatus(ctx)
@@ -409,7 +411,7 @@ func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStor
 		provider: provider,
 		infoer:   infoer,
 		store:    store,
-		log:      logur.WithFields(log, map[string]interface{}{"provider": provider}),
+		log:      logur.WithFields(log, map[string]interface{}{"component": "scraping-manager", "provider": provider}),
 		metrics:  metrics,
 		tracer:   tracer,
 		eventBus: eventBus,
@@ -476,6 +478,6 @@ func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudIn
 	return &ScrapingDriver{
 		scrapingManagers: managers,
 		renewalInterval:  renewalInterval,
-		log:              log,
+		log:              logur.WithFields(log, map[string]interface{}{"component": "scraping-driver"}),
 	}
 }

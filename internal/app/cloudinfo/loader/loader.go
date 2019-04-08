@@ -161,8 +161,8 @@ func (scil *storeCloudInfoLoader) LoadZones(provider string, service string, reg
 		} else {
 			var availableZones []string
 			for _, zone := range zones.([]string) {
-				if !cloudinfo.Contains(region.Data.Zones.Data, zone) {
-					availableZones = append(availableZones, zone)
+				if !cloudinfo.Contains(region.Data.Zones.Data, string(zone)) {
+					availableZones = append(availableZones, string(zone))
 				}
 			}
 			scil.store.StoreZones(provider, service, region.Id, availableZones)
@@ -307,7 +307,7 @@ func (scil *storeCloudInfoLoader) LoadImages(provider string, service string, re
 					}
 				}
 			}
-			scil.store.StoreVersion(provider, service, region.Id, availableImages)
+			scil.store.StoreImage(provider, service, region.Id, availableImages)
 		}
 	default:
 		scil.log.Error("invalid image strategy",

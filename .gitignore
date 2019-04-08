@@ -1,18 +1,27 @@
-.DS_Store
-bin/*
-*.swp
-test.txt
-/vendor/
-/.licensei.cache
-client_test.go
+/bin/
 /build/
+/docker-compose.override.yml
+/vendor/
+
+/.licensei.cache
 
 # IDE integration
+/.vscode/*
+!/.vscode/launch.json
+!/.vscode/tasks.json
 /.idea/*
+!/.idea/codeStyles/
 !/.idea/copyright/
+!/.idea/dataSources.xml
 !/.idea/*.iml
 !/.idea/externalDependencies.xml
 !/.idea/go.imports.xml
 !/.idea/modules.xml
 !/.idea/runConfigurations/
 !/.idea/scopes/
+!/.idea/sqldialects.xml
+
+.DS_Store
+*.swp
+test.txt
+client_test.go

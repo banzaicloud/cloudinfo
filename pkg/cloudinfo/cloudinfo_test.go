@@ -16,9 +16,7 @@ package cloudinfo
 
 import (
 	"testing"
-	"time"
 
-	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,7 +30,7 @@ type DummyCloudInfoStore struct {
 
 const notCached = "error"
 
-func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[string]string, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -46,7 +44,7 @@ func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (interface
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) ([]string, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -59,7 +57,7 @@ func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) (int
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) ([]Image, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -80,7 +78,7 @@ func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) (i
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) ([]LocationVersion, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -97,16 +95,16 @@ func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) (i
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetStatus(provider string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetStatus(provider string) (string, bool) {
 	switch dcis.TcId {
 	case notCached:
-		return nil, false
+		return "", false
 	default:
 		return "dummyStatus", true
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetServices(provider string) (interface{}, bool) {
+func (dcis *DummyCloudInfoStore) GetServices(provider string) ([]Service, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
@@ -151,7 +149,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCachingCloudInfo(test.CloudInfoer, NewCacheProductStore(10*time.Minute, 5*time.Minute, logur.NewTestLogger())))
+			test.checker(NewCachingCloudInfo(test.CloudInfoer, &DummyCloudInfoStore{}))
 		})
 	}
 
@@ -185,7 +183,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
+			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{})
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetRegions("dummyProvider", "dummyService"))
 		})
@@ -217,7 +215,7 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
+			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{})
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetVersions("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -249,7 +247,7 @@ func TestCachingCloudInfo_GetServiceImages(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
+			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{})
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetServiceImages("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -281,7 +279,7 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
+			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{})
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetZones("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -313,7 +311,7 @@ func TestCachingCloudInfo_GetServices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
+			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{})
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetServices("dummyProvider"))
 		})
@@ -345,7 +343,7 @@ func TestCachingCloudInfo_GetStatus(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, NewCacheProductStore(5*time.Minute, 10*time.Minute, logur.NewTestLogger()))
+			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{})
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetStatus("dummyProvider"))
 		})

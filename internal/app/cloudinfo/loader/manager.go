@@ -62,7 +62,7 @@ func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 		}
 
 	}
-	sm.log.Info("triggering cloud information importing ...")
+	sm.log.Info("cloud information imported.")
 }
 
 func (sm *defaultServiceManager) ConfigureServices(providers []string) {

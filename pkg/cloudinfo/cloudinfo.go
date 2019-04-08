@@ -128,7 +128,7 @@ func (cpi *cachingCloudInfo) GetProvider(provider string) (Provider, error) {
 // GetZones returns the availability zones in a region
 func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, service, region); ok {
-		return cachedVal.([]string), nil
+		return cachedVal, nil
 	}
 
 	return nil, emperror.With(errors.New("zones not yet cached"), "provider", provider, "region", region)
@@ -137,7 +137,7 @@ func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]strin
 // GetRegions gets the regions for the provided provider
 func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
-		return cachedVal.(map[string]string), nil
+		return cachedVal, nil
 	}
 
 	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
@@ -145,7 +145,7 @@ func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]st
 
 func (cpi *cachingCloudInfo) GetServices(provider string) ([]Service, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetServices(provider); ok {
-		return cachedVal.([]Service), nil
+		return cachedVal, nil
 	}
 
 	return nil, emperror.With(errors.New("services not yet cached"), "provider", provider)
@@ -165,12 +165,10 @@ func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string,
 
 	var details []ProductDetails
 
-	var pr Price
 	for _, vm := range vms.([]VmInfo) {
 		pd := newProductDetails(vm)
 		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
-			pr = cachedVal.(Price)
-			for zone, price := range pr.SpotPrice {
+			for zone, price := range cachedVal.SpotPrice {
 				pd.SpotPrice = append(pd.SpotPrice, *newZonePrice(zone, price))
 			}
 		} else {
@@ -186,7 +184,7 @@ func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string,
 // GetStatus retrieves status form the given provider
 func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
 	if cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider); ok {
-		return cachedStatus.(string), nil
+		return cachedStatus, nil
 	}
 	return "", emperror.With(errors.New("status not yet cached"), "provider", provider)
 }
@@ -194,7 +192,7 @@ func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
 // GetServiceImages retrieves available images for the given provider, service and region
 func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) ([]Image, error) {
 	if cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region); ok {
-		return cachedImages.([]Image), nil
+		return cachedImages, nil
 	}
 
 	return nil, emperror.With(errors.New("images not yet cached"), "provider", provider,
@@ -204,7 +202,7 @@ func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) 
 // GetVersions retrieves available versions for the given provider, service and region
 func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]LocationVersion, error) {
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
-		return cachedVersions.([]LocationVersion), nil
+		return cachedVersions, nil
 	}
 	return nil, emperror.With(errors.New("versions not yet cached"),
 		"provider", provider, "service", service, "region", region)
