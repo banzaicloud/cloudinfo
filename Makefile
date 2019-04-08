@@ -16,6 +16,7 @@ COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
+export GO111MODULE = off
 ifeq (${VERBOSE}, 1)
 	GOARGS += -v
 endif
