@@ -2,261 +2,288 @@ isstatic: true
 name: pke
 provider: amazon
 source: compute
-regions:
+continents:
   -
-    name: EU (Stockholm)
-    id: eu-north-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+    name: America
+    regions:
+      - name: South America (Sao Paulo)
+        id: sa-east-1
         data:
-          -
-            location: eu-north-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: sa-east-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: US West (Oregon)
+        id: us-west-2
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: us-west-2
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: Canada (Central)
+        id: ca-central-1
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: ca-central-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: US East (N. Virginia)
+        id: us-east-1
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: us-east-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: US West (N. California)
+        id: us-west-1
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: us-west-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: US East (Ohio)
+        id: us-east-2
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: us-east-2
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
   -
-    name: Asia Pacific (Seoul)
-    id: ap-northeast-2
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+    name: Australia
+    regions:
+      - name: Asia Pacific (Sydney)
+        id: ap-southeast-2
         data:
-          - location: ap-northeast-2
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: ap-southeast-2
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
   -
-    name: South America (Sao Paulo)
-    id: sa-east-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+    name: Europe
+    regions:
+      - name: EU (Stockholm)
+        id: eu-north-1
         data:
-          - location: sa-east-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: eu-north-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: EU (Frankfurt)
+        id: eu-central-1
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: eu-central-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: EU (Ireland)
+        id: eu-west-1
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: eu-west-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: EU (London)
+        id: eu-west-2
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: eu-west-2
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: EU (Paris)
+        id: eu-west-3
+        data:
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: eu-west-3
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
   -
-    name: US West (Oregon)
-    id: us-west-2
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+    name: Asia
+    regions:
+      - name: Asia Pacific (Seoul)
+        id: ap-northeast-2
         data:
-          - location: us-west-2
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: EU (Frankfurt)
-    id: eu-central-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: ap-northeast-2
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: Asia Pacific (Mumbai)
+        id: ap-south-1
         data:
-          - location: eu-central-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: Canada (Central)
-    id: ca-central-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: ap-south-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: Asia Pacific (Singapore)
+        id: ap-southeast-1
         data:
-          - location: ca-central-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: Asia Pacific (Mumbai)
-    id: ap-south-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: ap-southeast-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude
+      - name: Asia Pacific (Tokyo)
+        id: ap-northeast-1
         data:
-          - location: ap-south-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: US West (N. California)
-    id: us-west-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: us-west-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: Asia Pacific (Singapore)
-    id: ap-southeast-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: ap-southeast-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: EU (Ireland)
-    id: eu-west-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: eu-west-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: US East (Ohio)
-    id: us-east-2
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: us-east-2
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: US East (N. Virginia)
-    id: us-east-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: us-east-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: Asia Pacific (Tokyo)
-    id: ap-northeast-1
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: ap-northeast-1
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: EU (London)
-    id: eu-west-2
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: eu-west-2
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: Asia Pacific (Sydney)
-    id: ap-southeast-2
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: ap-southeast-2
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
-  -
-    name: EU (Paris)
-    id: eu-west-3
-    data:
-      zones:
-        strategy: exclude
-      images:
-        strategy: exclude
-      versions:
-        strategy: exact
-        data:
-          - location: eu-west-3
-            versions:
-              - v1.12.2
-      vms:
-        strategy: exclude
+          zones:
+            strategy: exclude
+          images:
+            strategy: exclude
+          versions:
+            strategy: exact
+            data:
+              - location: ap-northeast-1
+                versions:
+                  - 1.12.2
+                  - 1.13.3
+                  - 1.14.0
+          vms:
+            strategy: exclude

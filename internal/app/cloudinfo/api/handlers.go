@@ -234,9 +234,13 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 				pathParams.Provider, pathParams.Service))
 			return
 		}
+
 		var response RegionsResponse
-		for id, name := range regions {
-			response = append(response, Region{id, name})
+		for continent, _regions := range regions {
+			response = append(response, Continent{
+				Name:    continent,
+				Regions: _regions,
+			})
 		}
 
 		logger.Debug("successfully retrieved regions")
@@ -288,9 +292,17 @@ func (r *RouteHandler) getRegion() gin.HandlerFunc {
 
 			return
 		}
+		var displayName string
+		for _, _regions := range regions {
+			for _, r := range _regions {
+				if r.Id == pathParams.Region {
+					displayName = r.Name
+				}
+			}
+		}
 
 		logger.Debug("successfully retrieved region details")
-		c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, regions[pathParams.Region], zones})
+		c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, displayName, zones})
 	}
 }
 

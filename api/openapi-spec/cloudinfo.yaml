@@ -284,6 +284,19 @@ components:
             format: double
           x-go-name: AttributeValues
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Continent:
+      description: Continent holds continent and regions of a cloud provider
+      type: object
+      properties:
+        name:
+          type: string
+          x-go-name: Name
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Region'
+          x-go-name: Regions
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetAttributeValuesPathParams:
       description: >-
         GetAttributeValuesPathParams is a placeholder for the get attribute
@@ -526,12 +539,12 @@ components:
         name:
           type: string
           x-go-name: Name
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
     RegionsResponse:
       description: RegionsResponse holds the list of available regions of a cloud provider
       type: array
       items:
-        $ref: '#/components/schemas/Region'
+        $ref: '#/components/schemas/Continent'
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     Service:
       description: it's intended to implement the ServiceDescriber interface

@@ -135,7 +135,7 @@ func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]strin
 }
 
 // GetRegions gets the regions for the provided provider
-func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]string, error) {
+func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string][]Region, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
 		return cachedVal, nil
 	}

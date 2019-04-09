@@ -16,7 +16,7 @@
 
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ProductService } from '../product.service';
-import { DisplayedProduct, Region, Provider } from '../product';
+import { DisplayedProduct, Region, Provider, Continent } from '../product';
 import { Observable } from 'rxjs/index';
 import { MatSort, MatTableDataSource, MatSelectChange } from '@angular/material';
 import { switchMap } from 'rxjs/operators';
@@ -33,6 +33,7 @@ export class ProductsComponent implements OnInit {
 
   regions: Region[];
   providers: Provider[] = [];
+  continents: Continent[];
   selectedProvider = '';
   selectedService = '';
   selectedRegion = '';
@@ -63,9 +64,9 @@ export class ProductsComponent implements OnInit {
           return this.getRegions();
         })
       )
-      .subscribe(regions => {
-        this.regions = this.sortRegions(regions);
-        this.selectedRegion = regions[0].id;
+      .subscribe(continents => {
+        this.continents = this.sortContinents(continents);
+        this.selectedRegion = continents[0].regions[0].id;
         this.getProducts();
       },
       error => {
@@ -73,7 +74,7 @@ export class ProductsComponent implements OnInit {
       });
   }
 
-  public getRegions(): Observable<Region[]> {
+  public getRegions(): Observable< Continent[] > {
     return this.productService.getRegions(this.selectedProvider, this.selectedService);
   }
 
@@ -88,9 +89,9 @@ export class ProductsComponent implements OnInit {
   public updateProducts(service: string, provider: string): void {
     this.selectedService = service;
     this.selectedProvider = provider;
-    this.getRegions().subscribe(regions => {
-      this.regions = this.sortRegions(regions);
-      this.selectedRegion = regions[0].id;
+    this.getRegions().subscribe(continents => {
+      this.continents = this.sortContinents(continents);
+      this.selectedRegion = continents[0].regions[0].id;
       this.getProducts();
     });
   }
@@ -107,8 +108,8 @@ export class ProductsComponent implements OnInit {
     });
   }
 
-  private sortRegions(regions: Region[]): Region[] {
-    return regions.sort((a, b) => {
+  private sortContinents(continent: Continent[]): Continent[] {
+    return continent.sort((a, b) => {
       const nameA = a.name.toUpperCase();
       const nameB = b.name.toUpperCase();
       if (nameA < nameB) {

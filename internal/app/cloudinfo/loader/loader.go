@@ -57,20 +57,25 @@ func (sl *defaultCloudInfoLoader) Load() {
 func (sl *defaultCloudInfoLoader) LoadRegions() {
 	sl.log.Debug("loading region data...")
 
-	regionMap := make(map[string]string)
-	for _, region := range sl.serviceData.Regions {
-		regionMap[region.Id] = region.Name
+	regions := make(map[string][]cloudinfo.Region)
+	for _, continent := range sl.serviceData.Continents {
+		for _, region := range continent.Regions {
+			regions[continent.Name] = append(regions[continent.Name], cloudinfo.Region{
+				Id:   region.Id,
+				Name: region.Name,
+			})
 
-		sl.LoadZones(sl.serviceData.Provider, sl.serviceData.Name, region)
+			sl.LoadZones(sl.serviceData.Provider, sl.serviceData.Name, region)
 
-		sl.LoadVersions(sl.serviceData.Provider, sl.serviceData.Name, region)
+			sl.LoadVersions(sl.serviceData.Provider, sl.serviceData.Name, region)
 
-		sl.LoadImages(sl.serviceData.Provider, sl.serviceData.Name, region)
+			sl.LoadImages(sl.serviceData.Provider, sl.serviceData.Name, region)
 
-		sl.LoadVms(sl.serviceData.Provider, sl.serviceData.Name, region)
+			sl.LoadVms(sl.serviceData.Provider, sl.serviceData.Name, region)
+		}
 	}
 
-	sl.store.StoreRegions(sl.serviceData.Provider, sl.serviceData.Name, regionMap)
+	sl.store.StoreRegions(sl.serviceData.Provider, sl.serviceData.Name, regions)
 	sl.log.Debug("regions loaded")
 
 	// set the status
@@ -122,20 +127,25 @@ func (scil *storeCloudInfoLoader) Load() {
 func (scil *storeCloudInfoLoader) LoadRegions() {
 	scil.log.Debug("loading region data...")
 
-	regionMap := make(map[string]string)
-	for _, region := range scil.serviceData.Regions {
-		regionMap[region.Id] = region.Name
+	regions := make(map[string][]cloudinfo.Region)
+	for _, continent := range scil.serviceData.Continents {
+		for _, region := range continent.Regions {
+			regions[continent.Name] = append(regions[continent.Name], cloudinfo.Region{
+				Id:   region.Id,
+				Name: region.Name,
+			})
 
-		scil.LoadZones(scil.serviceData.Provider, scil.serviceData.Name, region)
+			scil.LoadZones(scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadVersions(scil.serviceData.Provider, scil.serviceData.Name, region)
+			scil.LoadVersions(scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadImages(scil.serviceData.Provider, scil.serviceData.Name, region)
+			scil.LoadImages(scil.serviceData.Provider, scil.serviceData.Name, region)
 
-		scil.LoadVms(scil.serviceData.Provider, scil.serviceData.Name, region)
+			scil.LoadVms(scil.serviceData.Provider, scil.serviceData.Name, region)
+		}
 	}
 
-	scil.store.StoreRegions(scil.serviceData.Provider, scil.serviceData.Name, regionMap)
+	scil.store.StoreRegions(scil.serviceData.Provider, scil.serviceData.Name, regions)
 	scil.log.Debug("regions loaded")
 
 	// set the status

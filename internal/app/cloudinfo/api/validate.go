@@ -65,9 +65,11 @@ func regionValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Fun
 			return false
 		}
 
-		for reg := range regions {
-			if reg == currentRegion {
-				return true
+		for _, _regions := range regions {
+			for _, r := range _regions {
+				if r.Id == currentRegion {
+					return true
+				}
 			}
 		}
 		return false

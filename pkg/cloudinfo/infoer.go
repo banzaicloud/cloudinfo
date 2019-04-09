@@ -31,7 +31,7 @@ type CloudInfoer interface {
 	GetZones(region string) ([]string, error)
 
 	// GetRegions retrieves the available regions form the external system
-	GetRegions(service string) (map[string]string, error)
+	GetRegions(service string) (map[string][]Region, error)
 
 	// HasShortLivedPriceInfo signals if a product info provider has frequently changing price info
 	HasShortLivedPriceInfo() bool

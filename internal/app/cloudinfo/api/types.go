@@ -69,12 +69,12 @@ type ProductDetailsResponse struct {
 
 // RegionsResponse holds the list of available regions of a cloud provider
 // swagger:model RegionsResponse
-type RegionsResponse []Region
+type RegionsResponse []Continent
 
-// Region hold the id and name of a cloud provider region
-type Region struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+// Continent holds continent and regions of a cloud provider
+type Continent struct {
+	Name    string             `json:"name"`
+	Regions []cloudinfo.Region `json:"regions"`
 }
 
 // GetRegionResp holds the detailed description of a specific region of a cloud provider

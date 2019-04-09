@@ -336,7 +336,7 @@ func (a *AlibabaInfoer) GetZones(region string) ([]string, error) {
 }
 
 // GetRegions returns a map with available regions
-func (a *AlibabaInfoer) GetRegions(service string) (map[string]string, error) {
+func (a *AlibabaInfoer) GetRegions(service string) (map[string][]cloudinfo.Region, error) {
 	logger := log.WithFields(a.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
@@ -352,13 +352,32 @@ func (a *AlibabaInfoer) GetRegions(service string) (map[string]string, error) {
 		return nil, err
 	}
 
-	var regionIdMap = make(map[string]string)
+	var regions = make(map[string][]cloudinfo.Region)
 	for _, region := range response.Regions.Region {
-		regionIdMap[region.RegionId] = region.LocalName
+		regions[a.getContinent(region.RegionId)] = append(regions[a.getContinent(region.RegionId)], cloudinfo.Region{
+			Id:   region.RegionId,
+			Name: region.LocalName,
+		})
 	}
 
-	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
-	return regionIdMap, nil
+	return regions, nil
+}
+
+// getContinent categorizes regions by continents
+func (a *AlibabaInfoer) getContinent(region string) string {
+	if region == "ap-southeast-2" {
+		return cloudinfo.ContinentAustralia
+	}
+	switch {
+	case strings.Contains(region, "cn-") || strings.Contains(region, "ap-") || strings.Contains(region, "me-"):
+		return cloudinfo.ContinentAsia
+	case strings.Contains(region, "eu-"):
+		return cloudinfo.ContinentEurope
+	case strings.Contains(region, "us-"):
+		return cloudinfo.ContinentAmerica
+	default:
+		return "unknown"
+	}
 }
 
 // HasShortLivedPriceInfo - Spot Prices are changing continuously on Alibaba

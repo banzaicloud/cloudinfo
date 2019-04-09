@@ -401,6 +401,24 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
+    "Continent": {
+      "description": "Continent holds continent and regions of a cloud provider",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Region"
+          },
+          "x-go-name": "Regions"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
     "GetAttributeValuesPathParams": {
       "description": "GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters",
       "type": "object",
@@ -700,13 +718,13 @@
           "x-go-name": "Name"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
     },
     "RegionsResponse": {
       "description": "RegionsResponse holds the list of available regions of a cloud provider",
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Region"
+        "$ref": "#/definitions/Continent"
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },

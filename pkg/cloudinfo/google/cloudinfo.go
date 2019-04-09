@@ -129,48 +129,50 @@ func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 	if err != nil {
 		return nil, err
 	}
-	for r := range regions {
-		zones, err := g.GetZones(r)
-		if err != nil {
-			return nil, err
-		}
-		zonesInRegions[r] = zones
-		err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
-			for region, price := range pricePerRegion {
-				for _, mt := range allMts.Items {
-					if !cloudinfo.Contains(unsupportedInstanceTypes, mt.Name) {
-						if allPrices[region] == nil {
-							allPrices[region] = make(map[string]cloudinfo.Price)
-						}
-						prices := allPrices[region][mt.Name]
-
-						if mt.Name == "f1-micro" || mt.Name == "g1-small" {
-							prices.OnDemandPrice = price[mt.Name]["OnDemand"]
-						} else {
-							prices.OnDemandPrice = price[cloudinfo.Cpu]["OnDemand"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
-						}
-						spotPrice := make(cloudinfo.SpotPriceInfo)
-						for _, z := range zonesInRegions[region] {
-							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
-								spotPrice[z] = price[mt.Name]["Preemptible"]
-								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
-
-							} else {
-								spotPrice[z] = price[cloudinfo.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+	for _, _regions := range regions {
+		for _, r := range _regions {
+			zones, err := g.GetZones(r.Id)
+			if err != nil {
+				return nil, err
+			}
+			zonesInRegions[r.Id] = zones
+			err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
+				for region, price := range pricePerRegion {
+					for _, mt := range allMts.Items {
+						if !cloudinfo.Contains(unsupportedInstanceTypes, mt.Name) {
+							if allPrices[region] == nil {
+								allPrices[region] = make(map[string]cloudinfo.Price)
 							}
+							prices := allPrices[region][mt.Name]
 
-							metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
+								prices.OnDemandPrice = price[mt.Name]["OnDemand"]
+							} else {
+								prices.OnDemandPrice = price[cloudinfo.Cpu]["OnDemand"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
+							}
+							spotPrice := make(cloudinfo.SpotPriceInfo)
+							for _, z := range zonesInRegions[region] {
+								if mt.Name == "f1-micro" || mt.Name == "g1-small" {
+									spotPrice[z] = price[mt.Name]["Preemptible"]
+									metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+
+								} else {
+									spotPrice[z] = price[cloudinfo.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+								}
+
+								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+							}
+							prices.SpotPrice = spotPrice
+
+							allPrices[region][mt.Name] = prices
 						}
-						prices.SpotPrice = spotPrice
-
-						allPrices[region][mt.Name] = prices
 					}
 				}
+				return nil
+			})
+			if err != nil {
+				return nil, err
 			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
 		}
 	}
 
@@ -340,7 +342,7 @@ func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
+func (g *GceInfoer) GetRegions(service string) (map[string][]cloudinfo.Region, error) {
 	logger := log.WithFields(g.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
@@ -348,16 +350,34 @@ func (g *GceInfoer) GetRegions(service string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	regions := make(map[string][]cloudinfo.Region)
 
-	regionIdMap := make(map[string]string)
 	for _, region := range regionList.Items {
 		if displayName, ok := regionNames[region.Name]; ok {
-			regionIdMap[region.Name] = displayName
+			regions[g.getContinent(region.Name)] = append(regions[g.getContinent(region.Name)], cloudinfo.Region{
+				Id:   region.Name,
+				Name: displayName,
+			})
 		}
 	}
 
-	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
-	return regionIdMap, nil
+	return regions, nil
+}
+
+// getContinent categorizes regions by continents
+func (g *GceInfoer) getContinent(region string) string {
+	switch {
+	case strings.Contains(region, "australia"):
+		return cloudinfo.ContinentAustralia
+	case strings.Contains(region, "asia"):
+		return cloudinfo.ContinentAsia
+	case strings.Contains(region, "europe"):
+		return cloudinfo.ContinentEurope
+	case strings.Contains(region, "america") || strings.Contains(region, "us-"):
+		return cloudinfo.ContinentAmerica
+	default:
+		return "unknown"
+	}
 }
 
 // GetZones returns the availability zones in a region
