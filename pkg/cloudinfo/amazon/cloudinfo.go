@@ -433,8 +433,10 @@ func (e *Ec2Infoer) getContinent(region string) string {
 		return cloudinfo.ContinentAsia
 	case strings.Contains(region, "eu-"):
 		return cloudinfo.ContinentEurope
-	case strings.Contains(region, "us-") || strings.Contains(region, "ca-") || strings.Contains(region, "sa-"):
-		return cloudinfo.ContinentAmerica
+	case strings.Contains(region, "us-") || strings.Contains(region, "ca-"):
+		return cloudinfo.ContinentNorthAmerica
+	case strings.Contains(region, "sa-"):
+		return cloudinfo.ContinentSouthAmerica
 	default:
 		return "unknown"
 	}

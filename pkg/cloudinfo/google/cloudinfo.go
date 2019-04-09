@@ -373,8 +373,10 @@ func (g *GceInfoer) getContinent(region string) string {
 		return cloudinfo.ContinentAsia
 	case strings.Contains(region, "europe"):
 		return cloudinfo.ContinentEurope
-	case strings.Contains(region, "america") || strings.Contains(region, "us-"):
-		return cloudinfo.ContinentAmerica
+	case strings.Contains(region, "northamerica") || strings.Contains(region, "us-"):
+		return cloudinfo.ContinentNorthAmerica
+	case strings.Contains(region, "southamerica"):
+		return cloudinfo.ContinentSouthAmerica
 	default:
 		return "unknown"
 	}

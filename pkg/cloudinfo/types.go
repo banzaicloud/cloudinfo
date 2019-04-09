@@ -79,11 +79,12 @@ var (
 	CategoryGpu     = "GPU instance"
 	CategoryStorage = "Storage optimized"
 
-	ContinentAmerica   = "America"
-	ContinentEurope    = "Europe"
-	ContinentAfrica    = "Africa"
-	ContinentAsia      = "Asia"
-	ContinentAustralia = "Australia"
+	ContinentNorthAmerica = "North America"
+	ContinentSouthAmerica = "South America"
+	ContinentEurope       = "Europe"
+	ContinentAfrica       = "Africa"
+	ContinentAsia         = "Asia"
+	ContinentAustralia    = "Australia"
 )
 
 // NetworkPerfMapper operations related  to mapping between virtual machines to network performance categories

@@ -247,7 +247,7 @@ func (i *Infoer) getContinent(region string) string {
 	case strings.Contains(region, "eu-") || strings.Contains(region, "uk-"):
 		return cloudinfo.ContinentEurope
 	case strings.Contains(region, "us-"):
-		return cloudinfo.ContinentAmerica
+		return cloudinfo.ContinentNorthAmerica
 	default:
 		return "unknown"
 	}

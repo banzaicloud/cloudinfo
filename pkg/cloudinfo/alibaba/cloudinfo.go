@@ -374,7 +374,7 @@ func (a *AlibabaInfoer) getContinent(region string) string {
 	case strings.Contains(region, "eu-"):
 		return cloudinfo.ContinentEurope
 	case strings.Contains(region, "us-"):
-		return cloudinfo.ContinentAmerica
+		return cloudinfo.ContinentNorthAmerica
 	default:
 		return "unknown"
 	}

@@ -539,8 +539,10 @@ func (a *AzureInfoer) getContinent(region string) string {
 		return cloudinfo.ContinentAsia
 	case strings.Contains(region, "europe") || strings.Contains(region, "uk") || strings.Contains(region, "france"):
 		return cloudinfo.ContinentEurope
-	case strings.Contains(region, "us") || strings.Contains(region, "brazil") || strings.Contains(region, "canada"):
-		return cloudinfo.ContinentAmerica
+	case strings.Contains(region, "us") || strings.Contains(region, "canada"):
+		return cloudinfo.ContinentNorthAmerica
+	case strings.Contains(region, "brazil"):
+		return cloudinfo.ContinentSouthAmerica
 	case strings.Contains(region, "africa"):
 		return cloudinfo.ContinentAfrica
 	default:
