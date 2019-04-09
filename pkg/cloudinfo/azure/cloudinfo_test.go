@@ -721,19 +721,19 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			providers: &testStruct{},
 			check: func(regions map[string][]cloudinfo.Region, err error) {
 				assert.Equal(t, map[string][]cloudinfo.Region{
-					"America": {
+					cloudinfo.ContinentNorthAmerica: {
 						{
 							Id:   "centralus",
 							Name: "Central US",
 						},
 					},
-					"Asia": {
+					cloudinfo.ContinentAsia: {
 						{
 							Id:   "eastasia",
 							Name: "East Asia",
 						},
 					},
-					"Europe": {
+					cloudinfo.ContinentEurope: {
 						{
 							Id:   "westeurope",
 							Name: "West Europe",
@@ -750,13 +750,13 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			providers: &testStruct{},
 			check: func(regions map[string][]cloudinfo.Region, err error) {
 				assert.Equal(t, map[string][]cloudinfo.Region{
-					"Asia": {
+					cloudinfo.ContinentAsia: {
 						{
 							Id:   "eastasia",
 							Name: "East Asia",
 						},
 					},
-					"Europe": {
+					cloudinfo.ContinentEurope: {
 						{
 							Id:   "westeurope",
 							Name: "West Europe",

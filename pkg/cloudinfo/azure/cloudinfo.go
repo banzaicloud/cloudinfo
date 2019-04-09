@@ -205,9 +205,9 @@ func (a *AzureInfoer) toRegionID(meterRegion string, regions map[string][]cloudi
 	return "", errors.Wrap(errors.New(meterRegion), "couldn't find region")
 }
 
-func (a *AzureInfoer) checkRegionID(regionID string, regions map[string][]cloudinfo.Region) bool {
-	for _, _regions := range regions {
-		for _, region := range _regions {
+func (a *AzureInfoer) checkRegionID(regionID string, locations map[string][]cloudinfo.Region) bool {
+	for _, regions := range locations {
+		for _, region := range regions {
 			if regionID == region.Id {
 				return true
 			}
@@ -464,7 +464,8 @@ func (a *AzureInfoer) GetRegions(service string) (map[string][]cloudinfo.Region,
 	if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
 		// fill up the map: DisplayName - > Name
 		for _, loc := range *locations.Value {
-			allLocations[a.getContinent(*loc.Name)] = append(allLocations[a.getContinent(*loc.Name)], cloudinfo.Region{
+			continent := a.getContinent(*loc.Name)
+			allLocations[continent] = append(allLocations[continent], cloudinfo.Region{
 				Id:   *loc.Name,
 				Name: *loc.DisplayName,
 			})

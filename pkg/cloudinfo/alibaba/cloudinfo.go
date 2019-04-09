@@ -352,15 +352,16 @@ func (a *AlibabaInfoer) GetRegions(service string) (map[string][]cloudinfo.Regio
 		return nil, err
 	}
 
-	var regions = make(map[string][]cloudinfo.Region)
+	var locations = make(map[string][]cloudinfo.Region)
 	for _, region := range response.Regions.Region {
-		regions[a.getContinent(region.RegionId)] = append(regions[a.getContinent(region.RegionId)], cloudinfo.Region{
+		continent := a.getContinent(region.RegionId)
+		locations[continent] = append(locations[continent], cloudinfo.Region{
 			Id:   region.RegionId,
 			Name: region.LocalName,
 		})
 	}
 
-	return regions, nil
+	return locations, nil
 }
 
 // getContinent categorizes regions by continents

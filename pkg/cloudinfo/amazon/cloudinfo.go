@@ -346,9 +346,10 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string][]cloudinfo.Region, e
 	logger := log.WithFields(e.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
-	regions := make(map[string][]cloudinfo.Region)
+	locations := make(map[string][]cloudinfo.Region)
 	for key, region := range endpoints.AwsPartition().Regions() {
-		regions[e.getContinent(key)] = append(regions[e.getContinent(key)], cloudinfo.Region{
+		continent := e.getContinent(key)
+		locations[continent] = append(locations[continent], cloudinfo.Region{
 			Id:   key,
 			Name: region.Description(),
 		})
@@ -356,7 +357,7 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string][]cloudinfo.Region, e
 
 	switch service {
 	case svcEks:
-		eksRegions := make(map[string][]cloudinfo.Region)
+		eksLocations := make(map[string][]cloudinfo.Region)
 		eks := []string{
 			endpoints.UsEast1RegionID,
 			endpoints.UsEast2RegionID,
@@ -373,53 +374,20 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string][]cloudinfo.Region, e
 			endpoints.ApSouth1RegionID,
 		}
 
-		for continent, _regions := range regions {
-			for _, region := range _regions {
+		for continent, regions := range locations {
+			for _, region := range regions {
 				for _, eksRegion := range eks {
 					if eksRegion == region.Id {
-						eksRegions[continent] = append(eksRegions[continent], region)
+						eksLocations[continent] = append(eksLocations[continent], region)
 						break
 					}
 				}
 			}
 		}
 
-		return eksRegions, nil
-	case "_eks":
-		eksRegionIdMap := make(map[string][]cloudinfo.Region)
-
-		/*
-			input := &ec2.DescribeImagesInput{
-				Filters: []*ec2.Filter{
-					{
-						Name:   aws.String("name"),
-						Values: []*string{aws.String("amazon-eks-node-1.10-v*")},
-					},
-					{
-						Name:   aws.String("is-public"),
-						Values: []*string{aws.String("true")},
-					},
-					{
-						Name:   aws.String("state"),
-						Values: []*string{aws.String("available")},
-					},
-				},
-			}
-
-			for key, value := range regionIdMap {
-				images, err := e.ec2Describer(key).DescribeImages(input)
-				if err != nil {
-					return nil, err
-				}
-				if len(images.Images) != 0 {
-					eksRegionIdMap[key] = value
-				}
-			}
-			logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(eksRegionIdMap)})
-		*/
-		return eksRegionIdMap, nil
+		return eksLocations, nil
 	default:
-		return regions, nil
+		return locations, nil
 	}
 }
 

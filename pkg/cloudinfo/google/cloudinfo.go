@@ -120,7 +120,7 @@ func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 	unsupportedInstanceTypes := []string{"n1-ultramem-40", "n1-ultramem-80", "n1-megamem-96", "n1-ultramem-160"}
 
 	zonesInRegions := make(map[string][]string)
-	regions, err := g.GetRegions("compute")
+	locations, err := g.GetRegions("compute")
 	if err != nil {
 		return nil, err
 	}
@@ -129,8 +129,8 @@ func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 	if err != nil {
 		return nil, err
 	}
-	for _, _regions := range regions {
-		for _, r := range _regions {
+	for _, regions := range locations {
+		for _, r := range regions {
 			zones, err := g.GetZones(r.Id)
 			if err != nil {
 				return nil, err
@@ -350,18 +350,19 @@ func (g *GceInfoer) GetRegions(service string) (map[string][]cloudinfo.Region, e
 	if err != nil {
 		return nil, err
 	}
-	regions := make(map[string][]cloudinfo.Region)
+	locations := make(map[string][]cloudinfo.Region)
 
 	for _, region := range regionList.Items {
 		if displayName, ok := regionNames[region.Name]; ok {
-			regions[g.getContinent(region.Name)] = append(regions[g.getContinent(region.Name)], cloudinfo.Region{
+			continent := g.getContinent(region.Name)
+			locations[continent] = append(locations[continent], cloudinfo.Region{
 				Id:   region.Name,
 				Name: displayName,
 			})
 		}
 	}
 
-	return regions, nil
+	return locations, nil
 }
 
 // getContinent categorizes regions by continents

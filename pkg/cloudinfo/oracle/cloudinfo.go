@@ -220,25 +220,26 @@ func (i *Infoer) GetRegions(service string) (map[string][]cloudinfo.Region, erro
 		return nil, err
 	}
 
-	_regions, err := c.GetSubscribedRegionNames()
+	regions, err := c.GetSubscribedRegionNames()
 	if err != nil {
 		return nil, err
 	}
 
-	regions := make(map[string][]cloudinfo.Region)
-	for _, region := range _regions {
+	locations := make(map[string][]cloudinfo.Region)
+	for _, region := range regions {
 		description := region
 		if displayName, ok := regionNames[region]; ok {
 			description = displayName
 		}
 
-		regions[i.getContinent(region)] = append(regions[i.getContinent(region)], cloudinfo.Region{
+		continent := i.getContinent(region)
+		locations[continent] = append(locations[continent], cloudinfo.Region{
 			Id:   region,
 			Name: description,
 		})
 	}
 
-	return regions, nil
+	return locations, nil
 }
 
 // getContinent categorizes regions by continents

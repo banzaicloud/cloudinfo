@@ -28,7 +28,7 @@ var (
 		cloudinfo.CategoryCompute: {"H", "FSv2", "FS", "", "HCS", "HBS"},
 		cloudinfo.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3"},
 		cloudinfo.CategoryStorage: {"LS", "LSv2"},
-		cloudinfo.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2"},
+		cloudinfo.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2", "NVSv3"},
 	}
 )
 

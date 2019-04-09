@@ -4,7 +4,7 @@ provider: amazon
 source: compute
 continents:
   -
-    name: America
+    name: South America
     regions:
       - name: South America (Sao Paulo)
         id: sa-east-1
@@ -23,6 +23,9 @@ continents:
                   - 1.14.0
           vms:
             strategy: exclude
+  -
+    name: North America
+    regions:
       - name: US West (Oregon)
         id: us-west-2
         data:
