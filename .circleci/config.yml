@@ -1,13 +1,14 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
-version: 2
+version: 2.1
+
+workdir: &workdir /go/src/github.com/banzaicloud/cloudinfo
+
 jobs:
-  build:
+  dependencies:
     docker:
       - image: circleci/golang:1.11
 
-    working_directory: /go/src/github.com/banzaicloud/cloudinfo
+    working_directory: *workdir
+
     steps:
       - checkout
 
@@ -29,13 +30,42 @@ jobs:
 
       - run:
           name: Install dependencies
-          command: make vendor
+          command: |
+            make vendor
+            make bin/golangci-lint
+            make bin/licensei
+            make bin/gotestsum
 
       - save_cache:
           name: Save dependencies
           key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           paths:
-          - vendor/
+            - vendor/
+
+      - save_cache:
+          name: Save build dependencies
+          key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+          paths:
+            - bin/
+
+  static-checks:
+    docker:
+      - image: circleci/golang:1.11
+
+    working_directory: *workdir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restore build dependencies
+          keys:
+          - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
+      - restore_cache:
+          name: Restore dependencies
+          keys:
+          - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
 
       - restore_cache:
           name: Restore license cache
@@ -53,34 +83,117 @@ jobs:
           name: Save license cache
           key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
           paths:
-          - .licensei.cache
+            - .licensei.cache
 
       - run:
           name: Check dependency licenses
           command: make license-check
 
       - run:
+          name: Run linter
+          command: make lint
+
+  build:
+    docker:
+      - image: circleci/golang:1.11
+
+    working_directory: *workdir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restore build dependencies
+          keys:
+          - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
+      - restore_cache:
+          name: Restore dependencies
+          keys:
+          - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+
+      - run:
           name: Build
           command:
             make build
 
-      - run:
-          name: Run linter
-          command: make lint
+  unit-tests:
+    docker:
+      - image: circleci/golang:1.11
+
+    working_directory: *workdir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restore build dependencies
+          keys:
+          - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
+      - restore_cache:
+          name: Restore dependencies
+          keys:
+          - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
 
       - run:
           name: Run unit tests
           command: make test
-          when: always
-
-      - save_cache:
-          name: Save build dependencies
-          key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-          paths:
-          - bin/
 
       - store_test_results:
-          path: build/
-      - store_artifacts:
-          path: build/
+          path: build/test_results/
 
+      - store_artifacts:
+          path: build/test_results/
+
+  integration-tests:
+    docker:
+      - image: circleci/golang:1.11
+      - image: redis:5.0
+      - image: cassandra:3.11
+        environment:
+          MAX_HEAP_SIZE: 1024m
+          HEAP_NEWSIZE: 256m
+
+    working_directory: *workdir
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: Restore build dependencies
+          keys:
+          - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+
+      - restore_cache:
+          name: Restore dependencies
+          keys:
+          - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+
+      - run:
+          name: Run integration tests
+          command: make test-integration
+
+      - store_test_results:
+          path: build/test_results/
+
+      - store_artifacts:
+          path: build/test_results/
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - dependencies
+      - build:
+          requires:
+            - dependencies
+      - static-checks:
+          requires:
+            - dependencies
+      - unit-tests:
+          requires:
+            - dependencies
+      - integration-tests:
+          requires:
+            - dependencies
