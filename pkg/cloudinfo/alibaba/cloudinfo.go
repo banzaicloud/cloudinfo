@@ -225,89 +225,49 @@ func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {
 }
 
 func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) ([]cloudinfo.VmInfo, error) {
-	price := make(map[string]float64, 0)
+	allPrices := make(map[string]float64, 0)
 	vmsWithPrice := make([]cloudinfo.VmInfo, 0)
+	var (
+		prices []float64
+		err    error
+	)
 
 	instanceTypes := make([]string, 0)
 
-	for _, vm := range vms {
+	for index, vm := range vms {
 
 		instanceTypes = append(instanceTypes, vm.Type)
 
-		if len(instanceTypes) == 50 {
-			resp50vm, err := a.getPrice(instanceTypes, region)
+		if len(instanceTypes) == 50 || index+1 == len(vms) {
+			prices, err = a.getPrice(instanceTypes, region)
 			if err != nil {
-				return nil, err
-			}
-
-			switch resp50vm.Code {
-			case "Success":
-				for i, moduleDetail := range resp50vm.Data.ModuleDetails.ModuleDetail {
-					price[instanceTypes[i]] = moduleDetail.OriginalCost
-				}
-			case "InternalError":
-				for i := 0; i < 5; i++ {
-					resp10vm, err := a.getPrice(instanceTypes[10*i:10*(i+1)], region)
-					if err != nil {
-						return nil, err
-					}
-
-					switch resp10vm.Code {
-					case "Success":
-						for n, moduleDetail := range resp10vm.Data.ModuleDetails.ModuleDetail {
-							price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
-						}
-					case "InternalError":
-						for n := 0; n < 10; n++ {
-							resp1vm, err := a.getPrice([]string{instanceTypes[10*i+n]}, region)
-							if err != nil {
-								return nil, err
-							}
-							if resp1vm.Code == "Success" {
-								for n, moduleDetail := range resp1vm.Data.ModuleDetails.ModuleDetail {
-									price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
+				if err.Error() == "failed to get price" && hasLabel(emperror.Context(err), "InvalidParameter") {
+					for i := 0; i < 5; i++ {
+						prices, err = a.getPrice(instanceTypes[10*i:10*(i+1)], region)
+						if err != nil {
+							for n := 0; n < 10; n++ {
+								prices, err = a.getPrice([]string{instanceTypes[10*i+n]}, region)
+								if err != nil {
+									continue
 								}
+								allPrices[instanceTypes[10*i+n]] = prices[0]
+							}
+						} else {
+							for n, price := range prices {
+								allPrices[instanceTypes[10*i+n]] = price
 							}
 						}
 					}
+				} else {
+					return nil, err
 				}
-			case "NotAuthorized":
-				return nil, errors.New("user needs AliyunBSSReadOnlyAccess permission")
-			default:
-				return nil, errors.Errorf("unknown error code: %s", resp50vm.Code)
+			} else {
+				for i, price := range prices {
+					allPrices[instanceTypes[i]] = price
+				}
 			}
 
 			instanceTypes = make([]string, 0)
-		}
-	}
-
-	if len(instanceTypes) != 0 {
-		resp, err := a.getPrice(instanceTypes, region)
-		if err != nil {
-			return nil, err
-		}
-
-		switch resp.Code {
-		case "Success":
-			for i, moduleDetail := range resp.Data.ModuleDetails.ModuleDetail {
-				price[instanceTypes[i]] = moduleDetail.OriginalCost
-			}
-		case "InternalError":
-			for i := 0; i < len(instanceTypes); i++ {
-				resp1vm, err := a.getPrice([]string{instanceTypes[i]}, region)
-				if err != nil {
-					return nil, err
-				}
-				if resp1vm.Code == "Success" {
-					for n, moduleDetail := range resp1vm.Data.ModuleDetails.ModuleDetail {
-						price[instanceTypes[n]] = moduleDetail.OriginalCost
-					}
-				}
-			}
-		case "NotAuthorized":
-			return nil, errors.New("user needs AliyunBSSReadOnlyAccess permission")
-		default:
-			return nil, errors.Errorf("unknown error code: %s", resp.Code)
 		}
 	}
 
@@ -315,7 +275,7 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 		vmsWithPrice = append(vmsWithPrice, cloudinfo.VmInfo{
 			Category:      vm.Category,
 			Type:          vm.Type,
-			OnDemandPrice: price[vm.Type],
+			OnDemandPrice: allPrices[vm.Type],
 			Cpus:          vm.Cpus,
 			Mem:           vm.Mem,
 			Gpus:          vm.Gpus,
@@ -329,20 +289,29 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 	return vmsWithPrice, nil
 }
 
-func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) (bssopenapi.GetPayAsYouGoPriceResponse, error) {
+func (a *AlibabaInfoer) getPrice(instanceTypes []string, region string) ([]float64, error) {
 	response := &bssopenapi.GetPayAsYouGoPriceResponse{}
+	var price []float64
 
 	getPayAsYouGoPrice, err := a.client.ProcessCommonRequest(a.getPayAsYouGoPriceRequest(region, instanceTypes))
 	if err != nil {
-		return bssopenapi.GetPayAsYouGoPriceResponse{}, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(getPayAsYouGoPrice.BaseResponse.GetHttpContentBytes(), response)
 	if err != nil {
-		return bssopenapi.GetPayAsYouGoPriceResponse{}, err
+		return nil, err
 	}
 
-	return *response, nil
+	if !response.Success {
+		return nil, emperror.With(errors.New("failed to get price"), response.Code)
+	}
+
+	for _, moduleDetail := range response.Data.ModuleDetails.ModuleDetail {
+		price = append(price, moduleDetail.OriginalCost)
+	}
+
+	return price, nil
 }
 
 // GetZones returns the availability zones in a region
@@ -448,4 +417,13 @@ func (a *AlibabaInfoer) GetVersions(service, region string) ([]cloudinfo.Locatio
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
+}
+
+func hasLabel(ctx []interface{}, s interface{}) bool {
+	for _, e := range ctx {
+		if e == s {
+			return true
+		}
+	}
+	return false
 }
