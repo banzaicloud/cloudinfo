@@ -4,4 +4,4 @@ sed -i -E 's/<base href=.*>/<base href="\'$CLOUDINFO_BASEPATH'\/">/' /web/dist/u
 
 echo "Set basepath to $CLOUDINFO_BASEPATH"
 
-exec /bin/cloudinfo $@
+exec $@
