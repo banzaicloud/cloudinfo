@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
-import {DisplayedProduct, Products, Region, Provider} from './product';
-import {Observable, BehaviorSubject} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {HttpClient} from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { DisplayedProduct, Products, Region, Provider } from './product';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProductService {
 
-  private productsUrlBase = 'api/v1/';
+  private productsUrlBase: string;
   private scrapingTime$ = new BehaviorSubject<number>(null);
 
   constructor(private http: HttpClient) {
+    if (environment.production) {
+      this.productsUrlBase = '/api/v1/';
+    } else {
+      this.productsUrlBase = '/cloudinfo/api/v1/';
+    }
   }
 
   public getScrapingTime() {
@@ -71,7 +77,7 @@ export class ProductService {
               displayedSpot,
               response.ntwPerf === '' ? 'unavailable' : response.ntwPerf);
           });
-      })
+      }),
     );
   }
 }
