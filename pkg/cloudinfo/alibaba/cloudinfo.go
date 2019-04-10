@@ -241,41 +241,39 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 				return nil, err
 			}
 
-			switch resp50vm.Code {
-			case "Success":
+			if resp50vm.Success {
 				for i, moduleDetail := range resp50vm.Data.ModuleDetails.ModuleDetail {
 					price[instanceTypes[i]] = moduleDetail.OriginalCost
 				}
-			case "InternalError":
-				for i := 0; i < 5; i++ {
-					resp10vm, err := a.getPrice(instanceTypes[10*i:10*(i+1)], region)
-					if err != nil {
-						return nil, err
-					}
-
-					switch resp10vm.Code {
-					case "Success":
-						for n, moduleDetail := range resp10vm.Data.ModuleDetails.ModuleDetail {
-							price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
+			} else {
+				if resp50vm.Code == "InvalidParameter" {
+					for i := 0; i < 5; i++ {
+						resp10vm, err := a.getPrice(instanceTypes[10*i:10*(i+1)], region)
+						if err != nil {
+							return nil, err
 						}
-					case "InternalError":
-						for n := 0; n < 10; n++ {
-							resp1vm, err := a.getPrice([]string{instanceTypes[10*i+n]}, region)
-							if err != nil {
-								return nil, err
+
+						if resp10vm.Success {
+							for n, moduleDetail := range resp10vm.Data.ModuleDetails.ModuleDetail {
+								price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
 							}
-							if resp1vm.Code == "Success" {
-								for n, moduleDetail := range resp1vm.Data.ModuleDetails.ModuleDetail {
-									price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
+						} else {
+							for n := 0; n < 10; n++ {
+								resp1vm, err := a.getPrice([]string{instanceTypes[10*i+n]}, region)
+								if err != nil {
+									return nil, err
+								}
+								if resp1vm.Success {
+									for n, moduleDetail := range resp1vm.Data.ModuleDetails.ModuleDetail {
+										price[instanceTypes[10*i+n]] = moduleDetail.OriginalCost
+									}
 								}
 							}
 						}
 					}
+				} else {
+					return nil, errors.Errorf("unknown error code: %s", resp50vm.Code)
 				}
-			case "NotAuthorized":
-				return nil, errors.New("user needs AliyunBSSReadOnlyAccess permission")
-			default:
-				return nil, errors.Errorf("unknown error code: %s", resp50vm.Code)
 			}
 
 			instanceTypes = make([]string, 0)
