@@ -1,32 +1,52 @@
-<div class="row">
+<div class="row mt-5 inputs-wrapper">
   <div class="col-1">
   </div>
-  <div class="col-6 mt-5">
-    <mat-form-field class="mr-5">
+  <div class="col-7 selectors">
 
-      <mat-select placeholder="Cloud Services" [(value)]="selectedService">
-        <mat-optgroup *ngFor="let provider of providers" [label]="provider.name">
-          <mat-option *ngFor="let service of provider.services" [value]="service.service" (click)="updateProducts(service.service, provider.provider)">
-            {{ service.service }}
-          </mat-option>
-        </mat-optgroup>
-      </mat-select>
+    <!-- Cloud services -->
+    <div class="mr-5">
+      <div class="banzai-input-label">Cloud Services</div>
+      <div class="banzai-input">
+        <mat-select [(value)]="selectedService">
+          <mat-optgroup *ngFor="let provider of providers"
+                        [label]="provider.name">
+            <mat-option *ngFor="let service of provider.services"
+                        [value]="service.service"
+                        (click)="updateProducts(service.service, provider.provider)">
+              {{ service.service }}
+            </mat-option>
+          </mat-optgroup>
+        </mat-select>
+      </div>
+    </div>
 
-    </mat-form-field>
-    <mat-form-field>
-      <mat-select placeholder="Region" [(value)]="selectedRegion" (selectionChange)="getProducts()">
-        <mat-optgroup *ngFor="let continent of continents" [label]="continent.name">
-          <mat-option *ngFor="let region of continent.regions" [value]="region.id">
-            {{ region.name }}
-          </mat-option>
-        </mat-optgroup>
-      </mat-select>
-    </mat-form-field>
+    <!-- Regions -->
+    <div class="mr-5">
+      <div class="banzai-input-label">Regions</div>
+      <div class="banzai-input">
+        <mat-select [(value)]="selectedRegion"
+                    placeholder="Region"
+                    (selectionChange)="getProducts()">
+          <mat-optgroup *ngFor="let continent of continents"
+                        [label]="continent.name">
+            <mat-option *ngFor="let region of continent.regions"
+                        [value]="region.id">
+              {{ region.name }}
+            </mat-option>
+          </mat-optgroup>
+        </mat-select>
+      </div>
+    </div>
   </div>
-  <div class="col-4 mt-5">
-    <mat-form-field class="float-right">
-      <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Search">
-    </mat-form-field>
+
+  <!-- search -->
+  <div class="col-3">
+    <div class="banzai-input-label">Search</div>
+    <div class="banzai-input">
+      <input matInput
+             (keyup)="applyFilter($event.target.value)"
+             placeholder="Search">
+    </div>
   </div>
   <div class="col-1">
   </div>
