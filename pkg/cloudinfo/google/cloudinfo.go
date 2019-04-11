@@ -457,11 +457,12 @@ func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVer
 				for _, nodeVersion := range serverConf.ValidNodeVersions {
 					if masterVersion == nodeVersion {
 						versions = append(versions, masterVersion)
+
 						break
 					}
 				}
 			}
-			zoneVersions = append(zoneVersions, cloudinfo.NewLocationVersion(zone, versions))
+			zoneVersions = append(zoneVersions, cloudinfo.NewLocationVersion(zone, versions, serverConf.DefaultClusterVersion))
 		}
 
 		return zoneVersions, nil

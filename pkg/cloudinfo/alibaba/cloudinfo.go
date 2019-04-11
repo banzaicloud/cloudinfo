@@ -456,7 +456,7 @@ func (a *AlibabaInfoer) GetServiceAttributes(region, service, attribute string) 
 func (a *AlibabaInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcAck:
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.12.6"})}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.12.6"}, "1.12.6")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
