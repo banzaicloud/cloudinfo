@@ -59,15 +59,17 @@ func regionValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Fun
 		logger = log.WithFields(logger,
 			map[string]interface{}{"provider": currentProvider, "service": currentService, "region": currentRegion})
 
-		regions, err := cpi.GetRegions(currentProvider, currentService)
+		locations, err := cpi.GetRegions(currentProvider, currentService)
 		if err != nil {
 			logger.Error("could not get regions")
 			return false
 		}
 
-		for reg := range regions {
-			if reg == currentRegion {
-				return true
+		for _, regions := range locations {
+			for _, r := range regions {
+				if r.Id == currentRegion {
+					return true
+				}
 			}
 		}
 		return false

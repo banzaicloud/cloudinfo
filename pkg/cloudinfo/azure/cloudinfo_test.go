@@ -183,40 +183,145 @@ func floatPointer(i float64) *float64 {
 
 func TestAzureInfoer_toRegionID(t *testing.T) {
 
-	regionMap := map[string]string{
-		"japanwest":          "Japan West",
-		"centralindia":       "Central India",
-		"francesouth":        "France South",
-		"northcentralus":     "North Central US",
-		"japaneast":          "Japan East",
-		"australiaeast":      "Australia East",
-		"southindia":         "South India",
-		"canadaeast":         "Canada East",
-		"westus2":            "West US 2",
-		"westus":             "West US",
-		"northeurope":        "North Europe",
-		"westeurope":         "West Europe",
-		"uksouth":            "UK South",
-		"centralus":          "Central US",
-		"australiasoutheast": "Australia Southeast",
-		"ukwest":             "UK West",
-		"koreacentral":       "Korea Central",
-		"koreanorthcentral":  "Korea North Central",
-		"koreanorthcentral2": "Korea North Central 2",
-		"francecentral":      "France Central",
-		"eastasia":           "East Asia",
-		"canadacentral":      "Canada Central",
-		"eastus":             "East US",
-		"eastus2":            "East US 2",
-		"southcentralus":     "South Central US",
-		"southcentralus2":    "South Central US 2",
-		"australiacentral":   "Australia Central",
-		"westindia":          "West India",
-		"koreasouth":         "Korea South",
-		"australiacentral2":  "Australia Central 2",
-		"southeastasia":      "Southeast Asia",
-		"brazilsouth":        "Brazil South",
-		"westcentralus":      "West Central US",
+	regionMap := map[string][]cloudinfo.Region{
+		"dummy": {
+			{
+				Id:   "japanwest",
+				Name: "Japan West",
+			},
+			{
+				Id:   "centralindia",
+				Name: "Central India",
+			},
+			{
+				Id:   "francesouth",
+				Name: "France South",
+			},
+			{
+				Id:   "northcentralus",
+				Name: "North Central US",
+			},
+			{
+				Id:   "japaneast",
+				Name: "Japan East",
+			},
+			{
+				Id:   "australiaeast",
+				Name: "Australia East",
+			},
+			{
+				Id:   "southindia",
+				Name: "South India",
+			},
+			{
+				Id:   "canadaeast",
+				Name: "Canada East",
+			},
+			{
+				Id:   "westus2",
+				Name: "West US 2",
+			},
+			{
+				Id:   "westus",
+				Name: "West US",
+			},
+			{
+				Id:   "northeurope",
+				Name: "North Europe",
+			},
+			{
+				Id:   "westeurope",
+				Name: "West Europe",
+			},
+			{
+				Id:   "uksouth",
+				Name: "UK South",
+			},
+			{
+				Id:   "centralus",
+				Name: "Central US",
+			},
+			{
+				Id:   "australiasoutheast",
+				Name: "Australia Southeast",
+			},
+			{
+				Id:   "ukwest",
+				Name: "UK West",
+			},
+			{
+				Id:   "koreacentral",
+				Name: "Korea Central",
+			},
+			{
+				Id:   "koreanorthcentral",
+				Name: "Korea North Central",
+			},
+			{
+				Id:   "koreanorthcentral2",
+				Name: "Korea North Central 2",
+			},
+			{
+				Id:   "francecentral",
+				Name: "France Central",
+			},
+			{
+				Id:   "eastasia",
+				Name: "East Asia",
+			},
+			{
+				Id:   "canadacentral",
+				Name: "Canada Central",
+			},
+			{
+				Id:   "eastus",
+				Name: "East US",
+			},
+			{
+				Id:   "eastus2",
+				Name: "East US 2",
+			},
+			{
+				Id:   "southcentralus",
+				Name: "South Central US",
+			},
+			{
+				Id:   "southcentralus",
+				Name: "South Central US",
+			},
+			{
+				Id:   "southcentralus2",
+				Name: "South Central US 2",
+			},
+			{
+				Id:   "australiacentral",
+				Name: "Australia Central",
+			},
+			{
+				Id:   "westindia",
+				Name: "West India",
+			},
+			{
+				Id:   "koreasouth",
+				Name: "Korea South",
+			},
+			{
+				Id:   "australiacentral2",
+				Name: "Australia Central 2",
+			},
+			{
+				Id:   "southeastasia",
+				Name: "Southeast Asia",
+			},
+			{
+				Id:   "brazilsouth",
+				Name: "Brazil South",
+			},
+			{
+				Id:   "westcentralus",
+				Name: "West Central US",
+			},
+		},
 	}
 
 	tests := []struct {
@@ -607,15 +712,34 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 		service   string
 		location  LocationRetriever
 		providers ProviderSource
-		check     func(regions map[string]string, err error)
+		check     func(regions map[string][]cloudinfo.Region, err error)
 	}{
 		{
 			name:      "receive all regions for compute service",
 			service:   "compute",
 			location:  &testStruct{},
 			providers: &testStruct{},
-			check: func(regions map[string]string, err error) {
-				assert.Equal(t, map[string]string{"westeurope": "West Europe", "centralus": "Central US", "eastasia": "East Asia"}, regions)
+			check: func(regions map[string][]cloudinfo.Region, err error) {
+				assert.Equal(t, map[string][]cloudinfo.Region{
+					cloudinfo.ContinentNorthAmerica: {
+						{
+							Id:   "centralus",
+							Name: "Central US",
+						},
+					},
+					cloudinfo.ContinentAsia: {
+						{
+							Id:   "eastasia",
+							Name: "East Asia",
+						},
+					},
+					cloudinfo.ContinentEurope: {
+						{
+							Id:   "westeurope",
+							Name: "West Europe",
+						},
+					},
+				}, regions)
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},
@@ -624,8 +748,21 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			service:   "aks",
 			location:  &testStruct{},
 			providers: &testStruct{},
-			check: func(regions map[string]string, err error) {
-				assert.Equal(t, map[string]string{"westeurope": "West Europe", "eastasia": "East Asia"}, regions)
+			check: func(regions map[string][]cloudinfo.Region, err error) {
+				assert.Equal(t, map[string][]cloudinfo.Region{
+					cloudinfo.ContinentAsia: {
+						{
+							Id:   "eastasia",
+							Name: "East Asia",
+						},
+					},
+					cloudinfo.ContinentEurope: {
+						{
+							Id:   "westeurope",
+							Name: "West Europe",
+						},
+					},
+				}, regions)
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},
@@ -634,7 +771,7 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			service:   "compute",
 			location:  &testStruct{GetRegionsError},
 			providers: &testStruct{},
-			check: func(regions map[string]string, err error) {
+			check: func(regions map[string][]cloudinfo.Region, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
 				assert.EqualError(t, err, GetRegionsError)
 			},
@@ -644,7 +781,7 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			service:   "compute",
 			location:  &testStruct{},
 			providers: &testStruct{GetLocationError},
-			check: func(regions map[string]string, err error) {
+			check: func(regions map[string][]cloudinfo.Region, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
 				assert.EqualError(t, err, GetLocationError)
 			},
@@ -654,7 +791,7 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 			service:   "aks",
 			location:  &testStruct{},
 			providers: &testStruct{GetLocationError},
-			check: func(regions map[string]string, err error) {
+			check: func(regions map[string][]cloudinfo.Region, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
 				assert.EqualError(t, err, GetLocationError)
 			},

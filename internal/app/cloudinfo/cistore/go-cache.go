@@ -49,13 +49,13 @@ func (cis *cacheProductStore) DeleteVersion(provider, service, region string) {
 	cis.Delete(cis.getKey(cloudinfo.VersionKeyTemplate, provider, service, region))
 }
 
-func (cis *cacheProductStore) StoreRegions(provider, service string, val map[string]string) {
+func (cis *cacheProductStore) StoreRegions(provider, service string, val map[string][]cloudinfo.Region) {
 	cis.Set(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetRegions(provider, service string) (map[string]string, bool) {
+func (cis *cacheProductStore) GetRegions(provider, service string) (map[string][]cloudinfo.Region, bool) {
 	if res, ok := cis.get(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service)); ok {
-		return res.(map[string]string), ok
+		return res.(map[string][]cloudinfo.Region), ok
 	}
 	return nil, false
 }

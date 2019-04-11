@@ -342,68 +342,71 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 
 // GetRegions returns a map with available regions
 // transforms the api representation into a "plain" map
-func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
+func (e *Ec2Infoer) GetRegions(service string) (map[string][]cloudinfo.Region, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
-	regionIdMap := make(map[string]string)
+	locations := make(map[string][]cloudinfo.Region)
 	for key, region := range endpoints.AwsPartition().Regions() {
-		regionIdMap[key] = region.Description()
+		continent := e.getContinent(key)
+		locations[continent] = append(locations[continent], cloudinfo.Region{
+			Id:   key,
+			Name: region.Description(),
+		})
 	}
 
 	switch service {
 	case svcEks:
-		eksRegionIdMap := make(map[string]string)
-
-		eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
-		eksRegionIdMap[endpoints.UsEast2RegionID] = "US East (Ohio)"
-		eksRegionIdMap[endpoints.UsWest2RegionID] = "US West (Oregon)"
-		eksRegionIdMap[endpoints.EuWest1RegionID] = "EU (Ireland)"
-		eksRegionIdMap[endpoints.EuWest2RegionID] = "EU (London)"
-		eksRegionIdMap[endpoints.EuWest3RegionID] = "EU (Paris)"
-		eksRegionIdMap[endpoints.EuNorth1RegionID] = "EU (Stockholm)"
-		eksRegionIdMap[endpoints.EuCentral1RegionID] = "EU (Frankfurt)"
-		eksRegionIdMap[endpoints.ApNortheast1RegionID] = "Asia Pacific (Tokyo)"
-		eksRegionIdMap[endpoints.ApNortheast2RegionID] = "Asia Pacific (Seoul)"
-		eksRegionIdMap[endpoints.ApSoutheast1RegionID] = "Asia Pacific (Singapore)"
-		eksRegionIdMap[endpoints.ApSoutheast2RegionID] = "Asia Pacific (Sydney)"
-		eksRegionIdMap[endpoints.ApSouth1RegionID] = "Asia Pacific (Mumbai)"
-
-		return eksRegionIdMap, nil
-	case "_eks":
-		input := &ec2.DescribeImagesInput{
-			Filters: []*ec2.Filter{
-				{
-					Name:   aws.String("name"),
-					Values: []*string{aws.String("amazon-eks-node-1.10-v*")},
-				},
-				{
-					Name:   aws.String("is-public"),
-					Values: []*string{aws.String("true")},
-				},
-				{
-					Name:   aws.String("state"),
-					Values: []*string{aws.String("available")},
-				},
-			},
+		eksLocations := make(map[string][]cloudinfo.Region)
+		eks := []string{
+			endpoints.UsEast1RegionID,
+			endpoints.UsEast2RegionID,
+			endpoints.UsWest2RegionID,
+			endpoints.EuWest1RegionID,
+			endpoints.EuWest2RegionID,
+			endpoints.EuWest3RegionID,
+			endpoints.EuNorth1RegionID,
+			endpoints.EuCentral1RegionID,
+			endpoints.ApNortheast1RegionID,
+			endpoints.ApNortheast2RegionID,
+			endpoints.ApSoutheast1RegionID,
+			endpoints.ApSoutheast2RegionID,
+			endpoints.ApSouth1RegionID,
 		}
 
-		eksRegionIdMap := make(map[string]string)
-
-		for key, value := range regionIdMap {
-			images, err := e.ec2Describer(key).DescribeImages(input)
-			if err != nil {
-				return nil, err
-			}
-			if len(images.Images) != 0 {
-				eksRegionIdMap[key] = value
+		for continent, regions := range locations {
+			for _, region := range regions {
+				for _, eksRegion := range eks {
+					if eksRegion == region.Id {
+						eksLocations[continent] = append(eksLocations[continent], region)
+						break
+					}
+				}
 			}
 		}
-		logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(eksRegionIdMap)})
-		return eksRegionIdMap, nil
+
+		return eksLocations, nil
 	default:
-		logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regionIdMap)})
-		return regionIdMap, nil
+		return locations, nil
+	}
+}
+
+// getContinent categorizes regions by continents
+func (e *Ec2Infoer) getContinent(region string) string {
+	if region == "ap-southeast-2" {
+		return cloudinfo.ContinentAustralia
+	}
+	switch {
+	case strings.Contains(region, "cn-") || strings.Contains(region, "ap-"):
+		return cloudinfo.ContinentAsia
+	case strings.Contains(region, "eu-"):
+		return cloudinfo.ContinentEurope
+	case strings.Contains(region, "us-") || strings.Contains(region, "ca-"):
+		return cloudinfo.ContinentNorthAmerica
+	case strings.Contains(region, "sa-"):
+		return cloudinfo.ContinentSouthAmerica
+	default:
+		return "unknown"
 	}
 }
 

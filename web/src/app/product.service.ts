@@ -15,7 +15,7 @@
  */
 
 import {Injectable} from '@angular/core';
-import {DisplayedProduct, Products, Region, Provider} from './product';
+import {DisplayedProduct, Products, Provider, Continent} from './product';
 import {Observable, BehaviorSubject} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
@@ -35,8 +35,8 @@ export class ProductService {
     return this.scrapingTime$.asObservable();
   }
 
-  public getRegions(provider: string, service: string): Observable<Region[]> {
-    return this.http.get<Region[]>(this.productsUrlBase + `providers/${provider}/services/${service}/regions`);
+  public getRegions(provider: string, service: string): Observable< Continent[] > {
+    return this.http.get< Continent[] >(this.productsUrlBase + `providers/${provider}/services/${service}/regions`);
   }
 
   public getProviders(): Observable<{ providers: Provider[] }> {

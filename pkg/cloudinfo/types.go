@@ -39,7 +39,7 @@ type CloudInfo interface {
 	GetZones(provider, service, region string) ([]string, error)
 
 	// GetRegions returns all the regions for a cloud provider
-	GetRegions(provider string, service string) (map[string]string, error)
+	GetRegions(provider string, service string) (map[string][]Region, error)
 
 	GetStatus(provider string) (string, error)
 
@@ -78,6 +78,13 @@ var (
 	CategoryMemory  = "Memory optimized"
 	CategoryGpu     = "GPU instance"
 	CategoryStorage = "Storage optimized"
+
+	ContinentNorthAmerica = "North America"
+	ContinentSouthAmerica = "South America"
+	ContinentEurope       = "Europe"
+	ContinentAfrica       = "Africa"
+	ContinentAsia         = "Asia"
+	ContinentAustralia    = "Australia"
 )
 
 // NetworkPerfMapper operations related  to mapping between virtual machines to network performance categories
@@ -204,4 +211,10 @@ type Version struct {
 // VersionName returns the name of the version
 func (v Version) VersionName() string {
 	return v.Version
+}
+
+// Region hold the id and name of a cloud provider region
+type Region struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
