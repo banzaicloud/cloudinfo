@@ -15,8 +15,9 @@
 package google
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 var (

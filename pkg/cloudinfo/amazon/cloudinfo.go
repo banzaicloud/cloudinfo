@@ -27,15 +27,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/api"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 const svcEks = "eks"

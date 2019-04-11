@@ -15,9 +15,11 @@
 package amazon
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {

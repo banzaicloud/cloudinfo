@@ -22,12 +22,13 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
@@ -52,7 +53,7 @@ func newInfoer(regionId, accessKeyId, accessKeySecret string, log logur.Logger) 
 		panic(err)
 	}
 
-	//client.GetConfig().WithAutoRetry(true)
+	// client.GetConfig().WithAutoRetry(true)
 	client.GetConfig().WithGoRoutinePoolSize(100)
 	client.GetConfig().WithEnableAsync(true)
 	client.GetConfig().WithDebug(true)

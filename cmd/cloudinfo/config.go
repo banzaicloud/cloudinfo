@@ -18,6 +18,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goph/emperror"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
@@ -30,9 +34,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
-	"github.com/goph/emperror"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 // Config holds any kind of configuration that comes from the outside world and
@@ -151,7 +152,7 @@ func Configure(v *viper.Viper, pf *pflag.FlagSet) {
 	v.RegisterAlias("amazon.prometheusaddress", prometheusAddressFlag)
 	v.RegisterAlias("amazon.prometheusquery", prometheusQueryFlag)
 
-	//Google config
+	// Google config
 	v.RegisterAlias("google.apikey", gceApiKeyFlag)
 	v.RegisterAlias("google.appcredentials", gceApplicationCred)
 

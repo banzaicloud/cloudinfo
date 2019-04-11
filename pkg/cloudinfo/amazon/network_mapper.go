@@ -15,26 +15,27 @@
 package amazon
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 var (
 	ntwPerfMap = map[string][]string{
 		// available categories
-		//"Up to 25 Gigabit"
-		//"50 Gigabit"
-		//"100 Gigabit"
-		//"10 Gigabit"
-		//"20 Gigabit"
-		//"25 Gigabit"
-		//"High"
-		//"Low to Moderate"
-		//"Low"
-		//"Moderate"
-		//"NA"
-		//"Up to 10 Gigabit"
-		//"Very Low"
+		// "Up to 25 Gigabit"
+		// "50 Gigabit"
+		// "100 Gigabit"
+		// "10 Gigabit"
+		// "20 Gigabit"
+		// "25 Gigabit"
+		// "High"
+		// "Low to Moderate"
+		// "Low"
+		// "Moderate"
+		// "NA"
+		// "Up to 10 Gigabit"
+		// "Very Low"
 
 		cloudinfo.NtwLow:    {"Very Low", "Low", "Low to Moderate"},
 		cloudinfo.NtwMedium: {"Moderate", "High"},

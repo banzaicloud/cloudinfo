@@ -19,10 +19,11 @@ import (
 	"io"
 	"time"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/patrickmn/go-cache"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // cacheProductStore in memory cloud product information storer

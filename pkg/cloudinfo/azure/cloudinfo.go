@@ -32,12 +32,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 const svcAks = "aks"
@@ -57,8 +58,8 @@ var (
 		"us": "us",
 	}
 
-	//mtBasic, _     = regexp.Compile("^BASIC.A\\d+[_Promo]*$")
-	//mtStandardA, _ = regexp.Compile("^A\\d+[_Promo]*$")
+	// mtBasic, _     = regexp.Compile("^BASIC.A\\d+[_Promo]*$")
+	// mtStandardA, _ = regexp.Compile("^A\\d+[_Promo]*$")
 	mtStandardB, _ = regexp.Compile(`^Standard_B\d+m?[_v\d]*[_Promo]*$`)
 	mtStandardD, _ = regexp.Compile(`^Standard_D\d[_v\d]*[_Promo]*$`)
 	mtStandardE, _ = regexp.Compile(`^Standard_E\d+i?[_v\d]*[_Promo]*$`)

@@ -17,9 +17,10 @@ package cistore
 import (
 	"testing"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 )
 
 // Skeleton for dev testing the redis store

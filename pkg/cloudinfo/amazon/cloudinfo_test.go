@@ -22,12 +22,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-//testStruct helps to mock external calls
+// testStruct helps to mock external calls
 type testStruct struct {
 	TcId int
 }

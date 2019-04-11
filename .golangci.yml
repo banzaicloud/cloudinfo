@@ -9,16 +9,19 @@ linters-settings:
     gocyclo:
         min-complexity: 15
 
+    goimports:
+        local-prefixes: github.com/sagikazarmark/modern-go-application
+
 linters:
     enable:
         - misspell
         - gofmt
         - golint
+        - goimports
 
     disable:
         - errcheck
         - gas
         - megacheck
         - varcheck
-        - goimports
     fast: false

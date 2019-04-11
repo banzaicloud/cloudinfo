@@ -15,11 +15,13 @@
 package cistore
 
 import (
+	"time"
+
+	"github.com/goph/logur"
+
 	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
 	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/goph/logur"
-	"time"
 )
 
 // CloudInfoStore configuration

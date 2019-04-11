@@ -35,7 +35,7 @@ const (
 	metricsEnabledFlag         = "metrics-enabled"
 	metricsAddressFlag         = "metrics-address"
 
-	//temporary flags
+	// temporary flags
 	awsAccessKeyId         = "aws-access-key-id"
 	awsSecretAccessKey     = "aws-secret-access-key"
 	gceApiKeyFlag          = "gce-api-key"

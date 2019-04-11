@@ -23,18 +23,19 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-//testStruct helps to mock external calls
+// testStruct helps to mock external calls
 type testStruct struct {
 	TcId string
 }
 
-//test helps to mock external calls
+// test helps to mock external calls
 type test struct {
 	TcId string
 }

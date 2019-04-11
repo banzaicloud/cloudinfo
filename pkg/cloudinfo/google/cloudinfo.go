@@ -21,9 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
@@ -32,6 +29,10 @@ import (
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi/transport"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 const svcGke = "gke"

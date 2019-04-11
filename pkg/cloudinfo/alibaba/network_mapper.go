@@ -15,8 +15,9 @@
 package alibaba
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 var (

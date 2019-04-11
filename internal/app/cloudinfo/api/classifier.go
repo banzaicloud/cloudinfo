@@ -18,10 +18,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/problems"
 	"github.com/go-openapi/runtime"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/problems"
 )
 
 // Classifier represents a contract to classify passed in structs
