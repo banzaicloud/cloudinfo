@@ -1,34 +1,42 @@
+FROM golang:1.12.3-alpine AS builder
 
-FROM golang:1.11-alpine as backend
-RUN apk add --update --no-cache bash ca-certificates curl git make tzdata
+ENV GOFLAGS="-mod=readonly"
 
-RUN mkdir -p /go/src/github.com/banzaicloud/cloudinfo
-ADD Gopkg.* Makefile main-targets.mk /go/src/github.com/banzaicloud/cloudinfo/
-WORKDIR /go/src/github.com/banzaicloud/cloudinfo
+RUN apk add --update --no-cache ca-certificates make git curl mercurial bzr
 
-RUN make vendor
-ADD . /go/src/github.com/banzaicloud/cloudinfo
+RUN mkdir -p /build
+WORKDIR /build
 
-RUN make build
+COPY go.* /build/
+RUN go mod download
+
+COPY . /build
+RUN BINARY_NAME=cloudinfo make build-release
+
 
 FROM node:10 as frontend
-ADD ./web /web
+
 WORKDIR /web
+
+COPY web /web
+
 RUN npm install
 RUN npm install -g @angular/cli
 RUN ng build --configuration=production --base-href=/
 
-FROM alpine:3.7
-RUN apk add --update --no-cache bash curl
 
-COPY --from=backend /usr/share/zoneinfo/ /usr/share/zoneinfo/
-COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=backend /go/src/github.com/banzaicloud/cloudinfo/build/cloudinfo /bin
+FROM alpine:3.9.3
+
+RUN apk add --update --no-cache ca-certificates tzdata bash curl
+
+COPY --from=builder /build/build/release/cloudinfo /bin
 COPY --from=frontend /web/dist/ui /web/dist/ui
-ADD ./entrypoint.sh /entrypoint.sh
-ADD ./configs /configs
+
+COPY entrypoint.sh /entrypoint.sh
+COPY configs /configs
 
 ENV CLOUDINFO_BASEPATH "/cloudinfo"
 ENV SERVICELOADER_SERVICECONFIGLOCATION "/configs"
 
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/cloudinfo"]
