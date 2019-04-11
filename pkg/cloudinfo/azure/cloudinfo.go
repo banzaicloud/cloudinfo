@@ -587,6 +587,7 @@ func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.LocationV
 	case svcAks:
 		const resourceTypeForAks = "managedClusters"
 		var versions []string
+		var def string
 		resp, err := a.containerSvcClient.ListOrchestrators(context.TODO(), region, resourceTypeForAks)
 		if err != nil {
 			return nil, err
@@ -594,16 +595,15 @@ func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.LocationV
 		if resp.OrchestratorVersionProfileProperties != nil && resp.OrchestratorVersionProfileProperties.Orchestrators != nil {
 			for _, v := range *resp.OrchestratorVersionProfileProperties.Orchestrators {
 				if v.OrchestratorType != nil && *v.OrchestratorType == string(containerservice.Kubernetes) {
-					versions = appendIfMissing(versions, *v.OrchestratorVersion)
-					if v.Upgrades != nil {
-						for _, up := range *v.Upgrades {
-							versions = appendIfMissing(versions, *up.OrchestratorVersion)
-						}
+					if v.Default != nil {
+						def = *v.OrchestratorVersion
 					}
+
+					versions = append(versions, *v.OrchestratorVersion)
 				}
 			}
 		}
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions)}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, def)}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}

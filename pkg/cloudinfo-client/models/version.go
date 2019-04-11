@@ -11,12 +11,15 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// Version Version represents a version
+// Version version
 // swagger:model Version
 type Version struct {
 
+	// default
+	Default bool `json:"default,omitempty"`
+
 	// version
-	Version string `json:"versions,omitempty"`
+	Version string `json:"version,omitempty"`
 }
 
 // Validate validates this version

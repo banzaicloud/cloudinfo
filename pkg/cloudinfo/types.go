@@ -111,13 +111,15 @@ func newZonePrice(zone string, price float64) *ZonePrice {
 type LocationVersion struct {
 	Location string   `json:"location"`
 	Versions []string `json:"versions"`
+	Default  string   `json:"default"`
 }
 
 // NewLocationVersion creates a new location version struct
-func NewLocationVersion(location string, versions []string) LocationVersion {
+func NewLocationVersion(location string, versions []string, def string) LocationVersion {
 	return LocationVersion{
 		Location: location,
 		Versions: versions,
+		Default:  def,
 	}
 }
 
@@ -201,16 +203,6 @@ func NewImage(name, version string, gpu bool) Image {
 		Version:      version,
 		GpuAvailable: gpu,
 	}
-}
-
-// Version represents a version
-type Version struct {
-	Version string `json:"versions"`
-}
-
-// VersionName returns the name of the version
-func (v Version) VersionName() string {
-	return v.Version
 }
 
 // Region hold the id and name of a cloud provider region

@@ -227,7 +227,7 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 			name:    "successfully retrieved the versions",
 			ciStore: &DummyCloudInfoStore{},
 			checker: func(versions []LocationVersion, err error) {
-				assert.Equal(t, []LocationVersion{{Versions: []string{"1.10", "1.11"}}}, versions)
+				assert.Equal(t, 1, len(versions))
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},

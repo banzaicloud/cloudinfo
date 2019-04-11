@@ -19,7 +19,7 @@ import (
 type VersionsResponse struct {
 
 	// versions
-	Versions []*Version `json:"versions"`
+	Versions []*LocationVersion `json:"versions"`
 }
 
 // Validate validates this versions response

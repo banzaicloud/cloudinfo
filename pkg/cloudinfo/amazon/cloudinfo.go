@@ -607,7 +607,7 @@ func (e *Ec2Infoer) GetServiceAttributes(region, service, attribute string) (clo
 func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.10", "1.11"})}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.10", "1.11"}, "1.11")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}

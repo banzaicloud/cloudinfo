@@ -219,16 +219,18 @@ func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, 
 			for _, version := range versions.([]cloudinfo.LocationVersion) {
 				for _, data := range region.Data.Versions.Data {
 					if data.Location == version.Location {
-						var v []string
-						for _, _version := range version.Versions {
-							if !cloudinfo.Contains(data.Versions, _version) {
-								v = append(v, _version)
+						for _, v := range version.Versions {
+							keep := true
+							for _, excludeVersion := range data.Versions {
+								if v == excludeVersion {
+									keep = false
+									break
+								}
+							}
+							if keep {
+								availableVersions = append(availableVersions, version)
 							}
 						}
-						availableVersions = append(availableVersions, cloudinfo.LocationVersion{
-							Location: version.Location,
-							Versions: v,
-						})
 					}
 
 				}
@@ -245,19 +247,16 @@ func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, 
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
 			var availableVersions []cloudinfo.LocationVersion
-			for _, version := range region.Data.Versions.Data {
-				for _, data := range versions.([]cloudinfo.LocationVersion) {
+			for _, data := range region.Data.Versions.Data {
+				for _, version := range versions.([]cloudinfo.LocationVersion) {
 					if data.Location == version.Location {
-						var v []string
-						for _, _version := range version.Versions {
-							if cloudinfo.Contains(data.Versions, _version) {
-								v = append(v, _version)
+						for _, includeVersion := range data.Versions {
+							for _, v := range version.Versions {
+								if includeVersion == v {
+									availableVersions = append(availableVersions, version)
+								}
 							}
 						}
-						availableVersions = append(availableVersions, cloudinfo.LocationVersion{
-							Location: version.Location,
-							Versions: v,
-						})
 					}
 				}
 			}

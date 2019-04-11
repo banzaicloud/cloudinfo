@@ -569,6 +569,28 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
+    "LocationVersion": {
+      "description": "LocationVersion struct for displaying version information per location",
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "string",
+          "x-go-name": "Default"
+        },
+        "location": {
+          "type": "string",
+          "x-go-name": "Location"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Versions"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+    },
     "ProductDetails": {
       "description": "ProductDetails extended view of the virtual machine details",
       "type": "object",
@@ -768,17 +790,6 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
-    "Version": {
-      "description": "Version represents a version",
-      "type": "object",
-      "properties": {
-        "versions": {
-          "type": "string",
-          "x-go-name": "Version"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-    },
     "VersionsResponse": {
       "description": "VersionsResponse holds the list of available versions",
       "type": "object",
@@ -786,7 +797,7 @@
         "versions": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Version"
+            "$ref": "#/definitions/LocationVersion"
           },
           "x-go-name": "Versions"
         }

@@ -336,7 +336,13 @@ func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersio
 			return nil, err
 		}
 
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, options.KubernetesVersions.Get())}, nil
+		var versions []string
+
+		for _, version := range options.KubernetesVersions.Get() {
+			versions = append(versions, version)
+		}
+
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, versions[0])}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
