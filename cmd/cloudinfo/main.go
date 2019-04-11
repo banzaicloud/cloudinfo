@@ -27,6 +27,13 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
@@ -42,12 +49,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/goph/logur"
-	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 )
 
 func main() {

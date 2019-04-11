@@ -17,12 +17,13 @@ package api
 import (
 	"reflect"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v8"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions

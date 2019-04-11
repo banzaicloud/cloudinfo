@@ -17,9 +17,10 @@ package azure
 import (
 	"strings"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 var (

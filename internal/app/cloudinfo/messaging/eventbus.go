@@ -51,7 +51,7 @@ func (eb *defaultEventBus) providerScrapingTopic(provider string) string {
 	return strings.Join([]string{topicPrefix, provider}, ":")
 }
 
-//NewDefaultEventBus creates an event bus backed by  https://github.com/asaskevich/EventBus
+// NewDefaultEventBus creates an event bus backed by  https://github.com/asaskevich/EventBus
 func NewDefaultEventBus() EventBus {
 	return &defaultEventBus{
 		eventBus: evbus.New(),

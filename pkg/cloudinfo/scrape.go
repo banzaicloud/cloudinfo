@@ -21,13 +21,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/goph/emperror"
-	"github.com/goph/logur"
-	"github.com/pkg/errors"
 )
 
 // scrapingManager manages data renewal for a given provider

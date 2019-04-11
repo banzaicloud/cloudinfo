@@ -18,12 +18,13 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // mngmntRouteHandler struct collecting handlers for the management service

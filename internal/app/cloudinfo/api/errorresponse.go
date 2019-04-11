@@ -17,8 +17,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/problems"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/problems"
 )
 
 // Responder marks responders

@@ -15,11 +15,13 @@
 package alibaba
 
 import (
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"strconv"
 	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
+
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // CommonDescriber interface for all Alibaba API calls

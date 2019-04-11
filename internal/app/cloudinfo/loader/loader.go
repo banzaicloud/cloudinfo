@@ -18,11 +18,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // CloudInfoLoader operations for loading cloud information into the cloud info application

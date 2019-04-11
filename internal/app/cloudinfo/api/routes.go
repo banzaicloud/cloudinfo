@@ -18,15 +18,16 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/go-gin-prometheus"
+	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 // RouteHandler configures the REST API routes in the gin router

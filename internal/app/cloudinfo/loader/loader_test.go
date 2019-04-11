@@ -20,25 +20,25 @@ import (
 
 func TestDefaultServiceLoader_Load(t *testing.T) {
 
-	//config := Config{
-	//	SvcDataLocation:        ".",
-	//	SvcDefinitionsLocation: ".",
-	//	Name:                   "service-definition",
-	//}
-	//l := logrus.New()
-	//level, _ := logrus.ParseLevel("debug")
-	//l.SetLevel(level)
+	// config := Config{
+	// 	SvcDataLocation:        ".",
+	// 	SvcDefinitionsLocation: ".",
+	// 	Name:                   "service-definition",
+	// }
+	// l := logrus.New()
+	// level, _ := logrus.ParseLevel("debug")
+	// l.SetLevel(level)
 	//
-	//log := logrusadapter.New(l)
+	// log := logrusadapter.New(l)
 	//
-	//store := cloudinfo.NewCacheProductStore(10*time.Minute, 10*time.Minute, log)
+	// store := cloudinfo.NewCacheProductStore(10*time.Minute, 10*time.Minute, log)
 	//
-	//loader := NewDefaultServiceLoader(config, store, log)
+	// loader := NewDefaultServiceLoader(config, store, log)
 	//
-	////loader.LoadServiceInformation(context.Background())
-	//loader.ConfigureServices(context.Background())
+	// //loader.LoadServiceInformation(context.Background())
+	// loader.ConfigureServices(context.Background())
 	//
-	//reg, _ := store.GetRegions("test-prv", "test-svc")
-	//log.Info("stored", map[string]interface{}{"cnt": reg})
+	// reg, _ := store.GetRegions("test-prv", "test-svc")
+	// log.Info("stored", map[string]interface{}{"cnt": reg})
 
 }

@@ -15,10 +15,11 @@
 package log
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 // ContextKey is the key the retrieved (or generated) correlation ID is stored under in the gin Context.

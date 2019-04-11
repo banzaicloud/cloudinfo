@@ -19,10 +19,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/goph/logur"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 type redisProductStore struct {
@@ -119,13 +120,13 @@ func NewRedisProductStore(config redis.Config, log logur.Logger) cloudinfo.Cloud
 
 // Export writes the content of the store into the passed in writer
 func (rps *redisProductStore) Export(w io.Writer) error {
-	//todo implement the export
+	// todo implement the export
 	return nil
 }
 
 // Import loads the store data from the standard input
 func (rps *redisProductStore) Import(r io.Reader) error {
-	//todo implement the import
+	// todo implement the import
 	return nil
 }
 

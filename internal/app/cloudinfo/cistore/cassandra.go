@@ -20,11 +20,12 @@ import (
 	"io"
 	"sync"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/gocql/gocql"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 type cassandraProductStore struct {

@@ -18,10 +18,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
 
 // swagger:route GET /providers providers getProviders
