@@ -347,7 +347,7 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 				"failed to retrieve status. provider [%s]", pathParams.Provider))
 			return
 		}
-		details, err := r.prod.GetProductDetails(pathParams.Provider, pathParams.Service, pathParams.Region, logger)
+		details, err := r.prod.GetProductDetails(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
 				"failed to retrieve product details. service [%s], provider [%s], region [%s]", pathParams.Service,
@@ -515,7 +515,7 @@ func getQueryParamMap(c *gin.Context, queries ...string) map[string]string {
 
 // entry point to the search API
 func (r *RouteHandler) query() gin.HandlerFunc {
-	h := handler.GraphQL(search.NewExecutableSchema(search.Config{Resolvers: &Resolver{}}))
+	h := handler.GraphQL(search.NewExecutableSchema(search.Config{Resolvers: &Resolver{cloudInfo: r.prod}}))
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
 	}

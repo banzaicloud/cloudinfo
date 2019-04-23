@@ -1,53 +1,53 @@
 enum NetworkCategory {
-  LOW
-  MODERATE
-  HIGH
+    LOW
+    MODERATE
+    HIGH
 }
 
 type InstanceType {
-  name: String!
-  price: Float!
-  cpu: Int!
-  memory: Int!
-  netCategory: NetworkCategory!
+    name: String!
+    price: Float!
+    cpu: Float!
+    memory: Float!
+    netCategory: NetworkCategory!
 }
 
 input IntFilter {
-  lt: Int
-  lte: Int
-  gt: Int
-  gte: Int
-  eq: Int
-  ne: Int
-  in: [Int!]
-  nin: [Int!]
+    lt: Int
+    lte: Int
+    gt: Int
+    gte: Int
+    eq: Int
+    ne: Int
+    in: [Int!]
+    nin: [Int!]
 }
 
 input FloatFilter {
-  lt: Float
-  lte: Float
-  gt: Float
-  gte: Float
-  eq: Float
-  ne: Float
-  in: [Float!]
-  nin: [Float!]
+    lt: Float
+    lte: Float
+    gt: Float
+    gte: Float
+    eq: Float
+    ne: Float
+    in: [Float!]
+    nin: [Float!]
 }
 
 input NetworkCategoryFilter {
-  eq: NetworkCategory
-  ne: NetworkCategory
-  in: [NetworkCategory!]
-  nin: [NetworkCategory!]
+    eq: NetworkCategory
+    ne: NetworkCategory
+    in: [NetworkCategory!]
+    nin: [NetworkCategory!]
 }
 
 input InstanceTypeQueryInput {
-  price: FloatFilter
-  cpu: IntFilter
-  memory: IntFilter
-  netCategory: NetworkCategoryFilter
+    price: FloatFilter
+    cpu: FloatFilter
+    memory: FloatFilter
+    netCategory: NetworkCategoryFilter
 }
 
 type Query {
-  instanceTypes(provider: String!, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
+    instanceTypes(provider: String!, service: String, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
 }

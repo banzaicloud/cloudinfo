@@ -110,7 +110,7 @@ func main() {
 
 	serviceManager.LoadServiceInformation(config.Providers)
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore)
+	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
 	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
@@ -127,7 +127,7 @@ func main() {
 	emperror.Panic(err)
 
 	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
-	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, logger)
+	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, cloudInfoStore, logger)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()
