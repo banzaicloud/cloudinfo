@@ -1,0 +1,16 @@
+schema:
+    - "api/graphql/*.graphql"
+
+exec:
+    filename: .gen/api/graphql/exec.go
+    package: search
+
+model:
+    filename: .gen/api/graphql/generated.go
+    package: search
+
+resolver:
+    filename: internal/app/cloudinfo/api/resolver.go
+    type: Resolver
+
+struct_tag: json

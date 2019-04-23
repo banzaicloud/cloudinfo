@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"os"
 
-	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -84,6 +84,9 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions())
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts())
 	}
+
+	queryGroup := v1.Group("/query")
+	queryGroup.POST("/", r.query())
 }
 
 func (r *RouteHandler) signalStatus(c *gin.Context) {
