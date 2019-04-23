@@ -14,8 +14,6 @@
 
 package cloudinfo
 
-import "github.com/goph/logur"
-
 const (
 	// Memory represents the memory attribute for the product info
 	Memory = "memory"
@@ -43,7 +41,7 @@ type CloudInfo interface {
 
 	GetStatus(provider string) (string, error)
 
-	GetProductDetails(provider, service, region string, logger logur.Logger) ([]ProductDetails, error)
+	GetProductDetails(provider, service, region string) ([]ProductDetails, error)
 
 	GetServiceImages(provider, service, region string) ([]Image, error)
 

@@ -26,6 +26,7 @@ import (
 // It's the entry point for the product info retrieval and management subsystem
 // It's also responsible for delegating to the cloud provider specific implementations
 type cachingCloudInfo struct {
+	log            logur.Logger
 	cloudInfoers   map[string]CloudInfoer
 	cloudInfoStore CloudInfoStore
 }
@@ -71,7 +72,7 @@ func (vm VmInfo) IsBurst() bool {
 }
 
 // NewCachingCloudInfo creates a new cachingCloudInfo instance
-func NewCachingCloudInfo(infoers map[string]CloudInfoer, ciStore CloudInfoStore) (*cachingCloudInfo, error) {
+func NewCachingCloudInfo(infoers map[string]CloudInfoer, ciStore CloudInfoStore, logger logur.Logger) (*cachingCloudInfo, error) {
 	if infoers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
@@ -79,6 +80,7 @@ func NewCachingCloudInfo(infoers map[string]CloudInfoer, ciStore CloudInfoStore)
 	pi := cachingCloudInfo{
 		cloudInfoers:   infoers,
 		cloudInfoStore: ciStore,
+		log:            logur.WithFields(logger, map[string]interface{}{"component": "cachingCloudInfo"}),
 	}
 	return &pi, nil
 }
@@ -152,7 +154,7 @@ func (cpi *cachingCloudInfo) GetServices(provider string) ([]Service, error) {
 }
 
 // GetProductDetails retrieves product details form the given provider and region
-func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string, logger logur.Logger) ([]ProductDetails, error) {
+func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string) ([]ProductDetails, error) {
 	var (
 		vms interface{}
 		ok  bool
@@ -172,7 +174,7 @@ func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string,
 				pd.SpotPrice = append(pd.SpotPrice, *newZonePrice(zone, price))
 			}
 		} else {
-			logger.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
+			cpi.log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
 		}
 
 		details = append(details, *pd)

@@ -49,12 +49,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		InstanceTypes func(childComplexity int, provider string, region *string, zone *string, filter InstanceTypeQueryInput) int
+		InstanceTypes func(childComplexity int, provider string, service *string, region *string, zone *string, filter InstanceTypeQueryInput) int
 	}
 }
 
 type QueryResolver interface {
-	InstanceTypes(ctx context.Context, provider string, region *string, zone *string, filter InstanceTypeQueryInput) ([]InstanceType, error)
+	InstanceTypes(ctx context.Context, provider string, service *string, region *string, zone *string, filter InstanceTypeQueryInput) ([]InstanceType, error)
 }
 
 type executableSchema struct {
@@ -117,7 +117,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.InstanceTypes(childComplexity, args["provider"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput)), true
+		return e.complexity.Query.InstanceTypes(childComplexity, args["provider"].(string), args["service"].(*string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput)), true
 
 	}
 	return 0, false
@@ -184,57 +184,57 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "api/graphql/schema.graphql", Input: `enum NetworkCategory {
-  LOW
-  MODERATE
-  HIGH
+    LOW
+    MODERATE
+    HIGH
 }
 
 type InstanceType {
-  name: String!
-  price: Float!
-  cpu: Int!
-  memory: Int!
-  netCategory: NetworkCategory!
+    name: String!
+    price: Float!
+    cpu: Float!
+    memory: Float!
+    netCategory: NetworkCategory!
 }
 
 input IntFilter {
-  lt: Int
-  lte: Int
-  gt: Int
-  gte: Int
-  eq: Int
-  ne: Int
-  in: [Int!]
-  nin: [Int!]
+    lt: Int
+    lte: Int
+    gt: Int
+    gte: Int
+    eq: Int
+    ne: Int
+    in: [Int!]
+    nin: [Int!]
 }
 
 input FloatFilter {
-  lt: Float
-  lte: Float
-  gt: Float
-  gte: Float
-  eq: Float
-  ne: Float
-  in: [Float!]
-  nin: [Float!]
+    lt: Float
+    lte: Float
+    gt: Float
+    gte: Float
+    eq: Float
+    ne: Float
+    in: [Float!]
+    nin: [Float!]
 }
 
 input NetworkCategoryFilter {
-  eq: NetworkCategory
-  ne: NetworkCategory
-  in: [NetworkCategory!]
-  nin: [NetworkCategory!]
+    eq: NetworkCategory
+    ne: NetworkCategory
+    in: [NetworkCategory!]
+    nin: [NetworkCategory!]
 }
 
 input InstanceTypeQueryInput {
-  price: FloatFilter
-  cpu: IntFilter
-  memory: IntFilter
-  netCategory: NetworkCategoryFilter
+    price: FloatFilter
+    cpu: FloatFilter
+    memory: FloatFilter
+    netCategory: NetworkCategoryFilter
 }
 
 type Query {
-  instanceTypes(provider: String!, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
+    instanceTypes(provider: String!, service: String, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
 }
 `},
 )
@@ -269,29 +269,37 @@ func (ec *executionContext) field_Query_instanceTypes_args(ctx context.Context, 
 	}
 	args["provider"] = arg0
 	var arg1 *string
-	if tmp, ok := rawArgs["region"]; ok {
+	if tmp, ok := rawArgs["service"]; ok {
 		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["region"] = arg1
+	args["service"] = arg1
 	var arg2 *string
-	if tmp, ok := rawArgs["zone"]; ok {
+	if tmp, ok := rawArgs["region"]; ok {
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["zone"] = arg2
-	var arg3 InstanceTypeQueryInput
-	if tmp, ok := rawArgs["filter"]; ok {
-		arg3, err = ec.unmarshalNInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐInstanceTypeQueryInput(ctx, tmp)
+	args["region"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["zone"]; ok {
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter"] = arg3
+	args["zone"] = arg3
+	var arg4 InstanceTypeQueryInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		arg4, err = ec.unmarshalNInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐInstanceTypeQueryInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg4
 	return args, nil
 }
 
@@ -402,10 +410,10 @@ func (ec *executionContext) _InstanceType_cpu(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _InstanceType_memory(ctx context.Context, field graphql.CollectedField, obj *InstanceType) graphql.Marshaler {
@@ -429,10 +437,10 @@ func (ec *executionContext) _InstanceType_memory(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _InstanceType_netCategory(ctx context.Context, field graphql.CollectedField, obj *InstanceType) graphql.Marshaler {
@@ -482,7 +490,7 @@ func (ec *executionContext) _Query_instanceTypes(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InstanceTypes(rctx, args["provider"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput))
+		return ec.resolvers.Query().InstanceTypes(rctx, args["provider"].(string), args["service"].(*string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1456,13 +1464,13 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 			}
 		case "cpu":
 			var err error
-			it.CPU, err = ec.unmarshalOIntFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐIntFilter(ctx, v)
+			it.CPU, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "memory":
 			var err error
-			it.Memory, err = ec.unmarshalOIntFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐIntFilter(ctx, v)
+			it.Memory, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2361,18 +2369,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOIntFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐIntFilter(ctx context.Context, v interface{}) (IntFilter, error) {
-	return ec.unmarshalInputIntFilter(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOIntFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐIntFilter(ctx context.Context, v interface{}) (*IntFilter, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOIntFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐIntFilter(ctx, v)
-	return &res, err
 }
 
 func (ec *executionContext) unmarshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐNetworkCategory(ctx context.Context, v interface{}) (NetworkCategory, error) {
