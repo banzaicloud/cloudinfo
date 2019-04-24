@@ -16,6 +16,7 @@ package cloudinfo
 
 import (
 	"context"
+	"strings"
 
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -117,13 +118,11 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 }
 
 func transform(details cloudinfo.ProductDetails) graphql.InstanceType {
-	it := graphql.InstanceType{}
-
-	it.Price = details.OnDemandPrice
-	it.Name = details.Type
-	it.CPU = details.Cpus
-	it.Memory = details.Mem
-	it.NetworkCategory = graphql.NetworkCategory(details.NtwPerfCat)
-
-	return it
+	return graphql.InstanceType{
+		Price:           details.OnDemandPrice,
+		Name:            details.Type,
+		CPU:             details.Cpus,
+		Memory:          details.Mem,
+		NetworkCategory: graphql.NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
+	}
 }
