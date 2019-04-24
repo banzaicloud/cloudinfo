@@ -18,12 +18,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/99designs/gqlgen/handler"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
 
-	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
 
@@ -514,8 +512,7 @@ func getQueryParamMap(c *gin.Context, queries ...string) map[string]string {
 
 // entry point to the search API
 func (r *RouteHandler) query() gin.HandlerFunc {
-	h := handler.GraphQL(search.NewExecutableSchema(search.Config{Resolvers: &Resolver{cloudInfo: r.prod}}))
 	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
+		r.graphqlHandler.ServeHTTP(c.Writer, c.Request)
 	}
 }

@@ -36,14 +36,16 @@ type RouteHandler struct {
 	prod           cloudinfo.CloudInfo
 	buildInfo      buildinfo.BuildInfo
 	errorResponder Responder
+	graphqlHandler http.Handler
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
-func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo, store cloudinfo.CloudInfoStore, log logur.Logger) *RouteHandler {
+func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo, graphqlHandler http.Handler, log logur.Logger) *RouteHandler {
 	return &RouteHandler{
 		prod:           p,
 		buildInfo:      bi,
 		errorResponder: NewErrorResponder(),
+		graphqlHandler: graphqlHandler,
 		log:            log,
 	}
 }
