@@ -20,7 +20,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 
-	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
+	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
@@ -46,7 +46,7 @@ func NewInstanceTypeService(store InstanceTypeStore) *InstanceTypeService {
 type InstanceTypeQuery struct {
 	Region *string
 	Zone   *string
-	Filter search.InstanceTypeQueryInput
+	Filter graphql.InstanceTypeQueryInput
 }
 
 // InstanceTypeQueryValidationError is returned if an instance type query is invalid.
@@ -60,7 +60,7 @@ func (e InstanceTypeQueryValidationError) Error() string {
 }
 
 // Query processes an instance type query and responds with a list match of instance types matching that query.
-func (s *InstanceTypeService) Query(ctx context.Context, provider string, service string, query InstanceTypeQuery) ([]search.InstanceType, error) {
+func (s *InstanceTypeService) Query(ctx context.Context, provider string, service string, query InstanceTypeQuery) ([]graphql.InstanceType, error) {
 	if provider == "" {
 		return nil, errors.WithStack(InstanceTypeQueryValidationError{
 			Message: "provider field must not be empty",
@@ -80,7 +80,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 		})
 	}
 
-	var instanceTypes []search.InstanceType
+	var instanceTypes []graphql.InstanceType
 
 	// load the data from the store
 	products, err := s.store.GetProductDetails(provider, service, *query.Region)
@@ -116,14 +116,14 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 	return instanceTypes, nil
 }
 
-func transform(details cloudinfo.ProductDetails) search.InstanceType {
-	it := search.InstanceType{}
+func transform(details cloudinfo.ProductDetails) graphql.InstanceType {
+	it := graphql.InstanceType{}
 
 	it.Price = details.OnDemandPrice
 	it.Name = details.Type
 	it.CPU = details.Cpus
 	it.Memory = details.Mem
-	it.NetworkCategory = search.NetworkCategory(details.NtwPerfCat)
+	it.NetworkCategory = graphql.NetworkCategory(details.NtwPerfCat)
 
 	return it
 }

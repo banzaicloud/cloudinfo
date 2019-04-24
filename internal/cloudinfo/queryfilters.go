@@ -17,10 +17,10 @@ package cloudinfo
 import (
 	"strings"
 
-	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
+	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 )
 
-func applyFloatFilter(value float64, filter search.FloatFilter) bool {
+func applyFloatFilter(value float64, filter graphql.FloatFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {
@@ -75,7 +75,7 @@ func applyFloatFilter(value float64, filter search.FloatFilter) bool {
 }
 
 // nolint: deadcode
-func applyIntFilter(value int, filter search.IntFilter) bool {
+func applyIntFilter(value int, filter graphql.IntFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {
@@ -129,7 +129,7 @@ func applyIntFilter(value int, filter search.IntFilter) bool {
 	return result
 }
 
-func applyNetworkCategoryFilter(value string, filter search.NetworkCategoryFilter) bool {
+func applyNetworkCategoryFilter(value string, filter graphql.NetworkCategoryFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {

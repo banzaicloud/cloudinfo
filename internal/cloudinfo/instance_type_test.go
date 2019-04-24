@@ -23,7 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
+	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
@@ -96,21 +96,21 @@ func TestInstanceTypeService_Query(t *testing.T) {
 	price := 0.11
 	cpu := float64(2)
 	mem := float64(8)
-	net := search.NetworkCategoryHigh
+	net := graphql.NetworkCategoryHigh
 
 	query := InstanceTypeQuery{
 		Region: &region,
-		Filter: search.InstanceTypeQueryInput{
-			Price: &search.FloatFilter{
+		Filter: graphql.InstanceTypeQueryInput{
+			Price: &graphql.FloatFilter{
 				Gte: &price,
 			},
-			CPU: &search.FloatFilter{
+			CPU: &graphql.FloatFilter{
 				Eq: &cpu,
 			},
-			Memory: &search.FloatFilter{
+			Memory: &graphql.FloatFilter{
 				Eq: &mem,
 			},
-			NetworkCategory: &search.NetworkCategoryFilter{
+			NetworkCategory: &graphql.NetworkCategoryFilter{
 				Eq: &net,
 			},
 		},

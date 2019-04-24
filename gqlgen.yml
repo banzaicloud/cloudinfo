@@ -3,10 +3,10 @@ schema:
 
 exec:
     filename: .gen/api/graphql/exec.go
-    package: search
+    package: graphql
 
 model:
     filename: .gen/api/graphql/generated.go
-    package: search
+    package: graphql
 
 struct_tag: json
