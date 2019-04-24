@@ -20,18 +20,18 @@ type FloatFilter struct {
 }
 
 type InstanceType struct {
-	Name        string          `json:"name"`
-	Price       float64         `json:"price"`
-	CPU         float64         `json:"cpu"`
-	Memory      float64         `json:"memory"`
-	NetCategory NetworkCategory `json:"netCategory"`
+	Name            string          `json:"name"`
+	Price           float64         `json:"price"`
+	CPU             float64         `json:"cpu"`
+	Memory          float64         `json:"memory"`
+	NetworkCategory NetworkCategory `json:"networkCategory"`
 }
 
 type InstanceTypeQueryInput struct {
-	Price       *FloatFilter           `json:"price"`
-	CPU         *FloatFilter           `json:"cpu"`
-	Memory      *FloatFilter           `json:"memory"`
-	NetCategory *NetworkCategoryFilter `json:"netCategory"`
+	Price           *FloatFilter           `json:"price"`
+	CPU             *FloatFilter           `json:"cpu"`
+	Memory          *FloatFilter           `json:"memory"`
+	NetworkCategory *NetworkCategoryFilter `json:"networkCategory"`
 }
 
 type IntFilter struct {

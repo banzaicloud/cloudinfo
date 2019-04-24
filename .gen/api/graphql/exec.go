@@ -41,11 +41,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	InstanceType struct {
-		CPU         func(childComplexity int) int
-		Memory      func(childComplexity int) int
-		Name        func(childComplexity int) int
-		NetCategory func(childComplexity int) int
-		Price       func(childComplexity int) int
+		CPU             func(childComplexity int) int
+		Memory          func(childComplexity int) int
+		Name            func(childComplexity int) int
+		NetworkCategory func(childComplexity int) int
+		Price           func(childComplexity int) int
 	}
 
 	Query struct {
@@ -93,12 +93,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InstanceType.Name(childComplexity), true
 
-	case "InstanceType.NetCategory":
-		if e.complexity.InstanceType.NetCategory == nil {
+	case "InstanceType.NetworkCategory":
+		if e.complexity.InstanceType.NetworkCategory == nil {
 			break
 		}
 
-		return e.complexity.InstanceType.NetCategory(childComplexity), true
+		return e.complexity.InstanceType.NetworkCategory(childComplexity), true
 
 	case "InstanceType.Price":
 		if e.complexity.InstanceType.Price == nil {
@@ -194,7 +194,7 @@ type InstanceType {
     price: Float!
     cpu: Float!
     memory: Float!
-    netCategory: NetworkCategory!
+    networkCategory: NetworkCategory!
 }
 
 input IntFilter {
@@ -230,7 +230,7 @@ input InstanceTypeQueryInput {
     price: FloatFilter
     cpu: FloatFilter
     memory: FloatFilter
-    netCategory: NetworkCategoryFilter
+    networkCategory: NetworkCategoryFilter
 }
 
 type Query {
@@ -443,7 +443,7 @@ func (ec *executionContext) _InstanceType_memory(ctx context.Context, field grap
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _InstanceType_netCategory(ctx context.Context, field graphql.CollectedField, obj *InstanceType) graphql.Marshaler {
+func (ec *executionContext) _InstanceType_networkCategory(ctx context.Context, field graphql.CollectedField, obj *InstanceType) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -456,7 +456,7 @@ func (ec *executionContext) _InstanceType_netCategory(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.NetCategory, nil
+		return obj.NetworkCategory, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1474,9 +1474,9 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
-		case "netCategory":
+		case "networkCategory":
 			var err error
-			it.NetCategory, err = ec.unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐNetworkCategoryFilter(ctx, v)
+			it.NetworkCategory, err = ec.unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐNetworkCategoryFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1621,8 +1621,8 @@ func (ec *executionContext) _InstanceType(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "netCategory":
-			out.Values[i] = ec._InstanceType_netCategory(ctx, field, obj)
+		case "networkCategory":
+			out.Values[i] = ec._InstanceType_networkCategory(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

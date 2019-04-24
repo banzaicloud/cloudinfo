@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+
 	"github.com/goph/emperror"
 
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -58,8 +59,8 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 			includeInResults = includeInResults && applyFloatFilter(productDetails.Mem, *filter.Memory)
 		}
 
-		if filter.NetCategory != nil {
-			includeInResults = includeInResults && applyNetworkCategoryFilter(productDetails.NtwPerfCat, *filter.NetCategory)
+		if filter.NetworkCategory != nil {
+			includeInResults = includeInResults && applyNetworkCategoryFilter(productDetails.NtwPerfCat, *filter.NetworkCategory)
 		}
 
 		if includeInResults {
@@ -80,7 +81,7 @@ func (r *queryResolver) transform(details cloudinfo.ProductDetails) *search.Inst
 	it.Name = details.Type
 	it.CPU = details.Cpus
 	it.Memory = details.Mem
-	it.NetCategory = search.NetworkCategory(details.NtwPerfCat)
+	it.NetworkCategory = search.NetworkCategory(details.NtwPerfCat)
 
 	return &it
 }
