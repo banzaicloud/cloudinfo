@@ -95,6 +95,7 @@ func TestInstanceTypeService_Query(t *testing.T) {
 	price := 0.11
 	cpu := float64(2)
 	mem := float64(8)
+	gpu := float64(0)
 	net := NetworkCategoryHigh
 
 	query := InstanceTypeQuery{
@@ -108,6 +109,9 @@ func TestInstanceTypeService_Query(t *testing.T) {
 			},
 			Memory: &FloatFilter{
 				Eq: &mem,
+			},
+			Gpu: &FloatFilter{
+				Eq: &gpu,
 			},
 			NetworkCategory: &NetworkCategoryFilter{
 				Eq: &net,

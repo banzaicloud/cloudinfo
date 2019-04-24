@@ -9,6 +9,7 @@ type InstanceType {
     price: Float!
     cpu: Float!
     memory: Float!
+    gpu: Float!
     networkCategory: NetworkCategory!
 }
 
@@ -45,6 +46,7 @@ input InstanceTypeQueryInput {
     price: FloatFilter
     cpu: FloatFilter
     memory: FloatFilter
+    gpu: FloatFilter
     networkCategory: NetworkCategoryFilter
 }
 

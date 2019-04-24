@@ -42,6 +42,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	InstanceType struct {
 		CPU             func(childComplexity int) int
+		Gpu             func(childComplexity int) int
 		Memory          func(childComplexity int) int
 		Name            func(childComplexity int) int
 		NetworkCategory func(childComplexity int) int
@@ -78,6 +79,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InstanceType.CPU(childComplexity), true
+
+	case "InstanceType.Gpu":
+		if e.complexity.InstanceType.Gpu == nil {
+			break
+		}
+
+		return e.complexity.InstanceType.Gpu(childComplexity), true
 
 	case "InstanceType.Memory":
 		if e.complexity.InstanceType.Memory == nil {
@@ -194,6 +202,7 @@ type InstanceType {
     price: Float!
     cpu: Float!
     memory: Float!
+    gpu: Float!
     networkCategory: NetworkCategory!
 }
 
@@ -230,6 +239,7 @@ input InstanceTypeQueryInput {
     price: FloatFilter
     cpu: FloatFilter
     memory: FloatFilter
+    gpu: FloatFilter
     networkCategory: NetworkCategoryFilter
 }
 
@@ -430,6 +440,33 @@ func (ec *executionContext) _InstanceType_memory(ctx context.Context, field grap
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Memory, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InstanceType_gpu(ctx context.Context, field graphql.CollectedField, obj *InstanceType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "InstanceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gpu, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1474,6 +1511,12 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "gpu":
+			var err error
+			it.Gpu, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐFloatFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "networkCategory":
 			var err error
 			it.NetworkCategory, err = ec.unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋᚗgenᚋapiᚋgraphqlᚐNetworkCategoryFilter(ctx, v)
@@ -1618,6 +1661,11 @@ func (ec *executionContext) _InstanceType(ctx context.Context, sel ast.Selection
 			}
 		case "memory":
 			out.Values[i] = ec._InstanceType_memory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "gpu":
+			out.Values[i] = ec._InstanceType_gpu(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

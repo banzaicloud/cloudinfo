@@ -57,6 +57,7 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 			Price:  (*cloudinfo.FloatFilter)(filter.Price),
 			CPU:    (*cloudinfo.FloatFilter)(filter.CPU),
 			Memory: (*cloudinfo.FloatFilter)(filter.Memory),
+			Gpu:    (*cloudinfo.FloatFilter)(filter.Gpu),
 		},
 	}
 
@@ -96,6 +97,7 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 			Price:           instanceType.Price,
 			CPU:             instanceType.CPU,
 			Memory:          instanceType.Memory,
+			Gpu:             instanceType.Gpu,
 			NetworkCategory: graphql.NetworkCategory(instanceType.NetworkCategory),
 		}
 	}

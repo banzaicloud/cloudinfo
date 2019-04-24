@@ -47,6 +47,7 @@ type InstanceType struct {
 	Price           float64
 	CPU             float64
 	Memory          float64
+	Gpu             float64
 	NetworkCategory NetworkCategory
 }
 
@@ -62,6 +63,7 @@ type InstanceTypeQueryFilter struct {
 	Price           *FloatFilter
 	CPU             *FloatFilter
 	Memory          *FloatFilter
+	Gpu             *FloatFilter
 	NetworkCategory *NetworkCategoryFilter
 }
 
@@ -154,6 +156,10 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 			includeInResults = includeInResults && applyFloatFilter(product.Mem, *query.Filter.Memory)
 		}
 
+		if query.Filter.Gpu != nil {
+			includeInResults = includeInResults && applyFloatFilter(product.Gpus, *query.Filter.Gpu)
+		}
+
 		if query.Filter.NetworkCategory != nil {
 			includeInResults = includeInResults && applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory)
 		}
@@ -210,6 +216,7 @@ func transform(details cloudinfo.ProductDetails) InstanceType {
 		Name:            details.Type,
 		CPU:             details.Cpus,
 		Memory:          details.Mem,
+		Gpu:             details.Gpus,
 		NetworkCategory: NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
 	}
 }
