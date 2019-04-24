@@ -85,8 +85,7 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts())
 	}
 
-	queryGroup := v1.Group("/query")
-	queryGroup.POST("/", r.query())
+	base.POST("/graphql", r.query())
 }
 
 func (r *RouteHandler) signalStatus(c *gin.Context) {
