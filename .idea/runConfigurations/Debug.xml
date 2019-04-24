@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Debug" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="cloudinfo" />
+    <working_directory value="$PROJECT_DIR$/" />
+    <go_parameters value="-i" />
+    <kind value="DIRECTORY" />
+    <filePath value="$PROJECT_DIR$/" />
+    <package value="github.com/banzaicloud/cloudinfo" />
+    <directory value="$PROJECT_DIR$/cmd/cloudinfo/" />
+    <method v="2" />
+  </configuration>
+</component>

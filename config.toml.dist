@@ -1,0 +1,72 @@
+environment = "production"
+debug = false
+shutdownTimeout = "5s"
+
+[log]
+format = "json"
+level = "info"
+
+[instrumentation.metrics]
+enabled = false
+address = ":9090"
+
+[instrumentation.jaeger]
+enabled = false
+
+# Configure either collectorEndpoint or agentEndpoint.
+# When both are configured collectorEndpoint will take precedence and the exporter will report directly to the collector.
+collectorEndpoint = "http://localhost:14268/api/traces?format=jaeger.thrift"
+agentEndpoint = "localhost:6831"
+# username = ""
+# password = ""
+
+[app]
+address = ":8000"
+renewalInterval = "24h"
+providers = ["amazon", "google", "azure", "oracle", "alibaba"]
+
+[amazon]
+accessKeyId = ""
+secretAccessKey = ""
+prometheusAddress = ""
+prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])"
+
+[google]
+apiKey = ""
+appCredentials = ""
+
+[alibaba]
+regionId = ""
+accessKeyId = ""
+accessKeySecret = ""
+
+[oracle]
+configLocation = ""
+
+[azure]
+authLocation = ""
+
+[management]
+enabled = true
+address = ":8001"
+
+[serviceloader]
+serviceConfigLocation = "./configs"
+serviceConfigName = "services"
+format = "yaml"
+
+[store.redis]
+enabled = false
+host = "localhost"
+port = 6379
+
+[store.cassandra]
+enabled = false
+hosts = "localhost"
+port = 9042
+keyspace = "cloudinfo"
+table = "products"
+
+[store.gocache]
+expiration = 0
+cleanupInterval = 0

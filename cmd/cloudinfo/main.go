@@ -27,6 +27,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -41,6 +44,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
+	"github.com/banzaicloud/cloudinfo/internal/platform/errorhandler"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
@@ -51,17 +55,21 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
 
-func main() {
+// nolint: gochecknoinits
+func init() {
+	pflag.Bool("version", false, "Show version information")
+	pflag.Bool("dump-config", false, "Dump configuration to the console (and exit)")
+}
 
-	// read configuration (commandline, env etc)
+func main() {
 	Configure(viper.GetViper(), pflag.CommandLine)
 
-	// parse the command line
 	pflag.Parse()
 
-	if viper.GetBool(helpFlag) {
-		pflag.Usage()
-		return
+	if v, _ := pflag.CommandLine.GetBool("version"); v {
+		fmt.Printf("%s version %s (%s) built on %s\n", friendlyServiceName, Version, CommitHash, BuildDate)
+
+		os.Exit(0)
 	}
 
 	err := viper.ReadInConfig()
@@ -81,8 +89,32 @@ func main() {
 	// Provide some basic context to all log lines
 	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": serviceName})
 
-	logger.Info("initializing the application",
-		map[string]interface{}{"version": Version, "commit_hash": CommitHash, "build_date": BuildDate})
+	log.SetStandardLogger(logger)
+
+	if configFileNotFound {
+		logger.Warn("configuration file not found")
+	}
+
+	err = config.Validate()
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(3)
+	}
+
+	if d, _ := pflag.CommandLine.GetBool("dump-config"); d {
+		fmt.Printf("%+v\n", config)
+
+		os.Exit(0)
+	}
+
+	// Configure error handler
+	errorHandler := errorhandler.New(logger)
+	defer emperror.HandleRecover(errorHandler)
+
+	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
+
+	logger.Info("starting application", buildInfo.Fields())
 
 	// default tracer
 	tracer := tracing.NewNoOpTracer()
@@ -90,8 +122,8 @@ func main() {
 	// Configure Jaeger
 	if config.Instrumentation.Jaeger.Enabled {
 		logger.Info("jaeger exporter enabled")
+
 		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
-		// set the app tracer
 		tracer = tracing.NewTracer()
 	}
 
@@ -106,14 +138,14 @@ func main() {
 	eventBus := messaging.NewDefaultEventBus()
 
 	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
-	serviceManager.ConfigureServices(config.Providers)
+	serviceManager.ConfigureServices(config.App.Providers)
 
-	serviceManager.LoadServiceInformation(config.Providers)
+	serviceManager.LoadServiceInformation(config.App.Providers)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
-	scrapingDriver := cloudinfo.NewScrapingDriver(config.RenewalInterval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+	scrapingDriver := cloudinfo.NewScrapingDriver(config.App.RenewalInterval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
 
 	err = scrapingDriver.StartScraping()
 	emperror.Panic(err)
@@ -123,36 +155,34 @@ func main() {
 		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logger)
 	}
 
-	err = api.ConfigureValidator(config.Providers, prodInfo, logger)
+	err = api.ConfigureValidator(config.App.Providers, prodInfo, logger)
 	emperror.Panic(err)
 
-	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
 	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, cloudInfoStore, logger)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()
 
 	// add prometheus metric endpoint
-	if config.Metrics.Enabled {
-		routeHandler.EnableMetrics(router, config.Metrics.Address)
+	if config.Instrumentation.Metrics.Enabled {
+		routeHandler.EnableMetrics(router, config.Instrumentation.Metrics.Address)
 	}
 
 	routeHandler.ConfigureRoutes(router)
 
-	err = router.Run(viper.GetString(listenAddressFlag))
+	err = router.Run(config.App.Address)
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
 func loadInfoers(config Config, log logur.Logger) map[string]cloudinfo.CloudInfoer {
-
-	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.Providers))
+	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.App.Providers))
 
 	var (
 		infoer cloudinfo.CloudInfoer
 		err    error
 	)
 
-	for _, p := range config.Providers {
+	for _, p := range config.App.Providers {
 		log = logur.WithFields(log, map[string]interface{}{"provider": p})
 
 		switch p {
@@ -175,5 +205,6 @@ func loadInfoers(config Config, log logur.Logger) map[string]cloudinfo.CloudInfo
 		infoers[p] = infoer
 		log.Info("configured product info provider", map[string]interface{}{"provider": p})
 	}
+
 	return infoers
 }

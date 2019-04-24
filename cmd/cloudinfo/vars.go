@@ -22,29 +22,8 @@ const (
 	// friendlyServiceName is the visible name of the service.
 	friendlyServiceName = "Banzai Cloud Cloudinfo Service"
 
-	// the list of flags supported by the application
-	// these constants can be used to retrieve the passed in values or defaults via viper
-	logLevelFlag               = "log-level"
-	logFormatFlag              = "log-format"
-	listenAddressFlag          = "listen-address"
-	prodInfRenewalIntervalFlag = "product-info-renewal-interval"
-	prometheusAddressFlag      = "prometheus-address"
-	prometheusQueryFlag        = "prometheus-query"
-	providerFlag               = "provider"
-	helpFlag                   = "help"
-	metricsEnabledFlag         = "metrics-enabled"
-	metricsAddressFlag         = "metrics-address"
-
-	// temporary flags
-	awsAccessKeyId         = "aws-access-key-id"
-	awsSecretAccessKey     = "aws-secret-access-key"
-	gceApiKeyFlag          = "gce-api-key"
-	gceApplicationCred     = "google-application-credentials"
-	azureAuthLocation      = "azure-auth-location"
-	alibabaRegionId        = "alibaba-region-id"
-	alibabaAccessKeyId     = "alibaba-access-key-id"
-	alibabaAccessKeySecret = "alibaba-access-key-secret"
-	oracleConfigLocation   = "oracle-cli-config-location"
+	// envPrefix is prepended to environment variables when processing configuration.
+	envPrefix = "cloudinfo"
 
 	// Google is the identifier of the Google Cloud Engine provider
 	Google = "google"
