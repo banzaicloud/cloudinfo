@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/banzaicloud/go-gin-prometheus"
+	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -36,7 +36,6 @@ type RouteHandler struct {
 	prod           cloudinfo.CloudInfo
 	buildInfo      buildinfo.BuildInfo
 	errorResponder Responder
-	store          cloudinfo.CloudInfoStore
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
