@@ -24,7 +24,7 @@ type queryResolver struct {
 	*Resolver
 }
 
-func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service *string, region *string, zone *string, filter search.InstanceTypeQueryInput) ([]search.InstanceType, error) {
+func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter search.InstanceTypeQueryInput) ([]search.InstanceType, error) {
 
 	if provider == "" {
 		return nil, errors.New("provider must be set")
@@ -37,7 +37,7 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 	)
 	// load the data from the store
 	// todo handle nil arguments (eg. retrieve multiple services and regions)
-	if raw, err = r.cloudInfo.GetProductDetails(provider, *service, *region); err != nil {
+	if raw, err = r.cloudInfo.GetProductDetails(provider, service, *region); err != nil {
 		return nil, emperror.Wrap(err, "failed to retrieve product details")
 	}
 
