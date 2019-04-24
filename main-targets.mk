@@ -1,7 +1,7 @@
 # A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
 .PHONY: up
-up: start ## Set up the development environment
+up: start config.toml ## Set up the development environment
 
 .PHONY: down
 down: clear ## Destroy the development environment
@@ -30,6 +30,9 @@ stop: ## Stop docker development environment
 .PHONY: clean
 clean: ## Clean builds
 	rm -rf ${BUILD_DIR}/
+
+config.toml:
+	sed 's/production/development/g; s/debug = false/debug = true/g; s/shutdownTimeout = "5s"/shutdownTimeout = "0s"/g; s/format = "json"/format = "logfmt"/g; s/level = "info"/level = "trace"/g; s/address = ":/address = "127.0.0.1:/g' config.toml.dist > config.toml
 
 .PHONY: build
 build: ## Build a binary
