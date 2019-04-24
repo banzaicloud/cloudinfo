@@ -21,14 +21,13 @@ import (
 	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
 // InstanceTypeService filters instance types according to the received query.
 type InstanceTypeService interface {
 	// Query processes an instance type query and responds with a list match of instance types matching that query.
-	Query(ctx context.Context, provider string, service string, query cloudinfo.InstanceTypeQuery) ([]graphql.InstanceType, error)
+	Query(ctx context.Context, provider string, service string, query cloudinfo.InstanceTypeQuery) ([]cloudinfo.InstanceType, error)
 }
 
 const (
@@ -68,11 +67,11 @@ type instanceTypeQueryRequest struct {
 	Service  string
 	Region   *string
 	Zone     *string
-	Filter   graphql.InstanceTypeQueryInput
+	Filter   cloudinfo.InstanceTypeQueryFilter
 }
 
 type instanceTypeQueryResponse struct {
-	InstanceTypes []graphql.InstanceType
+	InstanceTypes []cloudinfo.InstanceType
 	Err           error
 }
 

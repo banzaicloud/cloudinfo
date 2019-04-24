@@ -14,13 +14,31 @@
 
 package cloudinfo
 
-import (
-	"strings"
+// FloatFilter represents the query operators for a float field.
+type FloatFilter struct {
+	Lt  *float64
+	Lte *float64
+	Gt  *float64
+	Gte *float64
+	Eq  *float64
+	Ne  *float64
+	In  []float64
+	Nin []float64
+}
 
-	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
-)
+// IntFilter represents the query operators for an int field.
+type IntFilter struct {
+	Lt  *int
+	Lte *int
+	Gt  *int
+	Gte *int
+	Eq  *int
+	Ne  *int
+	In  []int
+	Nin []int
+}
 
-func applyFloatFilter(value float64, filter graphql.FloatFilter) bool {
+func applyFloatFilter(value float64, filter FloatFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {
@@ -75,7 +93,7 @@ func applyFloatFilter(value float64, filter graphql.FloatFilter) bool {
 }
 
 // nolint: deadcode
-func applyIntFilter(value int, filter graphql.IntFilter) bool {
+func applyIntFilter(value int, filter IntFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {
@@ -118,44 +136,6 @@ func applyIntFilter(value int, filter graphql.IntFilter) bool {
 		var nin = true
 		for _, v := range filter.In {
 			if value == v {
-				nin = false
-				break
-			}
-		}
-
-		result = result && nin
-	}
-
-	return result
-}
-
-func applyNetworkCategoryFilter(value string, filter graphql.NetworkCategoryFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == strings.ToLower(string(*filter.Eq))
-	}
-
-	if filter.Ne != nil {
-		result = result && value != strings.ToLower(string(*filter.Ne))
-	}
-
-	if filter.In != nil {
-		var in = false
-		for _, v := range filter.In {
-			if value == strings.ToLower(string(v)) {
-				in = true
-				break
-			}
-		}
-
-		result = result && in
-	}
-
-	if filter.Nin != nil {
-		var nin = true
-		for _, v := range filter.In {
-			if value == strings.ToLower(string(v)) {
 				nin = false
 				break
 			}
