@@ -6,9 +6,8 @@ import (
 
 	"github.com/goph/emperror"
 
+	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-
-	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 )
 
 // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.

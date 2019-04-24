@@ -15,7 +15,7 @@
 package api
 
 import (
-	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
+	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 )
 
 func applyFloatFilter(value float64, filter search.FloatFilter) bool {
@@ -72,6 +72,7 @@ func applyFloatFilter(value float64, filter search.FloatFilter) bool {
 	return result
 }
 
+// nolint: deadcode
 func applyIntFilter(value int, filter search.IntFilter) bool {
 	var result = true
 

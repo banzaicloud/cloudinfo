@@ -19,12 +19,11 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
-
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
 
+	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
 
