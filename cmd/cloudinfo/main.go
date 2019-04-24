@@ -43,6 +43,8 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfodriver"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/errorhandler"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
@@ -159,7 +161,11 @@ func main() {
 	err = api.ConfigureValidator(config.App.Providers, prodInfo, logger)
 	emperror.Panic(err)
 
-	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, cloudInfoStore, logger)
+	instanceTypeService := cloudinfo2.NewInstanceTypeService(prodInfo)
+	endpoints := cloudinfodriver.MakeEndpoints(instanceTypeService)
+	graphqlHandler := cloudinfodriver.MakeGraphQLHandler(endpoints, errorHandler)
+
+	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, graphqlHandler, logger)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()

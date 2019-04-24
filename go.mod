@@ -23,6 +23,7 @@ require (
 	github.com/gin-contrib/sse v0.0.0-20190124093953-61b50c2ef482 // indirect
 	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
 	github.com/gin-gonic/gin v1.3.0
+	github.com/go-kit/kit v0.8.0
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
 	github.com/go-openapi/jsonpointer v0.18.0 // indirect
@@ -33,6 +34,7 @@ require (
 	github.com/go-openapi/strfmt v0.18.0
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0 // indirect
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/snappy v0.0.1 // indirect
