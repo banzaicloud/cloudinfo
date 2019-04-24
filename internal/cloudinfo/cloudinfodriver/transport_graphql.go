@@ -22,13 +22,13 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/go-kit/kit/endpoint"
 
-	search "github.com/banzaicloud/cloudinfo/.gen/api/graphql"
+	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
 // MakeGraphQLHandler mounts all of the service endpoints into a GraphQL handler.
 func MakeGraphQLHandler(endpoints Endpoints, errorHandler cloudinfo.ErrorHandler) http.Handler {
-	return handler.GraphQL(search.NewExecutableSchema(search.Config{
+	return handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
 		Resolvers: &resolver{
 			endpoints:    endpoints,
 			errorHandler: errorHandler,
@@ -41,13 +41,13 @@ type resolver struct {
 	errorHandler cloudinfo.ErrorHandler
 }
 
-func (r *resolver) Query() search.QueryResolver {
+func (r *resolver) Query() graphql.QueryResolver {
 	return &queryResolver{r}
 }
 
 type queryResolver struct{ *resolver }
 
-func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter search.InstanceTypeQueryInput) ([]search.InstanceType, error) {
+func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter graphql.InstanceTypeQueryInput) ([]graphql.InstanceType, error) {
 	req := instanceTypeQueryRequest{
 		Provider: provider,
 		Service:  service,
