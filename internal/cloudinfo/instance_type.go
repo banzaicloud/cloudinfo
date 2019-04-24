@@ -21,7 +21,6 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/.gen/api/graphql"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
@@ -43,11 +42,61 @@ func NewInstanceTypeService(store InstanceTypeStore) *InstanceTypeService {
 	}
 }
 
+type InstanceType struct {
+	Name            string
+	Price           float64
+	CPU             float64
+	Memory          float64
+	NetworkCategory NetworkCategory
+}
+
 // InstanceTypeQuery represents the input parameters if an instance type query.
 type InstanceTypeQuery struct {
 	Region *string
 	Zone   *string
-	Filter graphql.InstanceTypeQueryInput
+	Filter InstanceTypeQueryFilter
+}
+
+// InstanceTypeQueryFilter filters instance types by their fields.
+type InstanceTypeQueryFilter struct {
+	Price           *FloatFilter
+	CPU             *FloatFilter
+	Memory          *FloatFilter
+	NetworkCategory *NetworkCategoryFilter
+}
+
+// IntFilter represents the query operators for an instance type network category field.
+type NetworkCategoryFilter struct {
+	Eq  *NetworkCategory
+	Ne  *NetworkCategory
+	In  []NetworkCategory
+	Nin []NetworkCategory
+}
+
+type NetworkCategory string
+
+const (
+	NetworkCategoryLow      NetworkCategory = "LOW"
+	NetworkCategoryModerate NetworkCategory = "MODERATE"
+	NetworkCategoryHigh     NetworkCategory = "HIGH"
+)
+
+var AllNetworkCategory = []NetworkCategory{
+	NetworkCategoryLow,
+	NetworkCategoryModerate,
+	NetworkCategoryHigh,
+}
+
+func (e NetworkCategory) IsValid() bool {
+	switch e {
+	case NetworkCategoryLow, NetworkCategoryModerate, NetworkCategoryHigh:
+		return true
+	}
+	return false
+}
+
+func (e NetworkCategory) String() string {
+	return string(e)
 }
 
 // InstanceTypeQueryValidationError is returned if an instance type query is invalid.
@@ -61,7 +110,7 @@ func (e InstanceTypeQueryValidationError) Error() string {
 }
 
 // Query processes an instance type query and responds with a list match of instance types matching that query.
-func (s *InstanceTypeService) Query(ctx context.Context, provider string, service string, query InstanceTypeQuery) ([]graphql.InstanceType, error) {
+func (s *InstanceTypeService) Query(ctx context.Context, provider string, service string, query InstanceTypeQuery) ([]InstanceType, error) {
 	if provider == "" {
 		return nil, errors.WithStack(InstanceTypeQueryValidationError{
 			Message: "provider field must not be empty",
@@ -81,7 +130,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 		})
 	}
 
-	var instanceTypes []graphql.InstanceType
+	var instanceTypes []InstanceType
 
 	// load the data from the store
 	products, err := s.store.GetProductDetails(provider, service, *query.Region)
@@ -117,12 +166,50 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 	return instanceTypes, nil
 }
 
-func transform(details cloudinfo.ProductDetails) graphql.InstanceType {
-	return graphql.InstanceType{
+func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool {
+	var result = true
+
+	if filter.Eq != nil {
+		result = result && value == strings.ToLower(string(*filter.Eq))
+	}
+
+	if filter.Ne != nil {
+		result = result && value != strings.ToLower(string(*filter.Ne))
+	}
+
+	if filter.In != nil {
+		var in = false
+		for _, v := range filter.In {
+			if value == strings.ToLower(string(v)) {
+				in = true
+				break
+			}
+		}
+
+		result = result && in
+	}
+
+	if filter.Nin != nil {
+		var nin = true
+		for _, v := range filter.In {
+			if value == strings.ToLower(string(v)) {
+				nin = false
+				break
+			}
+		}
+
+		result = result && nin
+	}
+
+	return result
+}
+
+func transform(details cloudinfo.ProductDetails) InstanceType {
+	return InstanceType{
 		Price:           details.OnDemandPrice,
 		Name:            details.Type,
 		CPU:             details.Cpus,
 		Memory:          details.Mem,
-		NetworkCategory: graphql.NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
+		NetworkCategory: NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
 	}
 }

@@ -53,8 +53,28 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 		Service:  service,
 		Region:   region,
 		Zone:     zone,
-		Filter:   filter,
+		Filter: cloudinfo.InstanceTypeQueryFilter{
+			Price:  (*cloudinfo.FloatFilter)(filter.Price),
+			CPU:    (*cloudinfo.FloatFilter)(filter.CPU),
+			Memory: (*cloudinfo.FloatFilter)(filter.Memory),
+		},
 	}
+
+	if filter.NetworkCategory != nil {
+		req.Filter.NetworkCategory = &cloudinfo.NetworkCategoryFilter{
+			Eq: (*cloudinfo.NetworkCategory)(filter.NetworkCategory.Eq),
+			Ne: (*cloudinfo.NetworkCategory)(filter.NetworkCategory.Ne),
+		}
+
+		for _, value := range filter.NetworkCategory.In {
+			req.Filter.NetworkCategory.In = append(req.Filter.NetworkCategory.In, cloudinfo.NetworkCategory(value))
+		}
+
+		for _, value := range filter.NetworkCategory.Nin {
+			req.Filter.NetworkCategory.Nin = append(req.Filter.NetworkCategory.Nin, cloudinfo.NetworkCategory(value))
+		}
+	}
+
 	resp, err := r.endpoints.InstanceTypeQuery(ctx, req)
 	if err != nil {
 		r.errorHandler.Handle(err)
@@ -68,5 +88,17 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 
 	instanceTypeResp := resp.(instanceTypeQueryResponse)
 
-	return instanceTypeResp.InstanceTypes, nil
+	instanceTypes := make([]graphql.InstanceType, len(instanceTypeResp.InstanceTypes))
+
+	for i, instanceType := range instanceTypeResp.InstanceTypes {
+		instanceTypes[i] = graphql.InstanceType{
+			Name:            instanceType.Name,
+			Price:           instanceType.Price,
+			CPU:             instanceType.CPU,
+			Memory:          instanceType.Memory,
+			NetworkCategory: graphql.NetworkCategory(instanceType.NetworkCategory),
+		}
+	}
+
+	return instanceTypes, nil
 }
