@@ -9,7 +9,7 @@ type InstanceType {
     price: Float!
     cpu: Float!
     memory: Float!
-    netCategory: NetworkCategory!
+    networkCategory: NetworkCategory!
 }
 
 input IntFilter {
@@ -45,7 +45,7 @@ input InstanceTypeQueryInput {
     price: FloatFilter
     cpu: FloatFilter
     memory: FloatFilter
-    netCategory: NetworkCategoryFilter
+    networkCategory: NetworkCategoryFilter
 }
 
 type Query {
