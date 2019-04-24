@@ -15,6 +15,19 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   version: 0.0.1
 paths:
+  /continents:
+    get:
+      description: Returns the supported continents
+      tags:
+        - continents
+      operationId: getContinents
+      responses:
+        '200':
+          description: ContinentsResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContinentsResponse'
   /providers:
     get:
       description: Returns the supported providers
@@ -296,6 +309,12 @@ components:
           items:
             $ref: '#/components/schemas/Region'
           x-go-name: Regions
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ContinentsResponse:
+      description: ContinentsResponse holds the list of available continents
+      type: array
+      items:
+        type: string
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetAttributeValuesPathParams:
       description: >-

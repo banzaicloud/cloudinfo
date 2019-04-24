@@ -208,6 +208,11 @@ func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]Lo
 		"provider", provider, "service", service, "region", region)
 }
 
+// GetContinents retrieves available continents
+func (cpi *cachingCloudInfo) GetContinents() []string {
+	return []string{ContinentAsia, ContinentAustralia, ContinentEurope, ContinentNorthAmerica, ContinentSouthAmerica}
+}
+
 // Contains is a helper function to check if a slice contains a string
 func Contains(slice []string, s string) bool {
 	for _, e := range slice {

@@ -48,6 +48,8 @@ type CloudInfo interface {
 	GetServiceImages(provider, service, region string) ([]Image, error)
 
 	GetVersions(provider, service, region string) ([]LocationVersion, error)
+
+	GetContinents() []string
 }
 
 // AttrValue represents an attribute value
