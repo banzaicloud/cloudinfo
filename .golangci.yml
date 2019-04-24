@@ -10,7 +10,7 @@ linters-settings:
         min-complexity: 15
 
     goimports:
-        local-prefixes: github.com/sagikazarmark/modern-go-application
+        local-prefixes: github.com/banzaicloud/cloudinfo
 
 linters:
     enable:
