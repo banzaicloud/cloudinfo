@@ -63,6 +63,7 @@ func init() {
 
 func main() {
 	Configure(viper.GetViper(), pflag.CommandLine)
+	pflag.Usage = pflag.CommandLine.Usage
 
 	pflag.Parse()
 
