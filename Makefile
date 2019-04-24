@@ -15,7 +15,10 @@ BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
 ifeq (${VERBOSE}, 1)
+ifeq ($(filter -v,${GOARGS}),)
 	GOARGS += -v
+endif
+TEST_FORMAT = short-verbose
 endif
 
 # Docker variables
