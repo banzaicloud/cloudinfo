@@ -49,5 +49,5 @@ input InstanceTypeQueryInput {
 }
 
 type Query {
-    instanceTypes(provider: String!, service: String, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
+    instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
 }

@@ -49,12 +49,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		InstanceTypes func(childComplexity int, provider string, service *string, region *string, zone *string, filter InstanceTypeQueryInput) int
+		InstanceTypes func(childComplexity int, provider string, service string, region *string, zone *string, filter InstanceTypeQueryInput) int
 	}
 }
 
 type QueryResolver interface {
-	InstanceTypes(ctx context.Context, provider string, service *string, region *string, zone *string, filter InstanceTypeQueryInput) ([]InstanceType, error)
+	InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter InstanceTypeQueryInput) ([]InstanceType, error)
 }
 
 type executableSchema struct {
@@ -117,7 +117,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.InstanceTypes(childComplexity, args["provider"].(string), args["service"].(*string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput)), true
+		return e.complexity.Query.InstanceTypes(childComplexity, args["provider"].(string), args["service"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput)), true
 
 	}
 	return 0, false
@@ -234,7 +234,7 @@ input InstanceTypeQueryInput {
 }
 
 type Query {
-    instanceTypes(provider: String!, service: String, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
+    instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
 }
 `},
 )
@@ -268,9 +268,9 @@ func (ec *executionContext) field_Query_instanceTypes_args(ctx context.Context, 
 		}
 	}
 	args["provider"] = arg0
-	var arg1 *string
+	var arg1 string
 	if tmp, ok := rawArgs["service"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -490,7 +490,7 @@ func (ec *executionContext) _Query_instanceTypes(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InstanceTypes(rctx, args["provider"].(string), args["service"].(*string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput))
+		return ec.resolvers.Query().InstanceTypes(rctx, args["provider"].(string), args["service"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(InstanceTypeQueryInput))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
