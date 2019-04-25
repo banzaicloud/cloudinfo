@@ -47,33 +47,13 @@ func (r *resolver) Query() graphql.QueryResolver {
 
 type queryResolver struct{ *resolver }
 
-func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter graphql.InstanceTypeQueryInput) ([]graphql.InstanceType, error) {
+func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error) {
 	req := instanceTypeQueryRequest{
 		Provider: provider,
 		Service:  service,
 		Region:   region,
 		Zone:     zone,
-		Filter: cloudinfo.InstanceTypeQueryFilter{
-			Price:  (*cloudinfo.FloatFilter)(filter.Price),
-			CPU:    (*cloudinfo.FloatFilter)(filter.CPU),
-			Memory: (*cloudinfo.FloatFilter)(filter.Memory),
-			Gpu:    (*cloudinfo.FloatFilter)(filter.Gpu),
-		},
-	}
-
-	if filter.NetworkCategory != nil {
-		req.Filter.NetworkCategory = &cloudinfo.NetworkCategoryFilter{
-			Eq: (*cloudinfo.NetworkCategory)(filter.NetworkCategory.Eq),
-			Ne: (*cloudinfo.NetworkCategory)(filter.NetworkCategory.Ne),
-		}
-
-		for _, value := range filter.NetworkCategory.In {
-			req.Filter.NetworkCategory.In = append(req.Filter.NetworkCategory.In, cloudinfo.NetworkCategory(value))
-		}
-
-		for _, value := range filter.NetworkCategory.Nin {
-			req.Filter.NetworkCategory.Nin = append(req.Filter.NetworkCategory.Nin, cloudinfo.NetworkCategory(value))
-		}
+		Filter:   filter,
 	}
 
 	resp, err := r.endpoints.InstanceTypeQuery(ctx, req)
@@ -87,20 +67,5 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 		return nil, f.Failed()
 	}
 
-	instanceTypeResp := resp.(instanceTypeQueryResponse)
-
-	instanceTypes := make([]graphql.InstanceType, len(instanceTypeResp.InstanceTypes))
-
-	for i, instanceType := range instanceTypeResp.InstanceTypes {
-		instanceTypes[i] = graphql.InstanceType{
-			Name:            instanceType.Name,
-			Price:           instanceType.Price,
-			CPU:             instanceType.CPU,
-			Memory:          instanceType.Memory,
-			Gpu:             instanceType.Gpu,
-			NetworkCategory: graphql.NetworkCategory(instanceType.NetworkCategory),
-		}
-	}
-
-	return instanceTypes, nil
+	return resp.(instanceTypeQueryResponse).InstanceTypes, nil
 }

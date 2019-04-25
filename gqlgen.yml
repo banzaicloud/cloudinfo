@@ -10,3 +10,22 @@ model:
     package: graphql
 
 struct_tag: json
+
+models:
+    InstanceType:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceType
+
+    NetworkCategory:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.NetworkCategory
+
+    IntFilter:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.IntFilter
+
+    FloatFilter:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.FloatFilter
+
+    NetworkCategoryFilter:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.NetworkCategoryFilter
+
+    InstanceTypeQueryInput:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceTypeQueryFilter
