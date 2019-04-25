@@ -16,6 +16,9 @@ package cloudinfo
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"strconv"
 	"strings"
 
 	"github.com/goph/emperror"
@@ -42,6 +45,7 @@ func NewInstanceTypeService(store InstanceTypeStore) *InstanceTypeService {
 	}
 }
 
+// InstanceType represents a single instance type.
 type InstanceType struct {
 	Name            string
 	Price           float64
@@ -99,6 +103,23 @@ func (e NetworkCategory) IsValid() bool {
 
 func (e NetworkCategory) String() string {
 	return string(e)
+}
+
+func (e *NetworkCategory) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NetworkCategory(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NetworkCategory", str)
+	}
+	return nil
+}
+
+func (e NetworkCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 // InstanceTypeQueryValidationError is returned if an instance type query is invalid.
