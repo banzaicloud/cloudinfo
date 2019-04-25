@@ -132,6 +132,12 @@ func (e InstanceTypeQueryValidationError) Error() string {
 	return e.Message
 }
 
+// IsBusinessError tells the transport layer whether this error should be translated into the transport format
+// or an internal error should be returned instead.
+func (InstanceTypeQueryValidationError) IsBusinessError() bool {
+	return true
+}
+
 // Query processes an instance type query and responds with a list match of instance types matching that query.
 func (s *InstanceTypeService) Query(ctx context.Context, provider string, service string, query InstanceTypeQuery) ([]InstanceType, error) {
 	if provider == "" {
