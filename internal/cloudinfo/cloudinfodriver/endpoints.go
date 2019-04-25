@@ -30,21 +30,10 @@ type InstanceTypeService interface {
 	Query(ctx context.Context, provider string, service string, query cloudinfo.InstanceTypeQuery) ([]cloudinfo.InstanceType, error)
 }
 
-const (
-	codeInvalidInstanceTypeQuery int = 1
-)
-
-type instanceTypeError struct {
-	msg  string
-	code int
-}
-
-func (e *instanceTypeError) Error() string {
-	return e.msg
-}
-
-func (e *instanceTypeError) Code() int {
-	return e.code
+type businessError interface {
+	// IsBusinessError tells the transport layer whether this error should be translated into the transport format
+	// or an internal error should be returned instead.
+	IsBusinessError() bool
 }
 
 // Endpoints collects all of the endpoints that compose an instance type service.
@@ -93,12 +82,9 @@ func MakeInstanceTypeQueryEndpoint(s InstanceTypeService) endpoint.Endpoint {
 		instanceTypes, err := s.Query(ctx, req.Provider, req.Service, query)
 
 		if err != nil {
-			if _, ok := errors.Cause(err).(cloudinfo.InstanceTypeQueryValidationError); ok {
+			if b, ok := errors.Cause(err).(businessError); ok && b.IsBusinessError() {
 				return instanceTypeQueryResponse{
-					Err: &instanceTypeError{
-						msg:  err.Error(),
-						code: codeInvalidInstanceTypeQuery,
-					},
+					Err: err,
 				}, nil
 			}
 
