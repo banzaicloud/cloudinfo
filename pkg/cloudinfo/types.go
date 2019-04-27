@@ -59,7 +59,7 @@ type AttrValue struct {
 // AttrValues a slice of AttrValues
 type AttrValues []AttrValue
 
-var (
+const (
 	// telescope supported network performance of vm-s
 
 	// NtwLow the low network performance category
@@ -72,7 +72,6 @@ var (
 	NtwExtra = "extra"
 
 	// Telescopes supports categories of virtual machines
-
 	CategoryGeneral = "General purpose"
 	CategoryCompute = "Compute optimized"
 	CategoryMemory  = "Memory optimized"

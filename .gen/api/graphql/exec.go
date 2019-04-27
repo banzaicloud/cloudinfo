@@ -43,6 +43,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	InstanceType struct {
 		CPU             func(childComplexity int) int
+		Category        func(childComplexity int) int
 		Gpu             func(childComplexity int) int
 		Memory          func(childComplexity int) int
 		Name            func(childComplexity int) int
@@ -80,6 +81,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InstanceType.CPU(childComplexity), true
+
+	case "InstanceType.Category":
+		if e.complexity.InstanceType.Category == nil {
+			break
+		}
+
+		return e.complexity.InstanceType.Category(childComplexity), true
 
 	case "InstanceType.Gpu":
 		if e.complexity.InstanceType.Gpu == nil {
@@ -198,6 +206,15 @@ var parsedSchema = gqlparser.MustLoadSchema(
     HIGH
 }
 
+enum InstanceCategory {
+    GENERAL_PURPOSE
+    MEMORY_OPTIMIZED
+    STORAGE_OPTIMIZED
+    COMPUTE_OPTIMIZED
+    #    GPU_INSTANCE
+    #    FPGA_INSTANCES
+}
+
 type InstanceType {
     name: String!
     price: Float!
@@ -205,6 +222,7 @@ type InstanceType {
     memory: Float!
     gpu: Float!
     networkCategory: NetworkCategory!
+    category: InstanceCategory!
 }
 
 input IntFilter {
@@ -235,6 +253,12 @@ input NetworkCategoryFilter {
     in: [NetworkCategory!]
     nin: [NetworkCategory!]
 }
+input InstanceCategoryFilter {
+    eq: InstanceCategory
+    ne: InstanceCategory
+    in: [InstanceCategory!]
+    nin: [InstanceCategory!]
+}
 
 input InstanceTypeQueryInput {
     price: FloatFilter
@@ -242,6 +266,7 @@ input InstanceTypeQueryInput {
     memory: FloatFilter
     gpu: FloatFilter
     networkCategory: NetworkCategoryFilter
+    instanceCategory: InstanceCategoryFilter
 }
 
 type Query {
@@ -506,6 +531,33 @@ func (ec *executionContext) _InstanceType_networkCategory(ctx context.Context, f
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InstanceType_category(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.InstanceType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "InstanceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(cloudinfo.InstanceCategory)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_instanceTypes(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1488,6 +1540,42 @@ func (ec *executionContext) unmarshalInputFloatFilter(ctx context.Context, v int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInstanceCategoryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceCategoryFilter, error) {
+	var it cloudinfo.InstanceCategoryFilter
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "eq":
+			var err error
+			it.Eq, err = ec.unmarshalOInstanceCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ne":
+			var err error
+			it.Ne, err = ec.unmarshalOInstanceCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "in":
+			var err error
+			it.In, err = ec.unmarshalOInstanceCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nin":
+			var err error
+			it.Nin, err = ec.unmarshalOInstanceCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeQueryFilter, error) {
 	var it cloudinfo.InstanceTypeQueryFilter
 	var asMap = v.(map[string]interface{})
@@ -1521,6 +1609,12 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 		case "networkCategory":
 			var err error
 			it.NetworkCategory, err = ec.unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategoryFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "instanceCategory":
+			var err error
+			it.InstanceCategory, err = ec.unmarshalOInstanceCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategoryFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1672,6 +1766,11 @@ func (ec *executionContext) _InstanceType(ctx context.Context, sel ast.Selection
 			}
 		case "networkCategory":
 			out.Values[i] = ec._InstanceType_networkCategory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "category":
+			out.Values[i] = ec._InstanceType_category(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -1989,6 +2088,15 @@ func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
 	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalNInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, v interface{}) (cloudinfo.InstanceCategory, error) {
+	var res cloudinfo.InstanceCategory
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceCategory) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNInstanceType2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceType(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceType) graphql.Marshaler {
@@ -2362,6 +2470,102 @@ func (ec *executionContext) unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloud�
 		return nil, nil
 	}
 	res, err := ec.unmarshalOFloatFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, v interface{}) (cloudinfo.InstanceCategory, error) {
+	var res cloudinfo.InstanceCategory
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceCategory) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOInstanceCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, v interface{}) ([]cloudinfo.InstanceCategory, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]cloudinfo.InstanceCategory, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOInstanceCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.InstanceCategory) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalOInstanceCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, v interface{}) (*cloudinfo.InstanceCategory, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInstanceCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOInstanceCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategory(ctx context.Context, sel ast.SelectionSet, v *cloudinfo.InstanceCategory) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOInstanceCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategoryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceCategoryFilter, error) {
+	return ec.unmarshalInputInstanceCategoryFilter(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOInstanceCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategoryFilter(ctx context.Context, v interface{}) (*cloudinfo.InstanceCategoryFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInstanceCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceCategoryFilter(ctx, v)
 	return &res, err
 }
 

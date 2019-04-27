@@ -18,6 +18,9 @@ models:
     NetworkCategory:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.NetworkCategory
 
+    InstanceCategory:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceCategory
+
     IntFilter:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.IntFilter
 
@@ -26,6 +29,9 @@ models:
 
     NetworkCategoryFilter:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.NetworkCategoryFilter
+
+    InstanceCategoryFilter:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceCategoryFilter
 
     InstanceTypeQueryInput:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceTypeQueryFilter
