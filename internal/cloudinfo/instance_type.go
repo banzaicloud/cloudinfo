@@ -133,8 +133,8 @@ const (
 	InstanceCategoryMemory         InstanceCategory = "MEMORY_OPTIMIZED"
 )
 
-// mapping between instance type (graphql) categories and cloudinfo generalisation
-var AllInstanceCategory = map[InstanceCategory]string{
+// allInstanceCategory mapping between instance type (graphql) categories and cloudinfo generalisation
+var allInstanceCategory = map[InstanceCategory]string{
 	InstanceCategoryGeneralPurpose: cloudinfo.CategoryGeneral,
 	InstanceCategoryCompute:        cloudinfo.CategoryCompute,
 	InstanceCategoryStorage:        cloudinfo.CategoryStorage,
@@ -304,17 +304,17 @@ func applyInstanceCategoryFilter(value string, filter InstanceCategoryFilter) bo
 	var result = true
 
 	if filter.Eq != nil {
-		result = result && value == AllInstanceCategory[InstanceCategory(*filter.Eq)]
+		result = result && value == allInstanceCategory[InstanceCategory(*filter.Eq)]
 	}
 
 	if filter.Ne != nil {
-		result = result && value != AllInstanceCategory[InstanceCategory(*filter.Ne)]
+		result = result && value != allInstanceCategory[InstanceCategory(*filter.Ne)]
 	}
 
 	if filter.In != nil {
 		var in = false
 		for _, v := range filter.In {
-			if value == AllInstanceCategory[InstanceCategory(v)] {
+			if value == allInstanceCategory[InstanceCategory(v)] {
 				in = true
 				break
 			}
@@ -326,7 +326,7 @@ func applyInstanceCategoryFilter(value string, filter InstanceCategoryFilter) bo
 	if filter.Nin != nil {
 		var nin = true
 		for _, v := range filter.In {
-			if value == AllInstanceCategory[InstanceCategory(v)] {
+			if value == allInstanceCategory[InstanceCategory(v)] {
 				nin = false
 				break
 			}
