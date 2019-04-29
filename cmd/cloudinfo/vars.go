@@ -26,15 +26,4 @@ const (
 
 	// envPrefix is prepended to environment variables when processing configuration.
 	envPrefix = "cloudinfo"
-
-	// Google is the identifier of the Google Cloud Engine provider
-	Google = "google"
-	// Amazon is the identifier of the Amazon provider
-	Amazon = "amazon"
-	// Azure is the identifier of the MS Azure provider
-	Azure = "azure"
-	// Oracle is the identifier of the Oracle Cloud Infrastructure provider
-	Oracle = "oracle"
-	// Alibaba is the identifier of the Alibaba Cloud provider
-	Alibaba = "alibaba"
 )
