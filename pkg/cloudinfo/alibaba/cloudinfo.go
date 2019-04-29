@@ -240,25 +240,17 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []cloudinfo.VmInfo, region string) 
 
 		instanceTypes = append(instanceTypes, vm.Type)
 
-		if len(instanceTypes) == 50 || index+1 == len(vms) {
+		if len(instanceTypes) == 25 || index+1 == len(vms) {
 			prices, err = a.getPrice(instanceTypes, region)
 			if err != nil {
 				if err.Error() == "failed to get price" && hasLabel(emperror.Context(err), "InvalidParameter") {
-					for i := 0; i < 5; i++ {
-						prices, err = a.getPrice(instanceTypes[10*i:10*(i+1)], region)
+					for i := 0; i < len(instanceTypes); i++ {
+						prices, err = a.getPrice([]string{instanceTypes[i]}, region)
 						if err != nil {
-							for n := 0; n < 10; n++ {
-								prices, err = a.getPrice([]string{instanceTypes[10*i+n]}, region)
-								if err != nil {
-									continue
-								}
-								allPrices[instanceTypes[10*i+n]] = prices[0]
-							}
-						} else {
-							for n, price := range prices {
-								allPrices[instanceTypes[10*i+n]] = price
-							}
+							a.log.Debug("no price for instance type", map[string]interface{}{"instanceType": instanceTypes[i]})
+							continue
 						}
+						allPrices[instanceTypes[i]] = prices[0]
 					}
 				} else {
 					return nil, err
