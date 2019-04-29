@@ -57,6 +57,14 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
 
+// Provisioned by ldflags
+// nolint: gochecknoglobals
+var (
+	Version    string
+	CommitHash string
+	BuildDate  string
+)
+
 // nolint: gochecknoinits
 func init() {
 	pflag.Bool("version", false, "Show version information")
