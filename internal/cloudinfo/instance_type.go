@@ -127,23 +127,13 @@ func (e NetworkCategory) MarshalGQL(w io.Writer) {
 type InstanceCategory string
 
 const (
-	// GENERAL_PURPOSE
-	// MEMORY_OPTIMIZED
-	// STORAGE_OPTIMIZED
-	// COMPUTE_OPTIMIZED
-
-	// CategoryGeneral = "General purpose"
-	// CategoryCompute = "Compute optimized"
-	// CategoryMemory  = "Memory optimized"
-	// CategoryGpu     = "GPU instance"
-	// CategoryStorage = "Storage optimized"
-
 	InstanceCategoryGeneralPurpose InstanceCategory = "GENERAL_PURPOSE"
 	InstanceCategoryCompute        InstanceCategory = "COMPUTE_OPTIMIZED"
 	InstanceCategoryStorage        InstanceCategory = "STORAGE_OPTIMIZED"
 	InstanceCategoryMemory         InstanceCategory = "MEMORY_OPTIMIZED"
 )
 
+// mapping between instance type (graphql) categories and cloudinfo generalisation
 var AllInstanceCategory = map[InstanceCategory]string{
 	InstanceCategoryGeneralPurpose: cloudinfo.CategoryGeneral,
 	InstanceCategoryCompute:        cloudinfo.CategoryCompute,
