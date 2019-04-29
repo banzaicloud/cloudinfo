@@ -35,9 +35,9 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
 
-// Config holds any kind of configuration that comes from the outside world and
+// configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
-type Config struct {
+type configuration struct {
 	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
 	Environment string
 
@@ -51,7 +51,7 @@ type Config struct {
 	Log log.Config
 
 	// Instrumentation configuration
-	Instrumentation InstrumentationConfig
+	Instrumentation instrumentationConfig
 
 	// App configuration
 	App struct {
@@ -87,13 +87,13 @@ type Config struct {
 }
 
 // Validate validates the configuration.
-func (c Config) Validate() error {
+func (c configuration) Validate() error {
 	// TODO: write config validation
 	return nil
 }
 
-// InstrumentationConfig represents the instrumentation related configuration.
-type InstrumentationConfig struct {
+// instrumentationConfig represents the instrumentation related configuration.
+type instrumentationConfig struct {
 	// Metrics configuration
 	Metrics struct {
 		Enabled bool
@@ -107,20 +107,17 @@ type InstrumentationConfig struct {
 	}
 }
 
-// Configure configures some defaults in the Viper instance.
-func Configure(v *viper.Viper, p *pflag.FlagSet) {
-	v.AllowEmptyEnv(true)
+// configure configures some defaults in the Viper instance.
+func configure(v *viper.Viper, p *pflag.FlagSet) {
+	// Viper settings
 	v.AddConfigPath(".")
 	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
-	p.Init(friendlyServiceName, pflag.ExitOnError)
-	p.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, "Usage of %s:\n", friendlyServiceName)
-		p.PrintDefaults()
-	}
 
+	// Environment variable settings
 	// TODO: enable env prefix
 	// v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	v.AllowEmptyEnv(true)
 	v.AutomaticEnv()
 
 	// Application constants

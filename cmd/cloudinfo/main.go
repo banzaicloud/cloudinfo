@@ -65,33 +65,34 @@ var (
 	buildDate  string
 )
 
-// nolint: gochecknoinits
-func init() {
-	pflag.Bool("version", false, "Show version information")
-	pflag.Bool("dump-config", false, "Dump configuration to the console (and exit)")
-}
-
 func main() {
-	Configure(viper.GetViper(), pflag.CommandLine)
-	pflag.Usage = pflag.CommandLine.Usage
+	v, p := viper.New(), pflag.NewFlagSet(friendlyServiceName, pflag.ExitOnError)
+	configure(v, p)
 
-	pflag.Parse()
+	p.String("config", "", "Configuration file")
+	p.Bool("version", false, "Show version information")
+	p.Bool("dump-config", false, "Dump configuration to the console (and exit)")
 
-	if v, _ := pflag.CommandLine.GetBool("version"); v {
+	_ = p.Parse(os.Args[1:])
+
+	if v, _ := p.GetBool("version"); v {
 		fmt.Printf("%s version %s (%s) built on %s\n", friendlyServiceName, version, commitHash, buildDate)
 
 		os.Exit(0)
 	}
 
-	err := viper.ReadInConfig()
+	if c, _ := p.GetString("config"); c != "" {
+		v.SetConfigFile(c)
+	}
+
+	err := v.ReadInConfig()
 	_, configFileNotFound := err.(viper.ConfigFileNotFoundError)
 	if !configFileNotFound {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
 
-	var config Config
-	// configuration gets populated here - external configuration sources (flags, env vars) are processed into the instance
-	err = viper.Unmarshal(&config)
+	var config configuration
+	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	// Create logger (first thing after configuration loading)
@@ -189,7 +190,7 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
-func loadInfoers(config Config, log logur.Logger) map[string]cloudinfo.CloudInfoer {
+func loadInfoers(config configuration, log logur.Logger) map[string]cloudinfo.CloudInfoer {
 	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.App.Providers))
 
 	var (
