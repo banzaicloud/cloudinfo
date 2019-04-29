@@ -15,12 +15,14 @@
 package main
 
 const (
-	// It identifies the service itself, the actual instance needs to be identified via environment
+	// appName is an identifier-like name used anywhere this app needs to be identified.
+	//
+	// It identifies the application itself, the actual instance needs to be identified via environment
 	// and other details.
-	serviceName = "cloudinfo"
+	appName = "cloudinfo"
 
-	// friendlyServiceName is the visible name of the service.
-	friendlyServiceName = "Banzai Cloud Cloudinfo Service"
+	// firendlyAppName is the visible name of the application.
+	friendlyAppName = "Banzai Cloud Cloudinfo Service"
 
 	// envPrefix is prepended to environment variables when processing configuration.
 	envPrefix = "cloudinfo"

@@ -121,7 +121,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AutomaticEnv()
 
 	// Application constants
-	v.Set("serviceName", serviceName)
+	v.Set("appName", appName)
 
 	// Global configuration
 	v.SetDefault("environment", "production")
@@ -152,7 +152,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("instrumentation.jaeger.enabled", false)
 	v.SetDefault("instrumentation.jaeger.collectorEndpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
 	v.SetDefault("instrumentation.jaeger.agentEndpoint", "localhost:6832")
-	v.RegisterAlias("instrumentation.jaeger.serviceName", "serviceName")
+	v.RegisterAlias("instrumentation.jaeger.serviceName", "appName")
 	_ = v.BindEnv("instrumentation.jaeger.username")
 	_ = v.BindEnv("instrumentation.jaeger.password")
 
