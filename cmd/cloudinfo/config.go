@@ -256,7 +256,4 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	// InMemory product store
 	v.SetDefault("store.gocache.expiration", 0)
 	v.SetDefault("store.gocache.cleanupInterval", 0)
-
-	// Bind flags to Viper
-	_ = v.BindPFlags(p)
 }
