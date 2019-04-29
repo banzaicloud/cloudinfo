@@ -60,9 +60,9 @@ import (
 // Provisioned by ldflags
 // nolint: gochecknoglobals
 var (
-	Version    string
-	CommitHash string
-	BuildDate  string
+	version    string
+	commitHash string
+	buildDate  string
 )
 
 // nolint: gochecknoinits
@@ -78,7 +78,7 @@ func main() {
 	pflag.Parse()
 
 	if v, _ := pflag.CommandLine.GetBool("version"); v {
-		fmt.Printf("%s version %s (%s) built on %s\n", friendlyServiceName, Version, CommitHash, BuildDate)
+		fmt.Printf("%s version %s (%s) built on %s\n", friendlyServiceName, version, commitHash, buildDate)
 
 		os.Exit(0)
 	}
@@ -123,7 +123,7 @@ func main() {
 	errorHandler := errorhandler.New(logger)
 	defer emperror.HandleRecover(errorHandler)
 
-	buildInfo := buildinfo.New(Version, CommitHash, BuildDate)
+	buildInfo := buildinfo.New(version, commitHash, buildDate)
 
 	logger.Info("starting application", buildInfo.Fields())
 
