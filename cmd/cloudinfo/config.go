@@ -146,9 +146,11 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Instrumentation
 	p.Bool("metrics-enabled", false, "internal metrics are exposed if enabled")
 	_ = v.BindPFlag("instrumentation.metrics.enabled", p.Lookup("metrics-enabled"))
+	_ = v.BindEnv("instrumentation.metrics.enabled", "METRICS_ENABLED")
 
 	p.String("metrics-address", ":9090", "the address where internal metrics are exposed")
 	_ = v.BindPFlag("instrumentation.metrics.address", p.Lookup("metrics-address"))
+	_ = v.BindEnv("instrumentation.metrics.address", "METRICS_ADDRESS")
 
 	v.SetDefault("instrumentation.jaeger.enabled", false)
 	v.SetDefault("instrumentation.jaeger.collectorEndpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
@@ -160,19 +162,24 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	// App configuration
 	p.String("listen-address", ":8000", "application listen address")
 	_ = v.BindPFlag("app.addr", p.Lookup("listen-address"))
+	_ = v.BindEnv("app.addr", "LISTEN_ADDRESS")
 
 	p.Duration("product-info-renewal-interval", 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
 	_ = v.BindPFlag("app.renewalInterval", p.Lookup("product-info-renewal-interval"))
+	_ = v.BindEnv("app.renewalInterval", "PRODUCT_INFO_RENEWAL_INTERVAL")
 
 	p.StringSlice("provider", []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the cloudinfo application.")
 	_ = v.BindPFlag("app.providers", p.Lookup("provider"))
+	_ = v.BindEnv("app.providers", "PROVIDER")
 
 	// Amazon config
 	p.String("aws-access-key-id", "", "aws access key id")
 	_ = v.BindPFlag("amazon.accessKeyId", p.Lookup("aws-access-key-id"))
+	_ = v.BindEnv("amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
 
 	p.String("aws-secret-access-key", "", "aws secret access key")
 	_ = v.BindPFlag("amazon.secretAccessKey", p.Lookup("aws-secret-access-key"))
+	_ = v.BindEnv("amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
 
 	p.String(
 		"prometheus-address",
@@ -182,6 +189,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 			"If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.",
 	)
 	_ = v.BindPFlag("amazon.prometheusAddress", p.Lookup("prometheus-address"))
+	_ = v.BindEnv("amazon.prometheusAddress", "PROMETHEUS_ADDRESS")
 
 	p.String(
 		"prometheus-query",
@@ -189,31 +197,39 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 		"advanced configuration: change the query used to query spot price info from Prometheus.",
 	)
 	_ = v.BindPFlag("amazon.prometheusQuery", p.Lookup("prometheus-query"))
+	_ = v.BindEnv("amazon.prometheusQuery", "PROMETHEUS_QUERY")
 
 	// Google config
 	p.String("gce-api-key", "", "GCE API key to use for getting SKUs")
 	_ = v.BindPFlag("google.apiKey", p.Lookup("gce-api-key"))
+	_ = v.BindEnv("google.apiKey", "GCE_API_KEY")
 
 	p.String("google-application-credentials", "", "google application credentials location")
 	_ = v.BindPFlag("google.appCredentials", p.Lookup("google-application-credentials"))
+	_ = v.BindEnv("google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
 
 	// Alibaba config
 	p.String("alibaba-region-id", "", "alibaba region id")
 	_ = v.BindPFlag("alibaba.regionId", p.Lookup("alibaba-region-id"))
+	_ = v.BindEnv("alibaba.regionId", "ALIBABA_REGION_ID")
 
 	p.String("alibaba-access-key-id", "", "alibaba access key id")
 	_ = v.BindPFlag("alibaba.accessKeyId", p.Lookup("alibaba-access-key-id"))
+	_ = v.BindEnv("alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
 
 	p.String("alibaba-access-key-secret", "", "alibaba access key secret")
 	_ = v.BindPFlag("alibaba.accessKeySecret", p.Lookup("alibaba-access-key-secret"))
+	_ = v.BindEnv("alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
 
 	// Oracle config
 	p.String("oracle-cli-config-location", "", "oracle config file location")
 	_ = v.BindPFlag("oracle.configLocation", p.Lookup("oracle-cli-config-location"))
+	_ = v.BindEnv("oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
 	p.String("azure-auth-location", "", "azure authentication file location")
 	_ = v.BindPFlag("azure.authLocation", p.Lookup("azure-auth-location"))
+	_ = v.BindEnv("azure.authLocation", "AZURE_AUTH_LOCATION")
 
 	// Management
 	v.SetDefault("management.enabled", true)
