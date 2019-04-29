@@ -4,7 +4,7 @@ enum NetworkCategory {
     HIGH
 }
 
-enum InstanceCategory {
+enum InstanceTypeCategory {
     GENERAL_PURPOSE
     MEMORY_OPTIMIZED
     STORAGE_OPTIMIZED
@@ -20,7 +20,7 @@ type InstanceType {
     memory: Float!
     gpu: Float!
     networkCategory: NetworkCategory!
-    category: InstanceCategory!
+    category: InstanceTypeCategory!
 }
 
 input IntFilter {
@@ -51,11 +51,11 @@ input NetworkCategoryFilter {
     in: [NetworkCategory!]
     nin: [NetworkCategory!]
 }
-input InstanceCategoryFilter {
-    eq: InstanceCategory
-    ne: InstanceCategory
-    in: [InstanceCategory!]
-    nin: [InstanceCategory!]
+input InstanceTypeCategoryFilter {
+    eq: InstanceTypeCategory
+    ne: InstanceTypeCategory
+    in: [InstanceTypeCategory!]
+    nin: [InstanceTypeCategory!]
 }
 
 input InstanceTypeQueryInput {
@@ -64,7 +64,7 @@ input InstanceTypeQueryInput {
     memory: FloatFilter
     gpu: FloatFilter
     networkCategory: NetworkCategoryFilter
-    instanceCategory: InstanceCategoryFilter
+    category: InstanceTypeCategoryFilter
 }
 
 type Query {

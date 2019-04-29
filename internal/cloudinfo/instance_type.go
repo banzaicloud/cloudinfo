@@ -53,7 +53,7 @@ type InstanceType struct {
 	Memory          float64
 	Gpu             float64
 	NetworkCategory NetworkCategory
-	Category        InstanceCategory
+	Category        InstanceTypeCategory
 }
 
 // InstanceTypeQuery represents the input parameters if an instance type query.
@@ -65,12 +65,12 @@ type InstanceTypeQuery struct {
 
 // InstanceTypeQueryFilter filters instance types by their fields.
 type InstanceTypeQueryFilter struct {
-	Price            *FloatFilter
-	CPU              *FloatFilter
-	Memory           *FloatFilter
-	Gpu              *FloatFilter
-	NetworkCategory  *NetworkCategoryFilter
-	InstanceCategory *InstanceCategoryFilter
+	Price           *FloatFilter
+	CPU             *FloatFilter
+	Memory          *FloatFilter
+	Gpu             *FloatFilter
+	NetworkCategory *NetworkCategoryFilter
+	Category        *InstanceTypeCategoryFilter
 }
 
 // IntFilter represents the query operators for an instance type network category field.
@@ -124,24 +124,24 @@ func (e NetworkCategory) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type InstanceCategory string
+type InstanceTypeCategory string
 
 const (
-	InstanceCategoryGeneralPurpose InstanceCategory = "GENERAL_PURPOSE"
-	InstanceCategoryCompute        InstanceCategory = "COMPUTE_OPTIMIZED"
-	InstanceCategoryStorage        InstanceCategory = "STORAGE_OPTIMIZED"
-	InstanceCategoryMemory         InstanceCategory = "MEMORY_OPTIMIZED"
+	InstanceCategoryGeneralPurpose InstanceTypeCategory = "GENERAL_PURPOSE"
+	InstanceCategoryCompute        InstanceTypeCategory = "COMPUTE_OPTIMIZED"
+	InstanceCategoryStorage        InstanceTypeCategory = "STORAGE_OPTIMIZED"
+	InstanceCategoryMemory         InstanceTypeCategory = "MEMORY_OPTIMIZED"
 )
 
 // allInstanceCategory mapping between instance type (graphql) categories and cloudinfo generalisation
-var allInstanceCategory = map[InstanceCategory]string{
+var allInstanceCategory = map[InstanceTypeCategory]string{
 	InstanceCategoryGeneralPurpose: cloudinfo.CategoryGeneral,
 	InstanceCategoryCompute:        cloudinfo.CategoryCompute,
 	InstanceCategoryStorage:        cloudinfo.CategoryStorage,
 	InstanceCategoryMemory:         cloudinfo.CategoryMemory,
 }
 
-func (ic InstanceCategory) IsValid() bool {
+func (ic InstanceTypeCategory) IsValid() bool {
 	switch ic {
 	case InstanceCategoryGeneralPurpose,
 		InstanceCategoryCompute,
@@ -152,33 +152,33 @@ func (ic InstanceCategory) IsValid() bool {
 	return false
 }
 
-func (ic InstanceCategory) String() string {
+func (ic InstanceTypeCategory) String() string {
 	return string(ic)
 }
 
-func (ic *InstanceCategory) UnmarshalGQL(v interface{}) error {
+func (ic *InstanceTypeCategory) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*ic = InstanceCategory(str)
+	*ic = InstanceTypeCategory(str)
 	if !ic.IsValid() {
-		return fmt.Errorf("%s is not a valid InstanceCategory", str)
+		return fmt.Errorf("%s is not a valid InstanceTypeCategory", str)
 	}
 	return nil
 }
 
-func (ic InstanceCategory) MarshalGQL(w io.Writer) {
+func (ic InstanceTypeCategory) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(ic.String()))
 }
 
 // IntFilter represents the query operators for an instance type network category field.
-type InstanceCategoryFilter struct {
-	Eq  *InstanceCategory
-	Ne  *InstanceCategory
-	In  []InstanceCategory
-	Nin []InstanceCategory
+type InstanceTypeCategoryFilter struct {
+	Eq  *InstanceTypeCategory
+	Ne  *InstanceTypeCategory
+	In  []InstanceTypeCategory
+	Nin []InstanceTypeCategory
 }
 
 // InstanceTypeQueryValidationError is returned if an instance type query is invalid.
@@ -250,8 +250,8 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 			includeInResults = includeInResults && applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory)
 		}
 
-		if query.Filter.InstanceCategory != nil {
-			includeInResults = includeInResults && applyInstanceCategoryFilter(product.Category, *query.Filter.InstanceCategory)
+		if query.Filter.Category != nil {
+			includeInResults = includeInResults && applyInstanceCategoryFilter(product.Category, *query.Filter.Category)
 		}
 
 		if includeInResults {
@@ -300,21 +300,21 @@ func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool
 	return result
 }
 
-func applyInstanceCategoryFilter(value string, filter InstanceCategoryFilter) bool {
+func applyInstanceCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {
-		result = result && value == allInstanceCategory[InstanceCategory(*filter.Eq)]
+		result = result && value == allInstanceCategory[InstanceTypeCategory(*filter.Eq)]
 	}
 
 	if filter.Ne != nil {
-		result = result && value != allInstanceCategory[InstanceCategory(*filter.Ne)]
+		result = result && value != allInstanceCategory[InstanceTypeCategory(*filter.Ne)]
 	}
 
 	if filter.In != nil {
 		var in = false
 		for _, v := range filter.In {
-			if value == allInstanceCategory[InstanceCategory(v)] {
+			if value == allInstanceCategory[InstanceTypeCategory(v)] {
 				in = true
 				break
 			}
@@ -326,7 +326,7 @@ func applyInstanceCategoryFilter(value string, filter InstanceCategoryFilter) bo
 	if filter.Nin != nil {
 		var nin = true
 		for _, v := range filter.In {
-			if value == allInstanceCategory[InstanceCategory(v)] {
+			if value == allInstanceCategory[InstanceTypeCategory(v)] {
 				nin = false
 				break
 			}
@@ -346,6 +346,6 @@ func transform(details cloudinfo.ProductDetails) InstanceType {
 		Memory:          details.Mem,
 		Gpu:             details.Gpus,
 		NetworkCategory: NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
-		Category:        InstanceCategory(details.Category),
+		Category:        InstanceTypeCategory(details.Category),
 	}
 }
