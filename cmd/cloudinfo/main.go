@@ -66,7 +66,7 @@ var (
 )
 
 func main() {
-	v, p := viper.New(), pflag.NewFlagSet(friendlyServiceName, pflag.ExitOnError)
+	v, p := viper.New(), pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
 	configure(v, p)
 
 	p.String("config", "", "Configuration file")
@@ -76,7 +76,7 @@ func main() {
 	_ = p.Parse(os.Args[1:])
 
 	if v, _ := p.GetBool("version"); v {
-		fmt.Printf("%s version %s (%s) built on %s\n", friendlyServiceName, version, commitHash, buildDate)
+		fmt.Printf("%s version %s (%s) built on %s\n", friendlyAppName, version, commitHash, buildDate)
 
 		os.Exit(0)
 	}
@@ -99,7 +99,7 @@ func main() {
 	logger := log.NewLogger(config.Log)
 
 	// Provide some basic context to all log lines
-	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": serviceName})
+	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": appName})
 
 	log.SetStandardLogger(logger)
 
