@@ -66,7 +66,7 @@ type InstanceType struct {
 type InstanceTypeQuery struct {
 	Region *string
 	Zone   *string
-	Filter InstanceTypeQueryFilter
+	Filter *InstanceTypeQueryFilter
 }
 
 // InstanceTypeQueryFilter filters instance types by their fields.
@@ -240,8 +240,8 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 
 	// filter the data
 	for _, product := range products {
-
 		zones := product.Zones
+
 		if len(zones) == 0 {
 			var err error
 
@@ -256,28 +256,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 		}
 
 		for _, zone := range zones {
-
-			if query.Filter.Price != nil && !applyFloatFilter(product.OnDemandPrice, *query.Filter.Price) {
-				continue
-			}
-
-			if query.Filter.CPU != nil && !applyFloatFilter(product.Cpus, *query.Filter.CPU) {
-				continue
-			}
-
-			if query.Filter.Memory != nil && !applyFloatFilter(product.Mem, *query.Filter.Memory) {
-				continue
-			}
-
-			if query.Filter.Gpu != nil && !applyFloatFilter(product.Gpus, *query.Filter.Gpu) {
-				continue
-			}
-
-			if query.Filter.NetworkCategory != nil && !applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory) {
-				continue
-			}
-
-			if query.Filter.Category != nil && !applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category) {
+			if query.Filter != nil && !applyInstanceTypeFilter(product, *query.Filter) {
 				continue
 			}
 
@@ -286,6 +265,34 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 	}
 
 	return instanceTypes, nil
+}
+
+func applyInstanceTypeFilter(product cloudinfo.ProductDetails, filter InstanceTypeQueryFilter) bool {
+	if filter.Price != nil && !applyFloatFilter(product.OnDemandPrice, *filter.Price) {
+		return false
+	}
+
+	if filter.CPU != nil && !applyFloatFilter(product.Cpus, *filter.CPU) {
+		return false
+	}
+
+	if filter.Memory != nil && !applyFloatFilter(product.Mem, *filter.Memory) {
+		return false
+	}
+
+	if filter.Gpu != nil && !applyFloatFilter(product.Gpus, *filter.Gpu) {
+		return false
+	}
+
+	if filter.NetworkCategory != nil && !applyNetworkCategoryFilter(product.NtwPerfCat, *filter.NetworkCategory) {
+		return false
+	}
+
+	if filter.Category != nil && !applyInstanceTypeCategoryFilter(product.Category, *filter.Category) {
+		return false
+	}
+
+	return true
 }
 
 func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool {

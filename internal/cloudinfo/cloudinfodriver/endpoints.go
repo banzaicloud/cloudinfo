@@ -56,7 +56,7 @@ type instanceTypeQueryRequest struct {
 	Service  string
 	Region   *string
 	Zone     *string
-	Filter   cloudinfo.InstanceTypeQueryFilter
+	Filter   *cloudinfo.InstanceTypeQueryFilter
 }
 
 type instanceTypeQueryResponse struct {

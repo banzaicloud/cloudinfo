@@ -100,7 +100,7 @@ func TestInstanceTypeService_Query(t *testing.T) {
 
 	query := InstanceTypeQuery{
 		Region: &region,
-		Filter: InstanceTypeQueryFilter{
+		Filter: &InstanceTypeQueryFilter{
 			Price: &FloatFilter{
 				Gte: &price,
 			},

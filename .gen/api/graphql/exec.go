@@ -55,12 +55,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		InstanceTypes func(childComplexity int, provider string, service string, region *string, zone *string, filter cloudinfo.InstanceTypeQueryFilter) int
+		InstanceTypes func(childComplexity int, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) int
 	}
 }
 
 type QueryResolver interface {
-	InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error)
+	InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error)
 }
 
 type executableSchema struct {
@@ -158,7 +158,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.InstanceTypes(childComplexity, args["provider"].(string), args["service"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(cloudinfo.InstanceTypeQueryFilter)), true
+		return e.complexity.Query.InstanceTypes(childComplexity, args["provider"].(string), args["service"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(*cloudinfo.InstanceTypeQueryFilter)), true
 
 	}
 	return 0, false
@@ -299,7 +299,7 @@ input InstanceTypeQueryInput {
 }
 
 type Query {
-    instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput!): [InstanceType!]!
+    instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput): [InstanceType!]!
 }
 `},
 )
@@ -357,9 +357,9 @@ func (ec *executionContext) field_Query_instanceTypes_args(ctx context.Context, 
 		}
 	}
 	args["zone"] = arg3
-	var arg4 cloudinfo.InstanceTypeQueryFilter
+	var arg4 *cloudinfo.InstanceTypeQueryFilter
 	if tmp, ok := rawArgs["filter"]; ok {
-		arg4, err = ec.unmarshalNInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, tmp)
+		arg4, err = ec.unmarshalOInstanceTypeQueryInput2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -690,7 +690,7 @@ func (ec *executionContext) _Query_instanceTypes(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().InstanceTypes(rctx, args["provider"].(string), args["service"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(cloudinfo.InstanceTypeQueryFilter))
+		return ec.resolvers.Query().InstanceTypes(rctx, args["provider"].(string), args["service"].(string), args["region"].(*string), args["zone"].(*string), args["filter"].(*cloudinfo.InstanceTypeQueryFilter))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2277,10 +2277,6 @@ func (ec *executionContext) marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicl
 	return v
 }
 
-func (ec *executionContext) unmarshalNInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeQueryFilter, error) {
-	return ec.unmarshalInputInstanceTypeQueryInput(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	return graphql.UnmarshalInt(v)
 }
@@ -2703,6 +2699,18 @@ func (ec *executionContext) unmarshalOInstanceTypeCategoryFilter2ᚖgithubᚗcom
 		return nil, nil
 	}
 	res, err := ec.unmarshalOInstanceTypeCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeQueryFilter, error) {
+	return ec.unmarshalInputInstanceTypeQueryInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOInstanceTypeQueryInput2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeQueryFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, v)
 	return &res, err
 }
 
