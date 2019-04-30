@@ -300,7 +300,7 @@ func applyInstanceTypeFilter(product cloudinfo.ProductDetails, zone string, filt
 		return false
 	}
 
-	if filter.SpotPrice != nil {
+	if filter.SpotPrice != nil || filter.Spot != nil {
 		var spotPrice float64
 
 		for _, zonePrice := range product.SpotPrice {
@@ -310,7 +310,13 @@ func applyInstanceTypeFilter(product cloudinfo.ProductDetails, zone string, filt
 			}
 		}
 
-		if !applyFloatFilter(spotPrice, *filter.SpotPrice) {
+		if filter.Spot != nil {
+			if (*filter.Spot && spotPrice == 0.0) || (!*filter.Spot && spotPrice != 0.0) {
+				return false
+			}
+		}
+
+		if filter.SpotPrice != nil && !applyFloatFilter(spotPrice, *filter.SpotPrice) {
 			return false
 		}
 	}
