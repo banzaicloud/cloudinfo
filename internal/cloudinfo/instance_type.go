@@ -251,7 +251,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 		}
 
 		if query.Filter.Category != nil {
-			includeInResults = includeInResults && applyInstanceCategoryFilter(product.Category, *query.Filter.Category)
+			includeInResults = includeInResults && applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category)
 		}
 
 		if includeInResults {
@@ -300,7 +300,7 @@ func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool
 	return result
 }
 
-func applyInstanceCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
+func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
 	var result = true
 
 	if filter.Eq != nil {
