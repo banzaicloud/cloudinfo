@@ -1,0 +1,185 @@
+isstatic: true
+name: pke
+provider: azure
+source: aks
+regions:
+  -
+    name: Central US
+    id: centralus
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: centralus
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: East US
+    id: eastus
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: eastus
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: East US 2
+    id: eastus2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: eastus2
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: West US 2
+    id: westus2
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: westus2
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: France Central
+    id: francecentral
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: francecentral
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: North Europe
+    id: northeurope
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: northeurope
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: UK South
+    id: uksouth
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: uksouth
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: West Europe
+    id: westeurope
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: westeurope
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: Japan East
+    id: japaneast
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: japaneast
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
+  -
+    name: Southeast Asia
+    id: southeastasia
+    data:
+      zones:
+        strategy: exclude
+      images:
+        strategy: exact
+      versions:
+        strategy: exact
+        data:
+          - location: southeastasia
+            versions:
+              - 1.12.2
+              - 1.13.3
+              - 1.14.0
+      vms:
+        strategy: exclude
