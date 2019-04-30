@@ -49,6 +49,9 @@ type ComplexityRoot struct {
 		Name            func(childComplexity int) int
 		NetworkCategory func(childComplexity int) int
 		Price           func(childComplexity int) int
+		Region          func(childComplexity int) int
+		SpotPrice       func(childComplexity int) int
+		Zone            func(childComplexity int) int
 	}
 
 	Query struct {
@@ -123,6 +126,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InstanceType.Price(childComplexity), true
+
+	case "InstanceType.Region":
+		if e.complexity.InstanceType.Region == nil {
+			break
+		}
+
+		return e.complexity.InstanceType.Region(childComplexity), true
+
+	case "InstanceType.SpotPrice":
+		if e.complexity.InstanceType.SpotPrice == nil {
+			break
+		}
+
+		return e.complexity.InstanceType.SpotPrice(childComplexity), true
+
+	case "InstanceType.Zone":
+		if e.complexity.InstanceType.Zone == nil {
+			break
+		}
+
+		return e.complexity.InstanceType.Zone(childComplexity), true
 
 	case "Query.InstanceTypes":
 		if e.complexity.Query.InstanceTypes == nil {
@@ -217,7 +241,10 @@ enum InstanceTypeCategory {
 
 type InstanceType {
     name: String!
+    region: String!
+    zone: String!
     price: Float!
+    spotPrice: Float!
     cpu: Float!
     memory: Float!
     gpu: Float!
@@ -262,6 +289,8 @@ input InstanceTypeCategoryFilter {
 
 input InstanceTypeQueryInput {
     price: FloatFilter
+    spotPrice: FloatFilter
+    spot: Boolean
     cpu: FloatFilter
     memory: FloatFilter
     gpu: FloatFilter
@@ -398,6 +427,60 @@ func (ec *executionContext) _InstanceType_name(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _InstanceType_region(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.InstanceType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "InstanceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Region, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InstanceType_zone(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.InstanceType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "InstanceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Zone, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _InstanceType_price(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.InstanceType) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -412,6 +495,33 @@ func (ec *executionContext) _InstanceType_price(ctx context.Context, field graph
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Price, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InstanceType_spotPrice(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.InstanceType) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "InstanceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SpotPrice, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1588,6 +1698,18 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "spotPrice":
+			var err error
+			it.SpotPrice, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "spot":
+			var err error
+			it.Spot, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "cpu":
 			var err error
 			it.CPU, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
@@ -1744,8 +1866,23 @@ func (ec *executionContext) _InstanceType(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "region":
+			out.Values[i] = ec._InstanceType_region(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "zone":
+			out.Values[i] = ec._InstanceType_zone(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "price":
 			out.Values[i] = ec._InstanceType_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "spotPrice":
+			out.Values[i] = ec._InstanceType_spotPrice(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

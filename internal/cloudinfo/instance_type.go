@@ -48,7 +48,10 @@ func NewInstanceTypeService(store InstanceTypeStore) *InstanceTypeService {
 // InstanceType represents a single instance type.
 type InstanceType struct {
 	Name            string
+	Region          string
+	Zone            string
 	Price           float64
+	SpotPrice       float64
 	CPU             float64
 	Memory          float64
 	Gpu             float64
@@ -66,6 +69,8 @@ type InstanceTypeQuery struct {
 // InstanceTypeQueryFilter filters instance types by their fields.
 type InstanceTypeQueryFilter struct {
 	Price           *FloatFilter
+	SpotPrice       *FloatFilter
+	Spot            *bool
 	CPU             *FloatFilter
 	Memory          *FloatFilter
 	Gpu             *FloatFilter

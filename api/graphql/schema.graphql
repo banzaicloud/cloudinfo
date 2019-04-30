@@ -15,7 +15,10 @@ enum InstanceTypeCategory {
 
 type InstanceType {
     name: String!
+    region: String!
+    zone: String!
     price: Float!
+    spotPrice: Float!
     cpu: Float!
     memory: Float!
     gpu: Float!
@@ -60,6 +63,8 @@ input InstanceTypeCategoryFilter {
 
 input InstanceTypeQueryInput {
     price: FloatFilter
+    spotPrice: FloatFilter
+    spot: Boolean
     cpu: FloatFilter
     memory: FloatFilter
     gpu: FloatFilter
