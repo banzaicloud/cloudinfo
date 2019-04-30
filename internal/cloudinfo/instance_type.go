@@ -31,6 +31,9 @@ import (
 type InstanceTypeStore interface {
 	// GetProductDetails retrieves product details from the given provider and region.
 	GetProductDetails(provider string, service string, region string) ([]cloudinfo.ProductDetails, error)
+
+	// GetZones returns all the availability zones for a region.
+	GetZones(provider, service, region string) ([]string, error)
 }
 
 // InstanceTypeService filters instance types according to the received query.
@@ -240,7 +243,16 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 
 		zones := product.Zones
 		if len(zones) == 0 {
-			// get the zones from the internal api... if any
+			var err error
+
+			zones, err = s.store.GetZones(provider, service, *query.Region)
+			if err != nil {
+				return nil, emperror.Wrap(err, "failed to retrieve zones")
+			}
+		}
+
+		if len(zones) == 0 {
+			zones = []string{""}
 		}
 
 		for _, zone := range zones {
