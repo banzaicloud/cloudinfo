@@ -372,11 +372,21 @@ func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFi
 }
 
 func transform(details cloudinfo.ProductDetails, region string, zone string) InstanceType {
+	var spotPrice float64
+
+	for _, zonePrice := range details.SpotPrice {
+		if zonePrice.Zone == zone {
+			spotPrice = zonePrice.Price
+			break
+		}
+	}
+
 	return InstanceType{
 		Name:            details.Type,
 		Region:          region,
 		Zone:            zone,
 		Price:           details.OnDemandPrice,
+		SpotPrice:       spotPrice,
 		CPU:             details.Cpus,
 		Memory:          details.Mem,
 		Gpu:             details.Gpus,
