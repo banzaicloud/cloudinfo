@@ -47,7 +47,7 @@ func (r *resolver) Query() graphql.QueryResolver {
 
 type queryResolver struct{ *resolver }
 
-func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error) {
+func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error) {
 	req := instanceTypeQueryRequest{
 		Provider: provider,
 		Service:  service,

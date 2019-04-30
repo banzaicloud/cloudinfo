@@ -31,6 +31,9 @@ import (
 type InstanceTypeStore interface {
 	// GetProductDetails retrieves product details from the given provider and region.
 	GetProductDetails(provider string, service string, region string) ([]cloudinfo.ProductDetails, error)
+
+	// GetZones returns all the availability zones for a region.
+	GetZones(provider, service, region string) ([]string, error)
 }
 
 // InstanceTypeService filters instance types according to the received query.
@@ -48,7 +51,10 @@ func NewInstanceTypeService(store InstanceTypeStore) *InstanceTypeService {
 // InstanceType represents a single instance type.
 type InstanceType struct {
 	Name            string
+	Region          string
+	Zone            string
 	Price           float64
+	SpotPrice       float64
 	CPU             float64
 	Memory          float64
 	Gpu             float64
@@ -60,12 +66,14 @@ type InstanceType struct {
 type InstanceTypeQuery struct {
 	Region *string
 	Zone   *string
-	Filter InstanceTypeQueryFilter
+	Filter *InstanceTypeQueryFilter
 }
 
 // InstanceTypeQueryFilter filters instance types by their fields.
 type InstanceTypeQueryFilter struct {
 	Price           *FloatFilter
+	SpotPrice       *FloatFilter
+	Spot            *bool
 	CPU             *FloatFilter
 	Memory          *FloatFilter
 	Gpu             *FloatFilter
@@ -124,12 +132,20 @@ func (e NetworkCategory) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-// allInstanceCategory mapping between instance type (graphql) categories and cloudinfo generalisation
-var allInstanceCategory = map[InstanceTypeCategory]string{
+// instanceTypeCategoryMap mapping between instance type (graphql) categories and cloudinfo generalisation
+var instanceTypeCategoryMap = map[InstanceTypeCategory]string{
 	InstanceTypeCategoryGeneralPurpose:   cloudinfo.CategoryGeneral,
 	InstanceTypeCategoryComputeOptimized: cloudinfo.CategoryCompute,
 	InstanceTypeCategoryStorageOptimized: cloudinfo.CategoryStorage,
 	InstanceTypeCategoryMemoryOptimized:  cloudinfo.CategoryMemory,
+}
+
+// instanceTypeCategoryReverseMap mapping between instance type (graphql) categories and cloudinfo generalisation
+var instanceTypeCategoryReverseMap = map[string]InstanceTypeCategory{
+	cloudinfo.CategoryGeneral: InstanceTypeCategoryGeneralPurpose,
+	cloudinfo.CategoryCompute: InstanceTypeCategoryComputeOptimized,
+	cloudinfo.CategoryStorage: InstanceTypeCategoryStorageOptimized,
+	cloudinfo.CategoryMemory:  InstanceTypeCategoryMemoryOptimized,
 }
 
 type InstanceTypeCategory string
@@ -232,49 +248,89 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 
 	// filter the data
 	for _, product := range products {
-		includeInResults := true
+		zones := product.Zones
 
-		if query.Filter.Price != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.OnDemandPrice, *query.Filter.Price)
+		if len(zones) == 0 {
+			var err error
+
+			zones, err = s.store.GetZones(provider, service, *query.Region)
+			if err != nil {
+				return nil, emperror.Wrap(err, "failed to retrieve zones")
+			}
 		}
 
-		if query.Filter.CPU != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.Cpus, *query.Filter.CPU)
+		if len(zones) == 0 {
+			zones = []string{""}
 		}
 
-		if query.Filter.Memory != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.Mem, *query.Filter.Memory)
-		}
+		for _, zone := range zones {
+			if query.Filter != nil && !applyInstanceTypeFilter(product, zone, *query.Filter) {
+				continue
+			}
 
-		if query.Filter.Gpu != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.Gpus, *query.Filter.Gpu)
-		}
-
-		if query.Filter.NetworkCategory != nil {
-			includeInResults = includeInResults && applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory)
-		}
-
-		if query.Filter.Category != nil {
-			includeInResults = includeInResults && applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category)
-		}
-
-		if includeInResults {
-			instanceTypes = append(instanceTypes, transform(product))
+			instanceTypes = append(instanceTypes, transform(product, *query.Region, zone))
 		}
 	}
 
 	return instanceTypes, nil
 }
 
-func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == strings.ToLower(string(*filter.Eq))
+func applyInstanceTypeFilter(product cloudinfo.ProductDetails, zone string, filter InstanceTypeQueryFilter) bool {
+	if filter.Price != nil && !applyFloatFilter(product.OnDemandPrice, *filter.Price) {
+		return false
 	}
 
-	if filter.Ne != nil {
-		result = result && value != strings.ToLower(string(*filter.Ne))
+	if filter.CPU != nil && !applyFloatFilter(product.Cpus, *filter.CPU) {
+		return false
+	}
+
+	if filter.Memory != nil && !applyFloatFilter(product.Mem, *filter.Memory) {
+		return false
+	}
+
+	if filter.Gpu != nil && !applyFloatFilter(product.Gpus, *filter.Gpu) {
+		return false
+	}
+
+	if filter.NetworkCategory != nil && !applyNetworkCategoryFilter(product.NtwPerfCat, *filter.NetworkCategory) {
+		return false
+	}
+
+	if filter.Category != nil && !applyInstanceTypeCategoryFilter(product.Category, *filter.Category) {
+		return false
+	}
+
+	if filter.SpotPrice != nil || filter.Spot != nil {
+		var spotPrice float64
+
+		for _, zonePrice := range product.SpotPrice {
+			if zonePrice.Zone == zone {
+				spotPrice = zonePrice.Price
+				break
+			}
+		}
+
+		if filter.Spot != nil {
+			if (*filter.Spot && spotPrice == 0.0) || (!*filter.Spot && spotPrice != 0.0) {
+				return false
+			}
+		}
+
+		if filter.SpotPrice != nil && !applyFloatFilter(spotPrice, *filter.SpotPrice) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool {
+	if filter.Eq != nil && !(value == strings.ToLower(string(*filter.Eq))) {
+		return false
+	}
+
+	if filter.Ne != nil && !(value != strings.ToLower(string(*filter.Ne))) {
+		return false
 	}
 
 	if filter.In != nil {
@@ -286,70 +342,76 @@ func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool
 			}
 		}
 
-		result = result && in
+		if !in {
+			return false
+		}
 	}
 
 	if filter.Nin != nil {
-		var nin = true
 		for _, v := range filter.In {
 			if value == strings.ToLower(string(v)) {
-				nin = false
-				break
+				return false
 			}
 		}
-
-		result = result && nin
 	}
 
-	return result
+	return true
 }
 
 func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == allInstanceCategory[InstanceTypeCategory(*filter.Eq)]
+	if filter.Eq != nil && !(value == instanceTypeCategoryMap[InstanceTypeCategory(*filter.Eq)]) {
+		return false
 	}
 
-	if filter.Ne != nil {
-		result = result && value != allInstanceCategory[InstanceTypeCategory(*filter.Ne)]
+	if filter.Ne != nil && !(value != instanceTypeCategoryMap[InstanceTypeCategory(*filter.Ne)]) {
+		return false
 	}
 
 	if filter.In != nil {
 		var in = false
 		for _, v := range filter.In {
-			if value == allInstanceCategory[InstanceTypeCategory(v)] {
+			if value == instanceTypeCategoryMap[InstanceTypeCategory(v)] {
 				in = true
 				break
 			}
 		}
 
-		result = result && in
+		if !in {
+			return false
+		}
 	}
 
 	if filter.Nin != nil {
-		var nin = true
 		for _, v := range filter.In {
-			if value == allInstanceCategory[InstanceTypeCategory(v)] {
-				nin = false
-				break
+			if value == instanceTypeCategoryMap[InstanceTypeCategory(v)] {
+				return false
 			}
 		}
-
-		result = result && nin
 	}
 
-	return result
+	return true
 }
 
-func transform(details cloudinfo.ProductDetails) InstanceType {
+func transform(details cloudinfo.ProductDetails, region string, zone string) InstanceType {
+	var spotPrice float64
+
+	for _, zonePrice := range details.SpotPrice {
+		if zonePrice.Zone == zone {
+			spotPrice = zonePrice.Price
+			break
+		}
+	}
+
 	return InstanceType{
-		Price:           details.OnDemandPrice,
 		Name:            details.Type,
+		Region:          region,
+		Zone:            zone,
+		Price:           details.OnDemandPrice,
+		SpotPrice:       spotPrice,
 		CPU:             details.Cpus,
 		Memory:          details.Mem,
 		Gpu:             details.Gpus,
 		NetworkCategory: NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
-		Category:        InstanceTypeCategory(details.Category),
+		Category:        instanceTypeCategoryReverseMap[details.Category],
 	}
 }

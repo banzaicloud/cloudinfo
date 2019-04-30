@@ -35,3 +35,8 @@ func NewInMemoryInstanceTypeStore() *InMemoryInstanceTypeStore {
 func (s *InMemoryInstanceTypeStore) GetProductDetails(provider string, service string, region string) ([]cloudinfo.ProductDetails, error) {
 	return s.products[provider][service][region], nil
 }
+
+// GetZones returns all the availability zones for a region.
+func (s *InMemoryInstanceTypeStore) GetZones(provider, service, region string) ([]string, error) {
+	return []string{}, nil
+}
