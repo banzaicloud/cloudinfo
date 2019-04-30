@@ -237,34 +237,42 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 
 	// filter the data
 	for _, product := range products {
-		includeInResults := true
 
-		if query.Filter.Price != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.OnDemandPrice, *query.Filter.Price)
+		zones := product.Zones
+		if len(zones) == 0 {
+			// get the zones from the internal api... if any
 		}
 
-		if query.Filter.CPU != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.Cpus, *query.Filter.CPU)
-		}
+		for _, zone := range zones {
+			includeInResults := true
 
-		if query.Filter.Memory != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.Mem, *query.Filter.Memory)
-		}
+			if query.Filter.Price != nil {
+				includeInResults = includeInResults && applyFloatFilter(product.OnDemandPrice, *query.Filter.Price)
+			}
 
-		if query.Filter.Gpu != nil {
-			includeInResults = includeInResults && applyFloatFilter(product.Gpus, *query.Filter.Gpu)
-		}
+			if query.Filter.CPU != nil {
+				includeInResults = includeInResults && applyFloatFilter(product.Cpus, *query.Filter.CPU)
+			}
 
-		if query.Filter.NetworkCategory != nil {
-			includeInResults = includeInResults && applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory)
-		}
+			if query.Filter.Memory != nil {
+				includeInResults = includeInResults && applyFloatFilter(product.Mem, *query.Filter.Memory)
+			}
 
-		if query.Filter.Category != nil {
-			includeInResults = includeInResults && applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category)
-		}
+			if query.Filter.Gpu != nil {
+				includeInResults = includeInResults && applyFloatFilter(product.Gpus, *query.Filter.Gpu)
+			}
 
-		if includeInResults {
-			instanceTypes = append(instanceTypes, transform(product))
+			if query.Filter.NetworkCategory != nil {
+				includeInResults = includeInResults && applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory)
+			}
+
+			if query.Filter.Category != nil {
+				includeInResults = includeInResults && applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category)
+			}
+
+			if includeInResults {
+				instanceTypes = append(instanceTypes, transform(product, *query.Region, zone))
+			}
 		}
 	}
 
@@ -347,10 +355,12 @@ func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFi
 	return result
 }
 
-func transform(details cloudinfo.ProductDetails) InstanceType {
+func transform(details cloudinfo.ProductDetails, region string, zone string) InstanceType {
 	return InstanceType{
-		Price:           details.OnDemandPrice,
 		Name:            details.Type,
+		Region:          region,
+		Zone:            zone,
+		Price:           details.OnDemandPrice,
 		CPU:             details.Cpus,
 		Memory:          details.Mem,
 		Gpu:             details.Gpus,
