@@ -244,35 +244,32 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 		}
 
 		for _, zone := range zones {
-			includeInResults := true
 
-			if query.Filter.Price != nil {
-				includeInResults = includeInResults && applyFloatFilter(product.OnDemandPrice, *query.Filter.Price)
+			if query.Filter.Price != nil && !applyFloatFilter(product.OnDemandPrice, *query.Filter.Price) {
+				continue
 			}
 
-			if query.Filter.CPU != nil {
-				includeInResults = includeInResults && applyFloatFilter(product.Cpus, *query.Filter.CPU)
+			if query.Filter.CPU != nil && !applyFloatFilter(product.Cpus, *query.Filter.CPU) {
+				continue
 			}
 
-			if query.Filter.Memory != nil {
-				includeInResults = includeInResults && applyFloatFilter(product.Mem, *query.Filter.Memory)
+			if query.Filter.Memory != nil && !applyFloatFilter(product.Mem, *query.Filter.Memory) {
+				continue
 			}
 
-			if query.Filter.Gpu != nil {
-				includeInResults = includeInResults && applyFloatFilter(product.Gpus, *query.Filter.Gpu)
+			if query.Filter.Gpu != nil && !applyFloatFilter(product.Gpus, *query.Filter.Gpu) {
+				continue
 			}
 
-			if query.Filter.NetworkCategory != nil {
-				includeInResults = includeInResults && applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory)
+			if query.Filter.NetworkCategory != nil && !applyNetworkCategoryFilter(product.NtwPerfCat, *query.Filter.NetworkCategory) {
+				continue
 			}
 
-			if query.Filter.Category != nil {
-				includeInResults = includeInResults && applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category)
+			if query.Filter.Category != nil && !applyInstanceTypeCategoryFilter(product.Category, *query.Filter.Category) {
+				continue
 			}
 
-			if includeInResults {
-				instanceTypes = append(instanceTypes, transform(product, *query.Region, zone))
-			}
+			instanceTypes = append(instanceTypes, transform(product, *query.Region, zone))
 		}
 	}
 
