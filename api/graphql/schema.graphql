@@ -4,6 +4,15 @@ enum NetworkCategory {
     HIGH
 }
 
+enum InstanceTypeCategory {
+    GENERAL_PURPOSE
+    MEMORY_OPTIMIZED
+    STORAGE_OPTIMIZED
+    COMPUTE_OPTIMIZED
+    #    GPU_INSTANCE
+    #    FPGA_INSTANCES
+}
+
 type InstanceType {
     name: String!
     price: Float!
@@ -11,6 +20,7 @@ type InstanceType {
     memory: Float!
     gpu: Float!
     networkCategory: NetworkCategory!
+    category: InstanceTypeCategory!
 }
 
 input IntFilter {
@@ -41,6 +51,12 @@ input NetworkCategoryFilter {
     in: [NetworkCategory!]
     nin: [NetworkCategory!]
 }
+input InstanceTypeCategoryFilter {
+    eq: InstanceTypeCategory
+    ne: InstanceTypeCategory
+    in: [InstanceTypeCategory!]
+    nin: [InstanceTypeCategory!]
+}
 
 input InstanceTypeQueryInput {
     price: FloatFilter
@@ -48,6 +64,7 @@ input InstanceTypeQueryInput {
     memory: FloatFilter
     gpu: FloatFilter
     networkCategory: NetworkCategoryFilter
+    category: InstanceTypeCategoryFilter
 }
 
 type Query {
