@@ -172,8 +172,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	// App configuration
 	p.String("listen-address", ":8000", "application listen address")
-	_ = v.BindPFlag("app.addr", p.Lookup("listen-address"))
-	_ = v.BindEnv("app.addr", "LISTEN_ADDRESS")
+	_ = v.BindPFlag("app.address", p.Lookup("listen-address"))
+	_ = v.BindEnv("app.address", "LISTEN_ADDRESS")
 
 	p.Duration("product-info-renewal-interval", 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
 	_ = v.BindPFlag("app.renewalInterval", p.Lookup("product-info-renewal-interval"))
