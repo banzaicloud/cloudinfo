@@ -10,6 +10,13 @@
                 },
                 "introspect": false
             },
+            "Alpha": {
+                "url": "https://alpha.dev.banzaicloud.com/cloudinfo/graphql",
+                "headers": {
+                    "user-agent": "JS GraphQL"
+                },
+                "introspect": false
+            },
             "Beta": {
                 "url": "https://beta.banzaicloud.io/cloudinfo/graphql",
                 "headers": {
