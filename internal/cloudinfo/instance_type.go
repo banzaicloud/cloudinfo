@@ -289,14 +289,12 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 }
 
 func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == strings.ToLower(string(*filter.Eq))
+	if filter.Eq != nil && !(value == strings.ToLower(string(*filter.Eq))) {
+		return false
 	}
 
-	if filter.Ne != nil {
-		result = result && value != strings.ToLower(string(*filter.Ne))
+	if filter.Ne != nil && !(value != strings.ToLower(string(*filter.Ne))) {
+		return false
 	}
 
 	if filter.In != nil {
@@ -308,33 +306,29 @@ func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool
 			}
 		}
 
-		result = result && in
+		if !in {
+			return false
+		}
 	}
 
 	if filter.Nin != nil {
-		var nin = true
 		for _, v := range filter.In {
 			if value == strings.ToLower(string(v)) {
-				nin = false
-				break
+				return false
 			}
 		}
-
-		result = result && nin
 	}
 
-	return result
+	return true
 }
 
 func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == allInstanceCategory[InstanceTypeCategory(*filter.Eq)]
+	if filter.Eq != nil && !(value == allInstanceCategory[InstanceTypeCategory(*filter.Eq)]) {
+		return false
 	}
 
-	if filter.Ne != nil {
-		result = result && value != allInstanceCategory[InstanceTypeCategory(*filter.Ne)]
+	if filter.Ne != nil && !(value != allInstanceCategory[InstanceTypeCategory(*filter.Ne)]) {
+		return false
 	}
 
 	if filter.In != nil {
@@ -346,22 +340,20 @@ func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFi
 			}
 		}
 
-		result = result && in
+		if !in {
+			return false
+		}
 	}
 
 	if filter.Nin != nil {
-		var nin = true
 		for _, v := range filter.In {
 			if value == allInstanceCategory[InstanceTypeCategory(v)] {
-				nin = false
-				break
+				return false
 			}
 		}
-
-		result = result && nin
 	}
 
-	return result
+	return true
 }
 
 func transform(details cloudinfo.ProductDetails, region string, zone string) InstanceType {

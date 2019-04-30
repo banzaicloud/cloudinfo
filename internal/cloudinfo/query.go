@@ -39,30 +39,28 @@ type IntFilter struct {
 }
 
 func applyFloatFilter(value float64, filter FloatFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == *filter.Eq
+	if filter.Eq != nil && !(value == *filter.Eq) {
+		return false
 	}
 
-	if filter.Ne != nil {
-		result = result && value != *filter.Ne
+	if filter.Ne != nil && !(value != *filter.Ne) {
+		return false
 	}
 
-	if filter.Lt != nil {
-		result = result && value < *filter.Lt
+	if filter.Lt != nil && !(value < *filter.Lt) {
+		return false
 	}
 
-	if filter.Lte != nil {
-		result = result && value <= *filter.Lte
+	if filter.Lte != nil && !(value <= *filter.Lte) {
+		return false
 	}
 
-	if filter.Gt != nil {
-		result = result && value > *filter.Gt
+	if filter.Gt != nil && !(value > *filter.Gt) {
+		return false
 	}
 
-	if filter.Gte != nil {
-		result = result && value >= *filter.Gte
+	if filter.Gte != nil && !(value >= *filter.Gte) {
+		return false
 	}
 
 	if filter.In != nil {
@@ -74,50 +72,46 @@ func applyFloatFilter(value float64, filter FloatFilter) bool {
 			}
 		}
 
-		result = result && in
+		if !in {
+			return false
+		}
 	}
 
 	if filter.Nin != nil {
-		var nin = true
 		for _, v := range filter.In {
 			if value == v {
-				nin = false
-				break
+				return false
 			}
 		}
-
-		result = result && nin
 	}
 
-	return result
+	return true
 }
 
 // nolint: deadcode
 func applyIntFilter(value int, filter IntFilter) bool {
-	var result = true
-
-	if filter.Eq != nil {
-		result = result && value == *filter.Eq
+	if filter.Eq != nil && !(value == *filter.Eq) {
+		return false
 	}
 
-	if filter.Ne != nil {
-		result = result && value != *filter.Ne
+	if filter.Ne != nil && !(value != *filter.Ne) {
+		return false
 	}
 
-	if filter.Lt != nil {
-		result = result && value < *filter.Lt
+	if filter.Lt != nil && !(value < *filter.Lt) {
+		return false
 	}
 
-	if filter.Lte != nil {
-		result = result && value <= *filter.Lte
+	if filter.Lte != nil && !(value <= *filter.Lte) {
+		return false
 	}
 
-	if filter.Gt != nil {
-		result = result && value > *filter.Gt
+	if filter.Gt != nil && !(value > *filter.Gt) {
+		return false
 	}
 
-	if filter.Gte != nil {
-		result = result && value >= *filter.Gte
+	if filter.Gte != nil && !(value >= *filter.Gte) {
+		return false
 	}
 
 	if filter.In != nil {
@@ -129,20 +123,18 @@ func applyIntFilter(value int, filter IntFilter) bool {
 			}
 		}
 
-		result = result && in
+		if !in {
+			return false
+		}
 	}
 
 	if filter.Nin != nil {
-		var nin = true
 		for _, v := range filter.In {
 			if value == v {
-				nin = false
-				break
+				return false
 			}
 		}
-
-		result = result && nin
 	}
 
-	return result
+	return true
 }
