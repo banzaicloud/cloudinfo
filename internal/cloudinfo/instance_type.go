@@ -264,7 +264,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 		}
 
 		for _, zone := range zones {
-			if query.Filter != nil && !applyInstanceTypeFilter(product, *query.Filter) {
+			if query.Filter != nil && !applyInstanceTypeFilter(product, zone, *query.Filter) {
 				continue
 			}
 
@@ -275,7 +275,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 	return instanceTypes, nil
 }
 
-func applyInstanceTypeFilter(product cloudinfo.ProductDetails, filter InstanceTypeQueryFilter) bool {
+func applyInstanceTypeFilter(product cloudinfo.ProductDetails, zone string, filter InstanceTypeQueryFilter) bool {
 	if filter.Price != nil && !applyFloatFilter(product.OnDemandPrice, *filter.Price) {
 		return false
 	}
@@ -298,6 +298,21 @@ func applyInstanceTypeFilter(product cloudinfo.ProductDetails, filter InstanceTy
 
 	if filter.Category != nil && !applyInstanceTypeCategoryFilter(product.Category, *filter.Category) {
 		return false
+	}
+
+	if filter.SpotPrice != nil {
+		var spotPrice float64
+
+		for _, zonePrice := range product.SpotPrice {
+			if zonePrice.Zone == zone {
+				spotPrice = zonePrice.Price
+				break
+			}
+		}
+
+		if !applyFloatFilter(spotPrice, *filter.SpotPrice) {
+			return false
+		}
 	}
 
 	return true
