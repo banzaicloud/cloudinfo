@@ -132,12 +132,20 @@ func (e NetworkCategory) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-// allInstanceCategory mapping between instance type (graphql) categories and cloudinfo generalisation
-var allInstanceCategory = map[InstanceTypeCategory]string{
+// instanceTypeCategoryMap mapping between instance type (graphql) categories and cloudinfo generalisation
+var instanceTypeCategoryMap = map[InstanceTypeCategory]string{
 	InstanceTypeCategoryGeneralPurpose:   cloudinfo.CategoryGeneral,
 	InstanceTypeCategoryComputeOptimized: cloudinfo.CategoryCompute,
 	InstanceTypeCategoryStorageOptimized: cloudinfo.CategoryStorage,
 	InstanceTypeCategoryMemoryOptimized:  cloudinfo.CategoryMemory,
+}
+
+// instanceTypeCategoryReverseMap mapping between instance type (graphql) categories and cloudinfo generalisation
+var instanceTypeCategoryReverseMap = map[string]InstanceTypeCategory{
+	cloudinfo.CategoryGeneral: InstanceTypeCategoryGeneralPurpose,
+	cloudinfo.CategoryCompute: InstanceTypeCategoryComputeOptimized,
+	cloudinfo.CategoryStorage: InstanceTypeCategoryStorageOptimized,
+	cloudinfo.CategoryMemory:  InstanceTypeCategoryMemoryOptimized,
 }
 
 type InstanceTypeCategory string
@@ -330,18 +338,18 @@ func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool
 }
 
 func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
-	if filter.Eq != nil && !(value == allInstanceCategory[InstanceTypeCategory(*filter.Eq)]) {
+	if filter.Eq != nil && !(value == instanceTypeCategoryMap[InstanceTypeCategory(*filter.Eq)]) {
 		return false
 	}
 
-	if filter.Ne != nil && !(value != allInstanceCategory[InstanceTypeCategory(*filter.Ne)]) {
+	if filter.Ne != nil && !(value != instanceTypeCategoryMap[InstanceTypeCategory(*filter.Ne)]) {
 		return false
 	}
 
 	if filter.In != nil {
 		var in = false
 		for _, v := range filter.In {
-			if value == allInstanceCategory[InstanceTypeCategory(v)] {
+			if value == instanceTypeCategoryMap[InstanceTypeCategory(v)] {
 				in = true
 				break
 			}
@@ -354,7 +362,7 @@ func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFi
 
 	if filter.Nin != nil {
 		for _, v := range filter.In {
-			if value == allInstanceCategory[InstanceTypeCategory(v)] {
+			if value == instanceTypeCategoryMap[InstanceTypeCategory(v)] {
 				return false
 			}
 		}
@@ -373,6 +381,6 @@ func transform(details cloudinfo.ProductDetails, region string, zone string) Ins
 		Memory:          details.Mem,
 		Gpu:             details.Gpus,
 		NetworkCategory: NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
-		Category:        InstanceTypeCategory(details.Category),
+		Category:        instanceTypeCategoryReverseMap[details.Category],
 	}
 }
