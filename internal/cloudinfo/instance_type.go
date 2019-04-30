@@ -124,53 +124,57 @@ func (e NetworkCategory) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// allInstanceCategory mapping between instance type (graphql) categories and cloudinfo generalisation
+var allInstanceCategory = map[InstanceTypeCategory]string{
+	InstanceTypeCategoryGeneralPurpose:   cloudinfo.CategoryGeneral,
+	InstanceTypeCategoryComputeOptimized: cloudinfo.CategoryCompute,
+	InstanceTypeCategoryStorageOptimized: cloudinfo.CategoryStorage,
+	InstanceTypeCategoryMemoryOptimized:  cloudinfo.CategoryMemory,
+}
+
 type InstanceTypeCategory string
 
 const (
-	InstanceCategoryGeneralPurpose InstanceTypeCategory = "GENERAL_PURPOSE"
-	InstanceCategoryCompute        InstanceTypeCategory = "COMPUTE_OPTIMIZED"
-	InstanceCategoryStorage        InstanceTypeCategory = "STORAGE_OPTIMIZED"
-	InstanceCategoryMemory         InstanceTypeCategory = "MEMORY_OPTIMIZED"
+	InstanceTypeCategoryGeneralPurpose   InstanceTypeCategory = "GENERAL_PURPOSE"
+	InstanceTypeCategoryMemoryOptimized  InstanceTypeCategory = "MEMORY_OPTIMIZED"
+	InstanceTypeCategoryStorageOptimized InstanceTypeCategory = "STORAGE_OPTIMIZED"
+	InstanceTypeCategoryComputeOptimized InstanceTypeCategory = "COMPUTE_OPTIMIZED"
 )
 
-// allInstanceCategory mapping between instance type (graphql) categories and cloudinfo generalisation
-var allInstanceCategory = map[InstanceTypeCategory]string{
-	InstanceCategoryGeneralPurpose: cloudinfo.CategoryGeneral,
-	InstanceCategoryCompute:        cloudinfo.CategoryCompute,
-	InstanceCategoryStorage:        cloudinfo.CategoryStorage,
-	InstanceCategoryMemory:         cloudinfo.CategoryMemory,
+var AllInstanceTypeCategory = []InstanceTypeCategory{
+	InstanceTypeCategoryGeneralPurpose,
+	InstanceTypeCategoryMemoryOptimized,
+	InstanceTypeCategoryStorageOptimized,
+	InstanceTypeCategoryComputeOptimized,
 }
 
-func (ic InstanceTypeCategory) IsValid() bool {
-	switch ic {
-	case InstanceCategoryGeneralPurpose,
-		InstanceCategoryCompute,
-		InstanceCategoryStorage,
-		InstanceCategoryMemory:
+func (e InstanceTypeCategory) IsValid() bool {
+	switch e {
+	case InstanceTypeCategoryGeneralPurpose, InstanceTypeCategoryMemoryOptimized, InstanceTypeCategoryStorageOptimized, InstanceTypeCategoryComputeOptimized:
 		return true
 	}
 	return false
 }
 
-func (ic InstanceTypeCategory) String() string {
-	return string(ic)
+func (e InstanceTypeCategory) String() string {
+	return string(e)
 }
 
-func (ic *InstanceTypeCategory) UnmarshalGQL(v interface{}) error {
+func (e *InstanceTypeCategory) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*ic = InstanceTypeCategory(str)
-	if !ic.IsValid() {
+	*e = InstanceTypeCategory(str)
+	if !e.IsValid() {
 		return fmt.Errorf("%s is not a valid InstanceTypeCategory", str)
 	}
 	return nil
 }
 
-func (ic InstanceTypeCategory) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(ic.String()))
+func (e InstanceTypeCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 // IntFilter represents the query operators for an instance type network category field.
