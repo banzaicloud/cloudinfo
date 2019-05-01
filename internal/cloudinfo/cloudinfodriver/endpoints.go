@@ -24,6 +24,12 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
+// ProviderService returns the list of supported providers and relevant information.
+type ProviderService interface {
+	// ListProviders returns a list of providers.
+	ListProviders(ctx context.Context) ([]cloudinfo.Provider, error)
+}
+
 // InstanceTypeService filters instance types according to the received query.
 type InstanceTypeService interface {
 	// Query processes an instance type query and responds with a list match of instance types matching that query.
@@ -40,14 +46,48 @@ type businessError interface {
 // It's meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
+	ListProviders     endpoint.Endpoint
 	InstanceTypeQuery endpoint.Endpoint
 }
 
 // MakeEndpoints returns an Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
-func MakeEndpoints(s InstanceTypeService) Endpoints {
+func MakeEndpoints(ps ProviderService, its InstanceTypeService) Endpoints {
 	return Endpoints{
-		InstanceTypeQuery: kitoc.TraceEndpoint("cloudinfo.InstanceTypeQuery")(MakeInstanceTypeQueryEndpoint(s)),
+		ListProviders:     kitoc.TraceEndpoint("cloudinfo.ListProviders")(MakeListProvidersEndpoint(ps)),
+		InstanceTypeQuery: kitoc.TraceEndpoint("cloudinfo.InstanceTypeQuery")(MakeInstanceTypeQueryEndpoint(its)),
+	}
+}
+
+type listProvidersResponse struct {
+	Providers []cloudinfo.Provider
+	Err       error
+}
+
+func (r listProvidersResponse) Failed() error {
+	return r.Err
+}
+
+// MakeListProvidersEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListProvidersEndpoint(s ProviderService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		providers, err := s.ListProviders(ctx)
+
+		if err != nil {
+			if b, ok := errors.Cause(err).(businessError); ok && b.IsBusinessError() {
+				return listProvidersResponse{
+					Err: err,
+				}, nil
+			}
+
+			return nil, err
+		}
+
+		resp := listProvidersResponse{
+			Providers: providers,
+		}
+
+		return resp, nil
 	}
 }
 

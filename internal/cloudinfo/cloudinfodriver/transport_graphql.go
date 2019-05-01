@@ -47,6 +47,21 @@ func (r *resolver) Query() graphql.QueryResolver {
 
 type queryResolver struct{ *resolver }
 
+func (r *queryResolver) Providers(ctx context.Context) ([]cloudinfo.Provider, error) {
+	resp, err := r.endpoints.ListProviders(ctx, nil)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listProvidersResponse).Providers, nil
+}
+
 func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error) {
 	req := instanceTypeQueryRequest{
 		Provider: provider,
