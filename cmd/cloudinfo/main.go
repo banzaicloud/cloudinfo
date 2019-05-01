@@ -170,8 +170,9 @@ func main() {
 	err = api.ConfigureValidator(config.App.Providers, prodInfo, logger)
 	emperror.Panic(err)
 
+	providerService := cloudinfo2.NewProviderService(prodInfo)
 	instanceTypeService := cloudinfo2.NewInstanceTypeService(prodInfo)
-	endpoints := cloudinfodriver.MakeEndpoints(instanceTypeService)
+	endpoints := cloudinfodriver.MakeEndpoints(providerService, instanceTypeService)
 	graphqlHandler := cloudinfodriver.MakeGraphQLHandler(endpoints, errorHandler)
 
 	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, graphqlHandler, logger)

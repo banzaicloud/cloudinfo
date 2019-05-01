@@ -1,3 +1,4 @@
 type Query {
+    providers: [Provider!]!
     instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput): [InstanceType!]!
 }

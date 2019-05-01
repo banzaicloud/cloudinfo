@@ -12,6 +12,9 @@ model:
 struct_tag: json
 
 models:
+    Provider:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Provider
+
     InstanceType:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceType
 
