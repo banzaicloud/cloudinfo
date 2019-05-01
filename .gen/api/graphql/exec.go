@@ -55,12 +55,17 @@ type ComplexityRoot struct {
 	}
 
 	Provider struct {
-		Name func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Services func(childComplexity int) int
 	}
 
 	Query struct {
 		InstanceTypes func(childComplexity int, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) int
 		Providers     func(childComplexity int) int
+	}
+
+	Service struct {
+		Name func(childComplexity int) int
 	}
 }
 
@@ -161,6 +166,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Provider.Name(childComplexity), true
 
+	case "Provider.Services":
+		if e.complexity.Provider.Services == nil {
+			break
+		}
+
+		return e.complexity.Provider.Services(childComplexity), true
+
 	case "Query.InstanceTypes":
 		if e.complexity.Query.InstanceTypes == nil {
 			break
@@ -179,6 +191,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Providers(childComplexity), true
+
+	case "Service.Name":
+		if e.complexity.Service.Name == nil {
+			break
+		}
+
+		return e.complexity.Service.Name(childComplexity), true
 
 	}
 	return 0, false
@@ -319,6 +338,11 @@ input InstanceTypeQueryInput {
 }
 `},
 	&ast.Source{Name: "api/graphql/provider.graphql", Input: `type Provider {
+	name: String!
+	services: [Service!]!
+}
+
+type Service {
 	name: String!
 }
 `},
@@ -722,6 +746,33 @@ func (ec *executionContext) _Provider_name(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Provider_services(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Provider) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Provider",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]cloudinfo.Service)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_providers(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -836,6 +887,33 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Service_name(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Service) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Service",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -2017,6 +2095,11 @@ func (ec *executionContext) _Provider(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "services":
+			out.Values[i] = ec._Provider_services(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2075,6 +2158,33 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceImplementors = []string{"Service"}
+
+func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, obj *cloudinfo.Service) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, serviceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Service")
+		case "name":
+			out.Values[i] = ec._Service_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2443,6 +2553,47 @@ func (ec *executionContext) marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋclo
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNProvider2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐProvider(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNService2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Service) graphql.Marshaler {
+	return ec._Service(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Service) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNService2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

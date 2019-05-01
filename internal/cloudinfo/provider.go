@@ -26,6 +26,9 @@ import (
 type ProviderStore interface {
 	// GetProviders returns the supported providers.
 	GetProviders() ([]cloudinfo.Provider, error)
+
+	// GetServices returns the supported services for a provider.
+	GetServices(provider string) ([]cloudinfo.Service, error)
 }
 
 // ProviderService returns the list of supported providers and relevant information.
@@ -42,25 +45,41 @@ func NewProviderService(store ProviderStore) *ProviderService {
 
 // Provider represents a single cloud provider.
 type Provider struct {
+	Name     string
+	Services []Service
+}
+
+type Service struct {
 	Name string
 }
 
 // ListProviders returns a list of providers.
 func (s *ProviderService) ListProviders(ctx context.Context) ([]Provider, error) {
-	var providers []Provider
-
 	cloudProviders, err := s.store.GetProviders()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to list providers")
 	}
 
-	for _, provider := range cloudProviders {
-		providers = append(
-			providers,
-			Provider{
-				Name: provider.Provider,
-			},
-		)
+	providers := make([]Provider, len(cloudProviders))
+
+	for i, provider := range cloudProviders {
+		cloudServices, err := s.store.GetServices(provider.Provider)
+		if err != nil {
+			return nil, err
+		}
+
+		services := make([]Service, len(cloudServices))
+
+		for j, service := range cloudServices {
+			services[j] = Service{
+				Name: service.Service,
+			}
+		}
+
+		providers[i] = Provider{
+			Name:     provider.Provider,
+			Services: services,
+		}
 	}
 
 	return providers, nil

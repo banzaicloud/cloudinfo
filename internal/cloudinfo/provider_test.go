@@ -34,6 +34,24 @@ func TestProviderService_ListProviders(t *testing.T) {
 			Provider: "google",
 		},
 	}
+	store.services = map[string][]cloudinfo.Service{
+		"amazon": {
+			{
+				Service: "compute",
+			},
+			{
+				Service: "eks",
+			},
+		},
+		"google": {
+			{
+				Service: "compute",
+			},
+			{
+				Service: "gke",
+			},
+		},
+	}
 
 	providerService := NewProviderService(store)
 
@@ -43,8 +61,8 @@ func TestProviderService_ListProviders(t *testing.T) {
 	assert.Equal(
 		t,
 		[]Provider{
-			{Name: "amazon"},
-			{Name: "google"},
+			{Name: "amazon", Services: []Service{{Name: "compute"}, {Name: "eks"}}},
+			{Name: "google", Services: []Service{{Name: "compute"}, {Name: "gke"}}},
 		},
 		providers,
 	)

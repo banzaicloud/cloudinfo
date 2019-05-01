@@ -15,6 +15,9 @@ models:
     Provider:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Provider
 
+    Service:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Service
+
     InstanceType:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceType
 
