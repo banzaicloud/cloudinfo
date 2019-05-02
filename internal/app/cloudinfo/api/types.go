@@ -77,10 +77,6 @@ type Region struct {
 	Name string `json:"name"`
 }
 
-// ContinentsResponse holds the list of available continents
-// swagger:model ContinentsResponse
-type ContinentsResponse []string
-
 // GetRegionResp holds the detailed description of a specific region of a cloud provider
 // swagger:model GetRegionResp
 type GetRegionResp struct {
@@ -144,9 +140,4 @@ func NewServicesResponse(sds []cloudinfo.Service) ServicesResponse {
 	return ServicesResponse{
 		Services: sds,
 	}
-}
-
-// NewContinentsResponse assembles a new continents response
-func NewContinentsResponse(continents []string) ContinentsResponse {
-	return continents
 }
