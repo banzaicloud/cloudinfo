@@ -23,6 +23,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // swagger:route GET /providers providers getProviders
@@ -197,6 +198,56 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 	}
 }
 
+// swagger:route GET /providers/{provider}/services/{service}/continents continents getContinentsData
+//
+// Provides the list of available continents and regions of a cloud provider
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ContinentsDataResponse
+func (r *RouteHandler) getContinentsData() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetServicesPathParams{}
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			return
+		}
+
+		logger := log.WithFieldsForHandlers(c, r.log,
+			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service})
+
+		logger.Info("getting continents data")
+
+		locations, err := r.prod.GetContinentsData(pathParams.Provider, pathParams.Service)
+		if err != nil {
+			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve continents data for provider [%s], service [%s]",
+				pathParams.Provider, pathParams.Service))
+			return
+		}
+		var response ContinentsDataResponse
+		for continent, regions := range locations {
+			response = append(response, Continent{
+				Name:    continent,
+				Regions: regions,
+			})
+		}
+
+		logger.Debug("successfully retrieved continents data")
+		c.JSON(http.StatusOK, response)
+	}
+}
+
 // swagger:route GET /providers/{provider}/services/{service}/regions regions getRegions
 //
 // Provides the list of available regions of a cloud provider
@@ -210,7 +261,6 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 //
 //     Responses:
 //       200: RegionsResponse
-//
 func (r *RouteHandler) getRegions() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetServicesPathParams{}
@@ -237,7 +287,10 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 		}
 		var response RegionsResponse
 		for id, name := range regions {
-			response = append(response, Region{id, name})
+			response = append(response, cloudinfo.Region{
+				Id:   id,
+				Name: name,
+			})
 		}
 
 		logger.Debug("successfully retrieved regions")
@@ -449,6 +502,32 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 
 		logger.Debug("successfully retrieved version details")
 		c.JSON(http.StatusOK, versions)
+	}
+}
+
+// swagger:route GET /continents continents getContinents
+//
+// Returns the supported continents
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ContinentsResponse
+func (r *RouteHandler) getContinents() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		logger := log.WithFieldsForHandlers(c, r.log, nil)
+
+		logger.Info("getting continents")
+
+		continents := r.prod.GetContinents()
+
+		c.JSON(http.StatusOK, NewContinentsResponse(continents))
 	}
 }
 
