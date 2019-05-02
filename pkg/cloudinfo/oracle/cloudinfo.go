@@ -16,7 +16,6 @@ package oracle
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -212,47 +211,31 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 }
 
 // GetRegions returns a map with available regions
-func (i *Infoer) GetRegions(service string) (map[string][]cloudinfo.Region, error) {
+func (i *Infoer) GetRegions(service string) (regions map[string]string, err error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	regions, err := c.GetSubscribedRegionNames()
+	_regions, err := c.GetSubscribedRegionNames()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	locations := make(map[string][]cloudinfo.Region)
-	for _, region := range regions {
+	regions = make(map[string]string)
+	for _, region := range _regions {
 		description := region
 		if displayName, ok := regionNames[region]; ok {
 			description = displayName
 		}
-
-		continent := i.getContinent(region)
-		locations[continent] = append(locations[continent], cloudinfo.Region{
-			Id:   region,
-			Name: description,
-		})
+		regions[region] = description
 	}
 
-	return locations, nil
-}
-
-// getContinent categorizes regions by continents
-func (i *Infoer) getContinent(region string) string {
-	switch {
-	case strings.Contains(region, "eu-") || strings.Contains(region, "uk-"):
-		return cloudinfo.ContinentEurope
-	case strings.Contains(region, "us-"):
-		return cloudinfo.ContinentNorthAmerica
-	default:
-		return "unknown"
-	}
+	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regions)})
+	return
 }
 
 // GetZones returns the availability zones in a region

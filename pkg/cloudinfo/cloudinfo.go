@@ -137,7 +137,7 @@ func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]strin
 }
 
 // GetRegions gets the regions for the provided provider
-func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string][]Region, error) {
+func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
 		return cachedVal, nil
 	}
@@ -208,11 +208,6 @@ func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]Lo
 	}
 	return nil, emperror.With(errors.New("versions not yet cached"),
 		"provider", provider, "service", service, "region", region)
-}
-
-// GetContinents retrieves available continents
-func (cpi *cachingCloudInfo) GetContinents() []string {
-	return []string{ContinentAsia, ContinentAustralia, ContinentEurope, ContinentNorthAmerica, ContinentSouthAmerica}
 }
 
 // Contains is a helper function to check if a slice contains a string

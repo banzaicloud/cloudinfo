@@ -16,7 +16,7 @@ import (
 
 // RegionsResponse RegionsResponse holds the list of available regions of a cloud provider
 // swagger:model RegionsResponse
-type RegionsResponse []*Continent
+type RegionsResponse []*Region
 
 // Validate validates this regions response
 func (m RegionsResponse) Validate(formats strfmt.Registry) error {

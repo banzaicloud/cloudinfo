@@ -32,28 +32,15 @@ type DummyCloudInfoStore struct {
 
 const notCached = "error"
 
-func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[string][]Region, bool) {
+func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[string]string, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
 	default:
-		return map[string][]Region{
-				"Europe": {
-					{
-						Id:   "eu-central-1",
-						Name: "EU (Frankfurt)",
-					},
-					{
-						Id:   "eu-west-1",
-						Name: "EU (Ireland)",
-					},
-				},
-				"America": {
-					{
-						Id:   "us-west-2",
-						Name: "US West (Oregon)",
-					},
-				},
+		return map[string]string{
+				"US West (Oregon)": "us-west-2",
+				"EU (Frankfurt)":   "eu-central-1",
+				"EU (Ireland)":     "eu-west-1",
 			},
 			true
 	}
@@ -174,37 +161,23 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	tests := []struct {
 		name    string
 		ciStore CloudInfoStore
-		checker func(regions map[string][]Region, err error)
+		checker func(regions map[string]string, err error)
 	}{
 		{
 			name:    "successfully retrieved the regions",
 			ciStore: &DummyCloudInfoStore{},
-			checker: func(regions map[string][]Region, err error) {
-				assert.Equal(t, map[string][]Region{
-					"Europe": {
-						{
-							Id:   "eu-central-1",
-							Name: "EU (Frankfurt)",
-						},
-						{
-							Id:   "eu-west-1",
-							Name: "EU (Ireland)",
-						},
-					},
-					"America": {
-						{
-							Id:   "us-west-2",
-							Name: "US West (Oregon)",
-						},
-					},
-				}, regions)
+			checker: func(regions map[string]string, err error) {
+				assert.Equal(t, map[string]string{
+					"US West (Oregon)": "us-west-2",
+					"EU (Frankfurt)":   "eu-central-1",
+					"EU (Ireland)":     "eu-west-1"}, regions)
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},
 		{
 			name:    "failed to retrieve regions",
 			ciStore: &DummyCloudInfoStore{TcId: notCached},
-			checker: func(regions map[string][]Region, err error) {
+			checker: func(regions map[string]string, err error) {
 				assert.Nil(t, regions, "the regions should be nil")
 				assert.EqualError(t, err, "regions not yet cached")
 			},

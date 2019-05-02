@@ -56,7 +56,4 @@ export interface Provider {
   services: Array<{ service: string }>;
 }
 
-export interface Continent {
-  name: string;
-  regions: Region[];
-}
+

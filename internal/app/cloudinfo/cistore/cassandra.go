@@ -46,12 +46,12 @@ func NewCassandraProductStore(config cassandra.Config, logger logur.Logger) clou
 	}
 }
 
-func (cps *cassandraProductStore) StoreRegions(provider, service string, val map[string][]cloudinfo.Region) {
+func (cps *cassandraProductStore) StoreRegions(provider, service string, val map[string]string) {
 	cps.set(cps.getKey(cloudinfo.RegionKeyTemplate, provider, service), val)
 }
 
-func (cps *cassandraProductStore) GetRegions(provider, service string) (map[string][]cloudinfo.Region, bool) {
-	res := make(map[string][]cloudinfo.Region)
+func (cps *cassandraProductStore) GetRegions(provider, service string) (map[string]string, bool) {
+	res := make(map[string]string)
 	_, ok := cps.get(cps.getKey(cloudinfo.RegionKeyTemplate, provider, service), &res)
 
 	return res, ok

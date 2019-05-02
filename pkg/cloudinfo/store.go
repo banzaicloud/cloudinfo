@@ -44,8 +44,8 @@ const (
 
 // Storage operations for cloud information
 type CloudInfoStore interface {
-	StoreRegions(provider, service string, val map[string][]Region)
-	GetRegions(provider, service string) (map[string][]Region, bool)
+	StoreRegions(provider, service string, val map[string]string)
+	GetRegions(provider, service string) (map[string]string, bool)
 	DeleteRegions(provider, service string)
 
 	StoreZones(provider, service, region string, val []string)

@@ -25,14 +25,9 @@ const (
 // ServiceData service data representation corresponding to the data to parsed from the external yaml / json
 type ServiceData struct {
 	// embedded service
-	Service    `mapstructure:",squash"`
-	Provider   string
-	Continents []Continent
-}
-
-type Continent struct {
-	Name    string
-	Regions []Region
+	Service  `mapstructure:",squash"`
+	Provider string
+	Regions  []Region
 }
 
 type Region struct {
