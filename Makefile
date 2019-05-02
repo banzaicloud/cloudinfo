@@ -9,7 +9,7 @@ DOCKER_IMAGE = banzaicloud/cloudinfo
 
 # Build variables
 BUILD_DIR ?= build
-VERSION ?= $(shell git rev-parse --abbrev-ref HEAD)
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
