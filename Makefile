@@ -44,6 +44,9 @@ SWAGGER_PI_FILE = ./api/openapi-spec/cloudinfo.yaml
 ## include "generic" targets
 include main-targets.mk
 
+
+.PHONY: swagger2openapi
+swagger2openapi:
 ifeq ($(shell which swagger2openapi),)
 	npm install -g swagger2openapi
 endif
