@@ -34,6 +34,7 @@ GOBIN_VERSION = 0.0.9
 GQLGEN_VERSION = 0.8.3
 
 GOLANG_VERSION = 1.12
+SWAGGER_VERSION = 0.19.0
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
@@ -43,21 +44,27 @@ SWAGGER_PI_FILE = ./api/openapi-spec/cloudinfo.yaml
 ## include "generic" targets
 include main-targets.mk
 
-deps-swagger:
-ifeq ($(shell which swagger),)
-	go get -u github.com/go-swagger/go-swagger/cmd/swagger
-endif
+
+.PHONY: swagger2openapi
+swagger2openapi:
 ifeq ($(shell which swagger2openapi),)
 	npm install -g swagger2openapi
 endif
 
-deps: deps-swagger
-	go get ./...
-
-
-swagger:
-	swagger generate spec -m -b ./cmd/cloudinfo -o $(SWAGGER_PI_TMP_FILE)
-	swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
 
 generate-pi-client:
 	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A cloudinfo -t pkg/cloudinfo-client/
+
+bin/swagger: bin/swagger-${SWAGGER_VERSION}
+	@ln -sf swagger-${SWAGGER_VERSION} bin/swagger
+bin/swagger-${SWAGGER_VERSION}: bin/gobin
+	@mkdir -p bin
+	GOBIN=bin/ bin/gobin github.com/go-swagger/go-swagger/cmd/swagger@v${SWAGGER_VERSION}
+	@mv bin/swagger bin/swagger-${SWAGGER_VERSION}
+
+.PHONY: swagger
+swagger: bin/swagger
+	GO111MODULE="off" bin/swagger generate spec -m -b ./cmd/cloudinfo -o $(SWAGGER_PI_TMP_FILE)
+	GO111MODULE="off" swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
+
+

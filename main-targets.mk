@@ -186,3 +186,4 @@ bin/gqlgen-${GQLGEN_VERSION}: bin/gobin
 .PHONY: graphql
 graphql: bin/gqlgen ## Generate GraphQL code
 	bin/gqlgen
+
