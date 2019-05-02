@@ -37,7 +37,7 @@ type CloudInfo interface {
 	GetZones(provider, service, region string) ([]string, error)
 
 	// GetRegions returns all the regions for a cloud provider
-	GetRegions(provider string, service string) (map[string][]Region, error)
+	GetRegions(provider string, service string) (map[string]string, error)
 
 	GetStatus(provider string) (string, error)
 
@@ -46,8 +46,6 @@ type CloudInfo interface {
 	GetServiceImages(provider, service, region string) ([]Image, error)
 
 	GetVersions(provider, service, region string) ([]LocationVersion, error)
-
-	GetContinents() []string
 }
 
 // AttrValue represents an attribute value
@@ -77,13 +75,6 @@ const (
 	CategoryMemory  = "Memory optimized"
 	CategoryGpu     = "GPU instance"
 	CategoryStorage = "Storage optimized"
-
-	ContinentNorthAmerica = "North America"
-	ContinentSouthAmerica = "South America"
-	ContinentEurope       = "Europe"
-	ContinentAfrica       = "Africa"
-	ContinentAsia         = "Asia"
-	ContinentAustralia    = "Australia"
 )
 
 // NetworkPerfMapper operations related  to mapping between virtual machines to network performance categories
@@ -204,8 +195,12 @@ func NewImage(name, version string, gpu bool) Image {
 	}
 }
 
-// Region hold the id and name of a cloud provider region
-type Region struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+// Version represents a version
+type Version struct {
+	Version string `json:"versions"`
+}
+
+// VersionName returns the name of the version
+func (v Version) VersionName() string {
+	return v.Version
 }

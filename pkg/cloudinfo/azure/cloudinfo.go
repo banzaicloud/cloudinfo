@@ -182,7 +182,7 @@ func (r regionParts) String() string {
 	return result
 }
 
-func (a *AzureInfoer) toRegionID(meterRegion string, regions map[string][]cloudinfo.Region) (string, error) {
+func (a *AzureInfoer) toRegionID(meterRegion string, regions map[string]string) (string, error) {
 	var rp regionParts = strings.Split(strings.ToLower(meterRegion), " ")
 	regionCode := regionCodeMappings[rp[0]]
 	lastPart := rp[len(rp)-1]
@@ -206,12 +206,10 @@ func (a *AzureInfoer) toRegionID(meterRegion string, regions map[string][]cloudi
 	return "", errors.Wrap(errors.New(meterRegion), "couldn't find region")
 }
 
-func (a *AzureInfoer) checkRegionID(regionID string, locations map[string][]cloudinfo.Region) bool {
-	for _, regions := range locations {
-		for _, region := range regions {
-			if regionID == region.Id {
-				return true
-			}
+func (a *AzureInfoer) checkRegionID(regionID string, regions map[string]string) bool {
+	for region := range regions {
+		if regionID == region {
+			return true
 		}
 	}
 	return false
@@ -454,22 +452,18 @@ func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 }
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
-func (a *AzureInfoer) GetRegions(service string) (map[string][]cloudinfo.Region, error) {
+func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
 	logger := log.WithFields(a.log, map[string]interface{}{"service": service})
-	logger.Debug("getting regions")
+	logger.Debug("getting locations")
 
-	allLocations := make(map[string][]cloudinfo.Region)
-	supLocations := make(map[string][]cloudinfo.Region)
+	allLocations := make(map[string]string)
+	supLocations := make(map[string]string)
 
 	// retrieve all locations for the subscription id (some of them may not be supported by the required provider)
 	if locations, err := a.subscriptionsClient.ListLocations(context.TODO(), a.subscriptionId); err == nil {
 		// fill up the map: DisplayName - > Name
 		for _, loc := range *locations.Value {
-			continent := a.getContinent(*loc.Name)
-			allLocations[continent] = append(allLocations[continent], cloudinfo.Region{
-				Id:   *loc.Name,
-				Name: *loc.DisplayName,
-			})
+			allLocations[*loc.DisplayName] = *loc.Name
 		}
 	} else {
 		logger.Error("error while retrieving azure locations")
@@ -485,17 +479,15 @@ func (a *AzureInfoer) GetRegions(service string) (map[string][]cloudinfo.Region,
 	)
 
 	switch service {
-	case svcAks:
+	case "aks":
 		if providers, err := a.providersClient.Get(context.TODO(), providerNamespaceForAks, ""); err == nil {
 			for _, pr := range *providers.ResourceTypes {
 				if *pr.ResourceType == resourceTypeForAks {
 					for _, displName := range *pr.Locations {
-						for continent, regions := range allLocations {
-							for _, r := range regions {
-								if displName == r.Name {
-									supLocations[continent] = append(supLocations[continent], r)
-								}
-							}
+						if loc, ok := allLocations[displName]; ok {
+							supLocations[loc] = displName
+						} else {
+							logger.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
 						}
 					}
 					break
@@ -506,18 +498,17 @@ func (a *AzureInfoer) GetRegions(service string) (map[string][]cloudinfo.Region,
 			return nil, err
 		}
 
+		logger.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
 		return supLocations, nil
 	default:
 		if providers, err := a.providersClient.Get(context.TODO(), providerNamespaceForCompute, ""); err == nil {
 			for _, pr := range *providers.ResourceTypes {
 				if *pr.ResourceType == resourceTypeForCompute {
 					for _, displName := range *pr.Locations {
-						for continent, regions := range allLocations {
-							for _, r := range regions {
-								if displName == r.Name {
-									supLocations[continent] = append(supLocations[continent], r)
-								}
-							}
+						if loc, ok := allLocations[displName]; ok {
+							supLocations[loc] = displName
+						} else {
+							logger.Debug("unsupported location", map[string]interface{}{"name": loc, "displayname": displName})
 						}
 					}
 					break
@@ -528,27 +519,8 @@ func (a *AzureInfoer) GetRegions(service string) (map[string][]cloudinfo.Region,
 			return nil, err
 		}
 
+		logger.Debug("found supported locations", map[string]interface{}{"numberOfLocations": len(supLocations)})
 		return supLocations, nil
-	}
-}
-
-// getContinent categorizes regions by continents
-func (a *AzureInfoer) getContinent(region string) string {
-	switch {
-	case strings.Contains(region, "australia"):
-		return cloudinfo.ContinentAustralia
-	case strings.Contains(region, "asia") || strings.Contains(region, "japan") || strings.Contains(region, "india") || strings.Contains(region, "korea"):
-		return cloudinfo.ContinentAsia
-	case strings.Contains(region, "europe") || strings.Contains(region, "uk") || strings.Contains(region, "france"):
-		return cloudinfo.ContinentEurope
-	case strings.Contains(region, "us") || strings.Contains(region, "canada"):
-		return cloudinfo.ContinentNorthAmerica
-	case strings.Contains(region, "brazil"):
-		return cloudinfo.ContinentSouthAmerica
-	case strings.Contains(region, "africa"):
-		return cloudinfo.ContinentAfrica
-	default:
-		return "unknown"
 	}
 }
 

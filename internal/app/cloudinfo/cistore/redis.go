@@ -130,13 +130,13 @@ func (rps *redisProductStore) Import(r io.Reader) error {
 	return nil
 }
 
-func (rps *redisProductStore) StoreRegions(provider, service string, val map[string][]cloudinfo.Region) {
+func (rps *redisProductStore) StoreRegions(provider, service string, val map[string]string) {
 	rps.set(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service), val)
 }
 
-func (rps *redisProductStore) GetRegions(provider, service string) (map[string][]cloudinfo.Region, bool) {
+func (rps *redisProductStore) GetRegions(provider, service string) (map[string]string, bool) {
 	var (
-		res = make(map[string][]cloudinfo.Region)
+		res = make(map[string]string)
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service), &res)
 

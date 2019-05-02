@@ -170,14 +170,13 @@ func (sm *scrapingManager) scrapeServiceRegionVms(ctx context.Context, region st
 
 func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services []Service) error {
 	var (
-		locations map[string][]Region
-		err       error
-		ok        bool
+		regions map[string]string
+		err     error
 	)
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-info", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
 
-	if locations, err = sm.infoer.GetRegions("compute"); err != nil {
+	if regions, err = sm.infoer.GetRegions("compute"); err != nil {
 		sm.metrics.ReportScrapeFailure(sm.provider, "compute", "N/A")
 		return emperror.WrapWith(err, "failed to retrieve regions",
 			"provider", sm.provider, "service", "compute")
@@ -185,19 +184,17 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 
 	sm.store.DeleteRegions(sm.provider, "compute")
 
-	sm.store.StoreRegions(sm.provider, "compute", locations)
+	sm.store.StoreRegions(sm.provider, "compute", regions)
 
-	for _, regions := range locations {
-		for _, region := range regions {
-			if err = sm.scrapeServiceRegionVms(ctx, region.Id); err != nil {
-				sm.metrics.ReportScrapeFailure(sm.provider, "compute", region.Id)
-				return emperror.With(err, "provider", sm.provider, "service", "compute", "region", region.Id)
-			}
+	for regionId := range regions {
+		if err = sm.scrapeServiceRegionVms(ctx, regionId); err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
+			return emperror.With(err, "provider", sm.provider, "service", "compute", "region", regionId)
+		}
 
-			if err = sm.scrapeServiceRegionZones(ctx, "compute", region.Id); err != nil {
-				sm.metrics.ReportScrapeFailure(sm.provider, "compute", region.Id)
-				return emperror.With(err, "provider", sm.provider, "service", "compute", "region", region.Id)
-			}
+		if err = sm.scrapeServiceRegionZones(ctx, "compute", regionId); err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, "compute", regionId)
+			return emperror.With(err, "provider", sm.provider, "service", "compute", "region", regionId)
 		}
 	}
 
@@ -210,14 +207,15 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		}
 
 		if service.ServiceName() == "compute" {
-			locations, ok = sm.store.GetRegions(sm.provider, service.ServiceName())
+			_regions, ok := sm.store.GetRegions(sm.provider, service.ServiceName())
 			if !ok {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), "N/A")
 				return emperror.WrapWith(err, "failed to retrieve regions",
 					"provider", sm.provider, "service", service.ServiceName())
 			}
+			regions = _regions
 		} else {
-			if locations, err = sm.infoer.GetRegions(service.ServiceName()); err != nil {
+			if regions, err = sm.infoer.GetRegions(service.ServiceName()); err != nil {
 
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), "N/A")
 				return emperror.WrapWith(err, "failed to retrieve regions",
@@ -225,30 +223,28 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 			}
 			sm.store.DeleteRegions(sm.provider, service.ServiceName())
 
-			sm.store.StoreRegions(sm.provider, service.ServiceName(), locations)
+			sm.store.StoreRegions(sm.provider, service.ServiceName(), regions)
 		}
 
-		for _, regions := range locations {
-			for _, region := range regions {
+		for regionId := range regions {
 
-				start := time.Now()
-				if err = sm.updateServiceRegionZones(ctx, service.ServiceName(), region.Id); err != nil {
-					return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", region.Id)
-				}
-				if err = sm.scrapeServiceRegionProducts(ctx, service.ServiceName(), region.Id); err != nil {
-					sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), region.Id)
-					return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", region.Id)
-				}
-				if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), region.Id); err != nil {
-					sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), region.Id)
-					return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", region.Id)
-				}
-				if err = sm.scrapeServiceRegionVersions(ctx, service.ServiceName(), region.Id); err != nil {
-					sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), region.Id)
-					return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", region.Id)
-				}
-				sm.metrics.ReportScrapeRegionCompleted(sm.provider, service.ServiceName(), region.Id, start)
+			start := time.Now()
+			if err = sm.updateServiceRegionZones(ctx, service.ServiceName(), regionId); err != nil {
+				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
+			if err = sm.scrapeServiceRegionProducts(ctx, service.ServiceName(), regionId); err != nil {
+				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
+			}
+			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {
+				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
+			}
+			if err = sm.scrapeServiceRegionVersions(ctx, service.ServiceName(), regionId); err != nil {
+				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+				return emperror.With(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
+			}
+			sm.metrics.ReportScrapeRegionCompleted(sm.provider, service.ServiceName(), regionId, start)
 		}
 	}
 	return nil
@@ -331,9 +327,9 @@ func (sm *scrapingManager) scrapePricesInRegion(ctx context.Context, region stri
 
 func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) {
 	var (
-		locations map[string][]Region
-		err       error
-		wg        sync.WaitGroup
+		regions map[string]string
+		err     error
+		wg      sync.WaitGroup
 	)
 
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-prices", map[string]interface{}{"provider": sm.provider})
@@ -342,15 +338,13 @@ func (sm *scrapingManager) scrapePricesInAllRegions(ctx context.Context) {
 
 	// record current time for metrics
 	start := time.Now()
-	if locations, err = sm.infoer.GetRegions("compute"); err != nil {
+	if regions, err = sm.infoer.GetRegions("compute"); err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to retrieve regions").Error(), map[string]interface{}{"service": "compute"})
 	}
 
-	for _, regions := range locations {
-		for _, region := range regions {
-			wg.Add(1)
-			go sm.scrapePricesInRegion(ctx, region.Id, &wg)
-		}
+	for regionId := range regions {
+		wg.Add(1)
+		go sm.scrapePricesInRegion(ctx, regionId, &wg)
 	}
 	wg.Wait()
 	sm.metrics.ReportScrapeProviderShortLivedCompleted(sm.provider, start)

@@ -20,23 +20,12 @@
       </div>
     </div>
 
-    <!-- Regions -->
-    <div class="mr-5">
-      <div class="banzai-input-label">Regions</div>
-      <div class="banzai-input">
-        <mat-select [(value)]="selectedRegion"
-                    placeholder="Region"
-                    (selectionChange)="getProducts()">
-          <mat-optgroup *ngFor="let continent of continents"
-                        [label]="continent.name">
-            <mat-option *ngFor="let region of continent.regions"
-                        [value]="region.id">
-              {{ region.name }}
-            </mat-option>
-          </mat-optgroup>
-        </mat-select>
-      </div>
-    </div>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select [(value)]="selectedRegion" placeholder="Region" (selectionChange)="getProducts()">
+        <mat-option *ngFor="let region of regions" value="{{region.id}}">{{region.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 
   <!-- search -->

@@ -229,19 +229,15 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 
 		logger.Info("getting regions")
 
-		locations, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
+		regions, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve regions for provider [%s], service [%s]",
 				pathParams.Provider, pathParams.Service))
 			return
 		}
-
 		var response RegionsResponse
-		for continent, regions := range locations {
-			response = append(response, Continent{
-				Name:    continent,
-				Regions: regions,
-			})
+		for id, name := range regions {
+			response = append(response, Region{id, name})
 		}
 
 		logger.Debug("successfully retrieved regions")
@@ -280,7 +276,7 @@ func (r *RouteHandler) getRegion() gin.HandlerFunc {
 
 		logger.Info("getting region details")
 
-		locations, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
+		regions, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
 		if err != nil {
 			r.errorResponder.Respond(c, emperror.Wrapf(err,
 				"failed to retrieve regions. provider [%s], service [%s]", pathParams.Provider, pathParams.Service))
@@ -293,17 +289,9 @@ func (r *RouteHandler) getRegion() gin.HandlerFunc {
 
 			return
 		}
-		var displayName string
-		for _, regions := range locations {
-			for _, r := range regions {
-				if r.Id == pathParams.Region {
-					displayName = r.Name
-				}
-			}
-		}
 
 		logger.Debug("successfully retrieved region details")
-		c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, displayName, zones})
+		c.JSON(http.StatusOK, GetRegionResp{pathParams.Region, regions[pathParams.Region], zones})
 	}
 }
 
