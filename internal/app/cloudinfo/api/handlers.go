@@ -452,32 +452,6 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 	}
 }
 
-// swagger:route GET /continents continents getContinents
-//
-// Returns the supported continents
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: ContinentsResponse
-func (r *RouteHandler) getContinents() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		logger := log.WithFieldsForHandlers(c, r.log, nil)
-
-		logger.Info("getting continents")
-
-		continents := r.prod.GetContinents()
-
-		c.JSON(http.StatusOK, NewContinentsResponse(continents))
-	}
-}
-
 // getPathParamMap transforms the path params into a map to be able to easily bind to param structs
 func getPathParamMap(c *gin.Context) map[string]string {
 	pm := make(map[string]string)

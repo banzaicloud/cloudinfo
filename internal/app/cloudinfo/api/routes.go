@@ -72,8 +72,6 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 
 	v1 := base.Group("/api/v1")
 
-	v1.GET("/continents", r.getContinents())
-
 	providerGroup := v1.Group("/providers")
 	{
 		providerGroup.GET("/", r.getProviders())
