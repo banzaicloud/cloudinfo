@@ -26,7 +26,7 @@ type GetProviderPathParams struct {
 }
 
 // GetServicesPathParams is a placeholder for the services related route path parameters
-// swagger:parameters getRegions getService
+// swagger:parameters getRegions getService getContinentsData
 type GetServicesPathParams struct {
 	GetProviderPathParams `binding:"required,structonly" mapstructure:",squash"`
 	// in:path
@@ -69,13 +69,21 @@ type ProductDetailsResponse struct {
 
 // RegionsResponse holds the list of available regions of a cloud provider
 // swagger:model RegionsResponse
-type RegionsResponse []Region
+type RegionsResponse []cloudinfo.Region
 
-// Region hold the id and name of a cloud provider region
-type Region struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+// ContinentsDataResponse holds the list of available continents and regions of a cloud provider
+// swagger:model ContinentsDataResponse
+type ContinentsDataResponse []Continent
+
+// Continent holds continent and regions of a cloud provider
+type Continent struct {
+	Name    string             `json:"name"`
+	Regions []cloudinfo.Region `json:"regions"`
 }
+
+// ContinentsResponse holds the list of available continents
+// swagger:model ContinentsResponse
+type ContinentsResponse []string
 
 // GetRegionResp holds the detailed description of a specific region of a cloud provider
 // swagger:model GetRegionResp
@@ -140,4 +148,9 @@ func NewServicesResponse(sds []cloudinfo.Service) ServicesResponse {
 	return ServicesResponse{
 		Services: sds,
 	}
+}
+
+// NewContinentsResponse assembles a new continents response
+func NewContinentsResponse(continents []string) ContinentsResponse {
+	return continents
 }

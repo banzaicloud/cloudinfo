@@ -15,6 +15,19 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   version: 0.0.1
 paths:
+  /continents:
+    get:
+      description: Returns the supported continents
+      tags:
+        - continents
+      operationId: getContinents
+      responses:
+        '200':
+          description: ContinentsResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContinentsResponse'
   /providers:
     get:
       description: Returns the supported providers
@@ -96,6 +109,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceResponse'
+  '/providers/{provider}/services/{service}/continents':
+    get:
+      description: >-
+        Provides the list of available continents and regions of a cloud
+        provider
+      tags:
+        - continents
+      operationId: getContinentsData
+      parameters:
+        - x-go-name: Provider
+          name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - x-go-name: Service
+          name: service
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ContinentsDataResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContinentsDataResponse'
   '/providers/{provider}/services/{service}/regions':
     get:
       description: Provides the list of available regions of a cloud provider
@@ -283,6 +324,33 @@ components:
             type: number
             format: double
           x-go-name: AttributeValues
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Continent:
+      description: Continent holds continent and regions of a cloud provider
+      type: object
+      properties:
+        name:
+          type: string
+          x-go-name: Name
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Region'
+          x-go-name: Regions
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ContinentsDataResponse:
+      description: >-
+        ContinentsDataResponse holds the list of available continents and
+        regions of a cloud provider
+      type: array
+      items:
+        $ref: '#/components/schemas/Continent'
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ContinentsResponse:
+      description: ContinentsResponse holds the list of available continents
+      type: array
+      items:
+        type: string
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetAttributeValuesPathParams:
       description: >-
@@ -542,7 +610,7 @@ components:
         name:
           type: string
           x-go-name: Name
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
     RegionsResponse:
       description: RegionsResponse holds the list of available regions of a cloud provider
       type: array

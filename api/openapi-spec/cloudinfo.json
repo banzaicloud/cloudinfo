@@ -19,6 +19,29 @@
   },
   "basePath": "/api/v1",
   "paths": {
+    "/continents": {
+      "get": {
+        "description": "Returns the supported continents",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "continents"
+        ],
+        "operationId": "getContinents",
+        "responses": {
+          "200": {
+            "description": "ContinentsResponse",
+            "schema": {
+              "$ref": "#/definitions/ContinentsResponse"
+            }
+          }
+        }
+      }
+    },
     "/providers": {
       "get": {
         "description": "Returns the supported providers",
@@ -140,6 +163,45 @@
             "description": "ServiceResponse",
             "schema": {
               "$ref": "#/definitions/ServiceResponse"
+            }
+          }
+        }
+      }
+    },
+    "/providers/{provider}/services/{service}/continents": {
+      "get": {
+        "description": "Provides the list of available continents and regions of a cloud provider",
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "continents"
+        ],
+        "operationId": "getContinentsData",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ContinentsDataResponse",
+            "schema": {
+              "$ref": "#/definitions/ContinentsDataResponse"
             }
           }
         }
@@ -398,6 +460,40 @@
           },
           "x-go-name": "AttributeValues"
         }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
+    "Continent": {
+      "description": "Continent holds continent and regions of a cloud provider",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Region"
+          },
+          "x-go-name": "Regions"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
+    "ContinentsDataResponse": {
+      "description": "ContinentsDataResponse holds the list of available continents and regions of a cloud provider",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Continent"
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
+    "ContinentsResponse": {
+      "description": "ContinentsResponse holds the list of available continents",
+      "type": "array",
+      "items": {
+        "type": "string"
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
@@ -722,7 +818,7 @@
           "x-go-name": "Name"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
     },
     "RegionsResponse": {
       "description": "RegionsResponse holds the list of available regions of a cloud provider",

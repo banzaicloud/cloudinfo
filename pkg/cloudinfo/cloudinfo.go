@@ -210,6 +210,57 @@ func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]Lo
 		"provider", provider, "service", service, "region", region)
 }
 
+// GetContinents retrieves available continents
+func (cpi *cachingCloudInfo) GetContinents() []string {
+	return []string{ContinentAsia, ContinentAustralia, ContinentEurope, ContinentNorthAmerica, ContinentSouthAmerica}
+}
+
+// GetContinents gets the continents and regions for the provided provider
+func (cpi *cachingCloudInfo) GetContinentsData(provider, service string) (map[string][]Region, error) {
+	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
+		var continents = make(map[string][]Region)
+		for id, name := range cachedVal {
+			continent := getContinent(id)
+			continents[continent] = append(continents[continent], Region{
+				Id:   id,
+				Name: name,
+			})
+		}
+		return continents, nil
+	}
+
+	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
+}
+
+// getContinent categorizes regions by continents
+func getContinent(region string) string {
+	switch {
+	case checkContinent(region, []string{"ap-southeast-2", "australia"}):
+		return ContinentAustralia
+	case checkContinent(region, []string{"cn-", "ap-", "me-", "asia", "japan", "india", "korea"}):
+		return ContinentAsia
+	case checkContinent(region, []string{"eu", "uk", "france"}):
+		return ContinentEurope
+	case checkContinent(region, []string{"us", "ca-central-1", "canada", "northamerica"}):
+		return ContinentNorthAmerica
+	case checkContinent(region, []string{"southamerica", "brazil", "sa-"}):
+		return ContinentSouthAmerica
+	case checkContinent(region, []string{"africa"}):
+		return ContinentAfrica
+	default:
+		return "unknown"
+	}
+}
+
+func checkContinent(region string, substrs []string) bool {
+	for _, substr := range substrs {
+		if strings.Contains(region, substr) {
+			return true
+		}
+	}
+	return false
+}
+
 // Contains is a helper function to check if a slice contains a string
 func Contains(slice []string, s string) bool {
 	for _, e := range slice {
