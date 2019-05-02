@@ -12,7 +12,7 @@ amazon:
     name: pke
     isstatic: true
     dataLocation: ./configs/
-    dataFile: service-data
+    dataFile: amazon-service-data
     dataType: yaml
 alibaba:
   -
@@ -28,6 +28,12 @@ azure:
   -
     name: aks
     isstatic: false
+  -
+    name: pke
+    isstatic: true
+    dataLocation: ./configs/
+    dataFile: azure-service-data
+    dataType: yaml
 google:
   -
     name: compute
