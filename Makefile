@@ -34,6 +34,7 @@ GOBIN_VERSION = 0.0.9
 GQLGEN_VERSION = 0.8.3
 
 GOLANG_VERSION = 1.12
+SWAGGER_VERSION = 0.19.0
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
@@ -51,7 +52,6 @@ endif
 generate-pi-client:
 	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A cloudinfo -t pkg/cloudinfo-client/
 
-SWAGGER_VERSION = 0.19.0
 bin/swagger: bin/swagger-${SWAGGER_VERSION}
 	@ln -sf swagger-${SWAGGER_VERSION} bin/swagger
 bin/swagger-${SWAGGER_VERSION}: bin/gobin
