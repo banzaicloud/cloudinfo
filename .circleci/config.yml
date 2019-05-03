@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+    helm: banzaicloud/helm@0.0.2
+
 executors:
     docker:
         docker:
@@ -160,6 +163,18 @@ jobs:
                 store_test_results:
                     path: build/test_results/
 
+    lint-chart:
+        executor: helm/helm
+        parameters:
+            chart-path:
+                default: helm
+                description: Path of helm chart relative to workdir
+                type: string
+        steps:
+            - checkout
+            - helm/lint:
+                chart-path: << parameters.chart-path >>
+
 workflows:
     version: 2
     ci:
@@ -177,3 +192,18 @@ workflows:
             - integration-tests:
                   requires:
                       - dependencies
+    helm-chart:
+        jobs:
+            - lint-chart:
+                  chart-path: charts/cloudinfo
+                  filters:
+                      tags:
+                          ignore: /.*/
+
+            - helm/publish-chart:
+                  chart-path: charts/cloudinfo
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /\/chart/cloudinfo\/\d+.\d+.\d+/
