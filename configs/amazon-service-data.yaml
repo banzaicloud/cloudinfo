@@ -20,7 +20,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: Asia Pacific (Seoul)
         id: ap-northeast-2
         data:
@@ -38,7 +94,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: South America (Sao Paulo)
         id: sa-east-1
         data:
@@ -56,7 +168,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: US West (Oregon)
         id: us-west-2
         data:
@@ -74,7 +242,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: EU (Frankfurt)
         id: eu-central-1
         data:
@@ -92,7 +316,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: Canada (Central)
         id: ca-central-1
         data:
@@ -110,7 +390,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: Asia Pacific (Mumbai)
         id: ap-south-1
         data:
@@ -128,7 +464,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: US West (N. California)
         id: us-west-1
         data:
@@ -146,7 +538,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: Asia Pacific (Singapore)
         id: ap-southeast-1
         data:
@@ -164,7 +612,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: EU (Ireland)
         id: eu-west-1
         data:
@@ -182,7 +686,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: US East (Ohio)
         id: us-east-2
         data:
@@ -200,7 +760,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: US East (N. Virginia)
         id: us-east-1
         data:
@@ -218,7 +834,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: Asia Pacific (Tokyo)
         id: ap-northeast-1
         data:
@@ -236,7 +908,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: EU (London)
         id: eu-west-2
         data:
@@ -254,7 +982,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: Asia Pacific (Sydney)
         id: ap-southeast-2
         data:
@@ -272,7 +1056,63 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
     -   name: EU (Paris)
         id: eu-west-3
         data:
@@ -290,4 +1130,60 @@ regions:
                             - 1.14.0
                         default: 1.14.0
             vms:
-                strategy: exclude
+                strategy: include
+                data:
+                    -   type: t2.small
+                    -   type: t2.medium
+                    -   type: t2.large
+                    -   type: t2.xlarge
+                    -   type: t2.2xlarge
+                    -   type: m3.medium
+                    -   type: m3.large
+                    -   type: m3.xlarge
+                    -   type: m3.2xlarge
+                    -   type: m4.large
+                    -   type: m4.xlarge
+                    -   type: m4.2xlarge
+                    -   type: m4.4xlarge
+                    -   type: m4.10xlarge
+                    -   type: m5.large
+                    -   type: m5.xlarge
+                    -   type: m5.2xlarge
+                    -   type: m5.4xlarge
+                    -   type: m5.12xlarge
+                    -   type: m5.24xlarge
+                    -   type: c4.large
+                    -   type: c4.xlarge
+                    -   type: c4.2xlarge
+                    -   type: c4.4xlarge
+                    -   type: c4.8xlarge
+                    -   type: c5.large
+                    -   type: c5.xlarge
+                    -   type: c5.2xlarge
+                    -   type: c5.4xlarge
+                    -   type: c5.9xlarge
+                    -   type: c5.18xlarge
+                    -   type: i3.large
+                    -   type: i3.xlarge
+                    -   type: i3.2xlarge
+                    -   type: i3.4xlarge
+                    -   type: i3.8xlarge
+                    -   type: i3.16xlarge
+                    -   type: r3.xlarge
+                    -   type: r3.2xlarge
+                    -   type: r3.4xlarge
+                    -   type: r3.8xlarge
+                    -   type: r4.large
+                    -   type: r4.xlarge
+                    -   type: r4.2xlarge
+                    -   type: r4.4xlarge
+                    -   type: r4.8xlarge
+                    -   type: r4.16xlarge
+                    -   type: x1.16xlarge
+                    -   type: x1.32xlarge
+                    -   type: p2.xlarge
+                    -   type: p2.8xlarge
+                    -   type: p2.16xlarge
+                    -   type: p3.2xlarge
+                    -   type: p3.8xlarge
+                    -   type: p3.16xlarge
