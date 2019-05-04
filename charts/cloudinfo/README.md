@@ -1,19 +1,19 @@
+# Cloud Info Helm Chart
 
-# Cloudinfo Chart
-
-[Cloudinfo](https://github.com/banzaicloud/cloudinfo) Provides resource and pricing information about products available on supported cloud providers - it is a building block of the Hollowtrees project. 
+[Cloud Info](https://github.com/banzaicloud/cloudinfo) provides resource and pricing information about products available on supported cloud providers. 
 
 ## tl;dr:
 
 ```bash
-$ helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com/branch/master
+$ helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
 $ helm repo update
 $ helm install banzaicloud-stable/cloudinfo
 ```
 
 ## Introduction
 
-This chart bootstraps an [Cloudinfo](https://github.com/banzaicloud/banzai-charts/stable/cloudinfo) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
+This chart bootstraps a [Cloud Info](https://hub.helm.sh/charts/banzaicloud-stable/cloudinfo) deployment on a
+[Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 ## Prerequisites
 
@@ -27,7 +27,8 @@ To install the chart with the release name `my-release`:
 $ helm install --name my-release banzaicloud-stable/cloudinfo
 ```
 
-The command deploys **cloudinfo** on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+The command deploys Cloud Info on the Kubernetes cluster with the default configuration.
+The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Uninstalling the Chart
 
@@ -48,10 +49,10 @@ The following tables lists the configurable parameters of the cloudinfo chart an
 | `image.repository`            | Container image repository                               | `banzaicloud/cloudinfo`    |
 | `image.tag       `            | Container image tag                                      | `latest`                     |
 | `image.pullPolicy`            | Container pull policy                                    | `Always`                     |
-| `service.type`                | The kubernetes service type to use                       | `ClusterIP`                  |
-| `service.name`                | The kubernetes service name to use                       | `cloudinfo`                |
+| `service.type`                | The Kubernetes service type to use                       | `ClusterIP`                  |
+| `service.name`                | The Kubernetes service name to use                       | `cloudinfo`                |
 | `service.port`                | Port to bind to for NodePort service type                | `nil`                        |
-| `service.annotations`         | The kubernetes service annotations                       | `nil`                        |
+| `service.annotations`         | The Kubernetes service annotations                       | `nil`                        |
 | `app.logLevel`                | Log level                                                | `info`                       |
 | `app.basePath`                | Application base path                                    | `/`                          |
 | `auth.awsAccessKeyId`         | Amazon Access Key ID                                     | ""                           |
@@ -83,7 +84,3 @@ $ helm install --name my-release -f values.yaml banzaicloud-stable/cloudinfo
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
-
-
-```
-
