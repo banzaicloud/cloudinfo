@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+    helm: banzaicloud/helm@0.0.3
+
 executors:
     docker:
         docker:
@@ -177,3 +180,20 @@ workflows:
             - integration-tests:
                   requires:
                       - dependencies
+
+    helm-chart:
+        jobs:
+            - helm/lint-chart:
+                  chart-path: charts/cloudinfo
+                  filters:
+                      tags:
+                          ignore: /.*/
+
+            - helm/publish-chart:
+                  context: helm
+                  chart-path: charts/cloudinfo
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /\/chart/cloudinfo\/\d+.\d+.\d+/
