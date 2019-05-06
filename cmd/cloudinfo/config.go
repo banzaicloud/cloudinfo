@@ -37,16 +37,16 @@ import (
 
 // Provider constants
 const (
-	// Google is the identifier of the Google Cloud Engine provider
-	Google = "google"
 	// Amazon is the identifier of the Amazon provider
 	Amazon = "amazon"
-	// Azure is the identifier of the MS Azure provider
-	Azure = "azure"
-	// Oracle is the identifier of the Oracle Cloud Infrastructure provider
-	Oracle = "oracle"
+	// Google is the identifier of the Google Cloud Engine provider
+	Google = "google"
 	// Alibaba is the identifier of the Alibaba Cloud provider
 	Alibaba = "alibaba"
+	// Oracle is the identifier of the Oracle Cloud Infrastructure provider
+	Oracle = "oracle"
+	// Azure is the identifier of the MS Azure provider
+	Azure = "azure"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -75,23 +75,42 @@ type configuration struct {
 		RenewalInterval time.Duration
 
 		// Providers to be scraped for product information
+		// Deprecated: use provider specific configuration
 		Providers []string
 	}
 
-	// Amazon configuration
-	Amazon amazon.Config
+	// Provider configuration
+	Providers struct {
+		// Amazon configuration
+		Amazon struct {
+			Enabled       bool
+			amazon.Config `mapstructure:",squash"`
+		}
 
-	// Google configuration
-	Google google.Config
+		// Google configuration
+		Google struct {
+			Enabled       bool
+			google.Config `mapstructure:",squash"`
+		}
 
-	// Alibaba configuration
-	Alibaba alibaba.Config
+		// Alibaba configuration
+		Alibaba struct {
+			Enabled        bool
+			alibaba.Config `mapstructure:",squash"`
+		}
 
-	// Oracle configuration
-	Oracle oracle.Config
+		// Oracle configuration
+		Oracle struct {
+			Enabled       bool
+			oracle.Config `mapstructure:",squash"`
+		}
 
-	// Azure configuration
-	Azure azure.Config
+		// Azure configuration
+		Azure struct {
+			Enabled      bool
+			azure.Config `mapstructure:",squash"`
+		}
+	}
 
 	Management management.Config
 
@@ -133,6 +152,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AllowEmptyEnv(true)
 	v.AutomaticEnv()
+
+	// Pflag settings
+	p.SortFlags = false
 
 	// Application constants
 	v.Set("appName", appName)
@@ -180,17 +202,25 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("app.renewalInterval", "PRODUCT_INFO_RENEWAL_INTERVAL")
 
 	p.StringSlice("provider", []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the cloudinfo application.")
+	{
+		f := p.Lookup("provider")
+		f.Deprecated = "use provider specific flags: --[providerName]-enabled"
+	}
 	_ = v.BindPFlag("app.providers", p.Lookup("provider"))
 	_ = v.BindEnv("app.providers", "PROVIDER")
 
 	// Amazon config
+	p.Bool("amazon-enabled", true, "enable amazon provider")
+	_ = v.BindPFlag("providers.amazon.enabled", p.Lookup("amazon-enabled"))
+	_ = v.BindEnv("providers.amazon.enabled", "AMAZON_ENABLED")
+
 	p.String("aws-access-key-id", "", "aws access key id")
-	_ = v.BindPFlag("amazon.accessKeyId", p.Lookup("aws-access-key-id"))
-	_ = v.BindEnv("amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
+	_ = v.BindPFlag("providers.amazon.accessKeyId", p.Lookup("aws-access-key-id"))
+	_ = v.BindEnv("providers.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
 
 	p.String("aws-secret-access-key", "", "aws secret access key")
-	_ = v.BindPFlag("amazon.secretAccessKey", p.Lookup("aws-secret-access-key"))
-	_ = v.BindEnv("amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
+	_ = v.BindPFlag("providers.amazon.secretAccessKey", p.Lookup("aws-secret-access-key"))
+	_ = v.BindEnv("providers.amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
 
 	p.String(
 		"prometheus-address",
@@ -199,48 +229,64 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 			"price metrics via banzaicloud/spot-price-exporter. "+
 			"If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.",
 	)
-	_ = v.BindPFlag("amazon.prometheusAddress", p.Lookup("prometheus-address"))
-	_ = v.BindEnv("amazon.prometheusAddress", "PROMETHEUS_ADDRESS")
+	_ = v.BindPFlag("providers.amazon.prometheusAddress", p.Lookup("prometheus-address"))
+	_ = v.BindEnv("providers.amazon.prometheusAddress", "PROMETHEUS_ADDRESS")
 
 	p.String(
 		"prometheus-query",
 		"avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
 		"advanced configuration: change the query used to query spot price info from Prometheus.",
 	)
-	_ = v.BindPFlag("amazon.prometheusQuery", p.Lookup("prometheus-query"))
-	_ = v.BindEnv("amazon.prometheusQuery", "PROMETHEUS_QUERY")
+	_ = v.BindPFlag("providers.amazon.prometheusQuery", p.Lookup("prometheus-query"))
+	_ = v.BindEnv("providers.amazon.prometheusQuery", "PROMETHEUS_QUERY")
 
 	// Google config
+	p.Bool("google-enabled", true, "enable google provider")
+	_ = v.BindPFlag("providers.google.enabled", p.Lookup("google-enabled"))
+	_ = v.BindEnv("providers.google.enabled", "GOOGLE_ENABLED")
+
 	p.String("gce-api-key", "", "GCE API key to use for getting SKUs")
-	_ = v.BindPFlag("google.apiKey", p.Lookup("gce-api-key"))
-	_ = v.BindEnv("google.apiKey", "GCE_API_KEY")
+	_ = v.BindPFlag("providers.google.apiKey", p.Lookup("gce-api-key"))
+	_ = v.BindEnv("providers.google.apiKey", "GCE_API_KEY")
 
 	p.String("google-application-credentials", "", "google application credentials location")
-	_ = v.BindPFlag("google.appCredentials", p.Lookup("google-application-credentials"))
-	_ = v.BindEnv("google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
+	_ = v.BindPFlag("providers.google.appCredentials", p.Lookup("google-application-credentials"))
+	_ = v.BindEnv("providers.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
 
 	// Alibaba config
+	p.Bool("alibaba-enabled", true, "enable alibaba provider")
+	_ = v.BindPFlag("providers.alibaba.enabled", p.Lookup("alibaba-enabled"))
+	_ = v.BindEnv("providers.alibaba.enabled", "ALIBABA_ENABLED")
+
 	p.String("alibaba-region-id", "", "alibaba region id")
-	_ = v.BindPFlag("alibaba.regionId", p.Lookup("alibaba-region-id"))
-	_ = v.BindEnv("alibaba.regionId", "ALIBABA_REGION_ID")
+	_ = v.BindPFlag("providers.alibaba.regionId", p.Lookup("alibaba-region-id"))
+	_ = v.BindEnv("providers.alibaba.regionId", "ALIBABA_REGION_ID")
 
 	p.String("alibaba-access-key-id", "", "alibaba access key id")
-	_ = v.BindPFlag("alibaba.accessKeyId", p.Lookup("alibaba-access-key-id"))
-	_ = v.BindEnv("alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
+	_ = v.BindPFlag("providers.alibaba.accessKeyId", p.Lookup("alibaba-access-key-id"))
+	_ = v.BindEnv("providers.alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
 
 	p.String("alibaba-access-key-secret", "", "alibaba access key secret")
-	_ = v.BindPFlag("alibaba.accessKeySecret", p.Lookup("alibaba-access-key-secret"))
-	_ = v.BindEnv("alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
+	_ = v.BindPFlag("providers.alibaba.accessKeySecret", p.Lookup("alibaba-access-key-secret"))
+	_ = v.BindEnv("providers.alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
 
 	// Oracle config
+	p.Bool("oracle-enabled", true, "enable oracle provider")
+	_ = v.BindPFlag("providers.oracle.enabled", p.Lookup("oracle-enabled"))
+	_ = v.BindEnv("providers.oracle.enabled", "ORACLE_ENABLED")
+
 	p.String("oracle-cli-config-location", "", "oracle config file location")
-	_ = v.BindPFlag("oracle.configLocation", p.Lookup("oracle-cli-config-location"))
-	_ = v.BindEnv("oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
+	_ = v.BindPFlag("providers.oracle.configLocation", p.Lookup("oracle-cli-config-location"))
+	_ = v.BindEnv("providers.oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
+	p.Bool("azure-enabled", true, "enable azure provider")
+	_ = v.BindPFlag("providers.azure.enabled", p.Lookup("azure-enabled"))
+	_ = v.BindEnv("providers.azure.enabled", "AZURE_ENABLED")
+
 	p.String("azure-auth-location", "", "azure authentication file location")
-	_ = v.BindPFlag("azure.authLocation", p.Lookup("azure-auth-location"))
-	_ = v.BindEnv("azure.authLocation", "AZURE_AUTH_LOCATION")
+	_ = v.BindPFlag("providers.azure.authLocation", p.Lookup("azure-auth-location"))
+	_ = v.BindEnv("providers.azure.authLocation", "AZURE_AUTH_LOCATION")
 
 	// Management
 	v.SetDefault("management.enabled", true)

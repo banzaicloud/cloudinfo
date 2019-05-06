@@ -23,27 +23,31 @@ agentEndpoint = "localhost:6831"
 [app]
 address = ":8000"
 renewalInterval = "24h"
-providers = ["amazon", "google", "azure", "oracle", "alibaba"]
 
-[amazon]
+[providers.amazon]
+enabled = true
 accessKeyId = ""
 secretAccessKey = ""
 prometheusAddress = ""
 prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])"
 
-[google]
+[providers.google]
+enabled = true
 apiKey = ""
 appCredentials = ""
 
-[alibaba]
+[providers.alibaba]
+enabled = true
 regionId = ""
 accessKeyId = ""
 accessKeySecret = ""
 
-[oracle]
+[providers.oracle]
+enabled = true
 configLocation = ""
 
-[azure]
+[providers.azure]
+enabled = true
 authLocation = ""
 
 [management]
