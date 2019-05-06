@@ -196,4 +196,4 @@ workflows:
                       branches:
                           ignore: /.*/
                       tags:
-                          only: /\/chart/cloudinfo\/\d+.\d+.\d+/
+                          only: /chart\/cloudinfo\/\d+.\d+.\d+/
