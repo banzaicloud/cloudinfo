@@ -65,7 +65,7 @@ func newInfoer(regionId, accessKeyId, accessKeySecret string, log logur.Logger) 
 	}, nil
 }
 
-func NewAliInfoer(cfg Config, log logur.Logger) (*AlibabaInfoer, error) {
+func NewAlibabaInfoer(cfg Config, log logur.Logger) (*AlibabaInfoer, error) {
 	return newInfoer(cfg.RegionId, cfg.AccessKeyId, cfg.AccessKeySecret, log)
 }
 
