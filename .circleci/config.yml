@@ -201,6 +201,7 @@ workflows:
                           ignore: /.*/
 
             - helm/publish-chart:
+                  context: helm
                   chart-path: charts/cloudinfo
                   filters:
                       branches:
