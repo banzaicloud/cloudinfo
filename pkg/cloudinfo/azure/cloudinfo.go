@@ -55,6 +55,7 @@ var (
 		"kr": "korea",
 		"uk": "uk",
 		"us": "us",
+		"za": "southafrica",
 	}
 
 	// mtBasic, _     = regexp.Compile("^BASIC.A\\d+[_Promo]*$")
