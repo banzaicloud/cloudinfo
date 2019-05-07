@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-04-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
@@ -46,36 +46,6 @@ const (
 	GetLocationError = "could not get location"
 	GetPriceError    = "could not get prices"
 )
-
-func (dps *testStruct) List(ctx context.Context, location string) (result compute.VirtualMachineSizeListResult, err error) {
-	switch dps.TcId {
-	case GetVmsError:
-		return compute.VirtualMachineSizeListResult{}, errors.New(GetVmsError)
-	default:
-		return compute.VirtualMachineSizeListResult{
-			Value: &[]compute.VirtualMachineSize{
-				{
-					Name:                 strPointer("Standard_B1ms"),
-					NumberOfCores:        intPointer(1),
-					MemoryInMB:           intPointer(2048),
-					ResourceDiskSizeInMB: intPointer(4096),
-				},
-				{
-					Name:                 strPointer("Standard_A4m_v2"),
-					NumberOfCores:        intPointer(4),
-					MemoryInMB:           intPointer(32768),
-					ResourceDiskSizeInMB: intPointer(40960),
-				},
-				{
-					Name:                 strPointer("Standard_D8s_v3"),
-					NumberOfCores:        intPointer(8),
-					MemoryInMB:           intPointer(32768),
-					ResourceDiskSizeInMB: intPointer(65536),
-				},
-			},
-		}, nil
-	}
-}
 
 func (dps *testStruct) ListLocations(ctx context.Context, subscriptionID string) (result subscriptions.LocationListResult, err error) {
 	switch dps.TcId {
@@ -167,14 +137,13 @@ func (dps *testStruct) ListOrchestrators(ctx context.Context, location string, r
 	return containerservice.OrchestratorVersionProfileListResult{}, nil
 }
 
+func (dps *testStruct) List(ctx context.Context) (result skus.ResourceSkusResultPage, err error) {
+	return skus.ResourceSkusResultPage{}, nil
+}
+
 // strPointer gets the pointer to the passed string
 func strPointer(str string) *string {
 	return &str
-}
-
-// intPointer gets the pointer to the passed int32
-func intPointer(i int32) *int32 {
-	return &i
 }
 
 // floatPointer gets the pointer to the passed float64
@@ -563,7 +532,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 	tests := []struct {
 		name    string
 		service string
-		vmSizes VmSizesRetriever
+		vmSizes ResourceSkuRetriever
 		check   func(vms []cloudinfo.VmInfo, err error)
 	}{
 		{
