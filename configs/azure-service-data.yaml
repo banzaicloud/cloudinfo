@@ -183,3 +183,255 @@ regions:
                         default: 1.14.0
             vms:
                 strategy: exclude
+    -   name: Australia Southeast
+        id: australiasoutheast
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: australiasoutheast
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: East Asia
+        id: eastasia
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: eastasia
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Canada Central
+        id: canadacentral
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: canadacentral
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Canada East
+        id: canadaeast
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: canadaeast
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Korea South
+        id: koreasouth
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: koreasouth
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Japan West
+        id: japanwest
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: japanwest
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: South India
+        id: southindia
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: southindia
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: West US
+        id: westus
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: westus
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: South Central US
+        id: southcentralus
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: southcentralus
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: North Central US
+        id: northcentralus
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: northcentralus
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Australia East
+        id: australiaeast
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: australiaeast
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Central India
+        id: centralindia
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: centralindia
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: UK West
+        id: ukwest
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: ukwest
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
+    -   name: Korea Central
+        id: koreacentral
+        data:
+            zones:
+                strategy: exclude
+            images:
+                strategy: exact
+            versions:
+                strategy: exact
+                data:
+                    -   location: koreacentral
+                        versions:
+                            - 1.12.2
+                            - 1.13.3
+                            - 1.14.0
+                        default: 1.14.0
+            vms:
+                strategy: exclude
