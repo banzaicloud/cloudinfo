@@ -432,6 +432,7 @@ func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId stri
 }
 
 // GetZones returns the availability zones in a region
+// Zones are currently only returned by the SKU (https://docs.microsoft.com/en-us/rest/api/compute/resourceskus/list#resourceskulocationinfo)
 func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
 	logger.Debug("getting zones")
@@ -447,6 +448,7 @@ func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 	for _, sku := range skusResultPage.Values() {
 		for _, locationInfo := range *sku.LocationInfo {
 			if strings.ToLower(*locationInfo.Location) == region {
+				// retrieve zones per instance type
 				for _, zone := range *locationInfo.Zones {
 					zonesMap[zone] = ""
 				}
