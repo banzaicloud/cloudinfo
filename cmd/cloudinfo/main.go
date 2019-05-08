@@ -111,19 +111,19 @@ func main() {
 	for _, provider := range config.App.Providers {
 		switch provider {
 		case Amazon:
-			config.Providers.Amazon.Enabled = true
+			config.Provider.Amazon.Enabled = true
 
 		case Google:
-			config.Providers.Google.Enabled = true
+			config.Provider.Google.Enabled = true
 
 		case Alibaba:
-			config.Providers.Alibaba.Enabled = true
+			config.Provider.Alibaba.Enabled = true
 
 		case Oracle:
-			config.Providers.Oracle.Enabled = true
+			config.Provider.Oracle.Enabled = true
 
 		case Azure:
-			config.Providers.Azure.Enabled = true
+			config.Provider.Azure.Enabled = true
 		}
 	}
 
@@ -217,11 +217,11 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	var providers []string
 
-	if config.Providers.Amazon.Enabled {
+	if config.Provider.Amazon.Enabled {
 		providers = append(providers, Amazon)
 		logger := logur.WithFields(logger, map[string]interface{}{"provider": Amazon})
 
-		infoer, err := amazon.NewAmazonInfoer(config.Providers.Amazon.Config, logger)
+		infoer, err := amazon.NewAmazonInfoer(config.Provider.Amazon.Config, logger)
 		if err != nil {
 			return nil, nil, emperror.With(err, "provider", Amazon)
 		}
@@ -231,11 +231,11 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 		logger.Info("configured cloud info provider")
 	}
 
-	if config.Providers.Google.Enabled {
+	if config.Provider.Google.Enabled {
 		providers = append(providers, Google)
 		logger := logur.WithFields(logger, map[string]interface{}{"provider": Google})
 
-		infoer, err := google.NewGoogleInfoer(config.Providers.Google.Config, logger)
+		infoer, err := google.NewGoogleInfoer(config.Provider.Google.Config, logger)
 		if err != nil {
 			return nil, nil, emperror.With(err, "provider", Google)
 		}
@@ -245,11 +245,11 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 		logger.Info("configured cloud info provider")
 	}
 
-	if config.Providers.Alibaba.Enabled {
+	if config.Provider.Alibaba.Enabled {
 		providers = append(providers, Alibaba)
 		logger := logur.WithFields(logger, map[string]interface{}{"provider": Alibaba})
 
-		infoer, err := alibaba.NewAlibabaInfoer(config.Providers.Alibaba.Config, logger)
+		infoer, err := alibaba.NewAlibabaInfoer(config.Provider.Alibaba.Config, logger)
 		if err != nil {
 			return nil, nil, emperror.With(err, "provider", Alibaba)
 		}
@@ -259,11 +259,11 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 		logger.Info("configured cloud info provider")
 	}
 
-	if config.Providers.Oracle.Enabled {
+	if config.Provider.Oracle.Enabled {
 		providers = append(providers, Oracle)
 		logger := logur.WithFields(logger, map[string]interface{}{"provider": Oracle})
 
-		infoer, err := oracle.NewOracleInfoer(config.Providers.Oracle.Config, logger)
+		infoer, err := oracle.NewOracleInfoer(config.Provider.Oracle.Config, logger)
 		if err != nil {
 			return nil, nil, emperror.With(err, "provider", Oracle)
 		}
@@ -273,11 +273,11 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 		logger.Info("configured cloud info provider")
 	}
 
-	if config.Providers.Azure.Enabled {
+	if config.Provider.Azure.Enabled {
 		providers = append(providers, Azure)
 		logger := logur.WithFields(logger, map[string]interface{}{"provider": Azure})
 
-		infoer, err := azure.NewAzureInfoer(config.Providers.Azure.Config, logger)
+		infoer, err := azure.NewAzureInfoer(config.Provider.Azure.Config, logger)
 		if err != nil {
 			return nil, nil, emperror.With(err, "provider", Azure)
 		}
