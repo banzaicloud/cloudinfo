@@ -11,10 +11,18 @@ metadata:
   name: {{ template "cloudinfo.fullname" . }}
   namespace: {{ .Release.Namespace | quote }}
 data:
+  config.yaml: |
+    log:
+      level: {{ .Values.app.logLevel }}
+    metrics:
+      enabled: {{ .Values.metrics.enabled }}
+      port: {{ .Values.metrics.port }}
+    app:
+      address: 0.0.0.0:{{ .Values.service.internalPort }}
   oci.properties: |-
     [DEFAULT]
     user={{ .Values.providers.oracle.ociUser }}
     tenancy={{ .Values.providers.oracle.ociTenancy }}
     region={{ .Values.providers.oracle.ociRegion }}
     fingerprint={{ .Values.providers.oracle.ociFingerprint }}
-    key_file=/credentials/oci_key.pem
+    key_file=/etc/cloudinfo/credentials/oci_key.pem

@@ -12,7 +12,7 @@ image:
 service:
   type: ClusterIP
   port: 80
-  internalPort: 8080
+  internalPort: 8000
 
 ingress:
   enabled: false
@@ -52,17 +52,16 @@ app:
   basePath: ""
 
 providers:
-  google:
-    enabled: false
-    gceApiKey: ""
-    gceCredentials: ""
   amazon:
     enabled: false
     awsAccessKeyId: ""
     awsSecretAccessKey: ""
+  google:
+    enabled: false
+    gceApiKey: ""
+    gceCredentials: ""
   azure:
     enabled: false
-    azureSubscriptionId: ""
     azureCredentials: ""
   oracle:
     enabled: false

@@ -29,82 +29,32 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-          - name: {{ template "cloudinfo.fullname" . }}-credentials
-            mountPath: /credentials
+          - name: credentials
+            mountPath: /etc/cloudinfo/credentials
             readOnly: true
-          - name: {{ template "cloudinfo.fullname" . }}-oci
-            mountPath: /.oci
+          - name: config
+            mountPath: /etc/cloudinfo/config
             readOnly: true
-          args:
-            - cloudinfo
-            - --log-level={{ .Values.app.logLevel }}
-            - --listen-address=0.0.0.0:{{ .Values.service.internalPort }}
-            {{- range $key, $value := .Values.providers }}
-            {{- if $value.enabled }}
-            - --provider-{{ $key }}
-            {{- end }}
-            {{- end }}
           env:
             - name: CLOUDINFO_BASEPATH
               value: {{ .Values.app.basePath }}
+            - name: CLOUDINFO_CONFIG_DIR
+              value: /etc/cloudinfo/config
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /credentials/google.json
+              value: /etc/cloudinfo/credentials/google.json
             - name: AZURE_AUTH_LOCATION
-              value: /credentials/azure.json
+              value: /etc/cloudinfo/credentials/azure.json
             - name: ORACLE_CLI_CONFIG_LOCATION
-              value: /.oci/oci.properties
-            {{ if .Values.providers.amazon.enabled }}
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cloudinfo.fullname" . }}
-                  key: awsAccessKeyId
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cloudinfo.fullname" . }}
-                  key: awsSecretAccessKey
-            {{ end }}
-            {{ if .Values.providers.google.enabled }}
-            - name: GCE_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cloudinfo.fullname" . }}
-                  key: gceApiKey
-            {{ end }}
-            {{ if .Values.providers.azure.enabled }}
-            - name: AZURE_SUBSCRIPTION_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cloudinfo.fullname" . }}
-                  key: azureSubscriptionId
-            {{ end }}
-            {{ if .Values.providers.alibaba.enabled }}
-            - name: ALIBABA_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cloudinfo.fullname" . }}
-                  key: alibabaAccessKeyId
-            - name: ALIBABA_ACCESS_KEY_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cloudinfo.fullname" . }}
-                  key: alibabaAccessKeySecret
-            - name: ALIBABA_REGION_ID
-              value: {{ .Values.providers.alibaba.alibabaRegionId }}
-            {{ end }}
-            {{ if .Values.metrics.enabled }}
-            - name: CLOUDINFO_METRICS_ENABLED
-              value: "true"
-            - name: CLOUDINFO_METRICS_ADDRESS
-              value: ":{{ .Values.metrics.port }}"
-            {{ end }}
+              value: /etc/cloudinfo/config/oci.properties
+          envFrom:
+            - secretRef:
+                name: {{ template "cloudinfo.fullname" . }}
           ports:
             - name: http
               containerPort: {{ .Values.service.internalPort }}
               protocol: TCP
             {{- if .Values.metrics.enabled }}
-            - name:  {{ include "cloudinfo.name" . }}-prom
+            - name: metrics
               containerPort: {{ .Values.metrics.port }}
             {{- end }}
           livenessProbe:
@@ -118,23 +68,10 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
       volumes:
-        - name: {{ template "cloudinfo.fullname" . }}-credentials
+        - name: credentials
           secret:
-            secretName: {{ template "cloudinfo.fullname" . }}
-            items:
-            {{ if .Values.providers.google.enabled }}
-            - key: gceCredentials
-              path: google.json
-            {{ end }}
-            {{ if .Values.providers.azure.enabled }}
-            - key: azureCredentials
-              path: azure.json
-            {{ end }}
-            {{ if .Values.providers.oracle.enabled }}
-            - key: ociKey
-              path: oci_key.pem
-            {{ end }}
-        - name: {{ template "cloudinfo.fullname" . }}-oci
+            secretName: {{ template "cloudinfo.fullname" . }}-credentials
+        - name: config
           configMap:
             name: "{{ template "cloudinfo.fullname" . }}"
     {{- with .Values.nodeSelector }}
