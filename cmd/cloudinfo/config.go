@@ -205,8 +205,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("scrape.interval")
 
 	// Amazon config
-	p.Bool("amazon-enabled", false, "enable amazon provider")
-	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("amazon-enabled"))
+	p.Bool("provider-amazon", false, "enable amazon provider")
+	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("provider-amazon"))
 	_ = v.BindEnv("provider.amazon.enabled", "AMAZON_ENABLED")
 
 	_ = v.BindEnv("provider.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
@@ -216,16 +216,16 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("provider.amazon.prometheusQuery", "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
 
 	// Google config
-	p.Bool("google-enabled", false, "enable google provider")
-	_ = v.BindPFlag("provider.google.enabled", p.Lookup("google-enabled"))
+	p.Bool("provider-google", false, "enable google provider")
+	_ = v.BindPFlag("provider.google.enabled", p.Lookup("provider-google"))
 	_ = v.BindEnv("provider.google.enabled", "GOOGLE_ENABLED")
 
 	_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
 	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
 
 	// Alibaba config
-	p.Bool("alibaba-enabled", false, "enable alibaba provider")
-	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("alibaba-enabled"))
+	p.Bool("provider-alibaba", false, "enable alibaba provider")
+	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("provider-alibaba"))
 	_ = v.BindEnv("provider.alibaba.enabled", "ALIBABA_ENABLED")
 
 	_ = v.BindEnv("provider.alibaba.regionId", "ALIBABA_REGION_ID")
@@ -233,15 +233,15 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("provider.alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
 
 	// Oracle config
-	p.Bool("oracle-enabled", false, "enable oracle provider")
-	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("oracle-enabled"))
+	p.Bool("provider-oracle", false, "enable oracle provider")
+	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("provider-oracle"))
 	_ = v.BindEnv("provider.oracle.enabled", "ORACLE_ENABLED")
 
 	_ = v.BindEnv("provider.oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
-	p.Bool("azure-enabled", false, "enable azure provider")
-	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("azure-enabled"))
+	p.Bool("provider-azure", false, "enable azure provider")
+	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("provider-azure"))
 	_ = v.BindEnv("provider.azure.enabled", "AZURE_ENABLED")
 
 	_ = v.BindEnv("provider.azure.authLocation", "AZURE_AUTH_LOCATION")
