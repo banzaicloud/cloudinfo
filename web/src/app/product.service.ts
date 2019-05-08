@@ -43,7 +43,7 @@ export class ProductService {
     return this.http.get<{ providers: Provider[] }>(this.productsUrlBase + 'providers');
   }
 
-  getProducts(provider: string, service: string, region: string): Observable<DisplayedProduct[]> {
+  public getProducts(provider: string, service: string, region: string): Observable<DisplayedProduct[]> {
     return this.http.get<Products>(this.productsUrlBase + `providers/${provider}/services/${service}/regions/${region}/products`).pipe(
       map(res => {
         if (res.scrapingTime) {
