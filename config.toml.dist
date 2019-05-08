@@ -27,7 +27,7 @@ address = ":8000"
 interval = "24h"
 
 [provider.amazon]
-enabled = true
+enabled = false
 accessKeyId = ""
 secretAccessKey = ""
 
@@ -39,22 +39,22 @@ prometheusAddress = ""
 prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])"
 
 [provider.google]
-enabled = true
+enabled = false
 apiKey = ""
 appCredentials = ""
 
 [provider.alibaba]
-enabled = true
+enabled = false
 regionId = ""
 accessKeyId = ""
 accessKeySecret = ""
 
 [provider.oracle]
-enabled = true
+enabled = false
 configLocation = ""
 
 [provider.azure]
-enabled = true
+enabled = false
 authLocation = ""
 
 [management]

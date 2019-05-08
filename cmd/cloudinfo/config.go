@@ -205,7 +205,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("scrape.interval")
 
 	// Amazon config
-	p.Bool("amazon-enabled", true, "enable amazon provider")
+	p.Bool("amazon-enabled", false, "enable amazon provider")
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("amazon-enabled"))
 	_ = v.BindEnv("provider.amazon.enabled", "AMAZON_ENABLED")
 
@@ -216,7 +216,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("provider.amazon.prometheusQuery", "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
 
 	// Google config
-	p.Bool("google-enabled", true, "enable google provider")
+	p.Bool("google-enabled", false, "enable google provider")
 	_ = v.BindPFlag("provider.google.enabled", p.Lookup("google-enabled"))
 	_ = v.BindEnv("provider.google.enabled", "GOOGLE_ENABLED")
 
@@ -224,7 +224,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
 
 	// Alibaba config
-	p.Bool("alibaba-enabled", true, "enable alibaba provider")
+	p.Bool("alibaba-enabled", false, "enable alibaba provider")
 	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("alibaba-enabled"))
 	_ = v.BindEnv("provider.alibaba.enabled", "ALIBABA_ENABLED")
 
@@ -233,14 +233,14 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("provider.alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
 
 	// Oracle config
-	p.Bool("oracle-enabled", true, "enable oracle provider")
+	p.Bool("oracle-enabled", false, "enable oracle provider")
 	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("oracle-enabled"))
 	_ = v.BindEnv("provider.oracle.enabled", "ORACLE_ENABLED")
 
 	_ = v.BindEnv("provider.oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
-	p.Bool("azure-enabled", true, "enable azure provider")
+	p.Bool("azure-enabled", false, "enable azure provider")
 	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("azure-enabled"))
 	_ = v.BindEnv("provider.azure.enabled", "AZURE_ENABLED")
 
