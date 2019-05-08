@@ -107,26 +107,6 @@ func main() {
 		logger.Warn("configuration file not found")
 	}
 
-	// Legacy provider config
-	for _, provider := range config.App.Providers {
-		switch provider {
-		case Amazon:
-			config.Provider.Amazon.Enabled = true
-
-		case Google:
-			config.Provider.Google.Enabled = true
-
-		case Alibaba:
-			config.Provider.Alibaba.Enabled = true
-
-		case Oracle:
-			config.Provider.Oracle.Enabled = true
-
-		case Azure:
-			config.Provider.Azure.Enabled = true
-		}
-	}
-
 	err = config.Validate()
 	if err != nil {
 		logger.Error(err.Error())

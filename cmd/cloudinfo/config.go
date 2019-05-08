@@ -74,10 +74,6 @@ type configuration struct {
 	App struct {
 		// HTTP server address
 		Address string
-
-		// Providers to be scraped for product information
-		// Deprecated: use provider specific configuration
-		Providers []string
 	}
 
 	// Scrape configuration
@@ -207,14 +203,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Duration("scrape-interval", 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
 	_ = v.BindPFlag("scrape.interval", p.Lookup("scrape-interval"))
 	_ = v.BindEnv("scrape.interval")
-
-	p.StringSlice("provider", []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the cloudinfo application.")
-	{
-		f := p.Lookup("provider")
-		f.Deprecated = "use provider specific flags: --[providerName]-enabled"
-	}
-	_ = v.BindPFlag("app.providers", p.Lookup("provider"))
-	_ = v.BindEnv("app.providers", "PROVIDER")
 
 	// Amazon config
 	p.Bool("amazon-enabled", true, "enable amazon provider")
