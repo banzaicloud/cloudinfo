@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
 import { ProductService } from '../product.service';
 import { DisplayedProduct, Region, Provider } from '../product';
 import { Observable } from 'rxjs/index';
@@ -26,6 +26,7 @@ import { PROVIDERS } from '../constants/providers';
   selector: 'app-products',
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class ProductsComponent implements OnInit {
 
