@@ -178,7 +178,7 @@ func main() {
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
-	scrapingDriver := cloudinfo.NewScrapingDriver(config.App.RenewalInterval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+	scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
 
 	err = scrapingDriver.StartScraping()
 	emperror.Panic(err)

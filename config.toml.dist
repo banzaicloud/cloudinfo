@@ -22,7 +22,9 @@ agentEndpoint = "localhost:6831"
 
 [app]
 address = ":8000"
-renewalInterval = "24h"
+
+[scrape]
+interval = "24h"
 
 [providers.amazon]
 enabled = true

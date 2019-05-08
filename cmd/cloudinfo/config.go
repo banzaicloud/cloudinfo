@@ -67,16 +67,23 @@ type configuration struct {
 	// Instrumentation configuration
 	Instrumentation instrumentationConfig
 
+	// Cloud info scrape interval
+	ScrapeInterval time.Duration
+
 	// App configuration
 	App struct {
 		// HTTP server address
 		Address string
 
-		RenewalInterval time.Duration
-
 		// Providers to be scraped for product information
 		// Deprecated: use provider specific configuration
 		Providers []string
+	}
+
+	// Scrape configuration
+	Scrape struct {
+		// Cloud info scrape interval
+		Interval time.Duration
 	}
 
 	// Provider configuration
@@ -197,9 +204,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("app.address", p.Lookup("listen-address"))
 	_ = v.BindEnv("app.address", "LISTEN_ADDRESS")
 
-	p.Duration("product-info-renewal-interval", 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
-	_ = v.BindPFlag("app.renewalInterval", p.Lookup("product-info-renewal-interval"))
-	_ = v.BindEnv("app.renewalInterval", "PRODUCT_INFO_RENEWAL_INTERVAL")
+	p.Duration("scrape-interval", 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
+	_ = v.BindPFlag("scrape.interval", p.Lookup("scrape-interval"))
+	_ = v.BindEnv("scrape.interval")
 
 	p.StringSlice("provider", []string{Amazon, Google, Azure, Oracle, Alibaba}, "Providers that will be used with the cloudinfo application.")
 	{
