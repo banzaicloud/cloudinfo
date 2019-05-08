@@ -175,11 +175,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Instrumentation
 	p.Bool("metrics-enabled", false, "internal metrics are exposed if enabled")
 	_ = v.BindPFlag("metrics.enabled", p.Lookup("metrics-enabled"))
-	_ = v.BindEnv("metrics.enabled")
 
 	p.String("metrics-address", ":9090", "the address where internal metrics are exposed")
 	_ = v.BindPFlag("metrics.address", p.Lookup("metrics-address"))
-	_ = v.BindEnv("metrics.address")
 
 	v.SetDefault("jaeger.enabled", false)
 	v.SetDefault("jaeger.collectorEndpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
@@ -191,16 +189,13 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// App configuration
 	p.String("listen-address", ":8000", "application listen address")
 	_ = v.BindPFlag("app.address", p.Lookup("listen-address"))
-	_ = v.BindEnv("app.address", "LISTEN_ADDRESS")
 
 	p.Duration("scrape-interval", 24*time.Hour, "duration (in go syntax) between renewing information")
 	_ = v.BindPFlag("scrape.interval", p.Lookup("scrape-interval"))
-	_ = v.BindEnv("scrape.interval")
 
 	// Amazon config
 	p.Bool("provider-amazon", false, "enable amazon provider")
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("provider-amazon"))
-	_ = v.BindEnv("provider.amazon.enabled")
 
 	_ = v.BindEnv("provider.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
 	_ = v.BindEnv("provider.amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
@@ -210,7 +205,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Google config
 	p.Bool("provider-google", false, "enable google provider")
 	_ = v.BindPFlag("provider.google.enabled", p.Lookup("provider-google"))
-	_ = v.BindEnv("provider.google.enabled")
 
 	_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
 	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
@@ -218,7 +212,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Alibaba config
 	p.Bool("provider-alibaba", false, "enable alibaba provider")
 	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("provider-alibaba"))
-	_ = v.BindEnv("provider.alibaba.enabled")
 
 	_ = v.BindEnv("provider.alibaba.regionId", "ALIBABA_REGION_ID")
 	_ = v.BindEnv("provider.alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
@@ -227,14 +220,12 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Oracle config
 	p.Bool("provider-oracle", false, "enable oracle provider")
 	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("provider-oracle"))
-	_ = v.BindEnv("provider.oracle.enabled")
 
 	_ = v.BindEnv("provider.oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
 	p.Bool("provider-azure", false, "enable azure provider")
 	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("provider-azure"))
-	_ = v.BindEnv("provider.azure.enabled")
 
 	_ = v.BindEnv("provider.azure.authLocation", "AZURE_AUTH_LOCATION")
 

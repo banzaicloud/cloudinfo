@@ -183,6 +183,8 @@ func main() {
 
 	// add prometheus metric endpoint
 	if config.Metrics.Enabled {
+		logger.Info("metrics enabled")
+
 		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
