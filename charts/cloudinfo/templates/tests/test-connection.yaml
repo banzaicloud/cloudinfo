@@ -14,5 +14,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args:  ['http://{{ include "cloudinfo.fullname" . }}:{{ .Values.service.port }}{{ .Values.app.basePath }}/status']
+      args:  ['http://{{ include "cloudinfo.fullname" . }}:{{ .Values.service.port }}{{ printf "%s/status" .Values.app.basePath | clean }}']
   restartPolicy: Never

@@ -4,24 +4,78 @@ kind: ServiceMonitor
 metadata:
   name:  {{ template "cloudinfo.fullname" . }}
   labels:
-    app: {{ template "cloudinfo.name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- if .Values.metrics.serviceMonitor.additionalLabels }}
 {{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
     {{- end }}
 spec:
   endpoints:
-  - interval: 30s
-    port: {{ include "cloudinfo.name" . }}-prom
-    path: /metrics
+    - interval: 30s
+      port: metrics
+      path: /metrics
   jobLabel: {{ include "cloudinfo.name" . }}
   namespaceSelector:
     matchNames:
-    - "{{ $.Release.Namespace }}"
+      - "{{ $.Release.Namespace }}"
   selector:
     matchLabels:
-      app: {{ include "cloudinfo.name" . }}
-      release: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name:  {{ template "cloudinfo.fullname" . }}-price
+  labels:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- if .Values.metrics.serviceMonitor.additionalLabels }}
+    {{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - interval: 300s
+      port: metrics
+      path: /metrics/price
+  jobLabel: {{ include "cloudinfo.name" . }}-price
+  namespaceSelector:
+    matchNames:
+      - "{{ $.Release.Namespace }}"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name:  {{ template "cloudinfo.fullname" . }}-spotprice
+  labels:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- if .Values.metrics.serviceMonitor.additionalLabels }}
+    {{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - interval: 300s
+      port: metrics
+      path: /metrics/spotprice
+  jobLabel: {{ include "cloudinfo.name" . }}-spotprice
+  namespaceSelector:
+    matchNames:
+      - "{{ $.Release.Namespace }}"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
 {{ end }}

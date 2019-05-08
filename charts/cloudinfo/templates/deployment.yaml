@@ -1,12 +1,12 @@
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "cloudinfo.fullname" . }}
+  name: {{ include "cloudinfo.fullname" . }}
   labels:
-    app: {{ template "cloudinfo.name" . }}
-    chart: {{ template "cloudinfo.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- if .Values.deploymentLabels }}
 {{ toYaml .Values.deploymentLabels | indent 4 }}
     {{- end }}
@@ -16,25 +16,26 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "cloudinfo.name" . }}
-      release: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "cloudinfo.name" . }}
-        release: {{ .Release.Name }}
+        app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["cloudinfo", "--listen-address=0.0.0.0:8000", "--metrics-address=0.0.0.0:{{ .Values.metrics.port }}"]
           volumeMounts:
-          - name: credentials
-            mountPath: /etc/cloudinfo/credentials
-            readOnly: true
-          - name: config
-            mountPath: /etc/cloudinfo/config
-            readOnly: true
+            - name: credentials
+              mountPath: /etc/cloudinfo/credentials
+              readOnly: true
+            - name: config
+              mountPath: /etc/cloudinfo/config
+              readOnly: true
           env:
             - name: CLOUDINFO_BASEPATH
               value: {{ .Values.app.basePath }}
@@ -51,7 +52,7 @@ spec:
                 name: {{ template "cloudinfo.fullname" . }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.internalPort }}
+              containerPort: 8000
               protocol: TCP
             {{- if .Values.metrics.enabled }}
             - name: metrics
@@ -74,15 +75,15 @@ spec:
         - name: config
           configMap:
             name: "{{ template "cloudinfo.fullname" . }}"
-    {{- with .Values.nodeSelector }}
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
+        {{- toYaml . | nindent 8 }}
     {{- end }}
     {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
+        {{- toYaml . | nindent 8 }}
     {{- end }}

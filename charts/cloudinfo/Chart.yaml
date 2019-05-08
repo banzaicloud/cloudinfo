@@ -8,13 +8,12 @@ appVersion: "0.6.0"
 home: https://banzaicloud.com
 
 maintainers:
-- name: Banzai Cloud
-  email: info@banzaicloud.com
+  - name: Banzai Cloud
+    email: info@banzaicloud.com
 
 sources:
-- https://banzaicloud.com
-- https://github.com/banzaicloud
-- https://github.com/banzaicloud/cloudinfo
+  - https://banzaicloud.com
+  - https://github.com/banzaicloud
+  - https://github.com/banzaicloud/cloudinfo
 
 icon: https://banzaicloud.com/img/banzai-cloud-logo.png
-
