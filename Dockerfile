@@ -59,6 +59,8 @@ COPY --from=frontend /web/dist/ui /web/dist/ui
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY configs /etc/cloudinfo/serviceconfig
 
+RUN sed -i "s|dataLocation: ./configs/|dataLocation: /etc/cloudinfo/serviceconfig/|g" /etc/cloudinfo/serviceconfig/services.yaml
+
 ENV CLOUDINFO_SERVICELOADER_SERVICECONFIGLOCATION "/etc/cloudinfo/serviceconfig"
 
 ENTRYPOINT ["/entrypoint.sh"]
