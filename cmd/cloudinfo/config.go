@@ -200,7 +200,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("app.address", p.Lookup("listen-address"))
 	_ = v.BindEnv("app.address", "LISTEN_ADDRESS")
 
-	p.Duration("scrape-interval", 24*time.Hour, "duration (in go syntax) between renewing the product information. Example: 2h30m")
+	p.Duration("scrape-interval", 24*time.Hour, "duration (in go syntax) between renewing information")
 	_ = v.BindPFlag("scrape.interval", p.Lookup("scrape-interval"))
 	_ = v.BindEnv("scrape.interval")
 
