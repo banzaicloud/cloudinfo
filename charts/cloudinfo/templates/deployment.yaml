@@ -94,9 +94,9 @@ spec:
               value: {{ .Values.providers.alibaba.alibabaRegionId }}
             {{ end }}
             {{ if .Values.metrics.enabled }}
-            - name: METRICS_ENABLED
+            - name: CLOUDINFO_METRICS_ENABLED
               value: "true"
-            - name: METRICS_ADDRESS
+            - name: CLOUDINFO_METRICS_ADDRESS
               value: ":{{ .Values.metrics.port }}"
             {{ end }}
           ports:

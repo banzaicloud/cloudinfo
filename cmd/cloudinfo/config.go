@@ -64,8 +64,17 @@ type configuration struct {
 	// Log configuration
 	Log log.Config
 
-	// Instrumentation configuration
-	Instrumentation instrumentationConfig
+	// Metrics configuration
+	Metrics struct {
+		Enabled bool
+		Address string
+	}
+
+	// Jaeger configuration
+	Jaeger struct {
+		Enabled       bool
+		jaeger.Config `mapstructure:",squash"`
+	}
 
 	// Cloud info scrape interval
 	ScrapeInterval time.Duration
@@ -128,21 +137,6 @@ func (c configuration) Validate() error {
 	return nil
 }
 
-// instrumentationConfig represents the instrumentation related configuration.
-type instrumentationConfig struct {
-	// Metrics configuration
-	Metrics struct {
-		Enabled bool
-		Address string
-	}
-
-	// Jaeger configuration
-	Jaeger struct {
-		Enabled       bool
-		jaeger.Config `mapstructure:",squash"`
-	}
-}
-
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Viper settings
@@ -150,8 +144,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
 
 	// Environment variable settings
-	// TODO: enable env prefix
-	// v.SetEnvPrefix(envPrefix)
+	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AllowEmptyEnv(true)
 	v.AutomaticEnv()
@@ -181,19 +174,19 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	// Instrumentation
 	p.Bool("metrics-enabled", false, "internal metrics are exposed if enabled")
-	_ = v.BindPFlag("instrumentation.metrics.enabled", p.Lookup("metrics-enabled"))
-	_ = v.BindEnv("instrumentation.metrics.enabled", "METRICS_ENABLED")
+	_ = v.BindPFlag("metrics.enabled", p.Lookup("metrics-enabled"))
+	_ = v.BindEnv("metrics.enabled")
 
 	p.String("metrics-address", ":9090", "the address where internal metrics are exposed")
-	_ = v.BindPFlag("instrumentation.metrics.address", p.Lookup("metrics-address"))
-	_ = v.BindEnv("instrumentation.metrics.address", "METRICS_ADDRESS")
+	_ = v.BindPFlag("metrics.address", p.Lookup("metrics-address"))
+	_ = v.BindEnv("metrics.address")
 
-	v.SetDefault("instrumentation.jaeger.enabled", false)
-	v.SetDefault("instrumentation.jaeger.collectorEndpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
-	v.SetDefault("instrumentation.jaeger.agentEndpoint", "localhost:6832")
-	v.RegisterAlias("instrumentation.jaeger.serviceName", "appName")
-	_ = v.BindEnv("instrumentation.jaeger.username")
-	_ = v.BindEnv("instrumentation.jaeger.password")
+	v.SetDefault("jaeger.enabled", false)
+	v.SetDefault("jaeger.collectorEndpoint", "http://localhost:14268/api/traces?format=jaeger.thrift")
+	v.SetDefault("jaeger.agentEndpoint", "localhost:6832")
+	v.RegisterAlias("jaeger.serviceName", "appName")
+	_ = v.BindEnv("jaeger.username")
+	_ = v.BindEnv("jaeger.password")
 
 	// App configuration
 	p.String("listen-address", ":8000", "application listen address")
@@ -207,18 +200,17 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Amazon config
 	p.Bool("provider-amazon", false, "enable amazon provider")
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("provider-amazon"))
-	_ = v.BindEnv("provider.amazon.enabled", "AMAZON_ENABLED")
+	_ = v.BindEnv("provider.amazon.enabled")
 
 	_ = v.BindEnv("provider.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
 	_ = v.BindEnv("provider.amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
-	_ = v.BindEnv("provider.amazon.prometheusAddress", "AMAZON_PROMETHEUS_ADDRESS")
-	_ = v.BindEnv("provider.amazon.prometheusQuery", "AMAZON_PROMETHEUS_QUERY")
+	v.SetDefault("provider.amazon.prometheusAddress", "")
 	v.SetDefault("provider.amazon.prometheusQuery", "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
 
 	// Google config
 	p.Bool("provider-google", false, "enable google provider")
 	_ = v.BindPFlag("provider.google.enabled", p.Lookup("provider-google"))
-	_ = v.BindEnv("provider.google.enabled", "GOOGLE_ENABLED")
+	_ = v.BindEnv("provider.google.enabled")
 
 	_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
 	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
@@ -226,7 +218,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Alibaba config
 	p.Bool("provider-alibaba", false, "enable alibaba provider")
 	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("provider-alibaba"))
-	_ = v.BindEnv("provider.alibaba.enabled", "ALIBABA_ENABLED")
+	_ = v.BindEnv("provider.alibaba.enabled")
 
 	_ = v.BindEnv("provider.alibaba.regionId", "ALIBABA_REGION_ID")
 	_ = v.BindEnv("provider.alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
@@ -235,14 +227,14 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Oracle config
 	p.Bool("provider-oracle", false, "enable oracle provider")
 	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("provider-oracle"))
-	_ = v.BindEnv("provider.oracle.enabled", "ORACLE_ENABLED")
+	_ = v.BindEnv("provider.oracle.enabled")
 
 	_ = v.BindEnv("provider.oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
 	p.Bool("provider-azure", false, "enable azure provider")
 	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("provider-azure"))
-	_ = v.BindEnv("provider.azure.enabled", "AZURE_ENABLED")
+	_ = v.BindEnv("provider.azure.enabled")
 
 	_ = v.BindEnv("provider.azure.authLocation", "AZURE_AUTH_LOCATION")
 

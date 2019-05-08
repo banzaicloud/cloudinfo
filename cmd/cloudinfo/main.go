@@ -132,10 +132,10 @@ func main() {
 	tracer := tracing.NewNoOpTracer()
 
 	// Configure Jaeger
-	if config.Instrumentation.Jaeger.Enabled {
+	if config.Jaeger.Enabled {
 		logger.Info("jaeger exporter enabled")
 
-		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
+		tracing.SetupTracing(config.Jaeger.Config, emperror.NewNoopHandler())
 		tracer = tracing.NewTracer()
 	}
 
@@ -182,8 +182,8 @@ func main() {
 	router := gin.Default()
 
 	// add prometheus metric endpoint
-	if config.Instrumentation.Metrics.Enabled {
-		routeHandler.EnableMetrics(router, config.Instrumentation.Metrics.Address)
+	if config.Metrics.Enabled {
+		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
 	routeHandler.ConfigureRoutes(router)

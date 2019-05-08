@@ -6,11 +6,11 @@ shutdownTimeout = "5s"
 format = "json"
 level = "info"
 
-[instrumentation.metrics]
+[metrics]
 enabled = false
 address = ":9090"
 
-[instrumentation.jaeger]
+[jaeger]
 enabled = false
 
 # Configure either collectorEndpoint or agentEndpoint.
