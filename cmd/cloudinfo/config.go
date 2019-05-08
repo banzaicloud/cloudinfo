@@ -209,83 +209,18 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("amazon-enabled"))
 	_ = v.BindEnv("provider.amazon.enabled", "AMAZON_ENABLED")
 
-	{
-		p.String("aws-access-key-id", "", "aws access key id")
-		f := p.Lookup("aws-access-key-id")
-		f.Deprecated = "use --amazon-access-key-id instead"
-		_ = v.BindPFlag("provider.amazon.accessKeyId", f)
-		p.String("amazon-access-key-id", "", "amazon access key id")
-		_ = v.BindPFlag("provider.amazon.accessKeyId", p.Lookup("amazon-access-key-id"))
-		_ = v.BindEnv("provider.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
-	}
-
-	{
-		p.String("aws-secret-access-key", "", "aws secret access key")
-		f := p.Lookup("aws-secret-access-key")
-		f.Deprecated = "use --amazon-secret-access-key instead"
-		_ = v.BindPFlag("provider.amazon.secretAccessKey", f)
-		p.String("amazon-secret-access-key", "", "amazon secret access key")
-		_ = v.BindPFlag("provider.amazon.secretAccessKey", p.Lookup("amazon-secret-access-key"))
-		_ = v.BindEnv("provider.amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
-	}
-
-	{
-		p.String(
-			"prometheus-address",
-			"",
-			"http address of a Prometheus instance that has AWS spot "+
-				"price metrics via banzaicloud/spot-price-exporter. "+
-				"If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.",
-		)
-		f := p.Lookup("prometheus-address")
-		f.Deprecated = "use --amazon-prometheus-address instead"
-		_ = v.BindPFlag("provider.amazon.prometheusAddress", f)
-		p.String(
-			"amazon-prometheus-address",
-			"",
-			"http address of a Prometheus instance that has AWS spot "+
-				"price metrics via banzaicloud/spot-price-exporter. "+
-				"If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.",
-		)
-		_ = v.BindPFlag("provider.amazon.prometheusAddress", p.Lookup("amazon-prometheus-address"))
-		_ = v.BindEnv("provider.amazon.prometheusAddress", "PROMETHEUS_ADDRESS")
-	}
-
-	{
-		p.String(
-			"prometheus-query",
-			"avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
-			"advanced configuration: change the query used to query spot price info from Prometheus.",
-		)
-		f := p.Lookup("prometheus-query")
-		f.Deprecated = "use --amazon-prometheus-query instead"
-		_ = v.BindPFlag("provider.amazon.prometheusQuery", f)
-		p.String(
-			"amazon-prometheus-query",
-			"avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])",
-			"advanced configuration: change the query used to query spot price info from Prometheus.",
-		)
-		_ = v.BindPFlag("provider.amazon.prometheusQuery", p.Lookup("amazon-prometheus-query"))
-		_ = v.BindEnv("provider.amazon.prometheusQuery", "PROMETHEUS_QUERY")
-	}
+	_ = v.BindEnv("provider.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
+	_ = v.BindEnv("provider.amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
+	_ = v.BindEnv("provider.amazon.prometheusAddress", "AMAZON_PROMETHEUS_ADDRESS")
+	_ = v.BindEnv("provider.amazon.prometheusQuery", "AMAZON_PROMETHEUS_QUERY")
+	v.SetDefault("provider.amazon.prometheusQuery", "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
 
 	// Google config
 	p.Bool("google-enabled", true, "enable google provider")
 	_ = v.BindPFlag("provider.google.enabled", p.Lookup("google-enabled"))
 	_ = v.BindEnv("provider.google.enabled", "GOOGLE_ENABLED")
 
-	{
-		p.String("gce-api-key", "", "GCE API key to use for getting SKUs")
-		f := p.Lookup("gce-api-key")
-		f.Deprecated = "use --google-gce-api-key instead"
-		_ = v.BindPFlag("provider.google.apiKey", f)
-		p.String("google-gce-api-key", "", "GCE API key to use for getting SKUs")
-		_ = v.BindPFlag("provider.google.apiKey", p.Lookup("google-gce-api-key"))
-		_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
-	}
-
-	p.String("google-application-credentials", "", "google application credentials location")
-	_ = v.BindPFlag("provider.google.appCredentials", p.Lookup("google-application-credentials"))
+	_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
 	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
 
 	// Alibaba config
@@ -293,16 +228,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("alibaba-enabled"))
 	_ = v.BindEnv("provider.alibaba.enabled", "ALIBABA_ENABLED")
 
-	p.String("alibaba-region-id", "", "alibaba region id")
-	_ = v.BindPFlag("provider.alibaba.regionId", p.Lookup("alibaba-region-id"))
 	_ = v.BindEnv("provider.alibaba.regionId", "ALIBABA_REGION_ID")
-
-	p.String("alibaba-access-key-id", "", "alibaba access key id")
-	_ = v.BindPFlag("provider.alibaba.accessKeyId", p.Lookup("alibaba-access-key-id"))
 	_ = v.BindEnv("provider.alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
-
-	p.String("alibaba-access-key-secret", "", "alibaba access key secret")
-	_ = v.BindPFlag("provider.alibaba.accessKeySecret", p.Lookup("alibaba-access-key-secret"))
 	_ = v.BindEnv("provider.alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
 
 	// Oracle config
@@ -310,8 +237,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("oracle-enabled"))
 	_ = v.BindEnv("provider.oracle.enabled", "ORACLE_ENABLED")
 
-	p.String("oracle-cli-config-location", "", "oracle config file location")
-	_ = v.BindPFlag("provider.oracle.configLocation", p.Lookup("oracle-cli-config-location"))
 	_ = v.BindEnv("provider.oracle.configLocation", "ORACLE_CLI_CONFIG_LOCATION")
 
 	// Azure config
@@ -319,8 +244,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("azure-enabled"))
 	_ = v.BindEnv("provider.azure.enabled", "AZURE_ENABLED")
 
-	p.String("azure-auth-location", "", "azure authentication file location")
-	_ = v.BindPFlag("provider.azure.authLocation", p.Lookup("azure-auth-location"))
 	_ = v.BindEnv("provider.azure.authLocation", "AZURE_AUTH_LOCATION")
 
 	// Management
