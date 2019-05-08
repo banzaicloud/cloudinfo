@@ -54,6 +54,7 @@ func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo, graphqlHandl
 func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
 	r.log.Info("configuring routes")
 
+	// TODO: use config
 	basePath := "/"
 	if basePathFromEnv := os.Getenv("CLOUDINFO_BASEPATH"); basePathFromEnv != "" {
 		basePath = basePathFromEnv

@@ -1,3 +1,14 @@
+/api/
+/bin/
+/build/
+/charts/
+/config.toml
+/config.toml.dist
 /Dockerfile
-/web/dist
-/web/node_modules
+/docs/
+/.golangci.yml
+/gqlgen.yml
+/.licensei.toml
+/scripts/
+/web/dist/
+/web/node_modules/
