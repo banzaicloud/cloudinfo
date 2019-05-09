@@ -134,7 +134,7 @@ func (r *serviceResolver) Regions(ctx context.Context, obj *cloudinfo.Service) (
 		Service:  obj.Code,
 	}
 
-	resp, err := r.regionEndpoints.List(ctx, req)
+	resp, err := r.regionEndpoints.ListRegions(ctx, req)
 	if err != nil {
 		r.errorHandler.Handle(err)
 
@@ -146,4 +146,31 @@ func (r *serviceResolver) Regions(ctx context.Context, obj *cloudinfo.Service) (
 	}
 
 	return resp.(listRegionsResponse).Regions, nil
+}
+
+func (r *resolver) Region() graphql.RegionResolver {
+	return &regionResolver{r}
+}
+
+type regionResolver struct{ *resolver }
+
+func (r *regionResolver) Zones(ctx context.Context, obj *cloudinfo.Region) ([]cloudinfo.Zone, error) {
+	req := listZonesRequest{
+		Provider: obj.ProviderName(),
+		Service:  obj.ServiceName(),
+		Region:   obj.Code,
+	}
+
+	resp, err := r.regionEndpoints.ListZones(ctx, req)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listZonesResponse).Zones, nil
 }

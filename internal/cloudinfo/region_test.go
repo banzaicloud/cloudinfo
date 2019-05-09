@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegionService_ListRegion(t *testing.T) {
+func TestRegionService_ListRegions(t *testing.T) {
 	store := NewInMemoryRegionStore()
 	store.regions = map[string]map[string]map[string]string{
 		"amazon": {
@@ -36,16 +36,42 @@ func TestRegionService_ListRegion(t *testing.T) {
 
 	serviceService := NewRegionService(store)
 
-	services, err := serviceService.ListRegions(context.Background(), "amazon", "compute")
+	regions, err := serviceService.ListRegions(context.Background(), "amazon", "compute")
 	require.NoError(t, err)
 
 	assert.Equal(
 		t,
 		[]Region{
-			{Code: "eu-west-1", Name: "EU (Ireland)"},
-			{Code: "eu-west-2", Name: "EU (London)"},
-			{Code: "eu-west-3", Name: "EU (Paris)"},
+			{Code: "eu-west-1", Name: "EU (Ireland)", providerName: "amazon", serviceName: "compute"},
+			{Code: "eu-west-2", Name: "EU (London)", providerName: "amazon", serviceName: "compute"},
+			{Code: "eu-west-3", Name: "EU (Paris)", providerName: "amazon", serviceName: "compute"},
 		},
-		services,
+		regions,
+	)
+}
+
+func TestRegionService_ListZones(t *testing.T) {
+	store := NewInMemoryRegionStore()
+	store.zones = map[string]map[string]map[string][]string{
+		"amazon": {
+			"compute": {
+				"eu-west-1": []string{"eu-west-1a", "eu-west-1b", "eu-west-1c"},
+			},
+		},
+	}
+
+	serviceService := NewRegionService(store)
+
+	zones, err := serviceService.ListZones(context.Background(), "amazon", "compute", "eu-west-1")
+	require.NoError(t, err)
+
+	assert.Equal(
+		t,
+		[]Zone{
+			{Code: "eu-west-1a"},
+			{Code: "eu-west-1b"},
+			{Code: "eu-west-1c"},
+		},
+		zones,
 	)
 }

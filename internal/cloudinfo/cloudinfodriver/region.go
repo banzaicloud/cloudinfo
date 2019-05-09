@@ -22,10 +22,14 @@ import (
 
 const (
 	OperationRegionListRegions = "cloudinfo.Region.ListRegions"
+	OperationRegionListZones   = "cloudinfo.Region.ListZones"
 )
 
-// RegionService returns the list of supported regions.
+// RegionService provides access to regions supported by a service.
 type RegionService interface {
 	// ListRegions returns a list of regions supported by a service.
 	ListRegions(ctx context.Context, provider string, service string) ([]cloudinfo.Region, error)
+
+	// ListZones returns a list of zones within a region.
+	ListZones(ctx context.Context, provider string, service string, region string) ([]cloudinfo.Zone, error)
 }

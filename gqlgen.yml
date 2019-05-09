@@ -21,6 +21,9 @@ models:
     Region:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Region
 
+    Zone:
+        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Zone
+
     InstanceType:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceType
 

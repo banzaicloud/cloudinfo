@@ -18,15 +18,21 @@ package cloudinfo
 // Use it in tests or for development/demo purposes.
 type InMemoryRegionStore struct {
 	regions map[string]map[string]map[string]string
+	zones   map[string]map[string]map[string][]string
 }
 
 // NewInMemoryRegionStore returns a new InMemoryRegionStore.
 func NewInMemoryRegionStore() *InMemoryRegionStore {
 	return &InMemoryRegionStore{
 		regions: make(map[string]map[string]map[string]string),
+		zones:   make(map[string]map[string]map[string][]string),
 	}
 }
 
 func (s *InMemoryRegionStore) GetRegions(provider string, service string) (map[string]string, error) {
 	return s.regions[provider][service], nil
+}
+
+func (s *InMemoryRegionStore) GetZones(provider string, service string, region string) ([]string, error) {
+	return s.zones[provider][service][region], nil
 }

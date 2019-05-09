@@ -12,6 +12,11 @@ type Service {
 type Region {
     code: String!
     name: String!
+    zones: [Zone!]!
+}
+
+type Zone {
+    code: String!
 }
 
 type Query {

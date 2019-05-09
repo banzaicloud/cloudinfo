@@ -24,21 +24,26 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
-// RegionEndpoints collects all of the endpoints that compose a service service.
+// RegionEndpoints collects all of the endpoints that compose a region service.
 // It's meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type RegionEndpoints struct {
-	List endpoint.Endpoint
+	ListRegions endpoint.Endpoint
+	ListZones   endpoint.Endpoint
 }
 
 // MakeRegionEndpoints returns an Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeRegionEndpoints(s RegionService, logger cloudinfo.Logger) RegionEndpoints {
 	return RegionEndpoints{
-		List: endpoint.Chain(
+		ListRegions: endpoint.Chain(
 			kitoc.TraceEndpoint(OperationRegionListRegions),
 			LogEndpoint(OperationRegionListRegions, logger),
 		)(MakeListRegionsEndpoint(s)),
+		ListZones: endpoint.Chain(
+			kitoc.TraceEndpoint(OperationRegionListZones),
+			LogEndpoint(OperationRegionListZones, logger),
+		)(MakeListZonesEndpoint(s)),
 	}
 }
 
@@ -75,6 +80,46 @@ func MakeListRegionsEndpoint(s RegionService) endpoint.Endpoint {
 
 		resp := listRegionsResponse{
 			Regions: regions,
+		}
+
+		return resp, nil
+	}
+}
+
+type listZonesRequest struct {
+	Provider string
+	Service  string
+	Region   string
+}
+
+type listZonesResponse struct {
+	Zones []cloudinfo.Zone
+	Err   error
+}
+
+func (r listZonesResponse) Failed() error {
+	return r.Err
+}
+
+// MakeListZonesEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeListZonesEndpoint(s RegionService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(listZonesRequest)
+
+		zones, err := s.ListZones(ctx, req.Provider, req.Service, req.Region)
+
+		if err != nil {
+			if b, ok := errors.Cause(err).(businessError); ok && b.IsBusinessError() {
+				return listProvidersResponse{
+					Err: err,
+				}, nil
+			}
+
+			return nil, err
+		}
+
+		resp := listZonesResponse{
+			Zones: zones,
 		}
 
 		return resp, nil

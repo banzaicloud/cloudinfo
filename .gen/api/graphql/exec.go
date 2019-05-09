@@ -36,6 +36,7 @@ type Config struct {
 type ResolverRoot interface {
 	Provider() ProviderResolver
 	Query() QueryResolver
+	Region() RegionResolver
 	Service() ServiceResolver
 }
 
@@ -68,13 +69,18 @@ type ComplexityRoot struct {
 	}
 
 	Region struct {
-		Code func(childComplexity int) int
-		Name func(childComplexity int) int
+		Code  func(childComplexity int) int
+		Name  func(childComplexity int) int
+		Zones func(childComplexity int) int
 	}
 
 	Service struct {
 		Code    func(childComplexity int) int
 		Regions func(childComplexity int) int
+	}
+
+	Zone struct {
+		Code func(childComplexity int) int
 	}
 }
 
@@ -84,6 +90,9 @@ type ProviderResolver interface {
 type QueryResolver interface {
 	Providers(ctx context.Context) ([]cloudinfo.Provider, error)
 	InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error)
+}
+type RegionResolver interface {
+	Zones(ctx context.Context, obj *cloudinfo.Region) ([]cloudinfo.Zone, error)
 }
 type ServiceResolver interface {
 	Regions(ctx context.Context, obj *cloudinfo.Service) ([]cloudinfo.Region, error)
@@ -228,6 +237,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Region.Name(childComplexity), true
 
+	case "Region.Zones":
+		if e.complexity.Region.Zones == nil {
+			break
+		}
+
+		return e.complexity.Region.Zones(childComplexity), true
+
 	case "Service.Code":
 		if e.complexity.Service.Code == nil {
 			break
@@ -241,6 +257,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.Regions(childComplexity), true
+
+	case "Zone.Code":
+		if e.complexity.Zone.Code == nil {
+			break
+		}
+
+		return e.complexity.Zone.Code(childComplexity), true
 
 	}
 	return 0, false
@@ -394,6 +417,11 @@ type Service {
 type Region {
     code: String!
     name: String!
+    zones: [Zone!]!
+}
+
+type Zone {
+    code: String!
 }
 
 type Query {
@@ -1020,6 +1048,33 @@ func (ec *executionContext) _Region_name(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Region_zones(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Region) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Region",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Region().Zones(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]cloudinfo.Zone)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Service_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Service) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -1072,6 +1127,33 @@ func (ec *executionContext) _Service_regions(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐRegion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Zone_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Zone) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Zone",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -2362,6 +2444,20 @@ func (ec *executionContext) _Region(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "zones":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Region_zones(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2403,6 +2499,33 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var zoneImplementors = []string{"Zone"}
+
+func (ec *executionContext) _Zone(ctx context.Context, sel ast.SelectionSet, obj *cloudinfo.Zone) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, zoneImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Zone")
+		case "code":
+			out.Values[i] = ec._Zone_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2871,6 +2994,47 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) marshalNZone2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Zone) graphql.Marshaler {
+	return ec._Zone(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Zone) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNZone2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
