@@ -18,7 +18,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-// InMemoryProviderStore keeps instance types in the memory.
+// InMemoryProviderStore keeps providers in the memory.
 // Use it in tests or for development/demo purposes.
 type InMemoryProviderStore struct {
 	providers []cloudinfo.Provider

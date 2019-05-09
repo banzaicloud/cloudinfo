@@ -18,7 +18,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-// InMemoryServiceStore keeps instance types in the memory.
+// InMemoryServiceStore keeps services in the memory.
 // Use it in tests or for development/demo purposes.
 type InMemoryServiceStore struct {
 	services map[string][]cloudinfo.Service
