@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ProductService } from '../product.service';
 import { DisplayedProduct, Region, Provider } from '../product';
 import { Observable } from 'rxjs/index';
