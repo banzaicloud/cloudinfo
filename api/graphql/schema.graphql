@@ -10,7 +10,7 @@ type Service {
 }
 
 type Region {
-    id: ID!
+    code: String!
     name: String!
 }
 

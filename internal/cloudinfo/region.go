@@ -39,7 +39,7 @@ func NewRegionService(store RegionStore) *RegionService {
 }
 
 type Region struct {
-	ID   string
+	Code string
 	Name string
 }
 
@@ -53,9 +53,9 @@ func (s *RegionService) ListRegions(ctx context.Context, provider string, servic
 	regions := make([]Region, len(cloudRegions))
 	i := 0
 
-	for id, name := range cloudRegions {
+	for code, name := range cloudRegions {
 		regions[i] = Region{
-			ID:   id,
+			Code: code,
 			Name: name,
 		}
 

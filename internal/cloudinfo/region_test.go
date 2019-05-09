@@ -42,9 +42,9 @@ func TestRegionService_ListRegion(t *testing.T) {
 	assert.Equal(
 		t,
 		[]Region{
-			{ID: "eu-west-1", Name: "EU (Ireland)"},
-			{ID: "eu-west-2", Name: "EU (London)"},
-			{ID: "eu-west-3", Name: "EU (Paris)"},
+			{Code: "eu-west-1", Name: "EU (Ireland)"},
+			{Code: "eu-west-2", Name: "EU (London)"},
+			{Code: "eu-west-3", Name: "EU (Paris)"},
 		},
 		services,
 	)

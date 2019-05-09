@@ -20,9 +20,6 @@ models:
 
     Region:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Region
-        fields:
-            id:
-                fieldName: ID
 
     InstanceType:
         model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceType

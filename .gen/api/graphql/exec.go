@@ -68,7 +68,7 @@ type ComplexityRoot struct {
 	}
 
 	Region struct {
-		ID   func(childComplexity int) int
+		Code func(childComplexity int) int
 		Name func(childComplexity int) int
 	}
 
@@ -214,12 +214,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Providers(childComplexity), true
 
-	case "Region.ID":
-		if e.complexity.Region.ID == nil {
+	case "Region.Code":
+		if e.complexity.Region.Code == nil {
 			break
 		}
 
-		return e.complexity.Region.ID(childComplexity), true
+		return e.complexity.Region.Code(childComplexity), true
 
 	case "Region.Name":
 		if e.complexity.Region.Name == nil {
@@ -392,7 +392,7 @@ type Service {
 }
 
 type Region {
-    id: ID!
+    code: String!
     name: String!
 }
 
@@ -966,7 +966,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Region_id(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Region) graphql.Marshaler {
+func (ec *executionContext) _Region_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Region) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -979,7 +979,7 @@ func (ec *executionContext) _Region_id(ctx context.Context, field graphql.Collec
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Code, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -990,7 +990,7 @@ func (ec *executionContext) _Region_id(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Region_name(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Region) graphql.Marshaler {
@@ -2352,8 +2352,8 @@ func (ec *executionContext) _Region(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Region")
-		case "id":
-			out.Values[i] = ec._Region_id(ctx, field, obj)
+		case "code":
+			out.Values[i] = ec._Region_code(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -2673,14 +2673,6 @@ func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
 	return graphql.MarshalFloat(v)
-}
-
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalID(v)
 }
 
 func (ec *executionContext) marshalNInstanceType2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceType(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceType) graphql.Marshaler {
