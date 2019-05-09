@@ -20,40 +20,31 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-func TestServiceService_ListServices(t *testing.T) {
-	store := NewInMemoryServiceStore()
-	store.services = map[string][]cloudinfo.Service{
+func TestRegionService_ListRegion(t *testing.T) {
+	store := NewInMemoryRegionStore()
+	store.regions = map[string]map[string]map[string]string{
 		"amazon": {
-			{
-				Service: "compute",
-			},
-			{
-				Service: "eks",
-			},
-		},
-		"google": {
-			{
-				Service: "compute",
-			},
-			{
-				Service: "gke",
+			"compute": {
+				"eu-west-1": "EU (Ireland)",
+				"eu-west-2": "EU (London)",
+				"eu-west-3": "EU (Paris)",
 			},
 		},
 	}
 
-	serviceService := NewServiceService(store)
+	serviceService := NewRegionService(store)
 
-	services, err := serviceService.ListServices(context.Background(), "amazon")
+	services, err := serviceService.ListRegions(context.Background(), "amazon", "compute")
 	require.NoError(t, err)
 
 	assert.Equal(
 		t,
-		[]Service{
-			{Name: "compute", providerName: "amazon"}, {Name: "eks", providerName: "amazon"},
+		[]Region{
+			{ID: "eu-west-1", Name: "EU (Ireland)"},
+			{ID: "eu-west-2", Name: "EU (London)"},
+			{ID: "eu-west-3", Name: "EU (Paris)"},
 		},
 		services,
 	)

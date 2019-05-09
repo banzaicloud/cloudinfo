@@ -174,11 +174,19 @@ func main() {
 	cloudinfoLogger := cloudinfoadapter.NewLogger(logger)
 	providerService := cloudinfo2.NewProviderService(prodInfo)
 	serviceService := cloudinfo2.NewServiceService(prodInfo)
+	regionService := cloudinfo2.NewRegionService(prodInfo)
 	instanceTypeService := cloudinfo2.NewInstanceTypeService(prodInfo)
 	endpoints := cloudinfodriver.MakeEndpoints(instanceTypeService)
 	providerEndpoints := cloudinfodriver.MakeProviderEndpoints(providerService, cloudinfoLogger)
 	serviceEndpoints := cloudinfodriver.MakeServiceEndpoints(serviceService, cloudinfoLogger)
-	graphqlHandler := cloudinfodriver.MakeGraphQLHandler(endpoints, providerEndpoints, serviceEndpoints, errorHandler)
+	regionEndpoints := cloudinfodriver.MakeRegionEndpoints(regionService, cloudinfoLogger)
+	graphqlHandler := cloudinfodriver.MakeGraphQLHandler(
+		endpoints,
+		providerEndpoints,
+		serviceEndpoints,
+		regionEndpoints,
+		errorHandler,
+	)
 
 	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, graphqlHandler, logger)
 

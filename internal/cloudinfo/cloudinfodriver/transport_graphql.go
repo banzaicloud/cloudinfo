@@ -31,6 +31,7 @@ func MakeGraphQLHandler(
 	endpoints Endpoints,
 	providerEndpoints ProviderEndpoints,
 	serviceEndpoints ServiceEndpoints,
+	regionEndpoints RegionEndpoints,
 	errorHandler cloudinfo.ErrorHandler,
 ) http.Handler {
 	return handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
@@ -38,6 +39,7 @@ func MakeGraphQLHandler(
 			endpoints:         endpoints,
 			providerEndpoints: providerEndpoints,
 			serviceEndpoints:  serviceEndpoints,
+			regionEndpoints:   regionEndpoints,
 			errorHandler:      errorHandler,
 		},
 	}))
@@ -47,6 +49,7 @@ type resolver struct {
 	endpoints         Endpoints
 	providerEndpoints ProviderEndpoints
 	serviceEndpoints  ServiceEndpoints
+	regionEndpoints   RegionEndpoints
 	errorHandler      cloudinfo.ErrorHandler
 }
 
@@ -117,4 +120,30 @@ func (r *providerResolver) Services(ctx context.Context, obj *cloudinfo.Provider
 	}
 
 	return resp.(listServicesResponse).Services, nil
+}
+
+func (r *resolver) Service() graphql.ServiceResolver {
+	return &serviceResolver{r}
+}
+
+type serviceResolver struct{ *resolver }
+
+func (r *serviceResolver) Regions(ctx context.Context, obj *cloudinfo.Service) ([]cloudinfo.Region, error) {
+	req := listRegionsRequest{
+		Provider: obj.ProviderName(),
+		Service:  obj.Name,
+	}
+
+	resp, err := r.regionEndpoints.List(ctx, req)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listRegionsResponse).Regions, nil
 }

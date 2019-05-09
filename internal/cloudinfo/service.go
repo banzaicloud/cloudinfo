@@ -43,6 +43,14 @@ func NewServiceService(store ServiceStore) *ServiceService {
 // Service represents a single service.
 type Service struct {
 	Name string
+
+	providerName string
+}
+
+// ProviderName returns the provider name of the service.
+// Used when resolving regions based on a service.
+func (s *Service) ProviderName() string {
+	return s.providerName
 }
 
 // ListServices returns a list of services supported by a provider.
@@ -56,7 +64,8 @@ func (s *ServiceService) ListServices(ctx context.Context, provider string) ([]S
 
 	for i, service := range cloudServices {
 		services[i] = Service{
-			Name: service.Service,
+			Name:         service.Service,
+			providerName: provider,
 		}
 	}
 

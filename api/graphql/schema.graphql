@@ -5,6 +5,12 @@ type Provider {
 
 type Service {
     name: String!
+    regions: [Region!]!
+}
+
+type Region {
+    id: ID!
+    name: String!
 }
 
 type Query {
