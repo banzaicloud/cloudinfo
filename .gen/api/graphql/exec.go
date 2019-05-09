@@ -73,7 +73,7 @@ type ComplexityRoot struct {
 	}
 
 	Service struct {
-		Name    func(childComplexity int) int
+		Code    func(childComplexity int) int
 		Regions func(childComplexity int) int
 	}
 }
@@ -228,12 +228,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Region.Name(childComplexity), true
 
-	case "Service.Name":
-		if e.complexity.Service.Name == nil {
+	case "Service.Code":
+		if e.complexity.Service.Code == nil {
 			break
 		}
 
-		return e.complexity.Service.Name(childComplexity), true
+		return e.complexity.Service.Code(childComplexity), true
 
 	case "Service.Regions":
 		if e.complexity.Service.Regions == nil {
@@ -387,7 +387,7 @@ input InstanceTypeQueryInput {
 }
 
 type Service {
-    name: String!
+    code: String!
     regions: [Region!]!
 }
 
@@ -1020,7 +1020,7 @@ func (ec *executionContext) _Region_name(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Service_name(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Service) graphql.Marshaler {
+func (ec *executionContext) _Service_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Service) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1033,7 +1033,7 @@ func (ec *executionContext) _Service_name(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.Code, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2384,8 +2384,8 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Service")
-		case "name":
-			out.Values[i] = ec._Service_name(ctx, field, obj)
+		case "code":
+			out.Values[i] = ec._Service_code(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

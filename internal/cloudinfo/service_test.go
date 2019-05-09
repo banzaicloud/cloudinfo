@@ -53,7 +53,7 @@ func TestServiceService_ListServices(t *testing.T) {
 	assert.Equal(
 		t,
 		[]Service{
-			{Name: "compute", providerName: "amazon"}, {Name: "eks", providerName: "amazon"},
+			{Code: "compute", providerName: "amazon"}, {Code: "eks", providerName: "amazon"},
 		},
 		services,
 	)

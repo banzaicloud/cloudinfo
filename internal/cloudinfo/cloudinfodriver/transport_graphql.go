@@ -131,7 +131,7 @@ type serviceResolver struct{ *resolver }
 func (r *serviceResolver) Regions(ctx context.Context, obj *cloudinfo.Service) ([]cloudinfo.Region, error) {
 	req := listRegionsRequest{
 		Provider: obj.ProviderName(),
-		Service:  obj.Name,
+		Service:  obj.Code,
 	}
 
 	resp, err := r.regionEndpoints.List(ctx, req)

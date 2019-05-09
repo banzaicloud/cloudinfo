@@ -42,7 +42,7 @@ func NewServiceService(store ServiceStore) *ServiceService {
 
 // Service represents a single service.
 type Service struct {
-	Name string
+	Code string
 
 	providerName string
 }
@@ -64,7 +64,7 @@ func (s *ServiceService) ListServices(ctx context.Context, provider string) ([]S
 
 	for i, service := range cloudServices {
 		services[i] = Service{
-			Name:         service.Service,
+			Code:         service.Service,
 			providerName: provider,
 		}
 	}
