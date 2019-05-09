@@ -13,7 +13,7 @@
             <mat-option *ngFor="let service of provider.services"
                         [value]="service.service"
                         (click)="updateProducts(service.service, provider.provider)">
-              <span class="group-name">{{provider.name}} - </span>{{ service.service }}
+              <span class="group-name">{{ provider.name }} - </span>{{ service.service }}
             </mat-option>
           </mat-optgroup>
         </mat-select>
