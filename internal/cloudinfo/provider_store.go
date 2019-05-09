@@ -22,21 +22,15 @@ import (
 // Use it in tests or for development/demo purposes.
 type InMemoryProviderStore struct {
 	providers []cloudinfo.Provider
-	services  map[string][]cloudinfo.Service
 }
 
 // NewInMemoryProviderStore returns a new InMemoryProviderStore.
 func NewInMemoryProviderStore() *InMemoryProviderStore {
 	return &InMemoryProviderStore{
 		providers: []cloudinfo.Provider{},
-		services:  make(map[string][]cloudinfo.Service),
 	}
 }
 
 func (s *InMemoryProviderStore) GetProviders() ([]cloudinfo.Provider, error) {
 	return s.providers, nil
-}
-
-func (s *InMemoryProviderStore) GetServices(provider string) ([]cloudinfo.Service, error) {
-	return s.services[provider], nil
 }

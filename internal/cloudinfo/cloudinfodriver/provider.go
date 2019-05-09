@@ -12,40 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cloudinfo
+package cloudinfodriver
 
 import (
 	"context"
-	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
-func TestProviderService_ListProviders(t *testing.T) {
-	store := NewInMemoryProviderStore()
-	store.providers = []cloudinfo.Provider{
-		{
-			Provider: "amazon",
-		},
-		{
-			Provider: "google",
-		},
-	}
+const (
+	OperationProviderListProviders = "cloudinfo.Provider.ListProviders"
+)
 
-	providerService := NewProviderService(store)
-
-	providers, err := providerService.ListProviders(context.Background())
-	require.NoError(t, err)
-
-	assert.Equal(
-		t,
-		[]Provider{
-			{Name: "amazon"},
-			{Name: "google"},
-		},
-		providers,
-	)
+// ProviderService returns the list of supported providers and relevant information.
+type ProviderService interface {
+	// ListProviders returns a list of providers.
+	ListProviders(ctx context.Context) ([]cloudinfo.Provider, error)
 }

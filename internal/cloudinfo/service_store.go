@@ -15,37 +15,22 @@
 package cloudinfo
 
 import (
-	"context"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-func TestProviderService_ListProviders(t *testing.T) {
-	store := NewInMemoryProviderStore()
-	store.providers = []cloudinfo.Provider{
-		{
-			Provider: "amazon",
-		},
-		{
-			Provider: "google",
-		},
+// InMemoryServiceStore keeps instance types in the memory.
+// Use it in tests or for development/demo purposes.
+type InMemoryServiceStore struct {
+	services map[string][]cloudinfo.Service
+}
+
+// NewInMemoryServiceStore returns a new InMemoryServiceStore.
+func NewInMemoryServiceStore() *InMemoryServiceStore {
+	return &InMemoryServiceStore{
+		services: make(map[string][]cloudinfo.Service),
 	}
+}
 
-	providerService := NewProviderService(store)
-
-	providers, err := providerService.ListProviders(context.Background())
-	require.NoError(t, err)
-
-	assert.Equal(
-		t,
-		[]Provider{
-			{Name: "amazon"},
-			{Name: "google"},
-		},
-		providers,
-	)
+func (s *InMemoryServiceStore) GetServices(provider string) ([]cloudinfo.Service, error) {
+	return s.services[provider], nil
 }

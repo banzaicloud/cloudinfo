@@ -34,6 +34,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Provider() ProviderResolver
 	Query() QueryResolver
 }
 
@@ -69,6 +70,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type ProviderResolver interface {
+	Services(ctx context.Context, obj *cloudinfo.Provider) ([]cloudinfo.Service, error)
+}
 type QueryResolver interface {
 	Providers(ctx context.Context) ([]cloudinfo.Provider, error)
 	InstanceTypes(ctx context.Context, provider string, service string, region *string, zone *string, filter *cloudinfo.InstanceTypeQueryFilter) ([]cloudinfo.InstanceType, error)
@@ -753,13 +757,13 @@ func (ec *executionContext) _Provider_services(ctx context.Context, field graphq
 		Object:   "Provider",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Services, nil
+		return ec.resolvers.Provider().Services(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2096,10 +2100,19 @@ func (ec *executionContext) _Provider(ctx context.Context, sel ast.SelectionSet,
 				invalid = true
 			}
 		case "services":
-			out.Values[i] = ec._Provider_services(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Provider_services(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

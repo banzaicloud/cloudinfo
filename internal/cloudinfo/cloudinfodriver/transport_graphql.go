@@ -27,18 +27,27 @@ import (
 )
 
 // MakeGraphQLHandler mounts all of the service endpoints into a GraphQL handler.
-func MakeGraphQLHandler(endpoints Endpoints, errorHandler cloudinfo.ErrorHandler) http.Handler {
+func MakeGraphQLHandler(
+	endpoints Endpoints,
+	providerEndpoints ProviderEndpoints,
+	serviceEndpoints ServiceEndpoints,
+	errorHandler cloudinfo.ErrorHandler,
+) http.Handler {
 	return handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
 		Resolvers: &resolver{
-			endpoints:    endpoints,
-			errorHandler: errorHandler,
+			endpoints:         endpoints,
+			providerEndpoints: providerEndpoints,
+			serviceEndpoints:  serviceEndpoints,
+			errorHandler:      errorHandler,
 		},
 	}))
 }
 
 type resolver struct {
-	endpoints    Endpoints
-	errorHandler cloudinfo.ErrorHandler
+	endpoints         Endpoints
+	providerEndpoints ProviderEndpoints
+	serviceEndpoints  ServiceEndpoints
+	errorHandler      cloudinfo.ErrorHandler
 }
 
 func (r *resolver) Query() graphql.QueryResolver {
@@ -48,7 +57,7 @@ func (r *resolver) Query() graphql.QueryResolver {
 type queryResolver struct{ *resolver }
 
 func (r *queryResolver) Providers(ctx context.Context) ([]cloudinfo.Provider, error) {
-	resp, err := r.endpoints.ListProviders(ctx, nil)
+	resp, err := r.providerEndpoints.List(ctx, nil)
 	if err != nil {
 		r.errorHandler.Handle(err)
 
@@ -83,4 +92,29 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 	}
 
 	return resp.(instanceTypeQueryResponse).InstanceTypes, nil
+}
+
+func (r *resolver) Provider() graphql.ProviderResolver {
+	return &providerResolver{r}
+}
+
+type providerResolver struct{ *resolver }
+
+func (r *providerResolver) Services(ctx context.Context, obj *cloudinfo.Provider) ([]cloudinfo.Service, error) {
+	req := listServicesRequest{
+		Provider: obj.Name,
+	}
+
+	resp, err := r.serviceEndpoints.List(ctx, req)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listServicesResponse).Services, nil
 }

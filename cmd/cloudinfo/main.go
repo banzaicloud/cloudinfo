@@ -44,6 +44,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
 	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfodriver"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/errorhandler"
@@ -170,10 +171,14 @@ func main() {
 	err = api.ConfigureValidator(config.App.Providers, prodInfo, logger)
 	emperror.Panic(err)
 
+	cloudinfoLogger := cloudinfoadapter.NewLogger(logger)
 	providerService := cloudinfo2.NewProviderService(prodInfo)
+	serviceService := cloudinfo2.NewServiceService(prodInfo)
 	instanceTypeService := cloudinfo2.NewInstanceTypeService(prodInfo)
-	endpoints := cloudinfodriver.MakeEndpoints(providerService, instanceTypeService)
-	graphqlHandler := cloudinfodriver.MakeGraphQLHandler(endpoints, errorHandler)
+	endpoints := cloudinfodriver.MakeEndpoints(instanceTypeService)
+	providerEndpoints := cloudinfodriver.MakeProviderEndpoints(providerService, cloudinfoLogger)
+	serviceEndpoints := cloudinfodriver.MakeServiceEndpoints(serviceService, cloudinfoLogger)
+	graphqlHandler := cloudinfodriver.MakeGraphQLHandler(endpoints, providerEndpoints, serviceEndpoints, errorHandler)
 
 	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, graphqlHandler, logger)
 
