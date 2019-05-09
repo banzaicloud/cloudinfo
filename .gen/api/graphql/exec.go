@@ -267,6 +267,28 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
+	&ast.Source{Name: "api/graphql/filters.graphql", Input: `input IntFilter {
+    lt: Int
+    lte: Int
+    gt: Int
+    gte: Int
+    eq: Int
+    ne: Int
+    in: [Int!]
+    nin: [Int!]
+}
+
+input FloatFilter {
+    lt: Float
+    lte: Float
+    gt: Float
+    gte: Float
+    eq: Float
+    ne: Float
+    in: [Float!]
+    nin: [Float!]
+}
+`},
 	&ast.Source{Name: "api/graphql/instance_types.graphql", Input: `enum NetworkCategory {
 	LOW
 	MODERATE
@@ -295,28 +317,6 @@ type InstanceType {
 	category: InstanceTypeCategory!
 }
 
-input IntFilter {
-	lt: Int
-	lte: Int
-	gt: Int
-	gte: Int
-	eq: Int
-	ne: Int
-	in: [Int!]
-	nin: [Int!]
-}
-
-input FloatFilter {
-	lt: Float
-	lte: Float
-	gt: Float
-	gte: Float
-	eq: Float
-	ne: Float
-	in: [Float!]
-	nin: [Float!]
-}
-
 input NetworkCategoryFilter {
 	eq: NetworkCategory
 	ne: NetworkCategory
@@ -341,16 +341,16 @@ input InstanceTypeQueryInput {
 	category: InstanceTypeCategoryFilter
 }
 `},
-	&ast.Source{Name: "api/graphql/provider.graphql", Input: `type Provider {
-	name: String!
-	services: [Service!]!
+	&ast.Source{Name: "api/graphql/schema.graphql", Input: `type Provider {
+    name: String!
+    services: [Service!]!
 }
 
 type Service {
-	name: String!
+    name: String!
 }
-`},
-	&ast.Source{Name: "api/graphql/schema.graphql", Input: `type Query {
+
+type Query {
     providers: [Provider!]!
     instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput): [InstanceType!]!
 }

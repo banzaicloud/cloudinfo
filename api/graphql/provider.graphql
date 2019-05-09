@@ -1,8 +1,0 @@
-type Provider {
-	name: String!
-	services: [Service!]!
-}
-
-type Service {
-	name: String!
-}

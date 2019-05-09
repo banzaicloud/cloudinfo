@@ -1,0 +1,21 @@
+input IntFilter {
+    lt: Int
+    lte: Int
+    gt: Int
+    gte: Int
+    eq: Int
+    ne: Int
+    in: [Int!]
+    nin: [Int!]
+}
+
+input FloatFilter {
+    lt: Float
+    lte: Float
+    gt: Float
+    gte: Float
+    eq: Float
+    ne: Float
+    in: [Float!]
+    nin: [Float!]
+}
