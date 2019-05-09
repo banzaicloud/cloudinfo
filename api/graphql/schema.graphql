@@ -1,4 +1,5 @@
 type Provider {
+    code: String!
     name: String!
     services: [Service!]!
 }

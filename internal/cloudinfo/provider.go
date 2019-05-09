@@ -22,6 +22,15 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
+// nolint: gochecknoglobals
+var providerNames = map[string]string{
+	"amazon":  "Amazon Web Services",
+	"google":  "Google Cloud",
+	"alibaba": "Alibaba Cloud",
+	"oracle":  "Oracle",
+	"azure":   "Microsoft Azure",
+}
+
 // ProviderStore retrieves providers.
 type ProviderStore interface {
 	// GetProviders returns the supported providers.
@@ -42,6 +51,7 @@ func NewProviderService(store ProviderStore) *ProviderService {
 
 // Provider represents a single cloud provider.
 type Provider struct {
+	Code string
 	Name string
 }
 
@@ -55,8 +65,14 @@ func (s *ProviderService) ListProviders(ctx context.Context) ([]Provider, error)
 	providers := make([]Provider, len(cloudProviders))
 
 	for i, provider := range cloudProviders {
+		name, ok := providerNames[provider.Provider]
+		if !ok {
+			name = provider.Provider
+		}
+
 		providers[i] = Provider{
-			Name: provider.Provider,
+			Code: provider.Provider,
+			Name: name,
 		}
 	}
 

@@ -43,8 +43,8 @@ func TestProviderService_ListProviders(t *testing.T) {
 	assert.Equal(
 		t,
 		[]Provider{
-			{Name: "amazon"},
-			{Name: "google"},
+			{Code: "amazon", Name: "Amazon Web Services"},
+			{Code: "google", Name: "Google Cloud"},
 		},
 		providers,
 	)

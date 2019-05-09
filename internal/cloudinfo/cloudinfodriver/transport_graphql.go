@@ -105,7 +105,7 @@ type providerResolver struct{ *resolver }
 
 func (r *providerResolver) Services(ctx context.Context, obj *cloudinfo.Provider) ([]cloudinfo.Service, error) {
 	req := listServicesRequest{
-		Provider: obj.Name,
+		Provider: obj.Code,
 	}
 
 	resp, err := r.serviceEndpoints.List(ctx, req)

@@ -57,6 +57,7 @@ type ComplexityRoot struct {
 	}
 
 	Provider struct {
+		Code     func(childComplexity int) int
 		Name     func(childComplexity int) int
 		Services func(childComplexity int) int
 	}
@@ -172,6 +173,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InstanceType.Zone(childComplexity), true
+
+	case "Provider.Code":
+		if e.complexity.Provider.Code == nil {
+			break
+		}
+
+		return e.complexity.Provider.Code(childComplexity), true
 
 	case "Provider.Name":
 		if e.complexity.Provider.Name == nil {
@@ -373,6 +381,7 @@ input InstanceTypeQueryInput {
 }
 `},
 	&ast.Source{Name: "api/graphql/schema.graphql", Input: `type Provider {
+    code: String!
     name: String!
     services: [Service!]!
 }
@@ -758,6 +767,33 @@ func (ec *executionContext) _InstanceType_category(ctx context.Context, field gr
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Provider_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Provider) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Provider",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Provider_name(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Provider) graphql.Marshaler {
@@ -2212,6 +2248,11 @@ func (ec *executionContext) _Provider(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Provider")
+		case "code":
+			out.Values[i] = ec._Provider_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "name":
 			out.Values[i] = ec._Provider_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
