@@ -28,8 +28,6 @@ func TestRegionService_ListRegions(t *testing.T) {
 		"amazon": {
 			"compute": {
 				"eu-west-1": "EU (Ireland)",
-				"eu-west-2": "EU (London)",
-				"eu-west-3": "EU (Paris)",
 			},
 		},
 	}
@@ -43,8 +41,6 @@ func TestRegionService_ListRegions(t *testing.T) {
 		t,
 		[]Region{
 			{Code: "eu-west-1", Name: "EU (Ireland)", providerName: "amazon", serviceName: "compute"},
-			{Code: "eu-west-2", Name: "EU (London)", providerName: "amazon", serviceName: "compute"},
-			{Code: "eu-west-3", Name: "EU (Paris)", providerName: "amazon", serviceName: "compute"},
 		},
 		regions,
 	)
