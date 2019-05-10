@@ -26,14 +26,13 @@ spec:
 {{- end }}
   rules:
   {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
+    {{- $url := splitList "/" . }}
+    - host: {{ first $url }}
       http:
         paths:
-        {{- range .paths }}
-          - path: {{ . }}
+          - path: /{{ rest $url | join "/" }}
             backend:
               serviceName: {{ $fullName }}
               servicePort: http
-        {{- end }}
   {{- end }}
 {{- end }}
