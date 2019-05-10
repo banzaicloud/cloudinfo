@@ -6,11 +6,11 @@ shutdownTimeout = "5s"
 format = "json"
 level = "info"
 
-[instrumentation.metrics]
+[metrics]
 enabled = false
 address = ":9090"
 
-[instrumentation.jaeger]
+[jaeger]
 enabled = false
 
 # Configure either collectorEndpoint or agentEndpoint.
@@ -22,28 +22,39 @@ agentEndpoint = "localhost:6831"
 
 [app]
 address = ":8000"
-renewalInterval = "24h"
-providers = ["amazon", "google", "azure", "oracle", "alibaba"]
 
-[amazon]
+[scrape]
+interval = "24h"
+
+[provider.amazon]
+enabled = false
 accessKeyId = ""
 secretAccessKey = ""
+
+# http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter.
+# If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.
 prometheusAddress = ""
+
+# advanced configuration: change the query used to query spot price info from Prometheus.
 prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])"
 
-[google]
+[provider.google]
+enabled = false
 apiKey = ""
 appCredentials = ""
 
-[alibaba]
+[provider.alibaba]
+enabled = false
 regionId = ""
 accessKeyId = ""
 accessKeySecret = ""
 
-[oracle]
+[provider.oracle]
+enabled = false
 configLocation = ""
 
-[azure]
+[provider.azure]
+enabled = false
 authLocation = ""
 
 [management]

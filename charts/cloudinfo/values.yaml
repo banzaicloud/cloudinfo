@@ -6,40 +6,40 @@ replicaCount: 1
 
 image:
   repository: banzaicloud/cloudinfo
-  tag: 0.5.0
+  tag: 0.6.0
   pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
 
 service:
   type: ClusterIP
   port: 80
-  internalPort: 8080
 
 ingress:
   enabled: false
   annotations: {}
-    #kubernetes.io/ingress.class: traefik
-    #ingress.kubernetes.io/ssl-redirect: "false"
-    #traefik.frontend.rule.type: PathPrefix
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
   hosts:
     - "/"
-    # - "domain.com/xyz"
-    # - "domain.com"
+
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
 
-resources: #{}
+resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  requests:
-   cpu: 100m
-   memory: 128Mi
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
 
 nodeSelector: {}
 
@@ -47,22 +47,26 @@ tolerations: []
 
 affinity: {}
 
+## Additional deployment labels and annotations
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+deploymentLabels: {}
+deploymentAnnotations: {}
+
 app:
   logLevel: "info"
-  basePath: ""
+  basePath: "/"
 
 providers:
-  google:
-    enabled: false
-    gceApiKey: ""
-    gceCredentials: ""
   amazon:
     enabled: false
     awsAccessKeyId: ""
     awsSecretAccessKey: ""
+  google:
+    enabled: false
+    gceApiKey: ""
+    gceCredentials: ""
   azure:
     enabled: false
-    azureSubscriptionId: ""
     azureCredentials: ""
   oracle:
     enabled: false
@@ -76,12 +80,6 @@ providers:
     alibabaAccessKeyId: ""
     alibabaAccessKeySecret: ""
     alibabaRegionId: "eu-central-1"
-
-
-## Additional deployment labels and annotations
-## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-deploymentLabels: {}
-deploymentAnnotations: {}
 
 metrics:
   enabled: true

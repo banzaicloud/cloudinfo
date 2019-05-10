@@ -133,10 +133,10 @@ func main() {
 	tracer := tracing.NewNoOpTracer()
 
 	// Configure Jaeger
-	if config.Instrumentation.Jaeger.Enabled {
+	if config.Jaeger.Enabled {
 		logger.Info("jaeger exporter enabled")
 
-		tracing.SetupTracing(config.Instrumentation.Jaeger.Config, emperror.NewNoopHandler())
+		tracing.SetupTracing(config.Jaeger.Config, emperror.NewNoopHandler())
 		tracer = tracing.NewTracer()
 	}
 
@@ -144,21 +144,22 @@ func main() {
 	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, logger)
 	defer cloudInfoStore.Close()
 
-	infoers := loadInfoers(config, logger)
+	infoers, providers, err := loadInfoers(config, logger)
+	emperror.Panic(err)
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
 	eventBus := messaging.NewDefaultEventBus()
 
 	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
-	serviceManager.ConfigureServices(config.App.Providers)
+	serviceManager.ConfigureServices(providers)
 
-	serviceManager.LoadServiceInformation(config.App.Providers)
+	serviceManager.LoadServiceInformation(providers)
 
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
-	scrapingDriver := cloudinfo.NewScrapingDriver(config.App.RenewalInterval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+	scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
 
 	err = scrapingDriver.StartScraping()
 	emperror.Panic(err)
@@ -168,7 +169,7 @@ func main() {
 		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logger)
 	}
 
-	err = api.ConfigureValidator(config.App.Providers, prodInfo, logger)
+	err = api.ConfigureValidator(providers, prodInfo, logger)
 	emperror.Panic(err)
 
 	cloudinfoLogger := cloudinfoadapter.NewLogger(logger)
@@ -194,8 +195,10 @@ func main() {
 	router := gin.Default()
 
 	// add prometheus metric endpoint
-	if config.Instrumentation.Metrics.Enabled {
-		routeHandler.EnableMetrics(router, config.Instrumentation.Metrics.Address)
+	if config.Metrics.Enabled {
+		logger.Info("metrics enabled")
+
+		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
 	routeHandler.ConfigureRoutes(router)
@@ -204,37 +207,80 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
-func loadInfoers(config configuration, log logur.Logger) map[string]cloudinfo.CloudInfoer {
-	infoers := make(map[string]cloudinfo.CloudInfoer, len(config.App.Providers))
+func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
+	infoers := map[string]cloudinfo.CloudInfoer{}
 
-	var (
-		infoer cloudinfo.CloudInfoer
-		err    error
-	)
+	var providers []string
 
-	for _, p := range config.App.Providers {
-		log = logur.WithFields(log, map[string]interface{}{"provider": p})
+	if config.Provider.Amazon.Enabled {
+		providers = append(providers, Amazon)
+		logger := logur.WithFields(logger, map[string]interface{}{"provider": Amazon})
 
-		switch p {
-		case Amazon:
-			infoer, err = amazon.NewAmazonInfoer(config.Amazon, log)
-		case Google:
-			infoer, err = google.NewGoogleInfoer(config.Google, log)
-		case Azure:
-			infoer, err = azure.NewAzureInfoer(config.Azure, log)
-		case Oracle:
-			infoer, err = oracle.NewOracleInfoer(config.Oracle, log)
-		case Alibaba:
-			infoer, err = alibaba.NewAliInfoer(config.Alibaba, log)
-		default:
-			log.Error("provider is not supported")
+		infoer, err := amazon.NewAmazonInfoer(config.Provider.Amazon.Config, logger)
+		if err != nil {
+			return nil, nil, emperror.With(err, "provider", Amazon)
 		}
 
-		emperror.Panic(err)
+		infoers[Amazon] = infoer
 
-		infoers[p] = infoer
-		log.Info("configured product info provider", map[string]interface{}{"provider": p})
+		logger.Info("configured cloud info provider")
 	}
 
-	return infoers
+	if config.Provider.Google.Enabled {
+		providers = append(providers, Google)
+		logger := logur.WithFields(logger, map[string]interface{}{"provider": Google})
+
+		infoer, err := google.NewGoogleInfoer(config.Provider.Google.Config, logger)
+		if err != nil {
+			return nil, nil, emperror.With(err, "provider", Google)
+		}
+
+		infoers[Google] = infoer
+
+		logger.Info("configured cloud info provider")
+	}
+
+	if config.Provider.Alibaba.Enabled {
+		providers = append(providers, Alibaba)
+		logger := logur.WithFields(logger, map[string]interface{}{"provider": Alibaba})
+
+		infoer, err := alibaba.NewAlibabaInfoer(config.Provider.Alibaba.Config, logger)
+		if err != nil {
+			return nil, nil, emperror.With(err, "provider", Alibaba)
+		}
+
+		infoers[Alibaba] = infoer
+
+		logger.Info("configured cloud info provider")
+	}
+
+	if config.Provider.Oracle.Enabled {
+		providers = append(providers, Oracle)
+		logger := logur.WithFields(logger, map[string]interface{}{"provider": Oracle})
+
+		infoer, err := oracle.NewOracleInfoer(config.Provider.Oracle.Config, logger)
+		if err != nil {
+			return nil, nil, emperror.With(err, "provider", Oracle)
+		}
+
+		infoers[Oracle] = infoer
+
+		logger.Info("configured cloud info provider")
+	}
+
+	if config.Provider.Azure.Enabled {
+		providers = append(providers, Azure)
+		logger := logur.WithFields(logger, map[string]interface{}{"provider": Azure})
+
+		infoer, err := azure.NewAzureInfoer(config.Provider.Azure.Config, logger)
+		if err != nil {
+			return nil, nil, emperror.With(err, "provider", Azure)
+		}
+
+		infoers[Azure] = infoer
+
+		logger.Info("configured cloud info provider")
+	}
+
+	return infoers, providers, nil
 }

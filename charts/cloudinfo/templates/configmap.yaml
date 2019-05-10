@@ -1,20 +1,22 @@
----
 kind: ConfigMap
 apiVersion: v1
 metadata:
+  name: {{ include "cloudinfo.fullname" . }}
   labels:
-    app: {{ template "cloudinfo.name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    component: prometheus-config
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
-  name: {{ template "cloudinfo.fullname" . }}
-  namespace: {{ .Release.Namespace | quote }}
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
+  config.yaml: |
+    log:
+      level: {{ .Values.app.logLevel }}
+    metrics:
+      enabled: {{ .Values.metrics.enabled }}
   oci.properties: |-
     [DEFAULT]
     user={{ .Values.providers.oracle.ociUser }}
     tenancy={{ .Values.providers.oracle.ociTenancy }}
     region={{ .Values.providers.oracle.ociRegion }}
     fingerprint={{ .Values.providers.oracle.ociFingerprint }}
-    key_file=/credentials/oci_key.pem
+    key_file=/etc/cloudinfo/credentials/oci_key.pem

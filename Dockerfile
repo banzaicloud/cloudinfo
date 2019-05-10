@@ -57,10 +57,11 @@ COPY --from=builder /build/* /usr/local/bin/
 COPY --from=frontend /web/dist/ui /web/dist/ui
 
 COPY docker-entrypoint.sh /entrypoint.sh
-COPY configs /configs
+COPY configs /etc/cloudinfo/serviceconfig
 
-ENV CLOUDINFO_BASEPATH "/cloudinfo"
-ENV SERVICELOADER_SERVICECONFIGLOCATION "/configs"
+RUN sed -i "s|dataLocation: ./configs/|dataLocation: /etc/cloudinfo/serviceconfig/|g" /etc/cloudinfo/serviceconfig/services.yaml
+
+ENV CLOUDINFO_SERVICELOADER_SERVICECONFIGLOCATION "/etc/cloudinfo/serviceconfig"
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["cloudinfo"]
