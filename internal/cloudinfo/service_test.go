@@ -24,28 +24,37 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
-func TestProviderService_ListProviders(t *testing.T) {
-	store := NewInMemoryProviderStore()
-	store.providers = []cloudinfo.Provider{
-		{
-			Provider: "amazon",
+func TestServiceService_ListServices(t *testing.T) {
+	store := NewInMemoryServiceStore()
+	store.services = map[string][]cloudinfo.Service{
+		"amazon": {
+			{
+				Service: "compute",
+			},
+			{
+				Service: "eks",
+			},
 		},
-		{
-			Provider: "google",
+		"google": {
+			{
+				Service: "compute",
+			},
+			{
+				Service: "gke",
+			},
 		},
 	}
 
-	providerService := NewProviderService(store)
+	serviceService := NewServiceService(store)
 
-	providers, err := providerService.ListProviders(context.Background())
+	services, err := serviceService.ListServices(context.Background(), "amazon")
 	require.NoError(t, err)
 
 	assert.Equal(
 		t,
-		[]Provider{
-			{Code: "amazon", Name: "Amazon Web Services"},
-			{Code: "google", Name: "Google Cloud"},
+		[]Service{
+			{Code: "compute", providerName: "amazon"}, {Code: "eks", providerName: "amazon"},
 		},
-		providers,
+		services,
 	)
 }

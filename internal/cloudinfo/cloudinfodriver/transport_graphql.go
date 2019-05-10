@@ -27,18 +27,30 @@ import (
 )
 
 // MakeGraphQLHandler mounts all of the service endpoints into a GraphQL handler.
-func MakeGraphQLHandler(endpoints Endpoints, errorHandler cloudinfo.ErrorHandler) http.Handler {
+func MakeGraphQLHandler(
+	endpoints Endpoints,
+	providerEndpoints ProviderEndpoints,
+	serviceEndpoints ServiceEndpoints,
+	regionEndpoints RegionEndpoints,
+	errorHandler cloudinfo.ErrorHandler,
+) http.Handler {
 	return handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
 		Resolvers: &resolver{
-			endpoints:    endpoints,
-			errorHandler: errorHandler,
+			endpoints:         endpoints,
+			providerEndpoints: providerEndpoints,
+			serviceEndpoints:  serviceEndpoints,
+			regionEndpoints:   regionEndpoints,
+			errorHandler:      errorHandler,
 		},
 	}))
 }
 
 type resolver struct {
-	endpoints    Endpoints
-	errorHandler cloudinfo.ErrorHandler
+	endpoints         Endpoints
+	providerEndpoints ProviderEndpoints
+	serviceEndpoints  ServiceEndpoints
+	regionEndpoints   RegionEndpoints
+	errorHandler      cloudinfo.ErrorHandler
 }
 
 func (r *resolver) Query() graphql.QueryResolver {
@@ -48,7 +60,7 @@ func (r *resolver) Query() graphql.QueryResolver {
 type queryResolver struct{ *resolver }
 
 func (r *queryResolver) Providers(ctx context.Context) ([]cloudinfo.Provider, error) {
-	resp, err := r.endpoints.ListProviders(ctx, nil)
+	resp, err := r.providerEndpoints.List(ctx, nil)
 	if err != nil {
 		r.errorHandler.Handle(err)
 
@@ -83,4 +95,82 @@ func (r *queryResolver) InstanceTypes(ctx context.Context, provider string, serv
 	}
 
 	return resp.(instanceTypeQueryResponse).InstanceTypes, nil
+}
+
+func (r *resolver) Provider() graphql.ProviderResolver {
+	return &providerResolver{r}
+}
+
+type providerResolver struct{ *resolver }
+
+func (r *providerResolver) Services(ctx context.Context, obj *cloudinfo.Provider) ([]cloudinfo.Service, error) {
+	req := listServicesRequest{
+		Provider: obj.Code,
+	}
+
+	resp, err := r.serviceEndpoints.List(ctx, req)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listServicesResponse).Services, nil
+}
+
+func (r *resolver) Service() graphql.ServiceResolver {
+	return &serviceResolver{r}
+}
+
+type serviceResolver struct{ *resolver }
+
+func (r *serviceResolver) Regions(ctx context.Context, obj *cloudinfo.Service) ([]cloudinfo.Region, error) {
+	req := listRegionsRequest{
+		Provider: obj.ProviderName(),
+		Service:  obj.Code,
+	}
+
+	resp, err := r.regionEndpoints.ListRegions(ctx, req)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listRegionsResponse).Regions, nil
+}
+
+func (r *resolver) Region() graphql.RegionResolver {
+	return &regionResolver{r}
+}
+
+type regionResolver struct{ *resolver }
+
+func (r *regionResolver) Zones(ctx context.Context, obj *cloudinfo.Region) ([]cloudinfo.Zone, error) {
+	req := listZonesRequest{
+		Provider: obj.ProviderName(),
+		Service:  obj.ServiceName(),
+		Region:   obj.Code,
+	}
+
+	resp, err := r.regionEndpoints.ListZones(ctx, req)
+	if err != nil {
+		r.errorHandler.Handle(err)
+
+		return nil, errors.New("internal server error")
+	}
+
+	if f, ok := resp.(endpoint.Failer); ok && f.Failed() != nil {
+		return nil, f.Failed()
+	}
+
+	return resp.(listZonesResponse).Zones, nil
 }

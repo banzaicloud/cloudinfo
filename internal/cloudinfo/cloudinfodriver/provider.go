@@ -12,25 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cloudinfo
+package cloudinfodriver
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"context"
+
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
-// InMemoryProviderStore keeps providers in the memory.
-// Use it in tests or for development/demo purposes.
-type InMemoryProviderStore struct {
-	providers []cloudinfo.Provider
-}
+const (
+	OperationProviderListProviders = "cloudinfo.Provider.ListProviders"
+)
 
-// NewInMemoryProviderStore returns a new InMemoryProviderStore.
-func NewInMemoryProviderStore() *InMemoryProviderStore {
-	return &InMemoryProviderStore{
-		providers: []cloudinfo.Provider{},
-	}
-}
-
-func (s *InMemoryProviderStore) GetProviders() ([]cloudinfo.Provider, error) {
-	return s.providers, nil
+// ProviderService returns the list of supported providers and relevant information.
+type ProviderService interface {
+	// ListProviders returns a list of providers.
+	ListProviders(ctx context.Context) ([]cloudinfo.Provider, error)
 }

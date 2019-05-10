@@ -1,3 +1,24 @@
+type Provider {
+    code: String!
+    name: String!
+    services: [Service!]!
+}
+
+type Service {
+    code: String!
+    regions: [Region!]!
+}
+
+type Region {
+    code: String!
+    name: String!
+    zones: [Zone!]!
+}
+
+type Zone {
+    code: String!
+}
+
 type Query {
     providers: [Provider!]!
     instanceTypes(provider: String!, service: String!, region: String, zone: String, filter: InstanceTypeQueryInput): [InstanceType!]!
