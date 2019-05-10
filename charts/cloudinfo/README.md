@@ -47,7 +47,7 @@ The following tables lists the configurable parameters of the cloudinfo chart an
 | Parameter                                  | Description                                           | Default                 |
 |--------------------------------------------|-------------------------------------------------------|-------------------------|
 | `image.repository`                         | Container image repository                            | `banzaicloud/cloudinfo` |
-| `image.tag`                                | Container image tag                                   | `latest`                |
+| `image.tag`                                | Container image tag                                   | `0.6.0`                |
 | `image.pullPolicy`                         | Container pull policy                                 | `IfNotPresent`          |
 | `service.type`                             | The Kubernetes service type to use                    | `ClusterIP`             |
 | `service.port`                             | The Kubernetes service port to use                    | `80`                    |

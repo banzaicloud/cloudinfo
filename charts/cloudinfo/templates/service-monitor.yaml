@@ -37,7 +37,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- if .Values.metrics.serviceMonitor.additionalLabels }}
     {{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   endpoints:
     - interval: 300s
@@ -64,7 +64,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- if .Values.metrics.serviceMonitor.additionalLabels }}
     {{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   endpoints:
     - interval: 300s
