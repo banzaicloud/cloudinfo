@@ -28,12 +28,14 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
+	_ "github.com/sagikazarmark/viperx/remote/vault"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -92,6 +94,25 @@ func main() {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
 
+	var metaConfig metaConfiguration
+	err = v.UnmarshalKey("config", &metaConfig)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal meta configuration"))
+
+	err = metaConfig.Validate()
+	emperror.Panic(err)
+
+	if metaConfig.Vault.Enabled {
+		u, _ := url.Parse(metaConfig.Vault.Address)
+		u.RawQuery = "token=" + metaConfig.Vault.Token
+
+		err = v.AddRemoteProvider("vault", u.String(), metaConfig.Vault.SecretPath)
+		emperror.Panic(errors.Wrap(err, "failed to vault config provider"))
+
+		v.SetConfigType("json")
+		err = v.ReadRemoteConfig()
+		emperror.Panic(errors.Wrap(err, "failed to read remote configuration"))
+	}
+
 	var config configuration
 	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
@@ -115,7 +136,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	if d, _ := pflag.CommandLine.GetBool("dump-config"); d {
+	if d, _ := p.GetBool("dump-config"); d {
 		fmt.Printf("%+v\n", config)
 
 		os.Exit(0)

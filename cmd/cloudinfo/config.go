@@ -16,10 +16,12 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -48,6 +50,40 @@ const (
 	// Azure is the identifier of the MS Azure provider
 	Azure = "azure"
 )
+
+// metaConfiguration contains meta configuration for eg. remote config providers.
+type metaConfiguration struct {
+	// Vault configuration
+	Vault struct {
+		Enabled    bool
+		Address    string
+		Token      string
+		SecretPath string
+	}
+}
+
+// Validate validates the metaConfiguration.
+func (c metaConfiguration) Validate() error {
+	if c.Vault.Enabled {
+		if c.Vault.Address == "" {
+			return errors.New("vault address is required")
+		}
+
+		if _, err := url.Parse(c.Vault.Address); err != nil {
+			return errors.Wrap(err, "invalid vault address")
+		}
+
+		if c.Vault.Token == "" {
+			return errors.New("vault token is required")
+		}
+
+		if c.Vault.SecretPath == "" {
+			return errors.New("vault secret path is required")
+		}
+	}
+
+	return nil
+}
 
 // configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
@@ -162,6 +198,19 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	if _, ok := os.LookupEnv("NO_COLOR"); ok {
 		v.SetDefault("no_color", true)
 	}
+
+	// Vault configuration
+	p.String("config-vault", "", "enable config Vault")
+	_ = v.BindPFlag("config.vault.enabled", p.Lookup("config-vault"))
+
+	p.String("config-vault-address", "", "config Vault address")
+	_ = v.BindPFlag("config.vault.address", p.Lookup("config-vault-address"))
+
+	p.String("config-vault-token", "", "config Vault token")
+	_ = v.BindPFlag("config.vault.token", p.Lookup("config-vault-token"))
+
+	p.String("config-vault-secret-path", "", "config Vault secret path")
+	_ = v.BindPFlag("config.vault.secretPath", p.Lookup("config-vault-secret-path"))
 
 	// Log configuration
 	p.String("log-level", "info", "log level")
