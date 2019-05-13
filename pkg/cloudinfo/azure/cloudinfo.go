@@ -102,9 +102,8 @@ type ResourceSkuRetriever interface {
 	List(ctx context.Context) (result skus.ResourceSkusResultPage, err error)
 }
 
-// newInfoer creates a new instance of the Azure infoer
+// NewAzureInfoer creates a new instance of the Azure infoer.
 func NewAzureInfoer(cfg Config, log logur.Logger) (*AzureInfoer, error) {
-
 	credentialsConfig := auth.NewClientCredentialsConfig(cfg.ClientID, cfg.ClientSecret, cfg.TenantID)
 	authorizer, err := credentialsConfig.Authorizer()
 	if err != nil {
@@ -135,7 +134,6 @@ func NewAzureInfoer(cfg Config, log logur.Logger) (*AzureInfoer, error) {
 		containerSvcClient:  &containerServiceClient,
 		log:                 log,
 	}, nil
-
 }
 
 type regionParts []string
