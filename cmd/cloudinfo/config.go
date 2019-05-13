@@ -232,7 +232,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-azure", false, "enable azure provider")
 	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("provider-azure"))
 
-	_ = v.BindEnv("provider.azure.authLocation", "AZURE_AUTH_LOCATION")
+	_ = v.BindEnv("provider.azure.clientId", "AZURE_CLIENT_ID")
+	_ = v.BindEnv("provider.azure.clientSecret", "AZURE_CLIENT_SECRET")
+	_ = v.BindEnv("provider.azure.tenantId", "AZURE_TENANT_ID")
+	_ = v.BindEnv("provider.azure.subscriptionId", "AZURE_SUBSCRIPTION_ID")
 
 	// Management
 	v.SetDefault("management.enabled", true)
