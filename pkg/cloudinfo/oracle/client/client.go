@@ -31,14 +31,14 @@ type OCI struct {
 }
 
 // NewOCI creates a new OCI and gets and caches tenancy info
-func NewOCI(configFileLocation string) (oci *OCI, err error) {
-	config, err := common.ConfigurationProviderFromFile(configFileLocation, "")
+func NewOCI(cfgProvider common.ConfigurationProvider) (oci *OCI, err error) {
+
 	if err != nil {
 		return
 	}
 
 	oci = &OCI{
-		config: config,
+		config: cfgProvider,
 		logger: logrus.New(),
 	}
 

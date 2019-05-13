@@ -15,5 +15,10 @@
 package oracle
 
 type Config struct {
-	ConfigLocation string
+	Tenancy              string
+	User                 string
+	Region               string
+	Fingerprint          string
+	PrivateKey           string
+	PrivateKeyPassphrase *string
 }
