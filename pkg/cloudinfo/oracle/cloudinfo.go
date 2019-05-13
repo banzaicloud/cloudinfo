@@ -73,7 +73,6 @@ var shapeSpecs = map[string]ShapeSpecs{
 }
 
 func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
-
 	cfgProvider := common.NewRawConfigurationProvider(
 		cfg.Tenancy,
 		cfg.User,
@@ -93,7 +92,6 @@ func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
 		shapeSpecs: shapeSpecs,
 		log:        log,
 	}, nil
-
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service

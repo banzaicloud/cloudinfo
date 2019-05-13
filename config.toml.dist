@@ -58,7 +58,6 @@ fingerprint = ""
 privateKey = ""
 privateKeyPassphrase = ""
 
-
 [provider.azure]
 enabled = false
 clientId = ""
