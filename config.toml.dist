@@ -55,7 +55,10 @@ configLocation = ""
 
 [provider.azure]
 enabled = false
-authLocation = ""
+clientId = ""
+clientSecret = ""
+tenantId = ""
+subscriptionId = ""
 
 [management]
 enabled = true
