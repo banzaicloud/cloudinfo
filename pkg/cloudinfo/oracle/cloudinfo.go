@@ -19,6 +19,7 @@ import (
 
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
+	"github.com/oracle/oci-go-sdk/common"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
@@ -71,10 +72,18 @@ var shapeSpecs = map[string]ShapeSpecs{
 	"VM.DenseIO2.24":  {PartNumber: "B88516", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
 }
 
-// newInfoer creates a new instance of the infoer
-func newInfoer(configFileLocation string, log logur.Logger) (*Infoer, error) {
+func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
 
-	oci, err := client.NewOCI(configFileLocation)
+	cfgProvider := common.NewRawConfigurationProvider(
+		cfg.Tenancy,
+		cfg.User,
+		cfg.Region,
+		cfg.Fingerprint,
+		cfg.PrivateKey,
+		cfg.PrivateKeyPassphrase,
+	)
+
+	oci, err := client.NewOCI(cfgProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -84,10 +93,7 @@ func newInfoer(configFileLocation string, log logur.Logger) (*Infoer, error) {
 		shapeSpecs: shapeSpecs,
 		log:        log,
 	}, nil
-}
 
-func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
-	return newInfoer(cfg.ConfigLocation, log)
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service

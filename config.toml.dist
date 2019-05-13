@@ -51,7 +51,13 @@ accessKeySecret = ""
 
 [provider.oracle]
 enabled = false
-configLocation = ""
+tenancy = ""
+user = ""
+region = ""
+fingerprint = ""
+privateKey = ""
+privateKeyPassphrase = ""
+
 
 [provider.azure]
 enabled = false
