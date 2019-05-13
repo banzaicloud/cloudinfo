@@ -15,5 +15,8 @@
 package azure
 
 type Config struct {
-	AuthLocation string
+	ClientID       string
+	ClientSecret   string
+	TenantID       string
+	SubscriptionID string
 }

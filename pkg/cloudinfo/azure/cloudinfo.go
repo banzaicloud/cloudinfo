@@ -16,10 +16,7 @@ package azure
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,7 +26,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -70,10 +66,6 @@ var (
 	mtStandardN, _ = regexp.Compile(`^Standard_N[C|D|V]\d+r?[_v\d]*[_Promo]*$`)
 )
 
-type authentication struct {
-	SubscriptionID string `json:"subscriptionId,omitempty"`
-}
-
 // AzureInfoer encapsulates the data and operations needed to access external Azure resources
 type AzureInfoer struct {
 	subscriptionId      string
@@ -111,44 +103,31 @@ type ResourceSkuRetriever interface {
 }
 
 // newInfoer creates a new instance of the Azure infoer
-func newInfoer(authLocation string, log logur.Logger) (*AzureInfoer, error) {
-	err := os.Setenv("AZURE_AUTH_LOCATION", authLocation)
-	if err != nil {
-		return nil, err
-	}
+func NewAzureInfoer(cfg Config, log logur.Logger) (*AzureInfoer, error) {
 
-	authorizer, err := auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
+	credentialsConfig := auth.NewClientCredentialsConfig(cfg.ClientID, cfg.ClientSecret, cfg.TenantID)
+	authorizer, err := credentialsConfig.Authorizer()
 	if err != nil {
-		return nil, err
-	}
-
-	contents, err := ioutil.ReadFile(authLocation)
-	if err != nil {
-		return nil, err
-	}
-	a := authentication{}
-	err = json.Unmarshal(contents, &a)
-	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "failed to build authorizer")
 	}
 
 	sClient := subscriptions.NewClient()
 	sClient.Authorizer = authorizer
 
-	rcClient := commerce.NewRateCardClient(a.SubscriptionID)
+	rcClient := commerce.NewRateCardClient(cfg.SubscriptionID)
 	rcClient.Authorizer = authorizer
 
-	skusClient := skus.NewResourceSkusClient(a.SubscriptionID)
+	skusClient := skus.NewResourceSkusClient(cfg.SubscriptionID)
 	skusClient.Authorizer = authorizer
 
-	providersClient := resources.NewProvidersClient(a.SubscriptionID)
+	providersClient := resources.NewProvidersClient(cfg.SubscriptionID)
 	providersClient.Authorizer = authorizer
 
-	containerServiceClient := containerservice.NewContainerServicesClient(a.SubscriptionID)
+	containerServiceClient := containerservice.NewContainerServicesClient(cfg.SubscriptionID)
 	containerServiceClient.Authorizer = authorizer
 
 	return &AzureInfoer{
-		subscriptionId:      a.SubscriptionID,
+		subscriptionId:      cfg.SubscriptionID,
 		subscriptionsClient: sClient,
 		skusClient:          skusClient,
 		rateCardClient:      rcClient,
@@ -156,10 +135,7 @@ func newInfoer(authLocation string, log logur.Logger) (*AzureInfoer, error) {
 		containerSvcClient:  &containerServiceClient,
 		log:                 log,
 	}, nil
-}
 
-func NewAzureInfoer(cfg Config, log logur.Logger) (*AzureInfoer, error) {
-	return newInfoer(cfg.AuthLocation, log)
 }
 
 type regionParts []string
