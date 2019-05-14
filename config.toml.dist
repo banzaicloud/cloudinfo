@@ -41,7 +41,7 @@ prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_d
 [provider.google]
 enabled = false
 
-# bas64 encoded credentials in json format (base64 encoded content of the credential file)
+# base64 encoded credentials in json format (base64 encoded content of the credential file)
 credentialsJson = ""
 
 

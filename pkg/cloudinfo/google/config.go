@@ -15,6 +15,5 @@
 package google
 
 type Config struct {
-	ApiKey          string
 	CredentialsJson string
 }
