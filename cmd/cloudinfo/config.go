@@ -257,8 +257,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-google", false, "enable google provider")
 	_ = v.BindPFlag("provider.google.enabled", p.Lookup("provider-google"))
 
-	_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
-	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
+	_ = v.BindEnv("provider.google.credentials", "GOOGLE_CREDENTIALS")
+	_ = v.BindEnv("provider.google.credentialsFile", "GOOGLE_CREDENTIALS_FILE")
+	_ = v.BindEnv("provider.google.project", "GOOGLE_PROJECT")
 
 	// Alibaba config
 	p.Bool("provider-alibaba", false, "enable alibaba provider")

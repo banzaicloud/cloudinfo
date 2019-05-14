@@ -15,5 +15,8 @@
 package google
 
 type Config struct {
-	CredentialsJson string
+	Credentials     string
+	CredentialsFile string
+
+	Project string
 }

@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/goph/emperror"
@@ -66,46 +67,101 @@ type GceInfoer struct {
 	log          logur.Logger
 }
 
-func NewGoogleInfoer(cfg Config, log logur.Logger) (*GceInfoer, error) {
-
-	decoded, err := base64.StdEncoding.DecodeString(cfg.CredentialsJson)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to decode credentials")
-	}
-
-	credentials, err := google.CredentialsFromJSON(context.Background(), []byte(decoded))
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to parse credentials")
-	}
-
-	cliOPts := []option.ClientOption{
-		option.WithCredentialsJSON(decoded),
+// NewGoogleInfoer creates a new instance of the Google infoer.
+func NewGoogleInfoer(config Config, logger logur.Logger) (*GceInfoer, error) {
+	clientOpts := []option.ClientOption{
+		option.WithCredentialsFile(config.CredentialsFile),
 		option.WithScopes(compute.ComputeReadonlyScope, container.CloudPlatformScope),
 	}
 
-	computeSvc, err := compute.NewService(context.Background(), cliOPts...)
+	if config.Credentials != "" {
+		decoded, err := base64.StdEncoding.DecodeString(config.Credentials)
+		if err != nil {
+			return nil, emperror.WrapWith(err, "failed to decode credentials")
+		}
+
+		clientOpts = append(clientOpts, option.WithCredentialsJSON(decoded))
+	}
+
+	computeSvc, err := compute.NewService(context.Background(), clientOpts...)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create the compute service client")
 	}
 
-	billingSvc, err := cloudbilling.NewService(context.Background(), cliOPts...)
+	billingSvc, err := cloudbilling.NewService(context.Background(), clientOpts...)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create the billing service client")
 	}
 
-	containerSvc, err := container.NewService(context.Background(), cliOPts...)
+	containerSvc, err := container.NewService(context.Background(), clientOpts...)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create the container service client")
+	}
+
+	project, err := getProject(config)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to determine the project")
 	}
 
 	return &GceInfoer{
 		cbSvc:        billingSvc,
 		computeSvc:   computeSvc,
 		containerSvc: containerSvc,
-		projectId:    credentials.ProjectID,
-		log:          log,
+		projectId:    project,
+		log:          logger,
 	}, nil
+}
 
+func getProject(config Config) (string, error) {
+	if config.Project != "" {
+		return config.Project, nil
+	}
+
+	if config.Credentials != "" {
+		decoded, err := base64.StdEncoding.DecodeString(config.Credentials)
+		if err != nil {
+			return "", emperror.Wrap(err, "failed to decode credentials")
+		}
+
+		credentials, err := google.CredentialsFromJSON(context.Background(), decoded)
+		if err != nil {
+			return "", emperror.Wrap(err, "failed to parse credentials")
+		}
+
+		if credentials.ProjectID != "" {
+			return credentials.ProjectID, nil
+		}
+	}
+
+	if config.CredentialsFile != "" {
+		file, err := ioutil.ReadFile(config.CredentialsFile)
+		if err != nil {
+			return "", emperror.Wrap(err, "failed to read credentials file")
+		}
+
+		credentials, err := google.CredentialsFromJSON(context.Background(), file)
+		if err != nil {
+			return "", emperror.Wrap(err, "failed to parse credentials")
+		}
+
+		if credentials.ProjectID != "" {
+			return credentials.ProjectID, nil
+		}
+	}
+
+	credentials, err := google.FindDefaultCredentials(
+		context.Background(),
+		compute.ComputeReadonlyScope,
+		container.CloudPlatformScope,
+	)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to find credentials")
+	}
+	if credentials.ProjectID != "" {
+		return credentials.ProjectID, nil
+	}
+
+	return "", errors.New("non of the credentials contained the project id")
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service

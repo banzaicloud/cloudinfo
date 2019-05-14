@@ -54,7 +54,11 @@ prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_d
 enabled = false
 
 # base64 encoded credentials in json format (base64 encoded content of the credential file)
-credentialsJson = ""
+# credentials = ""
+
+# credentialsFile = ""
+
+# project = ""
 
 [provider.alibaba]
 enabled = false
