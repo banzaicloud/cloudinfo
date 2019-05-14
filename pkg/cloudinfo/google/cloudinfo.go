@@ -85,17 +85,17 @@ func NewGoogleInfoer(cfg Config, log logur.Logger) (*GceInfoer, error) {
 
 	computeSvc, err := compute.NewService(context.Background(), cliOPts...)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create the compute service client")
 	}
 
 	billingSvc, err := cloudbilling.NewService(context.Background(), cliOPts...)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create the billing service client")
 	}
 
 	containerSvc, err := container.NewService(context.Background(), cliOPts...)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create the container service client")
 	}
 
 	return &GceInfoer{
