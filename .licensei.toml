@@ -30,4 +30,6 @@ ignored = [
     "google.golang.org/genproto",
     "contrib.go.opencensus.io/exporter/ocagent",
     "cloud.google.com/go",
+    "contrib.go.opencensus.io/exporter/jaeger",
+    "contrib.go.opencensus.io/exporter/prometheus",
 ]
