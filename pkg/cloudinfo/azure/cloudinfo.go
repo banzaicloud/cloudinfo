@@ -26,6 +26,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
@@ -103,36 +105,54 @@ type ResourceSkuRetriever interface {
 }
 
 // NewAzureInfoer creates a new instance of the Azure infoer.
-func NewAzureInfoer(cfg Config, log logur.Logger) (*AzureInfoer, error) {
-	credentialsConfig := auth.NewClientCredentialsConfig(cfg.ClientID, cfg.ClientSecret, cfg.TenantID)
-	authorizer, err := credentialsConfig.Authorizer()
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to build authorizer")
+func NewAzureInfoer(config Config, logger logur.Logger) (*AzureInfoer, error) {
+	var authorizer autorest.Authorizer
+	if config.ClientID != "" && config.ClientSecret != "" && config.TenantID != "" {
+		credentialsConfig := auth.NewClientCredentialsConfig(config.ClientID, config.ClientSecret, config.TenantID)
+		a, err := credentialsConfig.Authorizer()
+		if err != nil {
+			return nil, emperror.Wrap(err, "failed to build authorizer")
+		}
+
+		authorizer = a
+	}
+
+	if authorizer == nil {
+		a, err := auth.NewAuthorizerFromEnvironment()
+		authorizer = a
+		if err != nil { // Failed to create authorizer from environment, try from file
+			a, err := auth.NewAuthorizerFromFile(azure.PublicCloud.ResourceManagerEndpoint)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get authorizer from both env and file")
+			}
+
+			authorizer = a
+		}
 	}
 
 	sClient := subscriptions.NewClient()
 	sClient.Authorizer = authorizer
 
-	rcClient := commerce.NewRateCardClient(cfg.SubscriptionID)
+	rcClient := commerce.NewRateCardClient(config.SubscriptionID)
 	rcClient.Authorizer = authorizer
 
-	skusClient := skus.NewResourceSkusClient(cfg.SubscriptionID)
+	skusClient := skus.NewResourceSkusClient(config.SubscriptionID)
 	skusClient.Authorizer = authorizer
 
-	providersClient := resources.NewProvidersClient(cfg.SubscriptionID)
+	providersClient := resources.NewProvidersClient(config.SubscriptionID)
 	providersClient.Authorizer = authorizer
 
-	containerServiceClient := containerservice.NewContainerServicesClient(cfg.SubscriptionID)
+	containerServiceClient := containerservice.NewContainerServicesClient(config.SubscriptionID)
 	containerServiceClient.Authorizer = authorizer
 
 	return &AzureInfoer{
-		subscriptionId:      cfg.SubscriptionID,
+		subscriptionId:      config.SubscriptionID,
 		subscriptionsClient: sClient,
 		skusClient:          skusClient,
 		rateCardClient:      rcClient,
 		providersClient:     providersClient,
 		containerSvcClient:  &containerServiceClient,
-		log:                 log,
+		log:                 logger,
 	}, nil
 }
 

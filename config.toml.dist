@@ -82,10 +82,13 @@ enabled = false
 
 [provider.azure]
 enabled = false
-clientId = ""
-clientSecret = ""
-tenantId = ""
-subscriptionId = ""
+
+# subscriptionId = ""
+
+# Client credentials
+# clientId = ""
+# clientSecret = ""
+# tenantId = ""
 
 [management]
 enabled = true
