@@ -35,7 +35,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
-	_ "github.com/sagikazarmark/viperx/remote/vault"
+	_ "github.com/sagikazarmark/viperx/remote/bankvaults"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -105,8 +105,8 @@ func main() {
 		u, _ := url.Parse(metaConfig.Vault.Address)
 		u.RawQuery = "token=" + metaConfig.Vault.Token
 
-		err = v.AddRemoteProvider("vault", u.String(), metaConfig.Vault.SecretPath)
-		emperror.Panic(errors.Wrap(err, "failed to vault config provider"))
+		err = v.AddRemoteProvider("bankvaults", u.String(), metaConfig.Vault.SecretPath)
+		emperror.Panic(errors.Wrap(err, "failed to add vault config provider"))
 
 		v.SetConfigType("json")
 		err = v.ReadRemoteConfig()
