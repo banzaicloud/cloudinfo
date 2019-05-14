@@ -276,12 +276,14 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-oracle", false, "enable oracle provider")
 	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("provider-oracle"))
 
-	_ = v.BindEnv("provider.oracle.tenancy", "ORACLE_CLI_TENANCY_OCID")
-	_ = v.BindEnv("provider.oracle.user", "ORACLE_CLI_USER_OCID")
-	_ = v.BindEnv("provider.oracle.region", "ORACLE_CLI_REGION")
-	_ = v.BindEnv("provider.oracle.fingerprint", "ORACLE_CLI_FINGERPRINT")
-	_ = v.BindEnv("provider.oracle.privateKey", "ORACLE_CLI_PRIVATE_KEY")
-	_ = v.BindEnv("provider.oracle.privateKeyPassphrase", "ORACLE_CLI_PRIVATE_KEY_PASSPHRASE")
+	_ = v.BindEnv("provider.oracle.tenancy", "ORACLE_TENANCY_OCID")
+	_ = v.BindEnv("provider.oracle.user", "ORACLE_USER_OCID")
+	_ = v.BindEnv("provider.oracle.region", "ORACLE_REGION")
+	_ = v.BindEnv("provider.oracle.fingerprint", "ORACLE_FINGERPRINT")
+	_ = v.BindEnv("provider.oracle.privateKey", "ORACLE_PRIVATE_KEY")
+	_ = v.BindEnv("provider.oracle.privateKeyPassphrase", "ORACLE_PRIVATE_KEY_PASSPHRASE")
+	_ = v.BindEnv("provider.oracle.configFilePath", "ORACLE_CONFIG_FILE_PATH")
+	_ = v.BindEnv("provider.oracle.profile", "ORACLE_PROFILE")
 
 	// Azure config
 	p.Bool("provider-azure", false, "enable azure provider")

@@ -72,17 +72,43 @@ var shapeSpecs = map[string]ShapeSpecs{
 	"VM.DenseIO2.24":  {PartNumber: "B88516", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
 }
 
-func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
-	cfgProvider := common.NewRawConfigurationProvider(
-		cfg.Tenancy,
-		cfg.User,
-		cfg.Region,
-		cfg.Fingerprint,
-		cfg.PrivateKey,
-		cfg.PrivateKeyPassphrase,
-	)
+// NewOracleInfoer creates a new instance of the Oracle infoer.
+func NewOracleInfoer(config Config, logger logur.Logger) (*Infoer, error) {
+	var privateKeyPassphrase string
+	if config.PrivateKeyPassphrase != nil {
+		privateKeyPassphrase = *config.PrivateKeyPassphrase
+	}
 
-	oci, err := client.NewOCI(cfgProvider)
+	providers := []common.ConfigurationProvider{
+		common.NewRawConfigurationProvider(
+			config.Tenancy,
+			config.User,
+			config.Region,
+			config.Fingerprint,
+			config.PrivateKey,
+			config.PrivateKeyPassphrase,
+		),
+		common.ConfigurationProviderEnvironmentVariables("oracle", privateKeyPassphrase),
+	}
+
+	if config.ConfigFilePath != "" && config.Profile != "" {
+		provider, _ := common.ConfigurationProviderFromFileWithProfile(
+			config.ConfigFilePath,
+			config.Profile,
+			privateKeyPassphrase,
+		)
+		providers = append(providers, provider)
+	} else if config.ConfigFilePath != "" {
+		provider, _ := common.ConfigurationProviderFromFile(
+			config.ConfigFilePath,
+			privateKeyPassphrase,
+		)
+		providers = append(providers, provider)
+	}
+
+	provider, _ := common.ComposingConfigurationProvider(providers)
+
+	oci, err := client.NewOCI(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +116,7 @@ func NewOracleInfoer(cfg Config, log logur.Logger) (*Infoer, error) {
 	return &Infoer{
 		client:     oci,
 		shapeSpecs: shapeSpecs,
-		log:        log,
+		log:        logger,
 	}, nil
 }
 

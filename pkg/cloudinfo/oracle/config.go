@@ -21,4 +21,7 @@ type Config struct {
 	Fingerprint          string
 	PrivateKey           string
 	PrivateKeyPassphrase *string
+
+	ConfigFilePath string
+	Profile        string
 }

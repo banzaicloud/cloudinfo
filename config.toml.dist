@@ -69,12 +69,16 @@ enabled = false
 
 [provider.oracle]
 enabled = false
-tenancy = ""
-user = ""
-region = ""
-fingerprint = ""
-privateKey = ""
-privateKeyPassphrase = ""
+
+# tenancy = ""
+# user = ""
+# region = ""
+# fingerprint = ""
+# privateKey = ""
+# privateKeyPassphrase = ""
+
+# configFilePath = ""
+# profile = ""
 
 [provider.azure]
 enabled = false
