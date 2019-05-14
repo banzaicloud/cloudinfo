@@ -16,19 +16,18 @@ package google
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
-	"net/http"
-	"os"
 	"strings"
 
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
-	billing "google.golang.org/api/cloudbilling/v1"
+	"google.golang.org/api/cloudbilling/v1"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/container/v1"
-	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/option"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
@@ -60,43 +59,41 @@ var regionNames = map[string]string{
 
 // GceInfoer encapsulates the data and operations needed to access external resources
 type GceInfoer struct {
-	cbSvc        *billing.APIService
+	cbSvc        *cloudbilling.APIService
 	computeSvc   *compute.Service
 	containerSvc *container.Service
 	projectId    string
 	log          logur.Logger
 }
 
-// newInfoer creates a new instance of the infoer
-func newInfoer(appCredentials, apiKey string, log logur.Logger) (*GceInfoer, error) {
-	if appCredentials == "" {
-		return nil, errors.New("environment variable GOOGLE_APPLICATION_CREDENTIALS is not set")
+func NewGoogleInfoer(cfg Config, log logur.Logger) (*GceInfoer, error) {
+
+	decoded, err := base64.StdEncoding.DecodeString(cfg.CredentialsJson)
+	if err != nil {
+		return nil, emperror.WrapWith(err, "failed to decode credentials")
 	}
-	err := os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", appCredentials)
+
+	credentials, err := google.CredentialsFromJSON(context.Background(), []byte(decoded))
+	if err != nil {
+		return nil, emperror.WrapWith(err, "failed to parse credentials")
+	}
+
+	cliOPts := []option.ClientOption{
+		option.WithCredentialsJSON(decoded),
+		option.WithScopes(compute.ComputeReadonlyScope, container.CloudPlatformScope),
+	}
+
+	computeSvc, err := compute.NewService(context.Background(), cliOPts...)
 	if err != nil {
 		return nil, err
 	}
 
-	defaultCredential, err := google.FindDefaultCredentials(context.Background(), compute.ComputeReadonlyScope, container.CloudPlatformScope)
-	if err != nil {
-		return nil, err
-	}
-	client, err := google.DefaultClient(context.Background(), compute.ComputeReadonlyScope, container.CloudPlatformScope)
-	if err != nil {
-		return nil, err
-	}
-	computeSvc, err := compute.New(client)
+	billingSvc, err := cloudbilling.NewService(context.Background(), cliOPts...)
 	if err != nil {
 		return nil, err
 	}
 
-	billingSvc, err := billing.New(&http.Client{
-		Transport: &transport.APIKey{Key: apiKey},
-	})
-	if err != nil {
-		return nil, err
-	}
-	containerSvc, err := container.New(client)
+	containerSvc, err := container.NewService(context.Background(), cliOPts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +102,10 @@ func newInfoer(appCredentials, apiKey string, log logur.Logger) (*GceInfoer, err
 		cbSvc:        billingSvc,
 		computeSvc:   computeSvc,
 		containerSvc: containerSvc,
-		projectId:    defaultCredential.ProjectID,
+		projectId:    credentials.ProjectID,
 		log:          log,
 	}, nil
-}
 
-func NewGoogleInfoer(cfg Config, log logur.Logger) (*GceInfoer, error) {
-	return newInfoer(cfg.AppCredentials, cfg.ApiKey, log)
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
@@ -193,7 +187,7 @@ func (g *GceInfoer) getPrice() (map[string]map[string]map[string]float64, error)
 	}
 
 	price := make(map[string]map[string]map[string]float64)
-	err = g.cbSvc.Services.Skus.List(compEngId).Pages(context.Background(), func(response *billing.ListSkusResponse) error {
+	err = g.cbSvc.Services.Skus.List(compEngId).Pages(context.Background(), func(response *cloudbilling.ListSkusResponse) error {
 		for _, sku := range response.Skus {
 			if sku.Category.ResourceGroup == "G1Small" || sku.Category.ResourceGroup == "F1Micro" {
 				priceInUsd, err := g.priceInUsd(sku.PricingInfo)
@@ -241,7 +235,7 @@ func (g *GceInfoer) getPrice() (map[string]map[string]map[string]float64, error)
 	return price, nil
 }
 
-func (g *GceInfoer) priceInUsd(pricingInfos []*billing.PricingInfo) (float64, error) {
+func (g *GceInfoer) priceInUsd(pricingInfos []*cloudbilling.PricingInfo) (float64, error) {
 	if len(pricingInfos) != 1 {
 		return 0, emperror.With(errors.New("pricing info not parsable"), "numberOfPricingInfos", len(pricingInfos))
 	}
