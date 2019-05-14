@@ -2,6 +2,12 @@ environment = "production"
 debug = false
 shutdownTimeout = "5s"
 
+[config.vault]
+enabled = false
+address = ""
+token = ""
+secretPath = ""
+
 [log]
 format = "json"
 level = "info"
@@ -28,8 +34,8 @@ interval = "24h"
 
 [provider.amazon]
 enabled = false
-accessKeyId = ""
-secretAccessKey = ""
+# accessKeyId = ""
+# secretAccessKey = ""
 
 # http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter.
 # If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.
@@ -47,9 +53,9 @@ credentialsJson = ""
 
 [provider.alibaba]
 enabled = false
-regionId = ""
-accessKeyId = ""
-accessKeySecret = ""
+# regionId = ""
+# accessKeyId = ""
+# accessKeySecret = ""
 
 [provider.oracle]
 enabled = false
