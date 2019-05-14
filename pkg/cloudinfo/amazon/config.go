@@ -14,10 +14,17 @@
 
 package amazon
 
-// Config represents configuration for obtaining cloud information from Amazon
+// Config represents configuration for obtaining cloud information from Amazon.
 type Config struct {
-	AccessKeyId       string
-	SecretAccessKey   string
+	// Static credentials
+	AccessKey string
+	SecretKey string
+
+	// Shared credentials
+	SharedCredentialsFile string
+	Profile               string
+
+	// Prometheus settings
 	PrometheusAddress string
 	PrometheusQuery   string
 }

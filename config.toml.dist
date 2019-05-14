@@ -34,8 +34,14 @@ interval = "24h"
 
 [provider.amazon]
 enabled = false
-# accessKeyId = ""
-# secretAccessKey = ""
+
+# Static credentials
+# accessKey = ""
+# secretKey = ""
+
+# Shared credentials
+# sharedCredentialsFile = ""
+# profile = ""
 
 # http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter.
 # If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.

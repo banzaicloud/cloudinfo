@@ -163,7 +163,9 @@ func TestNewEc2Infoer(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.check(newInfoer(test.prom, "", "", "", logur.NewTestLogger()))
+			c := Config{PrometheusAddress: test.prom}
+
+			test.check(NewAmazonInfoer(c, logur.NewTestLogger()))
 		})
 	}
 }
@@ -195,7 +197,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := newInfoer("", "", "", "", logur.NewTestLogger())
+			cloudInfoer, err := NewAmazonInfoer(Config{}, logur.NewTestLogger())
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -237,7 +239,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := newInfoer("", "", "", "", logur.NewTestLogger())
+			cloudInfoer, err := NewAmazonInfoer(Config{}, logur.NewTestLogger())
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
@@ -281,7 +283,8 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := newInfoer("PromAPIAddress", "", "", "", logur.NewTestLogger())
+			c := Config{PrometheusAddress: "PromAPIAddress"}
+			cloudInfoer, err := NewAmazonInfoer(c, logur.NewTestLogger())
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
@@ -326,7 +329,8 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := newInfoer("PromAPIAddress", "", "", "", logur.NewTestLogger())
+			c := Config{PrometheusAddress: "PromAPIAddress"}
+			cloudInfoer, err := NewAmazonInfoer(c, logur.NewTestLogger())
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {

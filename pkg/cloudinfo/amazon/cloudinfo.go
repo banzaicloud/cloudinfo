@@ -57,33 +57,41 @@ type Ec2Describer interface {
 	DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPriceHistoryInput, fn func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool) error
 }
 
-// newInfoer creates a new instance of the infoer
-func newInfoer(promAddr, pq, awsAccessKeyId, awsSecretAccessKey string, log logur.Logger) (*Ec2Infoer, error) {
+// NewAmazonInfoer builds an infoer instance based on the provided configuration
+func NewAmazonInfoer(config Config, logger logur.Logger) (*Ec2Infoer, error) {
 	const defaultPricingRegion = "us-east-1"
 
+	providers := []credentials.Provider{
+		&credentials.StaticProvider{Value: credentials.Value{
+			AccessKeyID:     config.AccessKey,
+			SecretAccessKey: config.SecretKey,
+		}},
+		&credentials.EnvProvider{},
+		&credentials.SharedCredentialsProvider{
+			Filename: config.SharedCredentialsFile,
+			Profile:  config.Profile,
+		},
+	}
+
 	s, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(
-			awsAccessKeyId,
-			awsSecretAccessKey,
-			"",
-		),
-		Region: aws.String(defaultPricingRegion),
+		Credentials: credentials.NewChainCredentials(providers),
+		Region:      aws.String(defaultPricingRegion),
 	})
 	if err != nil {
-		log.Error("failed to create AWS session")
+		logger.Error("failed to create AWS session")
 		return nil, err
 	}
 
 	var promApi v1.API
-	if promAddr == "" {
-		log.Warn("Prometheus API address is not set, fallback to direct API access.")
+	if config.PrometheusAddress == "" {
+		logger.Warn("Prometheus API address is not set, fallback to direct API access.")
 		promApi = nil
 	} else {
 		promClient, err := api.NewClient(api.Config{
-			Address: promAddr,
+			Address: config.PrometheusAddress,
 		})
 		if err != nil {
-			log.Error("failed to create Prometheus client, fallback to direct API access.")
+			logger.Error("failed to create Prometheus client, fallback to direct API access.")
 			promApi = nil
 		} else {
 			promApi = v1.NewAPI(promClient)
@@ -93,17 +101,12 @@ func newInfoer(promAddr, pq, awsAccessKeyId, awsSecretAccessKey string, log logu
 	return &Ec2Infoer{
 		pricingSvc: NewPricingSource(s),
 		prometheus: promApi,
-		promQuery:  pq,
+		promQuery:  config.PrometheusQuery,
 		ec2Describer: func(region string) Ec2Describer {
 			return ec2.New(s, s.Config.WithRegion(region))
 		},
-		log: log,
+		log: logger,
 	}, nil
-}
-
-// NewAmazonInfoer builds an infoer instance based on the provided configuration
-func NewAmazonInfoer(cfg Config, log logur.Logger) (*Ec2Infoer, error) {
-	return newInfoer(cfg.PrometheusAddress, cfg.PrometheusQuery, cfg.AccessKeyId, cfg.SecretAccessKey, log)
 }
 
 // Initialize is not needed on EC2 because price info is changing frequently
