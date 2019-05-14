@@ -56,12 +56,12 @@ enabled = false
 # base64 encoded credentials in json format (base64 encoded content of the credential file)
 credentialsJson = ""
 
-
 [provider.alibaba]
 enabled = false
-# regionId = ""
-# accessKeyId = ""
-# accessKeySecret = ""
+
+# region = ""
+# accessKey = ""
+# secretKey = ""
 
 [provider.oracle]
 enabled = false

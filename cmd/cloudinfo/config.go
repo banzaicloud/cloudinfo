@@ -264,9 +264,12 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-alibaba", false, "enable alibaba provider")
 	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("provider-alibaba"))
 
-	_ = v.BindEnv("provider.alibaba.regionId", "ALIBABA_REGION_ID")
-	_ = v.BindEnv("provider.alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
-	_ = v.BindEnv("provider.alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
+	_ = v.BindEnv("provider.alibaba.region", "ALIBABA_REGION_ID")
+	_ = v.BindEnv("provider.alibaba.region", "ALICLOUD_REGION")
+	_ = v.BindEnv("provider.alibaba.accessKey", "ALIBABA_ACCESS_KEY_ID")
+	_ = v.BindEnv("provider.alibaba.accessKey", "ALICLOUD_ACCESS_KEY")
+	_ = v.BindEnv("provider.alibaba.secretKey", "ALIBABA_ACCESS_KEY_SECRET")
+	_ = v.BindEnv("provider.alibaba.secretKey", "ALICLOUD_SECRET_KEY")
 
 	// Oracle config
 	p.Bool("provider-oracle", false, "enable oracle provider")

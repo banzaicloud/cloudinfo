@@ -39,18 +39,15 @@ type AlibabaInfoer struct {
 
 const svcAck = "ack"
 
-// newInfoer creates a new instance of the Alibaba infoer
-func newInfoer(regionId, accessKeyId, accessKeySecret string, log logur.Logger) (*AlibabaInfoer, error) {
-
-	// Create client
+// NewAlibabaInfoer creates a new instance of the Alibaba infoer.
+func NewAlibabaInfoer(config Config, logger logur.Logger) (*AlibabaInfoer, error) {
 	client, err := sdk.NewClientWithAccessKey(
-		regionId,
-		accessKeyId,
-		accessKeySecret,
+		config.Region,
+		config.AccessKey,
+		config.SecretKey,
 	)
 	if err != nil {
-		// Handle exceptions
-		panic(err)
+		return nil, err
 	}
 
 	// client.GetConfig().WithAutoRetry(true)
@@ -61,12 +58,8 @@ func newInfoer(regionId, accessKeyId, accessKeySecret string, log logur.Logger) 
 
 	return &AlibabaInfoer{
 		client: client,
-		log:    log,
+		log:    logger,
 	}, nil
-}
-
-func NewAlibabaInfoer(cfg Config, log logur.Logger) (*AlibabaInfoer, error) {
-	return newInfoer(cfg.RegionId, cfg.AccessKeyId, cfg.AccessKeySecret, log)
 }
 
 // Initialize is not needed on Alibaba because price info is changing frequently

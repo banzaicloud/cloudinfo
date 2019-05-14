@@ -15,7 +15,7 @@
 package alibaba
 
 type Config struct {
-	AccessKeyId     string
-	AccessKeySecret string
-	RegionId        string
+	Region    string
+	AccessKey string
+	SecretKey string
 }
