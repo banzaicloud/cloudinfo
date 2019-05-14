@@ -4,8 +4,9 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.35.1 // indirect
+	contrib.go.opencensus.io/exporter/jaeger v0.1.0
 	contrib.go.opencensus.io/exporter/ocagent v0.2.0 // indirect
-	git.apache.org/thrift.git v0.0.0-20190129144812-042580f53441 // indirect
+	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Azure/azure-sdk-for-go v24.1.0+incompatible
 	github.com/Azure/go-autorest v11.3.2+incompatible
@@ -34,23 +35,23 @@ require (
 	github.com/go-openapi/strfmt v0.18.0
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0 // indirect
-	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/goph/emperror v0.16.0
 	github.com/goph/logur v0.11.0
+	github.com/gorilla/context v1.1.1 // indirect
+	github.com/gorilla/mux v1.6.2 // indirect
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.0.0-20160529214634-33afcba6336a
 	github.com/oracle/oci-go-sdk v3.5.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v0.9.2
-	github.com/prometheus/client_model v0.0.0-20190115171406-56726106282f // indirect
-	github.com/prometheus/common v0.0.0-20181126121408-4724e9255275
-	github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1 // indirect
+	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/prometheus/common v0.2.0
 	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.0 // indirect
@@ -58,13 +59,8 @@ require (
 	github.com/spf13/viper v1.3.1
 	github.com/stretchr/testify v1.3.0
 	github.com/vektah/gqlparser v1.1.2
-	go.opencensus.io v0.18.0
-	golang.org/x/crypto v0.0.0-20190123085648-057139ce5d2b // indirect
-	golang.org/x/net v0.0.0-20190119204137-ed066c81e75e
-	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
-	golang.org/x/sys v0.0.0-20190124100055-b90733256f2e // indirect
-	google.golang.org/api v0.1.0
-	google.golang.org/genproto v0.0.0-20190123001331-8819c946db44 // indirect
-	google.golang.org/grpc v1.18.0 // indirect
+	go.opencensus.io v0.21.0
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	google.golang.org/api v0.5.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
