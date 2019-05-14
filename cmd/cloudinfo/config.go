@@ -246,8 +246,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-amazon", false, "enable amazon provider")
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("provider-amazon"))
 
-	_ = v.BindEnv("provider.amazon.accessKeyId", "AWS_ACCESS_KEY_ID")
-	_ = v.BindEnv("provider.amazon.secretAccessKey", "AWS_SECRET_ACCESS_KEY")
+	_ = v.BindEnv("provider.amazon.accessKey")
+	_ = v.BindEnv("provider.amazon.secretKey")
+	_ = v.BindEnv("provider.amazon.sharedCredentialsFile")
+	_ = v.BindEnv("provider.amazon.profile")
 	v.SetDefault("provider.amazon.prometheusAddress", "")
 	v.SetDefault("provider.amazon.prometheusQuery", "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
 
@@ -255,36 +257,42 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-google", false, "enable google provider")
 	_ = v.BindPFlag("provider.google.enabled", p.Lookup("provider-google"))
 
-	_ = v.BindEnv("provider.google.apiKey", "GCE_API_KEY")
-	_ = v.BindEnv("provider.google.appCredentials", "GOOGLE_APPLICATION_CREDENTIALS")
+	_ = v.BindEnv("provider.google.credentials", "GOOGLE_CREDENTIALS")
+	_ = v.BindEnv("provider.google.credentialsFile", "GOOGLE_CREDENTIALS_FILE")
+	_ = v.BindEnv("provider.google.project", "GOOGLE_PROJECT")
 
 	// Alibaba config
 	p.Bool("provider-alibaba", false, "enable alibaba provider")
 	_ = v.BindPFlag("provider.alibaba.enabled", p.Lookup("provider-alibaba"))
 
-	_ = v.BindEnv("provider.alibaba.regionId", "ALIBABA_REGION_ID")
-	_ = v.BindEnv("provider.alibaba.accessKeyId", "ALIBABA_ACCESS_KEY_ID")
-	_ = v.BindEnv("provider.alibaba.accessKeySecret", "ALIBABA_ACCESS_KEY_SECRET")
+	_ = v.BindEnv("provider.alibaba.region", "ALIBABA_REGION_ID")
+	_ = v.BindEnv("provider.alibaba.region", "ALICLOUD_REGION")
+	_ = v.BindEnv("provider.alibaba.accessKey", "ALIBABA_ACCESS_KEY_ID")
+	_ = v.BindEnv("provider.alibaba.accessKey", "ALICLOUD_ACCESS_KEY")
+	_ = v.BindEnv("provider.alibaba.secretKey", "ALIBABA_ACCESS_KEY_SECRET")
+	_ = v.BindEnv("provider.alibaba.secretKey", "ALICLOUD_SECRET_KEY")
 
 	// Oracle config
 	p.Bool("provider-oracle", false, "enable oracle provider")
 	_ = v.BindPFlag("provider.oracle.enabled", p.Lookup("provider-oracle"))
 
-	_ = v.BindEnv("provider.oracle.tenancy", "ORACLE_CLI_TENANCY_OCID")
-	_ = v.BindEnv("provider.oracle.user", "ORACLE_CLI_USER_OCID")
-	_ = v.BindEnv("provider.oracle.region", "ORACLE_CLI_REGION")
-	_ = v.BindEnv("provider.oracle.fingerprint", "ORACLE_CLI_FINGERPRINT")
-	_ = v.BindEnv("provider.oracle.privateKey", "ORACLE_CLI_PRIVATE_KEY")
-	_ = v.BindEnv("provider.oracle.privateKeyPassphrase", "ORACLE_CLI_PRIVATE_KEY_PASSPHRASE")
+	_ = v.BindEnv("provider.oracle.tenancy", "ORACLE_TENANCY_OCID")
+	_ = v.BindEnv("provider.oracle.user", "ORACLE_USER_OCID")
+	_ = v.BindEnv("provider.oracle.region", "ORACLE_REGION")
+	_ = v.BindEnv("provider.oracle.fingerprint", "ORACLE_FINGERPRINT")
+	_ = v.BindEnv("provider.oracle.privateKey", "ORACLE_PRIVATE_KEY")
+	_ = v.BindEnv("provider.oracle.privateKeyPassphrase", "ORACLE_PRIVATE_KEY_PASSPHRASE")
+	_ = v.BindEnv("provider.oracle.configFilePath", "ORACLE_CONFIG_FILE_PATH")
+	_ = v.BindEnv("provider.oracle.profile", "ORACLE_PROFILE")
 
 	// Azure config
 	p.Bool("provider-azure", false, "enable azure provider")
 	_ = v.BindPFlag("provider.azure.enabled", p.Lookup("provider-azure"))
 
-	_ = v.BindEnv("provider.azure.clientId", "AZURE_CLIENT_ID")
-	_ = v.BindEnv("provider.azure.clientSecret", "AZURE_CLIENT_SECRET")
-	_ = v.BindEnv("provider.azure.tenantId", "AZURE_TENANT_ID")
 	_ = v.BindEnv("provider.azure.subscriptionId", "AZURE_SUBSCRIPTION_ID")
+	_ = v.BindEnv("provider.azure.clientId")
+	_ = v.BindEnv("provider.azure.clientSecret")
+	_ = v.BindEnv("provider.azure.tenantId")
 
 	// Management
 	v.SetDefault("management.enabled", true)
