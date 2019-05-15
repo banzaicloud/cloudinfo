@@ -30,6 +30,7 @@ agentEndpoint = "localhost:6831"
 address = ":8000"
 
 [scrape]
+enabled = true
 interval = "24h"
 
 [provider.amazon]

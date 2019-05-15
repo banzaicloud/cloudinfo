@@ -180,14 +180,17 @@ func main() {
 	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
-	scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+	if config.Scrape.Enabled {
+		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
 
-	err = scrapingDriver.StartScraping()
-	emperror.Panic(err)
+		err = scrapingDriver.StartScraping()
+		emperror.Panic(err)
 
-	// start the management service
-	if config.Management.Enabled {
-		go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logger)
+		// start the management service
+		// TODO: management requires scraping at the moment. Let's remove that dependency.
+		if config.Management.Enabled {
+			go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logger)
+		}
 	}
 
 	err = api.ConfigureValidator(providers, prodInfo, logger)

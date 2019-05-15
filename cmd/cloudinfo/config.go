@@ -112,9 +112,6 @@ type configuration struct {
 		jaeger.Config `mapstructure:",squash"`
 	}
 
-	// Cloud info scrape interval
-	ScrapeInterval time.Duration
-
 	// App configuration
 	App struct {
 		// HTTP server address
@@ -123,6 +120,8 @@ type configuration struct {
 
 	// Scrape configuration
 	Scrape struct {
+		Enabled bool
+
 		// Cloud info scrape interval
 		Interval time.Duration
 	}
@@ -170,6 +169,11 @@ type configuration struct {
 // Validate validates the configuration.
 func (c configuration) Validate() error {
 	// TODO: write config validation
+
+	if !c.Scrape.Enabled && !(c.Store.Redis.Enabled || c.Store.Cassandra.Enabled) {
+		return errors.New("storage is required when scraping is disabled")
+	}
+
 	return nil
 }
 
@@ -238,6 +242,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// App configuration
 	p.String("listen-address", ":8000", "application listen address")
 	_ = v.BindPFlag("app.address", p.Lookup("listen-address"))
+
+	// Scrape configuration
+	p.Bool("scrape", true, "enable cloud info scraping")
+	_ = v.BindPFlag("scrape.enabled", p.Lookup("scrape"))
 
 	p.Duration("scrape-interval", 24*time.Hour, "duration (in go syntax) between renewing information")
 	_ = v.BindPFlag("scrape.interval", p.Lookup("scrape-interval"))
