@@ -9,7 +9,6 @@ require (
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Azure/azure-sdk-for-go v24.1.0+incompatible
 	github.com/Azure/go-autorest v11.3.2+incompatible
-	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190308093441-53f19b3c6bee
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.16.24
@@ -21,15 +20,10 @@ require (
 	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
 	github.com/gin-gonic/gin v1.3.0
 	github.com/go-kit/kit v0.8.0
-	github.com/go-openapi/analysis v0.18.0 // indirect
-	github.com/go-openapi/errors v0.18.0
-	github.com/go-openapi/jsonpointer v0.18.0 // indirect
-	github.com/go-openapi/jsonreference v0.18.0 // indirect
-	github.com/go-openapi/loads v0.18.0 // indirect
+	github.com/go-openapi/errors v0.18.0 // indirect
 	github.com/go-openapi/runtime v0.18.0
-	github.com/go-openapi/strfmt v0.18.0
-	github.com/go-openapi/swag v0.18.0
-	github.com/go-openapi/validate v0.18.0 // indirect
+	github.com/go-openapi/strfmt v0.18.0 // indirect
+	github.com/go-openapi/swag v0.18.0 // indirect
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/snappy v0.0.1 // indirect
@@ -55,7 +49,6 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/vektah/gqlparser v1.1.2
 	go.opencensus.io v0.21.0
-	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	google.golang.org/api v0.5.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
