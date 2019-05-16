@@ -103,7 +103,9 @@ func main() {
 
 	if metaConfig.Vault.Enabled {
 		u, _ := url.Parse(metaConfig.Vault.Address)
-		u.RawQuery = "token=" + metaConfig.Vault.Token
+		q := u.Query()
+		q.Set("token", metaConfig.Vault.Token)
+		u.RawQuery = q.Encode()
 
 		err = v.AddRemoteProvider("bankvaults", u.String(), metaConfig.Vault.SecretPath)
 		emperror.Panic(errors.Wrap(err, "failed to add vault config provider"))

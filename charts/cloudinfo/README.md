@@ -44,39 +44,29 @@ The command removes all the Kubernetes components associated with the chart and 
 
 The following tables lists the configurable parameters of the cloudinfo chart and their default values.
 
-| Parameter                                  | Description                                           | Default                 |
-|--------------------------------------------|-------------------------------------------------------|-------------------------|
-| `image.repository`                         | Container image repository                            | `banzaicloud/cloudinfo` |
-| `image.tag`                                | Container image tag                                   | `0.6.0`                |
-| `image.pullPolicy`                         | Container pull policy                                 | `IfNotPresent`          |
-| `service.type`                             | The Kubernetes service type to use                    | `ClusterIP`             |
-| `service.port`                             | The Kubernetes service port to use                    | `80`                    |
-| `app.logLevel`                             | Log level                                             | `info`                  |
-| `app.basePath`                             | Application base path                                 | `/`                     |
-| `providers.amazon.enabled`                 | Enable Amazon provider                                | `false`                 |
-| `providers.amazon.awsAccessKeyId`          | Amazon Access Key ID                                  | `""`                    |
-| `providers.amazon.awsSecretAccessKey`      | Amazon Secret Access Key                              | `""`                    |
-| `providers.google.enabled`                 | Enable Google provider                                | `false`                 |
-| `providers.google.gceApiKey`               | GCE API Key                                           | `""`                    |
-| `providers.google.gceCredentials`          | GCE Credential file (encoded by base64)               | `""`                    |
-| `providers.alibaba.enabled`                | Enable Alibaba provider                               | `false`                 |
-| `providers.alibaba.alibabaAccessKeyId`     | Alibaba Access Key ID                                 | `""`                    |
-| `providers.alibaba.alibabaAccessKeySecret` | Alibaba Access Key Secret                             | `""`                    |
-| `providers.alibaba.alibabaRegionId`        | Alibaba Region ID                                     | `""`                    |
-| `providers.oracle.enabled`                 | Enable Oracle provider                                | `false`                 |
-| `providers.oracle.ociUser`                 | The OCID of the user                                  | `""`                    |
-| `providers.oracle.ociTenancy`              | The OCID of the tenancy                               | `""`                    |
-| `providers.oracle.ociRegion`               | Specific region for OCI                               | `""`                    |
-| `providers.oracle.ociKey`                  | The key pair must be in PEM format (encode by base64) | `""`                    |
-| `providers.oracle.ociFingerprint`          | Fingerprint for the key pair being used               | `""`                    |
-| `providers.azure.enabled`                  | Enable Azure provider                                 | `false`                 |
-| `providers.azure.azureCredentials`         | Azure Credential file (encoded by base64)             | `""`                    |
-| `deploymentLabels`                         | Additional deployment labels                          | `{}`                    |
-| `deploymentAnnotations`                    | Additional deployment annotations                     | `{}`                    |
-| `metrics.enabled`                          | Enable application metrics                            | `true`                  |
-| `metrics.port`                             | Metrics service type port                             | `9900`                  |
-| `metrics.serviceMonitor.enabled`           | Enable serviceMonitor                                 | `true`                  |
-| `metrics.serviceMonitor.additionalLabels`  | ServiceMonitor additional labels                      | `{}`                    |
+| Parameter                                 | Description                                | Default                 |
+|-------------------------------------------|--------------------------------------------|-------------------------|
+| `frontend.image.repository`               | Frontend container image repository        | `banzaicloud/cloudinfo` |
+| `frontend.image.tag`                      | Frontend container image tag               | `0.6.0`                 |
+| `frontend.image.pullPolicy`               | Frontend container pull policy             | `IfNotPresent`          |
+| `frontend.service.type`                   | Frontend Kubernetes service type to use    | `ClusterIP`             |
+| `frontend.service.port`                   | Frontend Kubernetes service port to use    | `80`                    |
+| `frontend.deployment.labels`              | Additional frontend deployment labels      | `{}`                    |
+| `frontend.deployment.annotations`         | Additional frontend deployment annotations | `{}`                    |
+| `scraper.image.repository`                | Scraper container image repository         | `banzaicloud/cloudinfo` |
+| `scraper.image.tag`                       | Scraper container image tag                | `0.6.0`                 |
+| `scraper.image.pullPolicy`                | Scraper container pull policy              | `IfNotPresent`          |
+| `scraper.deployment.labels`               | Additional scraper deployment labels       | `{}`                    |
+| `scraper.deployment.annotations`          | Additional scraper deployment annotations  | `{}`                    |
+| `app.logLevel`                            | Log level                                  | `info`                  |
+| `app.basePath`                            | Application base path                      | `/`                     |
+| `app.vault`                               | Vault configuration                        | `{}`                    |
+| `providers.[provider].enabled`            | Enable a provider                          | `false`                 |
+| `providers.[provider].*`                  | Provider specific configuration            | `{}`                    |
+| `metrics.enabled`                         | Enable application metrics                 | `true`                  |
+| `metrics.port`                            | Metrics service type port                  | `9900`                  |
+| `metrics.serviceMonitor.enabled`          | Enable serviceMonitor                      | `true`                  |
+| `metrics.serviceMonitor.additionalLabels` | ServiceMonitor additional labels           | `{}`                    |
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example:
 
@@ -85,3 +75,59 @@ $ helm install --name my-release -f values.yaml banzaicloud-stable/cloudinfo
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
+
+
+### Configuring a provider
+
+```yaml
+providers:
+    providerName:
+        enabled: true
+        
+        # Provider specific configuration
+        # accessKey: ""
+        # secretKey: ""
+```
+
+### Redis configuration
+
+The application requires a Redis store at the moment.
+The chart can install it for you:
+
+```yaml
+store:
+    redis:
+        enabled: true
+        
+redis:
+    enabled: true
+```
+
+Alternatively, you can provide connection information for your own Redis instance:
+
+```yaml
+store:
+    redis:
+        enabled: true
+        host: "my-redis"
+        port: 6379
+```
+
+**Note:** The application does not support Redis application at the moment.
+
+
+### Getting secrets from Vault
+
+The application supports getting cloud provider secrets from [Vault](http://vaultproject.io/):
+
+```yaml
+app:
+    vault:
+        address: "http://my-vault:8200"
+        token: "my-token"
+        secretPath: "secret/data/app/cloudinfo"
+
+providers:
+    providerName:
+        enabled: true
+```

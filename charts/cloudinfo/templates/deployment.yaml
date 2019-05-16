@@ -1,52 +1,54 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cloudinfo.fullname" . }}
+  name: {{ include "cloudinfo.frontend.fullname" . }}
   labels:
     app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "frontend"
     helm.sh/chart: {{ include "cloudinfo.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- if .Values.deploymentLabels }}
-{{ toYaml .Values.deploymentLabels | indent 4 }}
+    {{- if .Values.frontend.deployment.labels }}
+{{ toYaml .Values.frontend.deployment.labels | indent 4 }}
     {{- end }}
+  {{- if .Values.frontend.deployment.annotations }}
   annotations:
-{{ toYaml .Values.deploymentAnnotations | indent 4 }}
+{{ toYaml .Values.frontend.deployment.annotations | indent 4 }}
+  {{- end }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/component: "frontend"
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+        app.kubernetes.io/component: "frontend"
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
+      {{- if .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args: ["cloudinfo", "--listen-address=0.0.0.0:8000", "--metrics-address=0.0.0.0:{{ .Values.metrics.port }}"]
+        - name: {{ .Chart.Name }}-frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          args: ["cloudinfo", "--scrape=false", "--config=/etc/cloudinfo/config.yaml", "--listen-address=0.0.0.0:8000", "--metrics-address=0.0.0.0:{{ .Values.metrics.port }}"]
           volumeMounts:
-            - name: credentials
-              mountPath: /etc/cloudinfo/credentials
-              readOnly: true
             - name: config
-              mountPath: /etc/cloudinfo/config
+              mountPath: /etc/cloudinfo/config.yaml
+              subPath: config.yaml
               readOnly: true
           env:
             - name: CLOUDINFO_BASEPATH
               value: {{ .Values.app.basePath }}
-            - name: CLOUDINFO_CONFIG_DIR
-              value: /etc/cloudinfo/config
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /etc/cloudinfo/credentials/google.json
-            - name: AZURE_AUTH_LOCATION
-              value: /etc/cloudinfo/credentials/azure.json
-            - name: ORACLE_CLI_CONFIG_LOCATION
-              value: /etc/cloudinfo/config/oci.properties
+            - name: VAULT_SKIP_VERIFY
+              value: "true"
           envFrom:
             - secretRef:
                 name: {{ template "cloudinfo.fullname" . }}
@@ -67,23 +69,110 @@ spec:
               path: {{ .Values.app.basePath }}/status
               port: http
           resources:
-{{ toYaml .Values.resources | indent 12 }}
+{{ toYaml .Values.frontend.resources | indent 12 }}
       volumes:
-        - name: credentials
-          secret:
-            secretName: {{ template "cloudinfo.fullname" . }}-credentials
         - name: config
-          configMap:
-            name: "{{ template "cloudinfo.fullname" . }}"
-      {{- with .Values.nodeSelector }}
+          secret:
+            secretName: "{{ template "cloudinfo.fullname" . }}"
+      {{- with .Values.frontend.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+    {{- with .Values.frontend.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with .Values.frontend.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloudinfo.scraper.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "scraper"
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- if .Values.scraper.deployment.labels }}
+    {{ toYaml .Values.scraper.deployment.labels | indent 4 }}
+  {{- end }}
+  {{- if .Values.scraper.deployment.annotations }}
+  annotations:
+  {{ toYaml .Values.scraper.deployment.annotations | indent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.scraper.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/component: "scraper"
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+        app.kubernetes.io/component: "scraper"
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- if .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.scraper.image.repository }}:{{ .Values.scraper.image.tag }}"
+          imagePullPolicy: {{ .Values.scraper.image.pullPolicy }}
+          args: ["cloudinfo", "--scrape=true", "--config=/etc/cloudinfo/config.yaml", "--listen-address=0.0.0.0:8000", "--metrics-address=0.0.0.0:{{ .Values.metrics.port }}"]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudinfo/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          env:
+            - name: CLOUDINFO_BASEPATH
+              value: {{ .Values.app.basePath }}
+            - name: VAULT_SKIP_VERIFY
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: {{ template "cloudinfo.fullname" . }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.basePath }}/status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.basePath }}/status
+              port: http
+          resources:
+      {{ toYaml .Values.scraper.resources | indent 12 }}
+      volumes:
+        - name: config
+          secret:
+            secretName: "{{ template "cloudinfo.fullname" . }}"
+      {{- with .Values.scraper.nodeSelector }}
+      nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scraper.affinity }}
+      affinity:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scraper.tolerations }}
+      tolerations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}

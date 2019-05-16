@@ -1,16 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cloudinfo.fullname" . }}
+  name: {{ include "cloudinfo.frontend.fullname" . }}
   labels:
     app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "frontend"
     helm.sh/chart: {{ include "cloudinfo.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.frontend.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.frontend.service.port }}
       targetPort: http
       protocol: TCP
       name: http
@@ -23,14 +24,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "cloudinfo.fullname" . }}-metrics
+  name: {{ template "cloudinfo.frontend.fullname" . }}-metrics
   labels:
     app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "frontend"
     helm.sh/chart: {{ include "cloudinfo.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   ports:
     - port: {{ .Values.metrics.port }}
       name: metrics
@@ -38,5 +40,29 @@ spec:
       targetPort: metrics
   selector:
     app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "frontend"
+    app.kubernetes.io/instance: {{ .Release.Name }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "cloudinfo.scraper.fullname" . }}-metrics
+  labels:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "scraper"
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.metrics.port }}
+      name: metrics
+      protocol: TCP
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "scraper"
     app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
