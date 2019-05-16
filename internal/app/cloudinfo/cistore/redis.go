@@ -93,7 +93,7 @@ func (rps *redisProductStore) set(key string, value interface{}) (interface{}, b
 	}
 
 	if _, err = conn.Do("SET", key, mJson); err != nil {
-		rps.log.Debug("failed to set key to value", map[string]interface{}{"key": key, "value": value})
+		rps.log.Error("failed to set key to value", map[string]interface{}{"key": key, "value": value})
 		return nil, false
 	}
 
@@ -105,7 +105,7 @@ func (rps *redisProductStore) delete(key string) {
 	defer conn.Close()
 
 	if _, err := conn.Do("DEL", key); err != nil {
-		rps.log.Debug("failed to delete entry", map[string]interface{}{"key": key})
+		rps.log.Error("failed to delete entry", map[string]interface{}{"key": key})
 	}
 }
 

@@ -117,7 +117,7 @@ func (cpi *cachingCloudInfo) GetProvider(provider string) (Provider, error) {
 	}
 
 	if srvcs, err = cpi.GetServices(provider); err != nil {
-		return Provider{}, emperror.With(errors.New("no supported services for provider"), "provider", provider)
+		return Provider{}, emperror.WrapWith(err, "failed to get services", "provider", provider)
 	}
 
 	// decorate the provider with service information
