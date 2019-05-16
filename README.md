@@ -7,7 +7,7 @@
 
 # Cloud price and service information
 
-The Banzai Cloud CloudInfo application is a standalone project in the [Pipeline](https://github.com/banzaicloud/pipeline) ecosystem.
+The Banzai Cloud Cloudinfo application is a standalone project in the [Pipeline](https://github.com/banzaicloud/pipeline) ecosystem.
 While AWS, Google Cloud, Azure, AliBaba or Oracle all provide some kind of APIs to query instance type attributes and product pricing information, these APIs are often responding with partly inconsistent data, or the responses are very cumbersome to parse.
 The Cloudinfo service uses these cloud provider APIs to asynchronously fetch and parse instance type attributes and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
 
