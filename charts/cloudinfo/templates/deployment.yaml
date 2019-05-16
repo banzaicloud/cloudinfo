@@ -99,11 +99,11 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- if .Values.scraper.deployment.labels }}
-    {{ toYaml .Values.scraper.deployment.labels | indent 4 }}
-  {{- end }}
+{{ toYaml .Values.scraper.deployment.labels | indent 4 }}
+    {{- end }}
   {{- if .Values.scraper.deployment.annotations }}
   annotations:
-  {{ toYaml .Values.scraper.deployment.annotations | indent 4 }}
+{{ toYaml .Values.scraper.deployment.annotations | indent 4 }}
   {{- end }}
 spec:
   replicas: {{ .Values.scraper.replicaCount }}
