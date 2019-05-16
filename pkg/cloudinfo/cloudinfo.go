@@ -31,14 +31,6 @@ type cachingCloudInfo struct {
 	cloudInfoStore CloudInfoStore
 }
 
-func (v AttrValues) floatValues() []float64 {
-	floatValues := make([]float64, len(v))
-	for i, av := range v {
-		floatValues[i] = av.Value
-	}
-	return floatValues
-}
-
 // SpotPriceInfo represents different prices per availability zones
 type SpotPriceInfo map[string]float64
 

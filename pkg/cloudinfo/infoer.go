@@ -50,7 +50,4 @@ type CloudInfoer interface {
 
 	// GetServiceProducts retrieves the products supported by the given service in the given region
 	GetServiceProducts(region, service string) ([]ProductDetails, error)
-
-	// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
-	GetServiceAttributes(region, service, attribute string) (AttrValues, error)
 }
