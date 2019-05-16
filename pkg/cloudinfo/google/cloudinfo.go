@@ -459,11 +459,6 @@ func (g *GceInfoer) GetServiceProducts(region, service string) ([]cloudinfo.Prod
 	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
-// GetServiceAttributes retrieves the attribute values supported by the given service in the given region for the given attribute
-func (g *GceInfoer) GetServiceAttributes(region, service, attribute string) (cloudinfo.AttrValues, error) {
-	return nil, errors.New("GetServiceAttributes - not yet implemented")
-}
-
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
 func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {

@@ -52,15 +52,6 @@ type CloudInfo interface {
 	GetContinents() []string
 }
 
-// AttrValue represents an attribute value
-type AttrValue struct {
-	StrValue string
-	Value    float64
-}
-
-// AttrValues a slice of AttrValues
-type AttrValues []AttrValue
-
 const (
 	// telescope supported network performance of vm-s
 
