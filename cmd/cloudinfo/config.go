@@ -65,16 +65,10 @@ type metaConfiguration struct {
 // Validate validates the metaConfiguration.
 func (c metaConfiguration) Validate() error {
 	if c.Vault.Enabled {
-		if c.Vault.Address == "" {
-			return errors.New("vault address is required")
-		}
-
-		if _, err := url.Parse(c.Vault.Address); err != nil {
-			return errors.Wrap(err, "invalid vault address")
-		}
-
-		if c.Vault.Token == "" {
-			return errors.New("vault token is required")
+		if c.Vault.Address != "" {
+			if _, err := url.Parse(c.Vault.Address); err != nil {
+				return errors.Wrap(err, "invalid vault address")
+			}
 		}
 
 		if c.Vault.SecretPath == "" {
