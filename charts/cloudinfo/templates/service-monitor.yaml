@@ -2,7 +2,36 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name:  {{ template "cloudinfo.fullname" . }}
+  name:  {{ template "cloudinfo.frontend.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "frontend"
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- if .Values.metrics.serviceMonitor.additionalLabels }}
+    {{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - interval: 30s
+      port: metrics
+      path: /metrics
+  jobLabel: {{ include "cloudinfo.name" . }}-frontend
+  namespaceSelector:
+    matchNames:
+      - "{{ $.Release.Namespace }}"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/component: "frontend"
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name:  {{ template "cloudinfo.scraper.fullname" . }}
   labels:
     app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
     app.kubernetes.io/component: "scraper"
@@ -17,7 +46,7 @@ spec:
     - interval: 30s
       port: metrics
       path: /metrics
-  jobLabel: {{ include "cloudinfo.name" . }}
+  jobLabel: {{ include "cloudinfo.name" . }}-scraper
   namespaceSelector:
     matchNames:
       - "{{ $.Release.Namespace }}"
