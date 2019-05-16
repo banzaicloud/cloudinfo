@@ -35,6 +35,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
+	vaultremote "github.com/sagikazarmark/viperx/remote"
 	_ "github.com/sagikazarmark/viperx/remote/bankvaults"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -102,6 +103,8 @@ func main() {
 	emperror.Panic(err)
 
 	if metaConfig.Vault.Enabled {
+		vaultremote.SetErrorHandler(errorhandler.NewPanicHandler())
+
 		u, _ := url.Parse(metaConfig.Vault.Address)
 		q := u.Query()
 		q.Set("token", metaConfig.Vault.Token)
