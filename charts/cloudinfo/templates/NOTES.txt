@@ -1,9 +1,7 @@
 1. Get the application URL by running these commands:
 {{- if .Values.frontend.ingress.enabled }}
-{{- range $host := .Values.frontend.ingress.hosts }}
-  {{- range .paths }}
-  http{{ if $.Values.frontend.ingress.tls }}s{{ end }}://{{ $host.host }}{{ . }}
-  {{- end }}
+{{- range .Values.frontend.ingress.hosts }}
+  http{{ if $.Values.frontend.ingress.tls }}s{{ end }}://{{ . }}
 {{- end }}
 {{- else if contains "NodePort" .Values.frontend.service.type }}
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "cloudinfo.frontend.fullname" . }})
