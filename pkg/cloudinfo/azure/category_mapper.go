@@ -27,9 +27,9 @@ var (
 	categoryMap = map[string][]string{
 		cloudinfo.CategoryGeneral: {"Dv2", "Av2", "Dv3", "DSv2", "DSv3", "BS", "DS", "D", "A0_A7", "A", "A8_A11", "DCS"},
 		cloudinfo.CategoryCompute: {"H", "FSv2", "FS", "", "HCS", "HBS"},
-		cloudinfo.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3"},
+		cloudinfo.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3", "PBS", "MSv2"},
 		cloudinfo.CategoryStorage: {"LS", "LSv2"},
-		cloudinfo.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2"},
+		cloudinfo.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2", "NVSv3"},
 	}
 )
 

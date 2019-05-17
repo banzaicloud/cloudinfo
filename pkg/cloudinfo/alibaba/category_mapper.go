@@ -25,7 +25,7 @@ import (
 
 var (
 	categoryMap = map[string][]string{
-		cloudinfo.CategoryGeneral: {"g5", "sn2ne", "hfg5", "ebmhfg5", "ebmg5", "sccg5", "t5", "xn4", "n4", "mn4", "sn2", "n1", "n2", "s2", "t1", "s1", "s3"},
+		cloudinfo.CategoryGeneral: {"g5", "sn2ne", "hfg5", "ebmhfg5", "ebmg5", "ebmg5s", "sccg5", "t5", "xn4", "n4", "mn4", "sn2", "n1", "n2", "s2", "t1", "s1", "s3"},
 		cloudinfo.CategoryCompute: {"ic5", "c5", "sn1ne", "hfc5", "ebmc4", "scch5", "sn1", "c4", "ce4", "cm4", "c1", "c2"},
 		cloudinfo.CategoryMemory:  {"r5", "re4", "re4e", "se1ne", "se1", "e4", "e3", "m1", "m2"},
 		cloudinfo.CategoryStorage: {"d1ne", "d1", "i2", "i2g", "i1"},
