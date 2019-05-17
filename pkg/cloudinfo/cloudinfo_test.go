@@ -128,13 +128,13 @@ func (dcis *DummyCloudInfoStore) GetServices(provider string) ([]Service, bool) 
 func TestNewCachingCloudInfo(t *testing.T) {
 	tests := []struct {
 		Name        string
-		CloudInfoer map[string]CloudInfoer
-		checker     func(info *cachingCloudInfo, err error)
+		CloudInfoer []string
+		checker     func(info *cloudInfo, err error)
 	}{
 		{
 			Name:        "product info successfully created",
-			CloudInfoer: map[string]CloudInfoer{},
-			checker: func(info *cachingCloudInfo, err error) {
+			CloudInfoer: []string{""},
+			checker: func(info *cloudInfo, err error) {
 				assert.Nil(t, err, "should not get error")
 				assert.NotNil(t, info, "the product info should not be nil")
 			},
@@ -142,7 +142,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 		{
 			Name:        "validation should fail nil values",
 			CloudInfoer: nil,
-			checker: func(info *cachingCloudInfo, err error) {
+			checker: func(info *cloudInfo, err error) {
 				assert.Nil(t, info, "the cloudinfo should be nil in case of error")
 				assert.EqualError(t, err, "could not create product infoer")
 			},
@@ -151,7 +151,7 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCachingCloudInfo(test.CloudInfoer, &DummyCloudInfoStore{}, logur.NewTestLogger()))
+			test.checker(NewCloudInfo(test.CloudInfoer, &DummyCloudInfoStore{}, logur.NewTestLogger()))
 		})
 	}
 
@@ -185,7 +185,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetRegions("dummyProvider", "dummyService"))
 		})
@@ -217,7 +217,7 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetVersions("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -249,7 +249,7 @@ func TestCachingCloudInfo_GetServiceImages(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetServiceImages("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -281,7 +281,7 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetZones("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -313,7 +313,7 @@ func TestCachingCloudInfo_GetServices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetServices("dummyProvider"))
 		})
@@ -345,7 +345,7 @@ func TestCachingCloudInfo_GetStatus(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCachingCloudInfo(map[string]CloudInfoer{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, logur.NewTestLogger())
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetStatus("dummyProvider"))
 		})

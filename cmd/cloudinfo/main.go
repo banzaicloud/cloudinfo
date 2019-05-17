@@ -182,7 +182,7 @@ func main() {
 
 	serviceManager.LoadServiceInformation(providers)
 
-	prodInfo, err := cloudinfo.NewCachingCloudInfo(infoers, cloudInfoStore, logger)
+	prodInfo, err := cloudinfo.NewCloudInfo(providers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
 	if config.Scrape.Enabled {
