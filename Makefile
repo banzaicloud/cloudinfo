@@ -32,6 +32,7 @@ LICENSEI_VERSION = 0.1.0
 OPENAPI_GENERATOR_VERSION = 3.3.0
 GOBIN_VERSION = 0.0.9
 GQLGEN_VERSION = 0.8.3
+PACKR_VERSION = 2.2.0
 
 GOLANG_VERSION = 1.12
 SWAGGER_VERSION = 0.19.0
@@ -67,4 +68,18 @@ swagger: bin/swagger
 	GO111MODULE="off" bin/swagger generate spec -m -b ./cmd/cloudinfo -o $(SWAGGER_PI_TMP_FILE)
 	GO111MODULE="off" swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
 
+bin/packr2: bin/packr2-${PACKR_VERSION}
+	@ln -sf packr2-${PACKR_VERSION} bin/packr2
+bin/packr2-${PACKR_VERSION}:
+	@mkdir -p bin
+ifeq (${OS}, Darwin)
+	curl -L https://github.com/gobuffalo/packr/releases/download/v${PACKR_VERSION}/packr_${PACKR_VERSION}_darwin_amd64.tar.gz | tar -zOxf - packr2 > ./bin/packr2-${PACKR_VERSION} && chmod +x ./bin/packr2-${PACKR_VERSION}
+endif
+ifeq (${OS}, Linux)
+	curl -L https://github.com/gobuffalo/packr/releases/download/v${PACKR_VERSION}/packr_${PACKR_VERSION}_linux_amd64.tar.gz | tar -zOxf - packr2 > ./bin/packr2-${PACKR_VERSION} && chmod +x ./bin/packr2-${PACKR_VERSION}
+endif
+
+.PHONY: uibundle
+uibundle: bin/packr2
+	GO111MODULE=on cd cmd/cloudinfo && $(abspath bin/packr2)
 

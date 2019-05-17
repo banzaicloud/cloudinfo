@@ -30,8 +30,10 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
@@ -230,7 +232,22 @@ func main() {
 		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
-	routeHandler.ConfigureRoutes(router)
+	ui := packr.New("ui", "../../web/dist/ui")
+
+	index, err := ui.FindString("index.html")
+	if err == nil {
+		index = strings.Replace(
+			index,
+			"<base href=\"/\">",
+			fmt.Sprintf("<base href=\"%s/\">", config.App.BasePath),
+			-1,
+		)
+
+		err := ui.AddString("index.html", index)
+		emperror.Panic(err)
+	}
+
+	routeHandler.ConfigureRoutes(router, config.App.BasePath, ui)
 
 	err = router.Run(config.App.Address)
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
