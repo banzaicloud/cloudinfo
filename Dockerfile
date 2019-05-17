@@ -29,6 +29,7 @@ ARG GOPROXY
 COPY go.* /workspace/
 RUN go mod download
 
+COPY Makefile main-targets.mk /workspace/
 RUN make bin/packr2
 
 COPY --from=frontend /web/dist/ui /workspace/web/dist/ui
