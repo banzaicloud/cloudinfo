@@ -373,7 +373,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 								logger.Error("couldn't parse memory")
 								continue
 							}
-						case "vCPUsAvailable":
+						case "vCPUs":
 							cpu, err = strconv.ParseFloat(*capabilities.Value, 64)
 							if err != nil {
 								logger.Error("couldn't parse cpu")
