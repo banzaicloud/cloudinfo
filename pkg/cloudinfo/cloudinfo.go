@@ -22,12 +22,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-// cachingCloudInfo is the module struct, holds configuration and cache
+// cloudInfo is the module struct, holds configuration and cache
 // It's the entry point for the product info retrieval and management subsystem
 // It's also responsible for delegating to the cloud provider specific implementations
-type cachingCloudInfo struct {
+type cloudInfo struct {
 	log            logur.Logger
-	cloudInfoers   map[string]CloudInfoer
+	providers      []string
 	cloudInfoStore CloudInfoStore
 }
 
@@ -63,22 +63,22 @@ func (vm VmInfo) IsBurst() bool {
 	return strings.HasPrefix(strings.ToUpper(vm.Type), "T")
 }
 
-// NewCachingCloudInfo creates a new cachingCloudInfo instance
-func NewCachingCloudInfo(infoers map[string]CloudInfoer, ciStore CloudInfoStore, logger logur.Logger) (*cachingCloudInfo, error) {
-	if infoers == nil || ciStore == nil {
+// NewCloudInfo creates a new cloudInfo instance
+func NewCloudInfo(providers []string, ciStore CloudInfoStore, logger logur.Logger) (*cloudInfo, error) {
+	if providers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
 
-	pi := cachingCloudInfo{
-		cloudInfoers:   infoers,
+	pi := cloudInfo{
+		providers:      providers,
 		cloudInfoStore: ciStore,
-		log:            logur.WithFields(logger, map[string]interface{}{"component": "cachingCloudInfo"}),
+		log:            logur.WithFields(logger, map[string]interface{}{"component": "cloudInfo"}),
 	}
 	return &pi, nil
 }
 
 // GetProviders returns the supported providers
-func (cpi *cachingCloudInfo) GetProviders() ([]Provider, error) {
+func (cpi *cloudInfo) GetProviders() ([]Provider, error) {
 	var (
 		providers []Provider
 		provider  Provider
@@ -86,7 +86,7 @@ func (cpi *cachingCloudInfo) GetProviders() ([]Provider, error) {
 	)
 
 	// iterate over supported provider names only
-	for pn := range cpi.cloudInfoers {
+	for _, pn := range cpi.providers {
 		if provider, err = cpi.GetProvider(pn); err != nil {
 			return nil, err
 		}
@@ -98,13 +98,13 @@ func (cpi *cachingCloudInfo) GetProviders() ([]Provider, error) {
 }
 
 // GetProvider returns the supported provider
-func (cpi *cachingCloudInfo) GetProvider(provider string) (Provider, error) {
+func (cpi *cloudInfo) GetProvider(provider string) (Provider, error) {
 	var (
 		srvcs []Service
 		err   error
 	)
 
-	if _, ok := cpi.cloudInfoers[provider]; !ok {
+	if !cpi.providerEnabled(provider) {
 		return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
 	}
 
@@ -119,8 +119,21 @@ func (cpi *cachingCloudInfo) GetProvider(provider string) (Provider, error) {
 	return p, nil
 }
 
+func (cpi *cloudInfo) providerEnabled(provider string) bool {
+	var enabled bool = false
+
+	for _, p := range cpi.providers {
+		if p == provider {
+			enabled = true
+			break
+		}
+	}
+
+	return enabled
+}
+
 // GetZones returns the availability zones in a region
-func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]string, error) {
+func (cpi *cloudInfo) GetZones(provider, service, region string) ([]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetZones(provider, service, region); ok {
 		return cachedVal, nil
 	}
@@ -129,7 +142,7 @@ func (cpi *cachingCloudInfo) GetZones(provider, service, region string) ([]strin
 }
 
 // GetRegions gets the regions for the provided provider
-func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]string, error) {
+func (cpi *cloudInfo) GetRegions(provider, service string) (map[string]string, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
 		return cachedVal, nil
 	}
@@ -137,7 +150,7 @@ func (cpi *cachingCloudInfo) GetRegions(provider, service string) (map[string]st
 	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
 }
 
-func (cpi *cachingCloudInfo) GetServices(provider string) ([]Service, error) {
+func (cpi *cloudInfo) GetServices(provider string) ([]Service, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetServices(provider); ok {
 		return cachedVal, nil
 	}
@@ -146,7 +159,7 @@ func (cpi *cachingCloudInfo) GetServices(provider string) ([]Service, error) {
 }
 
 // GetProductDetails retrieves product details form the given provider and region
-func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string) ([]ProductDetails, error) {
+func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]ProductDetails, error) {
 	var (
 		vms interface{}
 		ok  bool
@@ -176,7 +189,7 @@ func (cpi *cachingCloudInfo) GetProductDetails(provider, service, region string)
 }
 
 // GetStatus retrieves status form the given provider
-func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
+func (cpi *cloudInfo) GetStatus(provider string) (string, error) {
 	if cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider); ok {
 		return cachedStatus, nil
 	}
@@ -184,7 +197,7 @@ func (cpi *cachingCloudInfo) GetStatus(provider string) (string, error) {
 }
 
 // GetServiceImages retrieves available images for the given provider, service and region
-func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) ([]Image, error) {
+func (cpi *cloudInfo) GetServiceImages(provider, service, region string) ([]Image, error) {
 	if cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region); ok {
 		return cachedImages, nil
 	}
@@ -194,7 +207,7 @@ func (cpi *cachingCloudInfo) GetServiceImages(provider, service, region string) 
 }
 
 // GetVersions retrieves available versions for the given provider, service and region
-func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]LocationVersion, error) {
+func (cpi *cloudInfo) GetVersions(provider, service, region string) ([]LocationVersion, error) {
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
 		return cachedVersions, nil
 	}
@@ -203,12 +216,12 @@ func (cpi *cachingCloudInfo) GetVersions(provider, service, region string) ([]Lo
 }
 
 // GetContinents retrieves available continents
-func (cpi *cachingCloudInfo) GetContinents() []string {
+func (cpi *cloudInfo) GetContinents() []string {
 	return []string{ContinentAsia, ContinentAustralia, ContinentEurope, ContinentNorthAmerica, ContinentSouthAmerica}
 }
 
 // GetContinents gets the continents and regions for the provided provider
-func (cpi *cachingCloudInfo) GetContinentsData(provider, service string) (map[string][]Region, error) {
+func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]Region, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
 		var continents = make(map[string][]Region)
 		for id, name := range cachedVal {
