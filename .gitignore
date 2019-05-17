@@ -6,6 +6,8 @@
 /vendor/
 
 /.licensei.cache
+*-packr.go
+packrd/
 
 # IDE integration
 /.vscode/*

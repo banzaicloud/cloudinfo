@@ -16,12 +16,14 @@ package api
 
 import (
 	"net/http"
-	"os"
+	"strings"
 
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/gobuffalo/packr/v2"
+	"github.com/gobuffalo/packr/v2/file"
 	"github.com/goph/logur"
 
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
@@ -50,20 +52,35 @@ func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo, graphqlHandl
 	}
 }
 
-// ConfigureRoutes configures the gin engine, defines the rest API for this application
-func (r *RouteHandler) ConfigureRoutes(router *gin.Engine) {
-	r.log.Info("configuring routes")
+type binaryFileSystem struct {
+	fs *packr.Box
+}
 
-	// TODO: use config
-	basePath := "/"
-	if basePathFromEnv := os.Getenv("CLOUDINFO_BASEPATH"); basePathFromEnv != "" {
-		basePath = basePathFromEnv
+func (b *binaryFileSystem) Open(name string) (http.File, error) {
+	// This is necessary because of https://github.com/gobuffalo/packr/issues/173
+	if b.fs.HasDir(name) {
+		return file.NewDir(name)
 	}
+
+	return b.fs.Open(name)
+}
+
+func (b *binaryFileSystem) Exists(prefix string, filepath string) bool {
+	if p := strings.TrimPrefix(filepath, prefix); len(p) < len(filepath) {
+		return b.fs.Has(p)
+	}
+
+	return false
+}
+
+// ConfigureRoutes configures the gin engine, defines the rest API for this application
+func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string, box *packr.Box) {
+	r.log.Info("configuring routes")
 
 	router.Use(log.MiddlewareCorrelationId())
 	router.Use(log.Middleware())
 	router.Use(cors.Default())
-	router.Use(static.Serve(basePath, static.LocalFile("./web/dist/ui", true)))
+	router.Use(static.Serve(basePath, &binaryFileSystem{fs: box}))
 
 	base := router.Group(basePath)
 	{

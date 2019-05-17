@@ -110,6 +110,8 @@ type configuration struct {
 	App struct {
 		// HTTP server address
 		Address string
+
+		BasePath string
 	}
 
 	// Scrape configuration
@@ -236,6 +238,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// App configuration
 	p.String("listen-address", ":8000", "application listen address")
 	_ = v.BindPFlag("app.address", p.Lookup("listen-address"))
+
+	v.SetDefault("app.basePath", "/")
 
 	// Scrape configuration
 	p.Bool("scrape", true, "enable cloud info scraping")

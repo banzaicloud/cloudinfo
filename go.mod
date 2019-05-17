@@ -24,6 +24,7 @@ require (
 	github.com/go-openapi/runtime v0.18.0
 	github.com/go-openapi/strfmt v0.18.0 // indirect
 	github.com/go-openapi/swag v0.18.0 // indirect
+	github.com/gobuffalo/packr/v2 v2.2.0
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/snappy v0.0.1 // indirect
@@ -42,7 +43,7 @@ require (
 	github.com/prometheus/common v0.2.0
 	github.com/sagikazarmark/viperx v0.2.0
 	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24 // indirect
-	github.com/sirupsen/logrus v1.3.0
+	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
