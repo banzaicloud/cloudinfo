@@ -17,8 +17,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -91,8 +91,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -165,8 +165,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -239,8 +239,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -313,8 +313,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -387,8 +387,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -461,8 +461,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -535,8 +535,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -609,8 +609,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -683,8 +683,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -757,8 +757,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -831,8 +831,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -905,8 +905,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -979,8 +979,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -1053,8 +1053,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
@@ -1127,8 +1127,8 @@ regions:
                         versions:
                             - 1.12.2
                             - 1.13.3
-                            - 1.14.0
-                        default: 1.14.0
+                            - 1.14.2
+                        default: 1.14.2
             vms:
                 strategy: include
                 data:
