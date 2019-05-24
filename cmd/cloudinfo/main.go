@@ -58,6 +58,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/digitalocean"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
@@ -324,6 +325,20 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 		}
 
 		infoers[Azure] = infoer
+
+		logger.Info("configured cloud info provider")
+	}
+
+	if config.Provider.Digitalocean.Enabled {
+		providers = append(providers, Digitalocean)
+		logger := logur.WithFields(logger, map[string]interface{}{"provider": Digitalocean})
+
+		infoer, err := digitalocean.NewDigitaloceanInfoer(config.Provider.Digitalocean.Config, logger)
+		if err != nil {
+			return nil, nil, emperror.With(err, "provider", Digitalocean)
+		}
+
+		infoers[Digitalocean] = infoer
 
 		logger.Info("configured cloud info provider")
 	}

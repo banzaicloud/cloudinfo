@@ -161,6 +161,15 @@ aliyun ram AttachPolicyToUser --UserName CloudInfo --PolicyName AliyunBSSReadOnl
 aliyun ram CreateAccessKey --UserName CloudInfo
 ```
 
+### DigitalOcean
+
+```
+export DIGITALOCEAN_ACCESS_TOKEN=<your-access-token>
+./build/cloudinfo --provider-digitalocean
+```
+
+Create a new API access token on [DigitalOcean Console](https://cloud.digitalocean.com/account/api/tokens).
+
 ### Configuring multiple providers
 
 Cloud providers can be configured one by one. To configure multiple providers simply list all of them and configure the credentials for all of them.
