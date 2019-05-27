@@ -1,0 +1,61 @@
+<ng-container *ngIf="isLoading; then loader ; else selectors"></ng-container>
+
+<ng-template #selectors>
+  <div *ngIf="isGroupSelect ; then groupsSelector ; else simpleSelector"></div>
+</ng-template>
+
+<ng-template #groupsSelector>
+  <div class="wrapper-with-animations">
+    <div class="banzai-input-label">{{ selectorLabel }}</div>
+    <div class="banzai-input">
+      <mat-select
+        [(value)]="selectedId"
+      >
+        <mat-optgroup
+          *ngFor="let group of groups"
+          [label]="group.label"
+        >
+          <mat-option
+            *ngFor="let item of group.items"
+            [value]="item.id"
+            (click)="optionSelected(group.value, item)"
+          >
+            {{ item.label }}
+          </mat-option>
+        </mat-optgroup>
+        <mat-select-trigger *ngIf="selectedValue">
+          {{ selectedValue.display }}
+        </mat-select-trigger>
+      </mat-select>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #simpleSelector>
+  <div class="wrapper-with-animations">
+    <div class="banzai-input-label">{{ selectorLabel }}</div>
+    <div class="banzai-input">
+      <mat-select
+        [(value)]="selectedId"
+      >
+        <div *ngIf="groups && groups.length > 0">
+          <mat-option
+            *ngFor="let item of groups[0].items"
+            [value]="item.id"
+            (click)="optionSelected(groups[0].value, item)"
+          >
+            {{ item.label }}
+          </mat-option>
+        </div>
+      </mat-select>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #loader>
+  <div class="loader-wrapper wrapper-with-animations">
+    <mat-spinner
+      diameter="40"
+    ></mat-spinner>
+  </div>
+</ng-template>

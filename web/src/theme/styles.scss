@@ -1,0 +1,76 @@
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+@import "theme-variables";
+
+body {
+  background-color: $background-color !important;
+}
+
+html * {
+  font-family: 'Lato', sans-serif;
+  outline: none !important;
+  margin: 0;
+}
+
+.banzai-input-label {
+  height: 12px;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.33;
+  letter-spacing: 1px;
+  color: #535353;
+  text-align: left;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.banzai-input-value {
+  width: 260px;
+  min-height: 48px;
+  padding: 12px;
+  border-radius: 2px;
+  background-color: #ECECEC;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+  color: #7F7F7F;
+  border-style: none;
+  border-bottom: solid 1px #ECECEC;
+}
+
+.banzai-input {
+  position: relative;
+
+  mat-select, input, .generic-select-trigger {
+    position: relative;
+    @extend .banzai-input-value;
+
+    &:hover {
+      border-bottom: solid 1px #AEAEAE;
+    }
+
+    &:active, &:focus {
+      border-bottom: solid 1px #5883BE;
+    }
+
+    &:disabled, &:read-only {
+      border-bottom: none;
+    }
+  }
+
+  mat-select {
+    padding: 0 !important;
+
+    .mat-select-trigger {
+      padding: 12px;
+    }
+
+    .mat-select-value {
+      color: #7F7F7F;
+    }
+  }
+}

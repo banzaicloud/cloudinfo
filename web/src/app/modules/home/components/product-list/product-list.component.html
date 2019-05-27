@@ -1,0 +1,110 @@
+<div class="page-wrapper">
+
+  <div class="fields">
+
+    <app-banzai-selector
+      class="provider-select"
+      [isLoading]="isProviderLoading"
+      [groups]="providers"
+      [selectorLabel]="'Cloud Services'"
+      [queryGroupKey]="'provider'"
+      [queryItemKey]="'service'"
+      [isGroupSelect]="true"
+      (selectionChanged)="providerChanged($event)"
+    ></app-banzai-selector>
+
+    <app-banzai-selector
+      class="region-select"
+      [isLoading]="isRegionLoading"
+      [groups]="regions"
+      [selectorLabel]="'Regions'"
+      [queryItemKey]="'region'"
+      (selectionChanged)="regionChanged($event)"
+    ></app-banzai-selector>
+
+  </div>
+
+  <div class="boxes">
+    <!-- cURL -->
+    <div class="border-box curl">
+      <div class="header">
+        <div class="title">Get the same result with cURL</div>
+        <app-banzai-copy-icon
+          class="copy"
+          [value]="cUrlCommand"
+        ></app-banzai-copy-icon>
+      </div>
+      <div class="message">{{ cUrlCommand }}</div>
+    </div>
+
+    <!-- Last refreshed -->
+    <div
+      class="border-box scraping-time"
+      matTooltipClass="tooltip-class"
+      [matTooltip]="scrapingTimeTooltip"
+    >
+      <div class="header">
+        <div class="title">Last refreshed</div>
+      </div>
+      <div class="message">{{ scrapingTime }}</div>
+    </div>
+  </div>
+
+  <div>
+    <app-banzai-table
+      [dataSource]="productsTableData"
+      [isLoading]="isProductsLoading"
+      [changeFilter]="searchValue"
+    ></app-banzai-table>
+  </div>
+
+  <div class="boxes">
+    <div class="border-box no-title">
+      <div class="message">
+        This site is powered by <a href="http://github.com/banzaicloud/telescopes"
+                                   target="_blank">Telescopes</a> - an API to recommend
+        and
+        compare cost efficient infrastructures on different cloud providers. To be able to build a service like
+        that, we needed to track machine type and price information programmatically. Using the cloud provider APIs to
+        get
+        this info is very cumbersome, so we’ve decided
+        to build our own service that aggregates and caches the product information from the providers and make it open
+        source.
+
+        This service is part of the <a href="http://github.com/banzaicloud/pipeline"
+                                       target="_blank">Pipeline</a> ecosystem - a feature
+        rich enterprise-grade application platform, built for containers on top of Kubernetes.
+        <br>
+        <br>
+        We strive to provide as accurate information as possible, so the site is updated daily using the cloud provider
+        APIs. However this information might not be accurate,
+        so use with care. The project is open source and available on <a href="http://github.com/banzaicloud/cloudinfo"
+                                                                         target="_blank">Github</a>.
+        Contributions and bug reports are welcome.
+      </div>
+    </div>
+  </div>
+
+  <div class="boxes">
+    <div class="border-box no-title warn">
+      <img class="warn-sign"
+           src="assets/images/ic_warn.svg"
+           alt="warn"/>
+      <div class="message">
+        This site is not affiliated with any of the cloud providers.
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+<ng-template
+  #categoryTemplate
+  let-row="row"
+>
+  <app-product-category-icon
+    [category]="products[row].category"
+  ></app-product-category-icon>
+
+</ng-template>

@@ -1,0 +1,62 @@
+@import "../../../../../theme/theme-variables";
+
+.wrap {
+  display: inline-block;
+  position: relative;
+  float: right;
+  padding: 0;
+}
+
+input[type="text"] {
+  height: $search-filter-height;
+  font-size: $search-font-size;
+  display: inline-block;
+  font-weight: 300;
+  color: $search-text-color;
+  border: none;
+  outline: none;
+  padding: 3px $search-filter-height 3px 3px;
+  width: 300px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  z-index: 3;
+  transition: width .4s cubic-bezier(0.000, 0.795, 0.000, 1.000);
+  cursor: pointer;
+  border-bottom: 1px solid $search-line-color;
+}
+
+input[type="text"]:focus:hover {
+  border-bottom: 1px solid $search-line-color;
+}
+
+input[type="text"]:focus {
+  width: 300px;
+  z-index: 1;
+  border-bottom: 1px solid $search-line-color;
+  cursor: text;
+}
+
+.not-empty-field {
+  width: 300px !important;
+  border-bottom: 1px solid $search-line-color !important;
+  cursor: text !important;
+}
+
+.search-icon {
+  width: $search-filter-height;
+  height: $search-filter-height;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .mat-icon {
+    margin: auto;
+    color: $search-icon-button-color;
+  }
+
+  .mat-icon:hover {
+    color: $search-icon-button-color-hover;
+  }
+}

@@ -1,0 +1,14 @@
+<img class="copy {{ disabled ? 'disabled' : '' }}"
+     matRipple
+     matTooltip="{{ disabled ? '' : 'Click to copy' }}"
+     matTooltipClass="tooltip-class"
+     ngxClipboard
+     [cbContent]="value"
+     [matRippleColor]="'rgba(0, 0, 0, 0.12)'"
+     [matRippleUnbounded]="false"
+     [matRippleCentered]="true"
+     [matRippleRadius]="12"
+     [width]="size"
+     [style.padding-bottom.px]="paddingBottom"
+     src="assets/images/ic_copy.svg"
+     alt="copy">

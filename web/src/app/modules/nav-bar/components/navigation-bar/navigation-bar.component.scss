@@ -1,0 +1,38 @@
+.header-container {
+
+  .background {
+    background-image: url("../../../../../assets/images/bg.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    height: 242px;
+  }
+
+  .header-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 32px 86px 0;
+    height: 32px;
+
+    .logo {
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+
+    .social-buttons {
+      flex-direction: row;
+      margin-left: auto;
+      display: flex;
+
+      .twitter {
+        margin-left: 20px;
+      }
+    }
+  }
+}

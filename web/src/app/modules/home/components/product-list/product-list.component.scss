@@ -1,0 +1,104 @@
+@import "../../../../../theme/tooltip";
+
+.page-wrapper {
+  margin: 35px 86px;
+
+  .fields {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .region-select {
+      margin-left: 40px;
+    }
+  }
+
+  .boxes {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .border-box {
+      min-height: 66px;
+      display: flex;
+      flex-direction: column;
+      margin-top: 35px;
+      margin-bottom: 35px;
+      border-radius: 4px;
+      border: solid 1px #ececec;
+      padding: 25px;
+
+      .header {
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .title {
+          font-size: 16px;
+          font-weight: bold;
+          font-style: normal;
+          font-stretch: normal;
+          line-height: 1.19;
+          letter-spacing: 0.4px;
+          text-align: left;
+          color: #7f7f7f;
+        }
+
+        .copy {
+          margin-left: auto;
+        }
+
+      }
+
+      .message {
+        font-size: 16px;
+        font-weight: normal;
+        font-style: normal;
+        font-stretch: normal;
+        letter-spacing: 0.4px;
+        text-align: left;
+        color: #7f7f7f;
+      }
+    }
+
+    .no-title {
+      .message {
+        margin-top: auto;
+      }
+    }
+
+    .warn {
+      background-color: rgba(174, 174, 174, 0.24);
+      width: 100%;
+      min-height: unset;
+      flex-direction: row;
+      margin-top: 0;
+
+      img {
+        margin-right: 16px;
+      }
+
+    }
+
+    .curl {
+      width: 70%;
+    }
+
+    .scraping-time {
+      width: 20%;
+      margin-left: auto;
+    }
+  }
+
+}
+
+.loader-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  mat-spinner {
+    margin: auto;
+  }
+}

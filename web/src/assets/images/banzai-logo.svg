@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="LOGO" width="401.248" height="32" viewBox="0 0 401.248 32">
+    <defs>
+        <style>
+            .cls-1{fill:none}.cls-2{clip-path:url(#clip-path)}.cls-3{fill:url(#linear-gradient)}.cls-4{clip-path:url(#clip-path-2)}.cls-5{clip-path:url(#clip-path-3)}.cls-6{clip-path:url(#clip-path-4)}.cls-7{fill:rgba(0,0,0,0)}.cls-8{clip-path:url(#clip-path-5)}.cls-9{fill:#fff}.cls-10{clip-path:url(#clip-path-6)}
+        </style>
+        <clipPath id="clip-path">
+            <path id="Clip_2" d="M11.85 23.408h39.91C28.69 23.408 27.977 0 11.85 0c-16 0-15.6 23.408 0 23.408" class="cls-1" data-name="Clip 2"/>
+        </clipPath>
+        <linearGradient id="linear-gradient" x1=".5" x2=".5" y2=".963" gradientUnits="objectBoundingBox">
+            <stop offset="0" stop-color="#fff" stop-opacity=".502"/>
+            <stop offset="1" stop-color="#fff" stop-opacity=".502"/>
+        </linearGradient>
+        <clipPath id="clip-path-2">
+            <path id="Clip_5" d="M16.634 0c-22.461 0-21.9 32 0 32h56.022C40.271 32 39.272 0 16.634 0z" class="cls-1" data-name="Clip 5"/>
+        </clipPath>
+        <clipPath id="clip-path-3">
+            <path id="Clip_8" d="M0 19.653h34.172c13.357 0 13.7-19.653 0-19.653C20.364 0 19.753 19.653 0 19.653" class="cls-1" data-name="Clip 8"/>
+        </clipPath>
+        <clipPath id="clip-path-4">
+            <path id="Clip_11" d="M0 27.147h46.527c18.185 0 18.652-27.147 0-27.147C27.727 0 26.894 27.147 0 27.147" class="cls-1" data-name="Clip 11"/>
+        </clipPath>
+        <clipPath id="clip-path-5">
+            <path id="Clip_2-2" d="M0 0h13.975v17.3H0z" class="cls-1" data-name="Clip 2"/>
+        </clipPath>
+        <clipPath id="clip-path-6">
+            <path id="Clip_13" d="M0 17.645h287.394V0H0z" class="cls-1" data-name="Clip 13"/>
+        </clipPath>
+    </defs>
+    <g id="Group_13" data-name="Group 13">
+        <g id="Group_3" data-name="Group 3" transform="translate(0 8.592)">
+            <path id="Clip_2-3" d="M11.85 23.408h39.91C28.69 23.408 27.977 0 11.85 0c-16 0-15.6 23.408 0 23.408" class="cls-1" data-name="Clip 2"/>
+            <g id="Group_3-2" class="cls-2" data-name="Group 3">
+                <g id="Fill_1" data-name="Fill 1">
+                    <path id="Fill_1-2" d="M11.85 23.408h39.91C28.69 23.408 27.977 0 11.85 0c-16 0-15.6 23.408 0 23.408" class="cls-1" data-name="Fill 1"/>
+                    <path id="Fill_1-3" d="M11.85 23.408h39.91C28.69 23.408 27.977 0 11.85 0c-16 0-15.6 23.408 0 23.408" class="cls-3" data-name="Fill 1"/>
+                </g>
+            </g>
+        </g>
+        <g id="Group_6" data-name="Group 6" transform="translate(6.256)">
+            <path id="Clip_5-2" d="M16.634 0c-22.461 0-21.9 32 0 32h56.022C40.271 32 39.272 0 16.634 0z" class="cls-1" data-name="Clip 5"/>
+            <g id="Group_6-2" class="cls-4" data-name="Group 6">
+                <g id="Fill_4" data-name="Fill 4">
+                    <path id="Fill_4-2" d="M16.634 0c-22.461 0-21.9 32 0 32h56.022C40.271 32 39.272 0 16.634 0z" class="cls-1" data-name="Fill 4"/>
+                    <path id="Fill_4-3" d="M16.634 0c-22.461 0-21.9 32 0 32h56.022C40.271 32 39.272 0 16.634 0z" class="cls-3" data-name="Fill 4"/>
+                </g>
+            </g>
+        </g>
+        <g id="Group_9" data-name="Group 9" transform="translate(44.523 12.347)">
+            <path id="Clip_8-2" d="M0 19.653h34.172c13.357 0 13.7-19.653 0-19.653C20.364 0 19.753 19.653 0 19.653" class="cls-1" data-name="Clip 8"/>
+            <g id="Group_9-2" class="cls-5" data-name="Group 9">
+                <g id="Fill_7" data-name="Fill 7">
+                    <path id="Fill_7-2" d="M0 19.653h34.172c13.357 0 13.7-19.653 0-19.653C20.364 0 19.753 19.653 0 19.653" class="cls-1" data-name="Fill 7"/>
+                    <path id="Fill_7-3" d="M0 19.653h34.172c13.357 0 13.7-19.653 0-19.653C20.364 0 19.753 19.653 0 19.653" class="cls-3" data-name="Fill 7"/>
+                </g>
+            </g>
+        </g>
+        <g id="Group_12" data-name="Group 12" transform="translate(11.211 4.853)">
+            <path id="Clip_11-2" d="M0 27.147h46.527c18.185 0 18.652-27.147 0-27.147C27.727 0 26.894 27.147 0 27.147" class="cls-1" data-name="Clip 11"/>
+            <g id="Group_12-2" class="cls-6" data-name="Group 12">
+                <g id="Fill_10" data-name="Fill 10">
+                    <path id="Fill_10-2" d="M0 27.147h46.527c18.185 0 18.652-27.147 0-27.147C27.727 0 26.894 27.147 0 27.147" class="cls-1" data-name="Fill 10"/>
+                    <path id="Fill_10-3" d="M0 27.147h46.527c18.185 0 18.652-27.147 0-27.147C27.727 0 26.894 27.147 0 27.147" class="cls-3" data-name="Fill 10"/>
+                </g>
+            </g>
+        </g>
+    </g>
+    <g id="banzaicloud_typo_logo" data-name="banzaicloud typo logo" transform="translate(113.584 7.308)">
+        <path id="banzaicloud_typo_logo_background" d="M0 0h287.663v18.519H0z" class="cls-7" data-name="banzaicloud typo logo background"/>
+        <g id="Group_19" data-name="Group 19" transform="translate(0 .597)">
+            <g id="Group_3-3" data-name="Group 3" transform="translate(0 .147)">
+                <path id="Clip_2-4" d="M0 0h13.975v17.3H0z" class="cls-1" data-name="Clip 2"/>
+                <g id="Group_3-4" class="cls-8" data-name="Group 3">
+                    <path id="Fill_1-4" d="M7.6 17.3H0V0h7.471c3.582 0 5.721 1.618 5.721 4.328a3.924 3.924 0 0 1-.855 2.552 4.148 4.148 0 0 1-2.412 1.35 4.95 4.95 0 0 1 2.985 1.437 4.234 4.234 0 0 1 1.065 2.933c0 2.943-2.385 4.7-6.375 4.7zM2.025 9.343v6.077H7.37c2.9 0 4.555-1.125 4.555-3.087a2.534 2.534 0 0 0-1.2-2.2 6.186 6.186 0 0 0-3.355-.79zm0-7.436v5.558H7.37c2.4 0 3.769-1.027 3.769-2.819 0-1.741-1.374-2.739-3.769-2.739z" class="cls-9" data-name="Fill 1"/>
+                </g>
+            </g>
+            <path id="Fill_4-4" d="M2.153 17.3H0L7.95 0h2.1l7.924 17.3h-2.2L13.8 12.927H4.128L2.153 17.3zM8.939 2.25l-3.952 8.771h7.951z" class="cls-9" data-name="Fill 4" transform="translate(25.674 .147)"/>
+            <path id="Fill_6" d="M12.655 17.3L2.025 3.416V17.3H0V0h2.1l10.636 13.918V0h2v17.3z" class="cls-9" data-name="Fill 6" transform="translate(56.563 .147)"/>
+            <path id="Fill_8" d="M2.656 15.42H14.53l-.03 1.88H0v-1.583L11.742 1.906H.329V0H14.4v1.584z" class="cls-9" data-name="Fill 8" transform="translate(85.225 .147)"/>
+            <path id="Fill_10-4" d="M2.148 17.3H0L7.945 0h2.1l7.924 17.3h-2.2l-1.979-4.371H4.127L2.148 17.3zM8.935 2.25l-3.951 8.771h7.952z" class="cls-9" data-name="Fill 10" transform="translate(111.076 .147)"/>
+            <path id="Clip_13-2" d="M0 17.645h287.394V0H0z" class="cls-1" data-name="Clip 13"/>
+            <g id="Group_136" class="cls-10" data-name="Group 136">
+                <path id="Fill_12" d="M0 17.3h2.027V0H0z" class="cls-9" data-name="Fill 12" transform="translate(141.962 .147)"/>
+                <path id="Fill_14" d="M16.609 2.919L14 5.93a6.114 6.114 0 0 0-4.453-2.246A4.88 4.88 0 0 0 4.61 8.7a4.914 4.914 0 0 0 4.937 5.09A6.7 6.7 0 0 0 14 11.761l2.631 2.722a10.821 10.821 0 0 1-7.315 3.162C3.98 17.645 0 13.814 0 8.749 0 3.755 4.075 0 9.47 0a10.408 10.408 0 0 1 7.139 2.919" class="cls-9" data-name="Fill 14" transform="translate(157.405)"/>
+                <path id="Fill_15" d="M12.028 13.618V17.3H0V0h4.508v13.618z" class="cls-9" data-name="Fill 15" transform="translate(186.218 .147)"/>
+                <path id="Fill_16" d="M9.565 17.645a9.961 9.961 0 0 1-6.833-2.537A8.544 8.544 0 0 1 0 8.77 8.4 8.4 0 0 1 2.732 2.5 10.043 10.043 0 0 1 9.565 0a10.088 10.088 0 0 1 6.86 2.5 8.386 8.386 0 0 1 2.738 6.27c0 5.06-4.126 8.875-9.598 8.875zm.051-13.961A5.011 5.011 0 0 0 4.6 8.8a5.1 5.1 0 0 0 5.013 5.165A4.989 4.989 0 0 0 14.527 8.8a4.963 4.963 0 0 0-4.911-5.116z" class="cls-9" data-name="Fill 16" transform="translate(209.364)"/>
+                <path id="Fill_17" d="M16.249 10.033c0 4.571-3.115 7.465-8.077 7.465C3.188 17.5 0 14.6 0 10.033V0h4.5v10.033a3.53 3.53 0 0 0 3.7 3.784 3.443 3.443 0 0 0 3.566-3.784V0h4.481z" class="cls-9" data-name="Fill 17" transform="translate(240.734 .147)"/>
+                <path id="Fill_18" d="M7.442 17.3H0V0h7.622a11.318 11.318 0 0 1 3.822.629A8.712 8.712 0 0 1 14.42 2.4a7.856 7.856 0 0 1 1.932 2.733 8.94 8.94 0 0 1 .688 3.522 8.777 8.777 0 0 1-.7 3.509 7.862 7.862 0 0 1-1.964 2.732 8.9 8.9 0 0 1-3.032 1.773 11.732 11.732 0 0 1-3.902.631zM4.507 3.509v10.28h3.217c2.786 0 4.731-2.1 4.731-5.116A4.835 4.835 0 0 0 7.52 3.509z" class="cls-9" data-name="Fill 18" transform="translate(270.353 .147)"/>
+            </g>
+        </g>
+    </g>
+</svg>

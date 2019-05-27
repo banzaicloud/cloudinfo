@@ -1,0 +1,45 @@
+.not-found-wrapper {
+  margin-top: 120px;
+  width: 100%;
+
+  .not-found-content-wrapper {
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    .img-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+
+      img {
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    .text {
+      margin-right: auto;
+      max-width: 296px;
+      font-size: 24px;
+      font-weight: 300;
+      font-style: normal;
+      font-stretch: normal;
+      line-height: 1.33;
+      letter-spacing: normal;
+      text-align: left;
+      color: #7f7f7f;
+    }
+
+  }
+
+}
+
+.not-found-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-left: 60px;
+}

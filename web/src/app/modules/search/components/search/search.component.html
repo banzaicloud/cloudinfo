@@ -1,0 +1,13 @@
+<div class="wrap">
+  <input
+    #filterInput
+    type="text"
+    placeholder="Search"
+    [(ngModel)]="filter"
+    (ngModelChange)="applyFilter($event)"
+    [ngClass]="{'not-empty-field': filterInput.value.length > 0}"
+  >
+  <div class="search-icon">
+    <mat-icon>search</mat-icon>
+  </div>
+</div>

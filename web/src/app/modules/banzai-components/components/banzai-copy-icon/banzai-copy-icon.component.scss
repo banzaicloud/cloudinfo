@@ -1,0 +1,14 @@
+@import "../../../../../theme/tooltip";
+
+.copy {
+  position: relative;
+  cursor: pointer;
+
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
+
+.disabled {
+  @extend .copy;
+  cursor: no-drop;
+}
