@@ -232,7 +232,7 @@ func main() {
 		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
-	ui := packr.New("ui", "../../web/dist/ui")
+	ui := packr.New("ui", "../../web/dist/web")
 
 	index, err := ui.FindString("index.html")
 	if err == nil {

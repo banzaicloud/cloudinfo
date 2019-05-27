@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="41.467" height="38.256" viewBox="0 0 41.467 38.256">
+    <defs>
+        <style>
+            .cls-1{fill:#fff;fill-rule:evenodd}
+        </style>
+    </defs>
+    <g id="cloud-dataproc" transform="translate(-18.008 -16.25)">
+        <g id="j4ntqundgh">
+            <g id="j4ntqunegk" transform="rotate(-120 28.489 19.89)">
+                <path id="Path_2091" d="M0 7.5v27l4-2.25V14.14A7.5 7.5 0 1 0 .125 6.125 7.6 7.6 0 0 0 0 7.5zm7.5 3.25A3.25 3.25 0 1 0 4.25 7.5a3.243 3.243 0 0 0 3.25 3.25z" class="cls-1" data-name="Path 2091"/>
+            </g>
+            <g id="j4ntqunfgl" transform="translate(31.75 16.25)">
+                <path id="Path_2092" d="M11.572 13.806A7.5 7.5 0 1 0 .125 6.125 7.6 7.6 0 0 0 0 7.5v27l4-2.25v-18.2l12.217 7.054a7.5 7.5 0 1 0 8.879.652 7.592 7.592 0 0 0-1.129-.8zM4.25 7.5a3.25 3.25 0 1 1 3.25 3.25A3.243 3.243 0 0 1 4.25 7.5zm17.593 17.144a3.25 3.25 0 1 1-4.439 1.19 3.243 3.243 0 0 1 4.439-1.19z" class="cls-1" data-name="Path 2092"/>
+            </g>
+        </g>
+    </g>
+</svg>

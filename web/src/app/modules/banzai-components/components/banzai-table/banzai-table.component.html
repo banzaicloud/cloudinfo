@@ -1,0 +1,266 @@
+<ng-container *ngIf="showTable(); then table ; else noResultWithLoading"></ng-container>
+
+<!-- Table container -->
+<ng-template #table
+             class="wrapper-with-animations">
+  <table mat-table
+         multiTemplateDataRows
+         appTableStyle
+         [designConfig]="tableStyle"
+         [dataSource]="_dataSource"
+         matSort
+         class="mat-elevation-z8 wrapper-with-animations">
+    <ng-container *ngFor="let header of tableItems.headers | keyvalue">
+
+      <!-- Standard/Logo cell -->
+      <ng-container *ngIf="header.value.type === cellType.Standard || header.value.type === cellType.Logo"
+                    [matColumnDef]="header.key">
+
+        <!-- Header cell -->
+        <th mat-header-cell
+            class="header-cell-text"
+            appCellConfig
+            [customPosition]="header.value.cellPositionConfig"
+            [paddingType]="header.value.cellPaddingConfig"
+            [borderConfig]="header.value.border"
+            [cellAlignConfig]="header.value.cellAlignConfig"
+            [isHeader]="true"
+            *matHeaderCellDef
+            [disabled]="header.value.disableSorting"
+            mat-sort-header>{{ header.value.display.header }}
+          <span *ngIf="header.value.display.subHeader"
+                class="sub-header">{{header.value.display.subHeader}}</span>
+        </th>
+
+        <!-- Standard cell -->
+        <td mat-cell
+            appCellWidth
+            appCellConfig
+            [customPosition]="header.value.cellPositionConfig"
+            [paddingType]="header.value.cellPaddingConfig"
+            [customWidth]="header.value.customWidth"
+            [matTooltip]="getTooltip(row.config[header.key])"
+            matTooltipClass="tooltip-class"
+            [borderConfig]="header.value.border"
+            [cellAlignConfig]="header.value.cellAlignConfig"
+            [isHeader]="false"
+            *matCellDef="let row">
+
+          <ng-container *ngIf="header.value.type === cellType.Logo; then logo; else data"></ng-container>
+
+          <ng-template #logo
+                       [ngTemplateOutlet]="header.value.logoRef"
+                       [ngTemplateOutletContext]="{row: getRowIndex(row), group: getGroupName(row)}"></ng-template>
+
+          <ng-template #data>
+            <div appCellTextOverflow
+                 appCellWidth
+                 [enabledOverflow]="row.config[header.key].display.enabledOverflow"
+                 [customWidth]="header.value.customWidth">
+              {{getText(row.config[header.key])}}
+            </div>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Template cell -->
+      <ng-container *ngIf="header.value.type === cellType.Template"
+                    [matColumnDef]="header.key">
+
+        <!-- Header cell -->
+        <th mat-header-cell
+            appCellConfig
+            [customPosition]="header.value.cellPositionConfig"
+            [paddingType]="header.value.cellPaddingConfig"
+            [cellAlignConfig]="header.value.cellAlignConfig"
+            [isHeader]="true"
+            [borderConfig]="header.value.border"
+            [disabled]="header.value.disableSorting"
+            class="header-cell-text"
+            *matHeaderCellDef
+            mat-sort-header>{{ header.value.display.header }}
+          <span *ngIf="header.value.display.subHeader"
+                class="sub-header">{{header.value.display.subHeader}}</span>
+        </th>
+
+        <!-- Standard cell -->
+        <td mat-cell
+            appCellConfig
+            appCellWidth
+            [customPosition]="header.value.cellPositionConfig"
+            [paddingType]="header.value.cellPaddingConfig"
+            [customWidth]="header.value.customWidth"
+            [cellAlignConfig]="header.value.cellAlignConfig"
+            [isHeader]="false"
+            [borderConfig]="header.value.border"
+            *matCellDef="let row">
+
+          <ng-template [ngTemplateOutlet]="header.value.templateRef"
+                       [ngTemplateOutletContext]="{row: getRowIndex(row), group: getGroupName(row)}"></ng-template>
+
+        </td>
+      </ng-container>
+
+      <!-- More column -->
+      <ng-container *ngIf="header.value.type === cellType.More"
+                    [matColumnDef]="header.key"
+                    stickyEnd>
+
+        <!-- Header cell -->
+        <th mat-header-cell
+            appCellConfig
+            [customPosition]="header.value.cellPositionConfig"
+            [paddingType]="header.value.cellPaddingConfig"
+            [cellAlignConfig]="header.value.cellAlignConfig"
+            [isHeader]="true"
+            [borderConfig]="header.value.border"
+            class="header-cell-text"
+            *matHeaderCellDef></th>
+
+        <!-- Standard cell -->
+        <td class="table-cell-left-border"
+            mat-cell
+            appCellConfig
+            appCellWidth
+            [customPosition]="header.value.cellPositionConfig"
+            [paddingType]="header.value.cellPaddingConfig"
+            [customWidth]="header.value.customWidth"
+            [cellAlignConfig]="header.value.cellAlignConfig"
+            [isHeader]="false"
+            [borderConfig]="header.value.border"
+            *matCellDef="let row">
+          <div class="mat-table-last-row-with-action-small">
+
+            <ng-template [ngTemplateOutlet]="header.value.moreRef"
+                         [ngTemplateOutletContext]="{row: getRowIndex(row), group: getGroupName(row)}"></ng-template>
+
+          </div>
+        </td>
+
+      </ng-container>
+
+      <!-- Status bar column -->
+      <ng-container *ngIf="header.value.type === cellType.StatusBar"
+                    [matColumnDef]="header.key"
+                    sticky>
+        <th mat-header-cell
+            style="padding-left: 0"
+            *matHeaderCellDef>{{ header.value.display.header }}</th>
+
+        <td mat-cell
+            *matCellDef="let row; let i = index;"
+            appCellWidth
+            [customWidth]="header.value.customWidth"
+        >
+        </td>
+      </ng-container>
+
+      <!-- Status column -->
+      <ng-container *ngIf="header.value.type === cellType.Status"
+                    [matColumnDef]="header.key">
+        <th mat-header-cell
+            *matHeaderCellDef
+            [disabled]="header.value.disableSorting"
+            mat-sort-header>{{ header.value.display.header }}
+          <span *ngIf="header.value.display.subHeader"
+                class="sub-header">{{header.value.display.subHeader}}</span>
+        </th>
+
+        <td mat-cell
+            appCellWidth
+            [customWidth]="header.value.customWidth"
+            *matCellDef="let row; let i = index;"
+            [matTooltip]="getTooltip(row.config[header.key])"
+            matTooltipClass="tooltip-class">
+          {{ row.config[header.key].getValueForStatus() }}
+        </td>
+      </ng-container>
+
+    </ng-container>
+
+    <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+    <ng-container *ngIf="expandedDetails">
+      <ng-container matColumnDef="expandedDetail">
+        <td mat-cell
+            *matCellDef="let row"
+            [attr.colspan]="headers.length">
+          <div class="table-element-detail"
+               [@expandAndCollapseAnimation]="row == expandedElement ? 'expanded' : 'collapsed'">
+
+            <ng-template [ngTemplateOutlet]="tableItems.detailsRef"
+                         [ngTemplateOutletContext]="{ model: getModelToDetails(row) }"></ng-template>
+
+          </div>
+
+        </td>
+      </ng-container>
+    </ng-container>
+
+    <tr mat-header-row
+        *matHeaderRowDef="headers"></tr>
+
+    <ng-container *ngIf="expandedDetails; then expandedRow; else standardRow;"></ng-container>
+
+    <ng-template #expandedRow>
+
+      <tr mat-row
+          *matRowDef="let row; columns: headers;"
+          class="table-element-row"
+          [class.table-expanded-row]="expandedElement === row"
+          (click)="expandDetails(row)">
+      </tr>
+
+      <tr mat-row
+          *matRowDef="let row; columns: ['expandedDetail']"
+          appBorderDetailsStatus
+          [isOpen]="this.expandedElement === row"></tr>
+
+    </ng-template>
+
+    <ng-template #standardRow>
+      <tr mat-row
+          appRowStyle
+          [selected]="row.selectedForMark"
+          [rowDesignConfig]="tableStyle.rowDesign"
+          *matRowDef="let row; columns: headers"
+          (click)="clickRowEvent(row)">
+      </tr>
+    </ng-template>
+
+  </table>
+</ng-template>
+
+<ng-template #noResultWithLoading>
+  <ng-container class="wrapper-with-animation"
+                *ngIf="isLoading; then loading; else noResultWithEmptyPage"></ng-container>
+</ng-template>
+
+<ng-template #noResultWithEmptyPage>
+  <ng-container class="wrapper-with-animation"
+                *ngIf="filterValue; then noResult; else emptyList"></ng-container>
+</ng-template>
+
+<!-- Filter result -->
+<ng-template #noResult>
+  <div class="wrapper-with-animations no-result">
+    <div>No matching results</div>
+  </div>
+</ng-template>
+
+<!-- Empty list -->
+<ng-template #emptyList>
+  <div class="wrapper-with-animations no-result">
+    <div>{{emptyListText}}</div>
+  </div>
+</ng-template>
+
+<!-- Table loading -->
+<ng-template #loading>
+  <div class="loader-wrapper wrapper-with-animations">
+    <mat-spinner
+      style="margin: auto;"
+      diameter="50"
+    ></mat-spinner>
+  </div>
+</ng-template>
+

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="17.924" height="16.574" viewBox="0 0 17.924 16.574">
+    <defs>
+        <style>
+            .cls-1{fill:#e9b60d}.cls-2{fill:#fff}
+        </style>
+    </defs>
+    <g id="ico_attention" transform="translate(-280 -536.999)">
+        <path id="Path_294" d="M17.7 13.6L10.7 1a1.97 1.97 0 0 0-3.4 0l-7 12.6a2.03 2.03 0 0 0 1.7 3h14a2 2 0 0 0 1.7-3z" class="cls-1" data-name="Path 294" transform="translate(279.941 536.974)"/>
+        <g id="Group_231" data-name="Group 231" transform="translate(-.6 12.405)">
+            <path id="Rectangle_243" d="M0 0h2v2H0z" class="cls-2" data-name="Rectangle 243" transform="translate(288.6 536.596)"/>
+            <path id="Rectangle_244" d="M0 0h2v5H0z" class="cls-2" data-name="Rectangle 244" transform="translate(288.6 529.596)"/>
+        </g>
+    </g>
+</svg>

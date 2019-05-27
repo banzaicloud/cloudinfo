@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <defs>
+        <style>
+            .cls-1{opacity:.5}.cls-2,.cls-3{stroke:#000;stroke-linejoin:round;stroke-width:2px}.cls-3,.cls-4{fill:none}.cls-3{stroke-linecap:round}
+        </style>
+    </defs>
+    <g id="ic_copy" transform="translate(-1002 -485)">
+        <g id="ico_copy" class="cls-1">
+            <g id="Group_258" data-name="Group 258">
+                <path id="Rectangle_365" d="M0 0h9v10H0z" class="cls-2" data-name="Rectangle 365" transform="translate(1008 494)"/>
+                <path id="Path_991" d="M-4174 1535h9v10" class="cls-3" data-name="Path 991" transform="translate(5185 -1044)"/>
+            </g>
+            <path id="Box" d="M0 0h24v24H0z" class="cls-4" transform="translate(1002 485)"/>
+        </g>
+    </g>
+</svg>

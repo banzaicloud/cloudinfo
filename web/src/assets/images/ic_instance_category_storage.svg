@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="18" viewBox="0 0 28 18">
+    <defs>
+        <style>
+            .cls-1{fill:#fff;fill-rule:evenodd}.cls-2{fill:none}
+        </style>
+    </defs>
+    <g id="cloud-storage" transform="translate(-16.5 84.5)">
+        <g id="j4nsgkozfq" transform="translate(-10 -111)">
+            <g id="j4nsgkp1ft" transform="translate(26.5 26.5)">
+                <path id="Path_2081" d="M.75 0A.663.663 0 0 0 0 .75v5.5A.663.663 0 0 0 .75 7h26.5a.663.663 0 0 0 .75-.75V.75a.663.663 0 0 0-.75-.75zM21 3.5a2 2 0 1 1 2 2 2 2 0 0 1-2-2z" class="cls-1" data-name="Path 2081"/>
+                <g id="Group_409" data-name="Group 409">
+                    <path id="Rectangle_260" d="M0 0h28v7H0z" class="cls-2" data-name="Rectangle 260"/>
+                </g>
+            </g>
+            <g id="j4nsgkp1fu" transform="translate(26.5 37.5)">
+                <path id="Path_2082" d="M.75 0A.663.663 0 0 0 0 .75v5.5A.663.663 0 0 0 .75 7h26.5a.663.663 0 0 0 .75-.75V.75a.663.663 0 0 0-.75-.75zM21 3.5a2 2 0 1 1 2 2 2 2 0 0 1-2-2z" class="cls-1" data-name="Path 2082"/>
+            </g>
+        </g>
+    </g>
+</svg>

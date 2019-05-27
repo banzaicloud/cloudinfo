@@ -1,0 +1,44 @@
+<div class="header-container">
+
+  <div class="background"></div>
+
+  <div class="header-wrapper">
+    <img class="logo"
+         src="assets/images/banzai-logo.svg"
+         alt="banzai-logo"/>
+
+    <div class="social-buttons">
+
+      <!-- GitHub button-->
+      <div class="gh">
+        <a
+          class="github-button"
+          href="https://github.com/banzaicloud/cloudinfo"
+          data-show-count="true"
+          aria-label="Star banzaicloud/cloudinfo on GitHub"
+        >Star</a>
+      </div>
+
+      <!-- Twitter button-->
+      <div class="twitter">
+        <a
+          href="https://twitter.com/banzaicloud?ref_src=twsrc%5Etfw"
+          class="twitter-follow-button"
+          data-show-count="false"
+        >Follow @BanzaiCloud</a>
+      </div>
+
+    </div>
+  </div>
+
+  <app-page-title-section
+    [title]="title"
+    [searchField]="searchField"
+  ></app-page-title-section>
+
+</div>
+
+
+<div class="content-container">
+  <ng-content select="[app-root]"></ng-content>
+</div>

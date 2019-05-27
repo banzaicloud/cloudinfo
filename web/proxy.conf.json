@@ -1,0 +1,10 @@
+{
+  "/cloudinfo": {
+    "target": "https://alpha.dev.banzaicloud.com/cloudinfo",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/cloudinfo": ""
+    }
+  }
+}

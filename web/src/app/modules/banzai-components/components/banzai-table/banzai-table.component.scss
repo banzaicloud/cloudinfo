@@ -1,0 +1,97 @@
+@import "../../../../../theme/banzai-table";
+@import "../../../../../theme/tooltip";
+@import "../../../../../theme/animations";
+
+// Cell borders
+
+.table-cell-left-border {
+  padding-left: $table-cell-padding-to-border;
+  border-left: $table-cell-border;
+}
+
+.table-cell-right-border {
+  padding-right: $table-cell-padding-to-border;
+  border-right: $table-cell-border;
+}
+
+.table-cell-edge-border {
+  padding-right: $table-cell-padding-to-border;
+  padding-left: $table-cell-padding-to-border;
+  border-right: $table-cell-border;
+  border-left: $table-cell-border;
+}
+
+// --------
+
+.table-cell-padding-left {
+  padding-left: $table-cell-padding-to-border;
+}
+
+.table-cell-padding-left-null {
+  padding-left: 0 !important;
+}
+
+.table-cell-padding-right {
+  padding-right: $table-cell-padding-to-border;
+}
+
+.table-cell-padding-edges {
+  padding-left: $table-cell-padding-to-border;
+  padding-right: $table-cell-padding-to-border;
+}
+
+// More cell
+.mat-table-last-row-with-action {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: $table-cell-height;
+  width: $table-action-cell-width;
+
+  .mat-icon-button {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+}
+
+.mat-table-last-row-with-action-small {
+  @extend .mat-table-last-row-with-action;
+  width: $table-action-cell-width-small;
+}
+
+// --------
+
+.no-result {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+
+  div {
+    margin: auto;
+    font-weight: bold;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: 1.33;
+    letter-spacing: normal;
+    text-align: left;
+    color: #7f7f7f;
+  }
+}
+
+.sub-header {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+.cell-text-overflow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 16px;
+}
+
+.table-cell-position-relative {
+  position: relative;
+}

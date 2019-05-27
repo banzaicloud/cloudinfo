@@ -1,0 +1,13 @@
+@import "../../../../../theme/animations";
+
+.loader-wrapper {
+  display: flex;
+  min-width: 260px;
+  min-height: 66px;
+
+  mat-spinner {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+}

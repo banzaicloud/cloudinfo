@@ -1,5 +1,5 @@
 # UI build image
-FROM node:10 as frontend
+FROM node:12.3.1 as frontend
 
 WORKDIR /web
 
@@ -32,7 +32,7 @@ RUN go mod download
 COPY Makefile main-targets.mk /workspace/
 RUN make bin/packr2
 
-COPY --from=frontend /web/dist/ui /workspace/web/dist/ui
+COPY --from=frontend /web/dist/web /workspace/web/dist/web
 COPY . /workspace
 
 ARG BUILD_TARGET
