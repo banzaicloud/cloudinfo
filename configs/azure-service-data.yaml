@@ -15,8 +15,8 @@ regions:
                 data:
                     -   location: centralus
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -33,8 +33,8 @@ regions:
                 data:
                     -   location: eastus
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -51,8 +51,8 @@ regions:
                 data:
                     -   location: eastus2
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -69,8 +69,8 @@ regions:
                 data:
                     -   location: westus2
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -87,8 +87,8 @@ regions:
                 data:
                     -   location: francecentral
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -105,8 +105,8 @@ regions:
                 data:
                     -   location: northeurope
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -123,8 +123,8 @@ regions:
                 data:
                     -   location: uksouth
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -141,8 +141,8 @@ regions:
                 data:
                     -   location: westeurope
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -159,8 +159,8 @@ regions:
                 data:
                     -   location: japaneast
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -177,8 +177,8 @@ regions:
                 data:
                     -   location: southeastasia
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -195,8 +195,8 @@ regions:
                 data:
                     -   location: australiasoutheast
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -213,8 +213,8 @@ regions:
                 data:
                     -   location: eastasia
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -231,8 +231,8 @@ regions:
                 data:
                     -   location: canadacentral
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -249,8 +249,8 @@ regions:
                 data:
                     -   location: canadaeast
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -267,8 +267,8 @@ regions:
                 data:
                     -   location: koreasouth
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -285,8 +285,8 @@ regions:
                 data:
                     -   location: japanwest
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -303,8 +303,8 @@ regions:
                 data:
                     -   location: southindia
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -321,8 +321,8 @@ regions:
                 data:
                     -   location: westus
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -339,8 +339,8 @@ regions:
                 data:
                     -   location: southcentralus
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -357,8 +357,8 @@ regions:
                 data:
                     -   location: northcentralus
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -375,8 +375,8 @@ regions:
                 data:
                     -   location: australiaeast
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -393,8 +393,8 @@ regions:
                 data:
                     -   location: centralindia
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -411,8 +411,8 @@ regions:
                 data:
                     -   location: ukwest
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
@@ -429,8 +429,8 @@ regions:
                 data:
                     -   location: koreacentral
                         versions:
-                            - 1.12.2
-                            - 1.13.3
+                            - 1.12.8
+                            - 1.13.6
                             - 1.14.2
                         default: 1.14.2
             vms:
