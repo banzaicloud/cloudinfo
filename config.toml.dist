@@ -92,6 +92,11 @@ enabled = false
 # clientSecret = ""
 # tenantId = ""
 
+[provider.digitalocean]
+enabled = false
+
+# accessToken = ""
+
 [management]
 enabled = true
 address = ":8001"

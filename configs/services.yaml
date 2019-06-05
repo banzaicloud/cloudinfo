@@ -48,3 +48,10 @@ oracle:
   -
     name: oke
     isstatic: false
+digitalocean:
+  -
+    name: compute
+    isstatic: false
+  -
+    name: dok
+    isstatic: false

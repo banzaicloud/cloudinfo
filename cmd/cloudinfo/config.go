@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/digitalocean"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
 	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
@@ -49,6 +50,8 @@ const (
 	Oracle = "oracle"
 	// Azure is the identifier of the MS Azure provider
 	Azure = "azure"
+	// Digitalocean is the identifier of the Digitalocean provider
+	Digitalocean = "digitalocean"
 )
 
 // metaConfiguration contains meta configuration for eg. remote config providers.
@@ -152,6 +155,12 @@ type configuration struct {
 		Azure struct {
 			Enabled      bool
 			azure.Config `mapstructure:",squash"`
+		}
+
+		// Digitalocean configuration
+		Digitalocean struct {
+			Enabled             bool
+			digitalocean.Config `mapstructure:",squash"`
 		}
 	}
 
@@ -299,6 +308,12 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("provider.azure.clientId")
 	_ = v.BindEnv("provider.azure.clientSecret")
 	_ = v.BindEnv("provider.azure.tenantId")
+
+	// DigitalOcean config
+	p.Bool("provider-digitalocean", false, "enable digitalocean provider")
+	_ = v.BindPFlag("provider.digitalocean.enabled", p.Lookup("provider-digitalocean"))
+
+	_ = v.BindEnv("provider.digitalocean.accessToken", "DIGITALOCEAN_ACCESS_TOKEN")
 
 	// Management
 	v.SetDefault("management.enabled", true)

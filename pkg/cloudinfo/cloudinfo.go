@@ -242,11 +242,19 @@ func getContinent(region string) string {
 	switch {
 	case checkContinent(region, []string{"ap-southeast-2", "australia"}):
 		return ContinentAustralia
-	case checkContinent(region, []string{"cn-", "ap-", "me-", "asia", "japan", "india", "korea"}):
+	case checkContinent(region, []string{"cn-", "ap-", "me-", "asia", "japan", "india", "korea"}),
+		strings.HasPrefix(region, "sgp"),
+		strings.HasPrefix(region, "blr"):
 		return ContinentAsia
-	case checkContinent(region, []string{"eu", "uk", "france"}):
+	case checkContinent(region, []string{"eu", "uk", "france"}),
+		strings.HasPrefix(region, "ams"),
+		strings.HasPrefix(region, "lon"),
+		strings.HasPrefix(region, "fra"):
 		return ContinentEurope
-	case checkContinent(region, []string{"us", "ca-central-1", "canada", "northamerica"}):
+	case checkContinent(region, []string{"us", "ca-central-1", "canada", "northamerica"}),
+		strings.HasPrefix(region, "nyc"),
+		strings.HasPrefix(region, "sfo"),
+		strings.HasPrefix(region, "tor"):
 		return ContinentNorthAmerica
 	case checkContinent(region, []string{"southamerica", "brazil", "sa-"}):
 		return ContinentSouthAmerica
