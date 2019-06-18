@@ -99,7 +99,7 @@ func (i *DigitaloceanInfoer) Initialize() (map[string]map[string]cloudinfo.Price
 			}
 
 			allPrices[r][size.Slug] = cloudinfo.Price{
-				OnDemandPrice: size.PriceMonthly,
+				OnDemandPrice: size.PriceHourly,
 			}
 		}
 	}
@@ -149,7 +149,7 @@ func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmIn
 		virtualMachines = append(virtualMachines, cloudinfo.VmInfo{
 			Category:      getCategory(size.Slug),
 			Type:          size.Slug,
-			OnDemandPrice: size.PriceMonthly,
+			OnDemandPrice: size.PriceHourly,
 			Mem:           float64(size.Memory) / 1024,
 			Cpus:          float64(size.Vcpus),
 			NtwPerf:       "300 Mbit/s",
