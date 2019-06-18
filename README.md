@@ -31,27 +31,28 @@ make build
 The following options can be configured when starting the exporter (with defaults):
 
 ```
-./build/cloudinfo --help
-Usage of ./build/cloudinfo:
-      --alibaba-access-key-id string             alibaba access key id
-      --alibaba-access-key-secret string         alibaba access key secret
-      --alibaba-region-id string                 alibaba region id
-      --aws-access-key-id string                 aws access key id
-      --aws-secret-access-key string             aws secret access key
-      --azure-auth-location string               azure authentication file location
-      --gce-api-key string                       GCE API key to use for getting SKUs
-      --google-application-credentials string    google application credentials location
-      --help                                     print usage
-      --listen-address string                    the address the cloudinfo app listens to HTTP requests. (default ":9090")
-      --log-format string                        log format
-      --log-level string                         log level (default "info")
-      --metrics-address string                   the address where internal metrics are exposed (default ":9900")
-      --metrics-enabled                          internal metrics are exposed if enabled
-      --oracle-cli-config-location string        oracle config file location
-      --product-info-renewal-interval duration   duration (in go syntax) between renewing the product information. Example: 2h30m (default 24h0m0s)
-      --prometheus-address string                http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter. If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.
-      --prometheus-query string                  advanced configuration: change the query used to query spot price info from Prometheus. (default "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
-      --provider strings                         Providers that will be used with the cloudinfo application. (default [amazon,google,azure,oracle,alibaba])
+build/cloudinfo --help
+Usage of Banzai Cloud Cloudinfo Service:
+      --config-vault string               enable config Vault
+      --config-vault-address string       config Vault address
+      --config-vault-token string         config Vault token
+      --config-vault-secret-path string   config Vault secret path
+      --log-level string                  log level (default "info")
+      --log-format string                 log format (default "json")
+      --metrics-enabled                   internal metrics are exposed if enabled
+      --metrics-address string            the address where internal metrics are exposed (default ":9090")
+      --listen-address string             application listen address (default ":8000")
+      --scrape                            enable cloud info scraping (default true)
+      --scrape-interval duration          duration (in go syntax) between renewing information (default 24h0m0s)
+      --provider-amazon                   enable amazon provider
+      --provider-google                   enable google provider
+      --provider-alibaba                  enable alibaba provider
+      --provider-oracle                   enable oracle provider
+      --provider-azure                    enable azure provider
+      --provider-digitalocean             enable digitalocean provider
+      --config string                     Configuration file
+      --version                           Show version information
+      --dump-config                       Dump configuration to the console (and exit)
 ```
 
 ## Cloud credentials
@@ -67,9 +68,9 @@ environment variables, shared credential files and via AWS instance profiles. To
 The easiest way is through environment variables:
 
 ```
-export AWS_ACCESS_KEY_ID=<your-access-key-id>
-export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
-./build/cloudinfo --provider amazon
+export AWS_ACCESS_KEY_ID=<access-key-id>
+export AWS_SECRET_ACCESS_KEY=<secret-access-key>
+cloudinfo --provider-amazon
 ```
 
 Create AWS credentials with aws command-line tool:
@@ -90,9 +91,9 @@ The `Compute Engine API` is doing authentication in the standard Google Cloud wa
 Once you have a service account, download the JSON credentials file from the Google Cloud Console, and set its account through an environment variable:
 
 ```
-export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
-export GCE_API_KEY=<gce-api-key>
-./build/cloudinfo --provider google
+export GOOGLE_CREDENTIALS_FILE=<path-to-my-service-account-file>.json
+export GOOGLE_PROJECT=<google-project-id>
+cloudinfo --provider-google
 ```
 
 Create service account key with gcloud command-line tool:
@@ -116,8 +117,11 @@ Follow [this](https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-qs-vm#creat
 and set an environment variable that points to the service account file:
 
 ```
-export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
-./build/cloudinfo --provider azure
+export AZURE_SUBSCRIPTION_ID=<subscription-id>
+export AZURE_TENANT_ID=<tenant-id>
+export AZURE_CLIENT_ID=<client-id>
+export AZURE_CLIENT_SECRET=<client-secret>
+cloudinfo --provider-azure
 ```
 
 Create service principal with azure command-line tool:
@@ -137,8 +141,17 @@ az ad sp create-for-rbac --name "CloudinfoSP" --role "Cloudinfo" --sdk-auth true
 Authentication is done via CLI configuration file. Follow [this](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm) link to learn how to create such a file and set an environment variable that points to that config file:
 
 ```
-export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
-./build/cloudinfo --provider oracle
+export ORACLE_TENANCY_OCID=<tenancy-ocid>
+export ORACLE_USER_OCID=<user-ocid>
+export ORACLE_REGION=<region>
+export ORACLE_FINGERPRINT=<fingerprint>
+export ORACLE_PRIVATE_KEY=<private-key>
+export ORACLE_PRIVATE_KEY_PASSPHRASE=<private-key-passphrase>
+# OR
+export ORACLE_CONFIG_FILE_PATH=<config-file-path>
+export ORACLE_PROFILE=<profile>
+
+cloudinfo --provider-oracle
 ```
 
 ### Alibaba
@@ -146,10 +159,10 @@ export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
 The easiest way to authenticate is through environment variables:
 
 ```
-export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
-export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
+export ALIBABA_ACCESS_KEY_ID=<access-key-id>
+export ALIBABA_ACCESS_KEY_SECRET=<access-key-secret>
 export ALIBABA_REGION_ID=<region-id>
-./build/cloudinfo --provider alibaba
+cloudinfo --provider-alibaba
 ```
 
 Create Alibaba credentials with Alibaba Cloud CLI:
@@ -164,8 +177,8 @@ aliyun ram CreateAccessKey --UserName CloudInfo
 ### DigitalOcean
 
 ```
-export DIGITALOCEAN_ACCESS_TOKEN=<your-access-token>
-./build/cloudinfo --provider-digitalocean
+export DIGITALOCEAN_ACCESS_TOKEN=<access-token>
+cloudinfo --provider-digitalocean
 ```
 
 Create a new API access token on [DigitalOcean Console](https://cloud.digitalocean.com/account/api/tokens).
@@ -173,19 +186,16 @@ Create a new API access token on [DigitalOcean Console](https://cloud.digitaloce
 ### Configuring multiple providers
 
 Cloud providers can be configured one by one. To configure multiple providers simply list all of them and configure the credentials for all of them.
-Here's an example of how to configure all three providers:
+Here's an example of how to configure three providers:
 ```
-export AWS_SECRET_ACCESS_KEY=<your-secret-access-key>
-export AWS_ACCESS_KEY_ID=<your-access-key-id>
-export GOOGLE_APPLICATION_CREDENTIALS=<path-to-my-service-account-file>.json
-export GCE_API_KEY=<gce-api-key>
-export AZURE_AUTH_LOCATION=<path-to-service-principal>.auth
-export ORACLE_CLI_CONFIG_LOCATION=<path-to-oci-cli-configuration>
-export ALIBABA_ACCESS_KEY_ID=<your-access-key-id>
-export ALIBABA_ACCESS_KEY_SECRET=<your-access-key-secret>
+export AWS_SECRET_ACCESS_KEY=<secret-access-key>
+export AWS_ACCESS_KEY_ID=<access-key-id>
+export ALIBABA_ACCESS_KEY_ID=<access-key-id>
+export ALIBABA_ACCESS_KEY_SECRET=<access-key-secret>
 export ALIBABA_REGION_ID=<region-id>
-./build/cloudinfo
+export DIGITALOCEAN_ACCESS_TOKEN=<access-token>
 
+cloudinfo --provider-amazon --provider-alibaba --provider-digitalocean
 ```
 
 ## API calls
