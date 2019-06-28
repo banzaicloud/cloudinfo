@@ -536,7 +536,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 	imageDescribers := make([]cloudinfo.Image, 0)
 
 	if service == "_eks" {
-		for _, version := range []string{"1.10", "1.11"} {
+		for _, version := range []string{"1.10", "1.11", "1.12", "1.13"} {
 			input := &ec2.DescribeImagesInput{
 				Filters: []*ec2.Filter{
 					{
@@ -603,7 +603,7 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]cloudinfo.Prod
 func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.10", "1.11"}, "1.11")}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.10", "1.11", "1.12", "1.13"}, "1.13")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
