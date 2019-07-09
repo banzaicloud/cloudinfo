@@ -536,7 +536,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 	imageDescribers := make([]cloudinfo.Image, 0)
 
 	if service == "_eks" {
-		for _, version := range []string{"1.10", "1.11", "1.12", "1.13"} {
+		for _, version := range []string{"1.12", "1.13"} {
 			input := &ec2.DescribeImagesInput{
 				Filters: []*ec2.Filter{
 					{
