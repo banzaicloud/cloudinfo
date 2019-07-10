@@ -58,7 +58,7 @@ docker: ## Build a Docker image
 ifneq (${DOCKER_PREBUILT}, 1)
 	@${MAKE} BINARY_NAME="${BINARY_NAME}-linux-amd64" GOOS=linux GOARCH=amd64 build-release
 endif
-	docker build --build-arg BUILD_DIR=${BUILD_DIR}/release --build-arg BINARY_NAME=${BINARY_NAME}-linux-amd64 -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f Dockerfile .
+	docker build --build-arg BUILD_DIR=${BUILD_DIR}/release --build-arg BINARY_NAME=${BINARY_NAME}-linux-amd64 -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f Dockerfile.local .
 ifeq (${DOCKER_LATEST}, 1)
 	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
 endif
