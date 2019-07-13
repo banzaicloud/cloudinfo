@@ -535,13 +535,13 @@ func (e *Ec2Infoer) HasImages() bool {
 func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
 	imageDescribers := make([]cloudinfo.Image, 0)
 
-	if service == "_eks" {
+	if service == svcEks {
 		for _, version := range []string{"1.10", "1.11", "1.12", "1.13"} {
 			input := &ec2.DescribeImagesInput{
 				Filters: []*ec2.Filter{
 					{
 						Name:   aws.String("name"),
-						Values: []*string{aws.String("amazon-eks-gpu-node-" + version + "-v*")},
+						Values: []*string{aws.String("amazon-eks-gpu-node-" + version + "*")},
 					},
 					{
 						Name:   aws.String("is-public"),
@@ -550,6 +550,10 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 					{
 						Name:   aws.String("state"),
 						Values: []*string{aws.String("available")},
+					},
+					{
+						Name:   aws.String("owner-alias"),
+						Values: []*string{aws.String("amazon")},
 					},
 				},
 			}
@@ -559,15 +563,20 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 				return nil, err
 			}
 
-			for _, image := range gpuImages.Images {
-				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*image.ImageId, version, true))
+			latestImage, err := getLatestImage(gpuImages.Images)
+			if err != nil {
+				return nil, err
+			}
+
+			if latestImage != nil {
+				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, true))
 			}
 
 			input = &ec2.DescribeImagesInput{
 				Filters: []*ec2.Filter{
 					{
 						Name:   aws.String("name"),
-						Values: []*string{aws.String("amazon-eks-node-" + version + "-v*")},
+						Values: []*string{aws.String("amazon-eks-node-" + version + "*")},
 					},
 					{
 						Name:   aws.String("is-public"),
@@ -577,6 +586,10 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 						Name:   aws.String("state"),
 						Values: []*string{aws.String("available")},
 					},
+					{
+						Name:   aws.String("owner-alias"),
+						Values: []*string{aws.String("amazon")},
+					},
 				},
 			}
 
@@ -585,8 +598,13 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 				return nil, err
 			}
 
-			for _, image := range images.Images {
-				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*image.ImageId, version, false))
+			latestImage, err = getLatestImage(images.Images)
+			if err != nil {
+				return nil, err
+			}
+
+			if latestImage != nil {
+				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, false))
 			}
 		}
 	}
@@ -607,4 +625,33 @@ func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVer
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
+}
+
+func getImageCreateDate(image *ec2.Image) (time.Time, error) {
+	imgCreateDate, err := time.Parse(time.RFC3339, aws.StringValue(image.CreationDate))
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return imgCreateDate, nil
+}
+
+// getLatestImage iterates through the image list and returns the one with the latest CreationDate
+func getLatestImage(images []*ec2.Image) (*ec2.Image, error) {
+	var latestImage *ec2.Image
+	var latestImageCreationDate = time.Time{}
+
+	for _, image := range images {
+		imgCreateDate, err := getImageCreateDate(image)
+		if err != nil {
+			return nil, err
+		}
+
+		if imgCreateDate.After(latestImageCreationDate) {
+			latestImage = image
+			latestImageCreationDate = imgCreateDate
+		}
+	}
+
+	return latestImage, nil
 }
