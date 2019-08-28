@@ -669,6 +669,13 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
     },
+    "LocationVersionArray": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/LocationVersion"
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
     "ProductDetails": {
       "description": "ProductDetails extended view of the virtual machine details",
       "type": "object",
@@ -871,14 +878,8 @@
     "VersionsResponse": {
       "description": "VersionsResponse holds the list of available versions",
       "type": "object",
-      "properties": {
-        "versions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/LocationVersion"
-          },
-          "x-go-name": "Versions"
-        }
+      "items": {
+        "$ref": "#/definitions/LocationVersion"
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },

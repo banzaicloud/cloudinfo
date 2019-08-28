@@ -130,10 +130,12 @@ type ImagesResponse struct {
 	Images []cloudinfo.Image `json:"images"`
 }
 
+type LocationVersionArray = []cloudinfo.LocationVersion
+
 // VersionsResponse holds the list of available versions
 // swagger:model VersionsResponse
 type VersionsResponse struct {
-	Versions []cloudinfo.LocationVersion `json:"versions"`
+	LocationVersionArray
 }
 
 // NewServiceResponse assembles a service response
