@@ -372,6 +372,8 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 		eksRegionIdMap[endpoints.ApSoutheast1RegionID] = "Asia Pacific (Singapore)"
 		eksRegionIdMap[endpoints.ApSoutheast2RegionID] = "Asia Pacific (Sydney)"
 		eksRegionIdMap[endpoints.ApSouth1RegionID] = "Asia Pacific (Mumbai)"
+		eksRegionIdMap[endpoints.ApEast1RegionID] = "Asia Pacific (Hong Kong)"
+		eksRegionIdMap[endpoints.MeSouth1RegionID] = "Middle East (Bahrain)"
 
 		return eksRegionIdMap, nil
 	case "_eks":
@@ -536,7 +538,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 	imageDescribers := make([]cloudinfo.Image, 0)
 
 	if service == svcEks {
-		for _, version := range []string{"1.10", "1.11", "1.12", "1.13"} {
+		for _, version := range []string{"1.11", "1.12", "1.13", "1.14"} {
 			input := &ec2.DescribeImagesInput{
 				Filters: []*ec2.Filter{
 					{
@@ -621,7 +623,7 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]cloudinfo.Prod
 func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.10.13", "1.11.9", "1.12.7", "1.13.7"}, "1.13.7")}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.11.10", "1.12.10", "1.13.10", "1.14.6"}, "1.14.6")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
