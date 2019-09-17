@@ -1,6 +1,6 @@
 # A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
-OS = $(shell uname -s)
+OS = $(shell uname | tr A-Z a-z)
 
 # Project variables
 BUILD_PACKAGE ?= ./cmd/cloudinfo
@@ -71,14 +71,8 @@ bin/packr2: bin/packr2-${PACKR_VERSION}
 	@ln -sf packr2-${PACKR_VERSION} bin/packr2
 bin/packr2-${PACKR_VERSION}:
 	@mkdir -p bin
-ifeq (${OS}, Darwin)
-	curl -L https://github.com/gobuffalo/packr/releases/download/v${PACKR_VERSION}/packr_${PACKR_VERSION}_darwin_amd64.tar.gz | tar -zOxf - packr2 > ./bin/packr2-${PACKR_VERSION} && chmod +x ./bin/packr2-${PACKR_VERSION}
-endif
-ifeq (${OS}, Linux)
-	curl -L https://github.com/gobuffalo/packr/releases/download/v${PACKR_VERSION}/packr_${PACKR_VERSION}_linux_amd64.tar.gz | tar -zOxf - packr2 > ./bin/packr2-${PACKR_VERSION} && chmod +x ./bin/packr2-${PACKR_VERSION}
-endif
+	curl -L https://github.com/gobuffalo/packr/releases/download/v${PACKR_VERSION}/packr_${PACKR_VERSION}_${OS}_amd64.tar.gz | tar -zOxf - packr2 > ./bin/packr2-${PACKR_VERSION} && chmod +x ./bin/packr2-${PACKR_VERSION}
 
 .PHONY: uibundle
 uibundle: bin/packr2
 	GO111MODULE=on cd cmd/cloudinfo && $(abspath bin/packr2)
-
