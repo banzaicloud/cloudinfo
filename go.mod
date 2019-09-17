@@ -1,6 +1,6 @@
 module github.com/banzaicloud/cloudinfo
 
-go 1.12
+go 1.13
 
 require (
 	cloud.google.com/go v0.35.1 // indirect
@@ -32,13 +32,10 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/goph/emperror v0.16.0
 	github.com/goph/logur v0.11.0
-	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/mux v1.6.2 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.0.0-20160529214634-33afcba6336a
 	github.com/oracle/oci-go-sdk v3.5.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/pierrec/lz4 v2.0.5+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/prometheus/common v0.2.0
