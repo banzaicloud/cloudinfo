@@ -34,7 +34,7 @@ GOBIN_VERSION = 0.0.13
 GQLGEN_VERSION = 0.8.3
 PACKR_VERSION = 2.2.0
 
-GOLANG_VERSION = 1.12
+GOLANG_VERSION = 1.13
 SWAGGER_VERSION = 0.19.0
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")

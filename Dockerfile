@@ -15,7 +15,7 @@ RUN ng build --configuration=production --base-href=/
 
 
 # Build image
-FROM golang:1.12.3-alpine AS builder
+FROM golang:1.13-alpine AS builder
 
 ENV GOFLAGS="-mod=readonly"
 
