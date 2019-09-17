@@ -46,29 +46,23 @@ endif
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME} ${BUILD_PACKAGE}
 
 .PHONY: build-release
-build-release: ## Build a binary without debug information
-	@${MAKE} LDFLAGS="-w ${LDFLAGS}" BUILD_DIR="${BUILD_DIR}/release" build
+build-release: ## Build all binaries without debug information
+	@${MAKE} LDFLAGS="-w ${LDFLAGS}" GOARGS="${GOARGS} -trimpath" BUILD_DIR="${BUILD_DIR}/release" build
 
 .PHONY: build-debug
-build-debug: ## Build a binary with remote debugging capabilities
+build-debug: ## Build all binaries with remote debugging capabilities
 	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BUILD_DIR="${BUILD_DIR}/debug" build
 
 .PHONY: docker
 docker: ## Build a Docker image
-ifneq (${DOCKER_PREBUILT}, 1)
-	@${MAKE} BINARY_NAME="${BINARY_NAME}-linux-amd64" GOOS=linux GOARCH=amd64 build-release
-endif
-	docker build --build-arg BUILD_DIR=${BUILD_DIR}/release --build-arg BINARY_NAME=${BINARY_NAME}-linux-amd64 -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f Dockerfile .
+	docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
 ifeq (${DOCKER_LATEST}, 1)
 	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
 endif
 
 .PHONY: docker-debug
 docker-debug: ## Build a Docker image with remote debugging capabilities
-ifneq (${DOCKER_PREBUILT}, 1)
-	@${MAKE} BINARY_NAME="${BINARY_NAME}-linux-amd64" GOOS=linux GOARCH=amd64 build-debug
-endif
-	docker build --build-arg BUILD_DIR=${BUILD_DIR}/debug --build-arg BINARY_NAME=${BINARY_NAME}-linux-amd64 -t ${DOCKER_IMAGE}:${DOCKER_TAG}-debug -f Dockerfile.debug .
+	docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG}-debug --build-arg BUILD_TARGET=debug .
 ifeq (${DOCKER_LATEST}, 1)
 	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG}-debug ${DOCKER_IMAGE}:latest-debug
 endif
@@ -80,12 +74,7 @@ bin/gotestsum: bin/gotestsum-${GOTESTSUM_VERSION}
 	@ln -sf gotestsum-${GOTESTSUM_VERSION} bin/gotestsum
 bin/gotestsum-${GOTESTSUM_VERSION}:
 	@mkdir -p bin
-ifeq (${OS}, Darwin)
-	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_darwin_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
-endif
-ifeq (${OS}, Linux)
-	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
-endif
+	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_${OS}_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
 
 TEST_PKGS ?= ./...
 TEST_REPORT_NAME ?= results.xml
@@ -168,13 +157,7 @@ bin/gobin: bin/gobin-${GOBIN_VERSION}
 	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
 bin/gobin-${GOBIN_VERSION}:
 	@mkdir -p bin
-ifeq (${OS}, Darwin)
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/darwin-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-endif
-ifeq (${OS}, Linux)
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/linux-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-endif
-
+	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
 
 bin/gqlgen: bin/gqlgen-${GQLGEN_VERSION}
 	@ln -sf gqlgen-${GQLGEN_VERSION} bin/gqlgen
