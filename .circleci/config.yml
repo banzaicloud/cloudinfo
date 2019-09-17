@@ -5,50 +5,29 @@ orbs:
     docker: circleci/docker@0.5.13
 
 executors:
-    docker:
+    go:
+        parameters:
+            build_image:
+                type: string
+                default: "cimg/go"
+                description: Go build image
+            go_version:
+                type: string
+                default: "1.13"
+                description: Go build image version
         docker:
-            -
-                image: circleci/golang:1.13
+            -   image: << parameters.build_image >>:<< parameters.go_version >>
                 environment:
                     GOFLAGS: -mod=readonly
 
-commands:
-    restore_build_cache:
-        description: Restore build cache
-        steps:
-            -
-                restore_cache:
-                    name: Restore build dependencies
-                    keys:
-                        - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-
 jobs:
-    dependencies:
-        executor: docker
-
-        steps:
-            - checkout
-            -
-                run:
-                      name: Install build dependencies
-                      command: make -j bin/golangci-lint bin/licensei bin/gotestsum
-
-            -
-                save_cache:
-                    name: Save build dependencies
-                    key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-                    paths:
-                        - bin/
-
     static-checks:
-        executor: docker
+        executor: go
 
         steps:
             - checkout
-            - restore_build_cache
 
-            -
-                restore_cache:
+            -   restore_cache:
                     name: Restore license cache
                     keys:
                         - licensei-v1-{{ .Branch }}-{{ checksum "go.sum" }}
@@ -56,96 +35,93 @@ jobs:
                         - licensei-v1-master
                         - licensei-v1
 
-            -
-                run:
+            -   run:
                     name: Download license information for dependencies
                     command: make license-cache
 
-            -
-                save_cache:
+            -   save_cache:
                     name: Save license cache
                     key: licensei-v1-{{ .Branch }}-{{ checksum "go.sum" }}
                     paths:
                         - .licensei.cache
 
-            -
-                run:
+            -   run:
                     name: Check dependency licenses
                     command: make license-check
 
-            -
-                run:
+            -   run:
                     name: Run linter
                     command: make lint
 
     build:
-        executor: docker
+        executor: go
 
         steps:
             - checkout
-            - restore_build_cache
 
-            -
-                run:
+            -   run:
                     name: Build
                     command: make build
 
     unit-tests:
-        executor: docker
+        executor: go
 
         steps:
             - checkout
-            - restore_build_cache
 
-            -
-                run:
+            -   run:
                     name: Run tests
-                    command: TEST_PKGS=$(echo `go list ./... | circleci tests split`) TEST_REPORT_NAME=results_${CIRCLE_NODE_INDEX}.xml make test
+                    command: |
+                        if [ $CIRCLE_NODE_TOTAL -gt 1 ]; then
+                            export TEST_PKGS=$(echo `go list ./... | circleci tests split`)
+                            export TEST_REPORT_NAME=results_${CIRCLE_NODE_INDEX}.xml
+                        fi
 
-            -
-                store_test_results:
+                        make test
+
+            -   store_test_results:
                     path: build/test_results/
 
     integration-tests:
+        executor: go
         docker:
-            -
-                image: circleci/golang:1.13
+            -   image: cimg/go:1.13
                 environment:
                     GOFLAGS: -mod=readonly
-            -
-                image: redis:5.0
-            -
-                image: cassandra:3.11
+            -   image: redis:5.0
+            -   image: cassandra:3.11
                 environment:
                     MAX_HEAP_SIZE: 1024m
                     HEAP_NEWSIZE: 256m
-        executor: docker
 
         steps:
             - checkout
-            - restore_build_cache
 
-            -
-                run:
+            -   run:
                     name: Run integration tests
-                    command: TEST_PKGS=$(echo `go list ./... | circleci tests split`) TEST_REPORT_NAME=results_${CIRCLE_NODE_INDEX}.xml make test-integration
+                    command: |
+                        if [ $CIRCLE_NODE_TOTAL -gt 1 ]; then
+                            export TEST_PKGS=$(echo `go list ./... | circleci tests split`)
+                            export TEST_REPORT_NAME=results_${CIRCLE_NODE_INDEX}.xml
+                        fi
 
-            -
-                store_test_results:
+                        make test-integration
+
+            -   store_test_results:
                     path: build/test_results/
 
     docker-release:
         executor: docker/machine
         parameters:
             tag:
-               default: $CIRCLE_SHA1
-               description: 'Image tag'
-               type: string
+                default: $CIRCLE_SHA1
+                description: 'Image tag'
+                type: string
             extra_build_args:
-               default: ''
-               description: >
-                   Extra flags to pass to docker build. For examples
-               type: string
+                default: ''
+                description: >
+                    Extra flags to pass to docker build. For examples
+                type: string
             image:
                 description: Name of image to build
                 type: string
@@ -158,42 +134,36 @@ jobs:
             - checkout
             - docker/check
 
-            -
-                docker/build:
+            -   docker/build:
                     extra_build_args: <<parameters.extra_build_args>>
                     registry: <<parameters.registry>>
                     image: <<parameters.image>>
                     tag: $CIRCLE_SHA1
 
-            -
-                run:
+            -   run:
                     name: Tag release
                     command: |
                         docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:<< parameters.tag >>
 
-            -
-                docker/push:
+            -   docker/push:
                     registry: <<parameters.registry>>
                     image: <<parameters.image>>
                     tag: $CIRCLE_TAG
 
-            -
-                run:
+            -   run:
                     name: Check version
                     command: |
-                      if ! echo "${CIRCLE_TAG}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-                        echo 'Unstable version. Skipping further steps.'
-                        circleci step halt
-                      fi
+                        if ! echo "${CIRCLE_TAG}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                          echo 'Unstable version. Skipping further steps.'
+                          circleci step halt
+                        fi
 
-            -
-                run:
+            -   run:
                     name: Tag latest
                     command: |
-                      docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:latest
+                        docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:latest
 
-            -
-                docker/push:
+            -   docker/push:
                     registry: <<parameters.registry>>
                     image: <<parameters.image>>
                     tag: latest
@@ -202,20 +172,11 @@ workflows:
     version: 2
     ci:
         jobs:
-            - dependencies
-            - static-checks:
-                  requires:
-                      - dependencies
-            - build:
-                  requires:
-                      - dependencies
-            - unit-tests:
-                  requires:
-                      - dependencies
-            - integration-tests:
-                  requires:
-                      - dependencies
-            - docker/publish:
+            - static-checks
+            - build
+            - unit-tests
+            - integration-tests
+            -   docker/publish:
                     name: Build docker image
                     deploy: false
                     image: banzaicloud/cloudinfo
@@ -223,44 +184,44 @@ workflows:
                     filters:
                         branches:
                             ignore: master
-            - docker/publish:
+            -   docker/publish:
                     name: Publish master docker image
                     context: dockerhub
                     deploy: true
                     image: banzaicloud/cloudinfo
                     tag: master
                     requires:
-                      - build
-                      - static-checks
-                      - unit-tests
-                      - integration-tests
+                        - build
+                        - static-checks
+                        - unit-tests
+                        - integration-tests
                     filters:
                         branches:
                             only: master
-            - docker-release:
-                  name: Publish tagged & latest docker image
-                  context: dockerhub
-                  image: banzaicloud/cloudinfo
-                  tag: $CIRCLE_TAG
-                  filters:
-                      tags:
-                          only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
-                      branches:
-                          ignore: /.*/
+            -   docker-release:
+                    name: Publish tagged & latest docker image
+                    context: dockerhub
+                    image: banzaicloud/cloudinfo
+                    tag: $CIRCLE_TAG
+                    filters:
+                        tags:
+                            only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
+                        branches:
+                            ignore: /.*/
 
     helm-chart:
         jobs:
-            - helm/lint-chart:
-                  chart-path: charts/cloudinfo
-                  filters:
-                      tags:
-                          ignore: /.*/
+            -   helm/lint-chart:
+                    chart-path: charts/cloudinfo
+                    filters:
+                        tags:
+                            ignore: /.*/
 
-            - helm/publish-chart:
-                  context: helm
-                  chart-path: charts/cloudinfo
-                  filters:
-                      branches:
-                          ignore: /.*/
-                      tags:
-                          only: /chart\/cloudinfo\/\d+.\d+.\d+/
+            -   helm/publish-chart:
+                    context: helm
+                    chart-path: charts/cloudinfo
+                    filters:
+                        branches:
+                            ignore: /.*/
+                        tags:
+                            only: /chart\/cloudinfo\/\d+.\d+.\d+/
