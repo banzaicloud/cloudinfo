@@ -8,7 +8,7 @@ executors:
     docker:
         docker:
             -
-                image: circleci/golang:1.12
+                image: circleci/golang:1.13
                 environment:
                     GOFLAGS: -mod=readonly
 
@@ -22,42 +22,16 @@ commands:
                     keys:
                         - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
 
-    restore_go_module_cache:
-        description: Restore Go module cache
-        steps:
-            -
-                restore_cache:
-                    name: Restore Go module cache
-                    keys:
-                        - gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
-                        - gomod-v1-{{ .Branch }}
-                        - gomod-v1-master
-                        - gomod-v1
-
 jobs:
     dependencies:
         executor: docker
 
         steps:
             - checkout
-            - restore_go_module_cache
-
-            -
-                run:
-                    name: Download Go module cache
-                    command: go mod download
-
             -
                 run:
                       name: Install build dependencies
                       command: make -j bin/golangci-lint bin/licensei bin/gotestsum
-
-            -
-                save_cache:
-                    name: Save Go module cache
-                    key: gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
-                    paths:
-                        - /go/pkg/mod
 
             -
                 save_cache:
@@ -72,7 +46,6 @@ jobs:
         steps:
             - checkout
             - restore_build_cache
-            - restore_go_module_cache
 
             -
                 restore_cache:
@@ -111,7 +84,6 @@ jobs:
         steps:
             - checkout
             - restore_build_cache
-            - restore_go_module_cache
 
             -
                 run:
@@ -124,7 +96,6 @@ jobs:
         steps:
             - checkout
             - restore_build_cache
-            - restore_go_module_cache
 
             -
                 run:
@@ -138,7 +109,7 @@ jobs:
     integration-tests:
         docker:
             -
-                image: circleci/golang:1.12
+                image: circleci/golang:1.13
                 environment:
                     GOFLAGS: -mod=readonly
             -
@@ -153,7 +124,6 @@ jobs:
         steps:
             - checkout
             - restore_build_cache
-            - restore_go_module_cache
 
             -
                 run:
@@ -248,7 +218,6 @@ workflows:
             - docker/publish:
                     name: Build docker image
                     deploy: false
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/cloudinfo
                     tag: $CIRCLE_BRANCH
                     filters:
@@ -258,7 +227,6 @@ workflows:
                     name: Publish master docker image
                     context: dockerhub
                     deploy: true
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/cloudinfo
                     tag: master
                     requires:
@@ -272,7 +240,6 @@ workflows:
             - docker-release:
                   name: Publish tagged & latest docker image
                   context: dockerhub
-                  extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                   image: banzaicloud/cloudinfo
                   tag: $CIRCLE_TAG
                   filters:
