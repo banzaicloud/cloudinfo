@@ -2,26 +2,34 @@ run:
     skip-dirs:
         - client
 
-linters-settings:
-    golint:
-        min-confidence: 0.9
-
-    gocyclo:
-        min-complexity: 15
-
-    goimports:
-        local-prefixes: github.com/banzaicloud/cloudinfo
-
 linters:
-    enable:
-        - misspell
-        - gofmt
-        - golint
-        - goimports
-
+    enable-all: true
     disable:
+        - funlen
         - errcheck
         - gas
         - megacheck
         - varcheck
-    fast: false
+
+        # TODO: Fix these
+        - unparam
+        - interfacer
+        - dupl
+        - lll
+        - gocyclo
+        - gocritic
+        - unconvert
+        - gochecknoglobals
+        - nakedret
+        - goconst
+        - scopelint
+        - prealloc
+
+linters-settings:
+    golint:
+        # TODO: lower this value
+        min-confidence: 0.9
+    gocyclo:
+        min-complexity: 15
+    goimports:
+        local-prefixes: github.com/banzaicloud/cloudinfo
