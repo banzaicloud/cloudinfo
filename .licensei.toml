@@ -32,5 +32,8 @@ ignored = [
     "cloud.google.com/go",
     "contrib.go.opencensus.io/exporter/jaeger",
     "contrib.go.opencensus.io/exporter/prometheus",
-    "sigs.k8s.io/yaml"
+    "sigs.k8s.io/yaml",
+    "go.uber.org/atomic",
+    "go.uber.org/multierr",
+    "emperror.dev/errors",
 ]
