@@ -419,7 +419,7 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 			return
 		}
 		queryParams := GetImagesQueryParams{}
-		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version"), &queryParams); err != nil {
+		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version", "ostype", "osrelease"), &queryParams); err != nil {
 			r.errorResponder.Respond(c, emperror.With(err, "validation"))
 			return
 		}

@@ -338,6 +338,18 @@
             "x-go-name": "Version",
             "name": "version",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "OsType",
+            "name": "ostype",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "OsRelease",
+            "name": "osrelease",
+            "in": "query"
           }
         ],
         "responses": {
@@ -537,6 +549,16 @@
           "description": "in:query",
           "type": "string",
           "x-go-name": "Version"
+        },
+        "ostype": {
+          "description": "in:query",
+          "type": "string",
+          "x-go-name": "OsType"
+        },
+        "osrelease": {
+          "description": "in:query",
+          "type": "string",
+          "x-go-name": "OsRelease"
         }
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
@@ -625,6 +647,14 @@
         "name": {
           "type": "string",
           "x-go-name": "Name"
+        },
+        "ostype": {
+          "type": "string",
+          "x-go-name": "OsType"
+        },
+        "osreleasee": {
+          "type": "string",
+          "x-go-name": "OsRelease"
         },
         "version": {
           "type": "string",

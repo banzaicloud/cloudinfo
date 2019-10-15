@@ -571,7 +571,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 			}
 
 			if latestImage != nil {
-				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, true))
+				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, true, "", ""))
 			}
 
 			input = &ec2.DescribeImagesInput{
@@ -606,7 +606,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 			}
 
 			if latestImage != nil {
-				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, false))
+				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, false, "", ""))
 			}
 		}
 	}

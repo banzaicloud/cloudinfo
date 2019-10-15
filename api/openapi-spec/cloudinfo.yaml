@@ -227,6 +227,16 @@ paths:
           in: query
           schema:
             type: string
+        - x-go-name: OsType
+          name: os-type
+          in: query
+          schema:
+            type: string
+        - x-go-name: OsRelease
+          name: os-release
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: ImagesResponse
@@ -451,6 +461,12 @@ components:
         version:
           type: string
           x-go-name: Version
+        os-type:
+          type: string
+          x-go-name: OsType
+        os-release:
+          type: string
+          x-go-name: OsRelease
       x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
     ImagesResponse:
       description: ImagesResponse holds the list of available images

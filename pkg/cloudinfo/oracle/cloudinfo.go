@@ -315,7 +315,7 @@ func (i *Infoer) GetServiceImages(service, region string) (images []cloudinfo.Im
 	}
 
 	for _, image := range _images {
-		images = append(images, cloudinfo.NewImage(image, "", false))
+		images = append(images, cloudinfo.NewImage(image, "", false, "", ""))
 	}
 
 	return images, nil

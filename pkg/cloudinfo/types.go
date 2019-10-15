@@ -186,14 +186,18 @@ type Image struct {
 	Name         string `json:"name"`
 	Version      string `json:"version,omitempty"`
 	GpuAvailable bool   `json:"gpu,omitempty"`
+	OsType       string `json:"ostype,omitempty"`
+	OsRelease    string `json:"osrelease,omitempty"`
 }
 
 // NewImage create new provider describer struct
-func NewImage(name, version string, gpu bool) Image {
+func NewImage(name, version string, gpu bool, osType string, osRelease string) Image {
 	return Image{
 		Name:         name,
 		Version:      version,
 		GpuAvailable: gpu,
+		OsType:       osType,
+		OsRelease:    osRelease,
 	}
 }
 
