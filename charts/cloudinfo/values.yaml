@@ -93,32 +93,32 @@ app:
   # TODO: support TLS skip-verify
 
 providers:
-  amazon:
-    enabled: false
-    # accessKey: ""
-    # secretKey: ""
-  google:
-    enabled: false
-    # credentials: ""
-  alibaba:
-    enabled: false
-    # region: "eu-central-1"
-    # accessKey: ""
-    # secretKey: ""
-  oracle:
-    enabled: false
-    # tenancy: ""
-    # user: ""
-    # region: ""
-    # fingerprint: ""
-    # privateKey: ""
-    # privateKeyPassphrase: ""
-  azure:
-    enabled: false
-    # subscriptionId: ""
-    # clientId: ""
-    # clientSecret: ""
-    # tenantId: ""
+  # amazon:
+  #   enabled: true
+  #   accessKey: ""
+  #   secretKey: ""
+  # google:
+  #   enabled: true
+  #   credentials: ""
+  # alibaba:
+  #   enabled: true
+  #   region: "eu-central-1"
+  #   accessKey: ""
+  #   secretKey: ""
+  # oracle:
+  #   enabled: true
+  #   tenancy: ""
+  #   user: ""
+  #   region: ""
+  #   fingerprint: ""
+  #   privateKey: ""
+  #   privateKeyPassphrase: ""
+  # azure:
+  #   enabled: true
+  #   subscriptionId: ""
+  #   clientId: ""
+  #   clientSecret: ""
+  #   tenantId: ""
 
 store:
   redis:
