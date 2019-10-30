@@ -112,6 +112,10 @@ func Middleware(notlogged ...string) gin.HandlerFunc {
 				fields["correlation-id"] = cid
 			}
 
+			if pid := c.GetHeader("Banzai-Cloud-Pipeline-UUID"); pid != "" {
+				fields["pipeline-instance"] = pid
+			}
+
 			entry := logrus.WithFields(fields)
 
 			if len(c.Errors) > 0 {
