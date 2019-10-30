@@ -77,9 +77,13 @@ func (b *binaryFileSystem) Exists(prefix string, filepath string) bool {
 func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string, box *packr.Box) {
 	r.log.Info("configuring routes")
 
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Banzai-Cloud-Pipeline-UUID")
+
 	router.Use(log.MiddlewareCorrelationId())
 	router.Use(log.Middleware())
-	router.Use(cors.Default())
+	router.Use(cors.New(corsConfig))
 	router.Use(static.Serve(basePath, &binaryFileSystem{fs: box}))
 
 	base := router.Group(basePath)
