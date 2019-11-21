@@ -185,7 +185,9 @@ func (c configuration) Validate() error {
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Viper settings
+	v.AllowEmptyEnv(true)
 	v.AddConfigPath(".")
+	v.AddConfigPath("./config")
 	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
 
 	// Environment variable settings
