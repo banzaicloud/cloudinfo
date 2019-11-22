@@ -123,17 +123,17 @@ func NewOracleInfoer(config Config, logger logur.Logger) (*Infoer, error) {
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (i *Infoer) Initialize() (prices map[string]map[string]cloudinfo.Price, err error) {
+func (i *Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (i *Infoer) GetCurrentPrices(region string) (prices map[string]cloudinfo.Price, err error) {
+func (i *Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	return nil, errors.New("oracle prices cannot be queried on the fly")
 }
 
 // GetProductPrices gets prices for available shapes from ITRA
-func (i *Infoer) GetProductPrice(specs ShapeSpecs) (price float64, err error) {
+func (i *Infoer) GetProductPrice(specs ShapeSpecs) (float64, error) {
 	info, err := i.GetCloudInfoFromITRA(specs.PartNumber)
 	if err != nil {
 		return 0, err
@@ -143,29 +143,34 @@ func (i *Infoer) GetProductPrice(specs ShapeSpecs) (price float64, err error) {
 
 }
 
-func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo, err error) {
+func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
 
-	err = i.client.ChangeRegion(region)
+	err := i.client.ChangeRegion(region)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	shapes, err := i.client.GetSupportedShapesInARegion(region, "compute")
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	zones, err := i.GetZones(region)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	products = make([]cloudinfo.VmInfo, 0)
+	products := make([]cloudinfo.VmInfo, 0, len(shapes))
 	for _, shape := range shapes {
-		s := i.shapeSpecs[shape]
+		s, ok := i.shapeSpecs[shape]
+		if !ok {
+			logger.Debug("unsupported shape", map[string]interface{}{"shape": shape})
+			// skipping further processing
+			continue
+		}
 		ntwMapper := newNetworkMapper()
-		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(s.NtwPerf)
 		if err != nil {
 			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 				map[string]interface{}{"instanceType": shape})
@@ -189,41 +194,46 @@ func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo,
 		})
 	}
 
-	return
+	return products, nil
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (products []cloudinfo.VmInfo, err error) {
+func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
-	err = i.client.ChangeRegion(regionId)
+	err := i.client.ChangeRegion(regionId)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	shapes, err := i.client.GetSupportedShapesInARegion(regionId, service)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	zones, err := i.GetZones(regionId)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	products = make([]cloudinfo.VmInfo, 0)
+	products := make([]cloudinfo.VmInfo, 0, len(shapes))
+	ntwMapper := newNetworkMapper()
 	for _, shape := range shapes {
-		s := i.shapeSpecs[shape]
-		ntwMapper := newNetworkMapper()
-		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
+		s, ok := i.shapeSpecs[shape]
+		if !ok {
+			logger.Warn(fmt.Sprintf("unsupported shape: %s", shape))
+			continue
+		}
+
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(s.NtwPerf)
 		if err != nil {
-			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
-				map[string]interface{}{"instanceType": shape})
+			logger.Warn("failed to get network performance category", map[string]interface{}{"shape": shape})
 		}
 
 		price, err := i.GetProductPrice(s)
 		if err != nil {
-			return nil, err
+			logger.Warn("failed to get product price", map[string]interface{}{"shape": shape})
+			continue
 		}
 
 		products = append(products, cloudinfo.VmInfo{
@@ -239,26 +249,26 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 		})
 	}
 
-	return
+	return products, nil
 }
 
 // GetRegions returns a map with available regions
-func (i *Infoer) GetRegions(service string) (regions map[string]string, err error) {
+func (i *Infoer) GetRegions(service string) (map[string]string, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	_regions, err := c.GetSubscribedRegionNames()
+	regionNames, err := c.GetSubscribedRegionNames()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	regions = make(map[string]string)
-	for _, region := range _regions {
+	regions := make(map[string]string)
+	for _, region := range regionNames {
 		description := region
 		if displayName, ok := regionNames[region]; ok {
 			description = displayName
@@ -267,35 +277,32 @@ func (i *Infoer) GetRegions(service string) (regions map[string]string, err erro
 	}
 
 	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regions)})
-	return
+	return regions, nil
 }
 
 // GetZones returns the availability zones in a region
-func (i *Infoer) GetZones(region string) (zones []string, err error) {
-	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
-	logger.Debug("getting zones")
-
-	err = i.client.ChangeRegion(region)
+func (i *Infoer) GetZones(region string) ([]string, error) {
+	err := i.client.ChangeRegion(region)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	ads, err := c.GetAvailabilityDomains()
+	availabilityDomains, err := c.GetAvailabilityDomains()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	for _, ad := range ads {
+	zones := make([]string, 0, len(availabilityDomains))
+	for _, ad := range availabilityDomains {
 		zones = append(zones, *ad.Name)
 	}
 
-	logger.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
-	return
+	return zones, nil
 }
 
 // HasShortLivedPriceInfo - Oracle doesn't have preemptible instances
@@ -309,15 +316,15 @@ func (i *Infoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (i *Infoer) GetServiceImages(service, region string) (images []cloudinfo.Image, err error) {
-
-	_images, err := i.client.GetSupportedImagesInARegion(service, region)
+func (i *Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+	imageNames, err := i.client.GetSupportedImagesInARegion(service, region)
 	if err != nil {
-		return images, err
+		return nil, err
 	}
 
-	for _, image := range _images {
-		images = append(images, cloudinfo.NewImage(image, "", false))
+	var images = make([]cloudinfo.Image, 0, len(imageNames))
+	for _, imageName := range imageNames {
+		images = append(images, cloudinfo.NewImage(imageName, "", false))
 	}
 
 	return images, nil
@@ -347,13 +354,9 @@ func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersio
 			return nil, err
 		}
 
-		var versions []string
+		versions := options.KubernetesVersions.Get()
 
-		for _, version := range options.KubernetesVersions.Get() {
-			versions = append(versions, version)
-		}
-
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, versions[0])}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, "")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}

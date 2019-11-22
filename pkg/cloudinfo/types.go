@@ -108,6 +108,9 @@ type LocationVersion struct {
 
 // NewLocationVersion creates a new location version struct
 func NewLocationVersion(location string, versions []string, def string) LocationVersion {
+	if len(versions) > 0 && def == "" {
+		def = versions[0]
+	}
 	return LocationVersion{
 		Location: location,
 		Versions: versions,

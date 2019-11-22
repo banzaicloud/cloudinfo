@@ -45,17 +45,20 @@ func (oci *OCI) NewIdentityClient() (client *Identity, err error) {
 }
 
 // GetAvailabilityDomains gets all Availability Domains within the region
-func (i *Identity) GetAvailabilityDomains() (domains []identity.AvailabilityDomain, err error) {
+func (i *Identity) GetAvailabilityDomains() ([]identity.AvailabilityDomain, error) {
 
 	r, err := i.client.ListAvailabilityDomains(context.Background(), identity.ListAvailabilityDomainsRequest{
 		CompartmentId: i.oci.Tenancy.Id,
 	})
+	if err != nil {
+		return nil, err
+	}
 
-	return r.Items, err
+	return r.Items, nil
 }
 
 // GetTenancy gets an identity.Tenancy by id
-func (i *Identity) GetTenancy(id string) (t identity.Tenancy, err error) {
+func (i *Identity) GetTenancy(id string) (identity.Tenancy, error) {
 
 	r, err := i.client.GetTenancy(context.Background(), identity.GetTenancyRequest{
 		TenancyId: common.String(id),
@@ -80,13 +83,13 @@ func (i *Identity) IsRegionAvailable(name string) error {
 }
 
 // GetSubscribedRegionNames gives back an array of subscribed regions' names
-func (i *Identity) GetSubscribedRegionNames() (regions map[string]string, err error) {
+func (i *Identity) GetSubscribedRegionNames() (map[string]string, error) {
 
 	response, err := i.client.ListRegionSubscriptions(context.Background(), identity.ListRegionSubscriptionsRequest{
 		TenancyId: i.oci.Tenancy.Id,
 	})
 
-	regions = make(map[string]string)
+	regions := make(map[string]string)
 	for _, item := range response.Items {
 		regions[*item.RegionName] = *item.RegionName
 	}
