@@ -262,13 +262,13 @@ func (i *Infoer) GetRegions(service string) (map[string]string, error) {
 		return nil, err
 	}
 
-	regionNames, err := c.GetSubscribedRegionNames()
+	subscribedRegionNames, err := c.GetSubscribedRegionNames()
 	if err != nil {
 		return nil, err
 	}
 
 	regions := make(map[string]string)
-	for _, region := range regionNames {
+	for _, region := range subscribedRegionNames {
 		description := region
 		if displayName, ok := regionNames[region]; ok {
 			description = displayName
