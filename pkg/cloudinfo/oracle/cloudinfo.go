@@ -53,23 +53,25 @@ var regionNames = map[string]string{
 }
 
 var shapeSpecs = map[string]ShapeSpecs{
-	"VM.Standard1.1":  {PartNumber: "B88317", Mem: 7, Cpus: 1, NtwPerf: "0.6 Gbps"},
-	"VM.Standard2.1":  {PartNumber: "B88514", Mem: 15, Cpus: 1, NtwPerf: "1 Gbps"},
-	"VM.Standard1.2":  {PartNumber: "B88317", Mem: 14, Cpus: 2, NtwPerf: "1.2 Gbps"},
-	"VM.Standard2.2":  {PartNumber: "B88514", Mem: 30, Cpus: 2, NtwPerf: "2 Gbps"},
-	"VM.Standard1.4":  {PartNumber: "B88317", Mem: 28, Cpus: 4, NtwPerf: "1.2 Gbps"},
-	"VM.Standard2.4":  {PartNumber: "B88514", Mem: 60, Cpus: 4, NtwPerf: "4.1 Gbps"},
-	"VM.Standard1.8":  {PartNumber: "B88317", Mem: 56, Cpus: 8, NtwPerf: "2.4 Gbps"},
-	"VM.Standard2.8":  {PartNumber: "B88514", Mem: 120, Cpus: 8, NtwPerf: "8.2 Gbps"},
-	"VM.Standard1.16": {PartNumber: "B88317", Mem: 112, Cpus: 16, NtwPerf: "4.8 Gbps"},
-	"VM.Standard2.16": {PartNumber: "B88514", Mem: 240, Cpus: 16, NtwPerf: "16.4 Gbps"},
-	"VM.Standard2.24": {PartNumber: "B88514", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
-	"VM.DenseIO1.4":   {PartNumber: "B88316", Mem: 60, Cpus: 4, NtwPerf: "1.2 Gbps"},
-	"VM.DenseIO1.8":   {PartNumber: "B88316", Mem: 60, Cpus: 8, NtwPerf: "2.4 Gbps"},
-	"VM.DenseIO2.8":   {PartNumber: "B88516", Mem: 120, Cpus: 8, NtwPerf: "8.2 Gbps"},
-	"VM.DenseIO1.16":  {PartNumber: "B88316", Mem: 120, Cpus: 16, NtwPerf: "4.8 Gbps"},
-	"VM.DenseIO2.16":  {PartNumber: "B88516", Mem: 240, Cpus: 16, NtwPerf: "16.4 Gbps"},
-	"VM.DenseIO2.24":  {PartNumber: "B88516", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
+	"VM.Standard.E2.1": {PartNumber: "B90425", Mem: 8, Cpus: 1, NtwPerf: "0.7 Gbps"},
+	"VM.Standard.E2.2": {PartNumber: "B90425", Mem: 16, Cpus: 2, NtwPerf: "1.4 Gbps"},
+	"VM.Standard1.1":   {PartNumber: "B88317", Mem: 7, Cpus: 1, NtwPerf: "0.6 Gbps"},
+	"VM.Standard2.1":   {PartNumber: "B88514", Mem: 15, Cpus: 1, NtwPerf: "1 Gbps"},
+	"VM.Standard1.2":   {PartNumber: "B88317", Mem: 14, Cpus: 2, NtwPerf: "1.2 Gbps"},
+	"VM.Standard2.2":   {PartNumber: "B88514", Mem: 30, Cpus: 2, NtwPerf: "2 Gbps"},
+	"VM.Standard1.4":   {PartNumber: "B88317", Mem: 28, Cpus: 4, NtwPerf: "1.2 Gbps"},
+	"VM.Standard2.4":   {PartNumber: "B88514", Mem: 60, Cpus: 4, NtwPerf: "4.1 Gbps"},
+	"VM.Standard1.8":   {PartNumber: "B88317", Mem: 56, Cpus: 8, NtwPerf: "2.4 Gbps"},
+	"VM.Standard2.8":   {PartNumber: "B88514", Mem: 120, Cpus: 8, NtwPerf: "8.2 Gbps"},
+	"VM.Standard1.16":  {PartNumber: "B88317", Mem: 112, Cpus: 16, NtwPerf: "4.8 Gbps"},
+	"VM.Standard2.16":  {PartNumber: "B88514", Mem: 240, Cpus: 16, NtwPerf: "16.4 Gbps"},
+	"VM.Standard2.24":  {PartNumber: "B88514", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
+	"VM.DenseIO1.4":    {PartNumber: "B88316", Mem: 60, Cpus: 4, NtwPerf: "1.2 Gbps"},
+	"VM.DenseIO1.8":    {PartNumber: "B88316", Mem: 60, Cpus: 8, NtwPerf: "2.4 Gbps"},
+	"VM.DenseIO2.8":    {PartNumber: "B88516", Mem: 120, Cpus: 8, NtwPerf: "8.2 Gbps"},
+	"VM.DenseIO1.16":   {PartNumber: "B88316", Mem: 120, Cpus: 16, NtwPerf: "4.8 Gbps"},
+	"VM.DenseIO2.16":   {PartNumber: "B88516", Mem: 240, Cpus: 16, NtwPerf: "16.4 Gbps"},
+	"VM.DenseIO2.24":   {PartNumber: "B88516", Mem: 320, Cpus: 24, NtwPerf: "24.6 Gbps"},
 }
 
 // NewOracleInfoer creates a new instance of the Oracle infoer.
@@ -121,17 +123,17 @@ func NewOracleInfoer(config Config, logger logur.Logger) (*Infoer, error) {
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (i *Infoer) Initialize() (prices map[string]map[string]cloudinfo.Price, err error) {
+func (i *Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
 	return nil, nil
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (i *Infoer) GetCurrentPrices(region string) (prices map[string]cloudinfo.Price, err error) {
+func (i *Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
 	return nil, errors.New("oracle prices cannot be queried on the fly")
 }
 
 // GetProductPrices gets prices for available shapes from ITRA
-func (i *Infoer) GetProductPrice(specs ShapeSpecs) (price float64, err error) {
+func (i *Infoer) GetProductPrice(specs ShapeSpecs) (float64, error) {
 	info, err := i.GetCloudInfoFromITRA(specs.PartNumber)
 	if err != nil {
 		return 0, err
@@ -141,29 +143,34 @@ func (i *Infoer) GetProductPrice(specs ShapeSpecs) (price float64, err error) {
 
 }
 
-func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo, err error) {
+func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
 
-	err = i.client.ChangeRegion(region)
+	err := i.client.ChangeRegion(region)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	shapes, err := i.client.GetSupportedShapesInARegion(region, "compute")
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	zones, err := i.GetZones(region)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	products = make([]cloudinfo.VmInfo, 0)
+	products := make([]cloudinfo.VmInfo, 0, len(shapes))
 	for _, shape := range shapes {
-		s := i.shapeSpecs[shape]
+		s, ok := i.shapeSpecs[shape]
+		if !ok {
+			logger.Debug("unsupported shape", map[string]interface{}{"shape": shape})
+			// skipping further processing
+			continue
+		}
 		ntwMapper := newNetworkMapper()
-		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(s.NtwPerf)
 		if err != nil {
 			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 				map[string]interface{}{"instanceType": shape})
@@ -187,41 +194,46 @@ func (i *Infoer) GetVirtualMachines(region string) (products []cloudinfo.VmInfo,
 		})
 	}
 
-	return
+	return products, nil
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (products []cloudinfo.VmInfo, err error) {
+func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
-	err = i.client.ChangeRegion(regionId)
+	err := i.client.ChangeRegion(regionId)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	shapes, err := i.client.GetSupportedShapesInARegion(regionId, service)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	zones, err := i.GetZones(regionId)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	products = make([]cloudinfo.VmInfo, 0)
+	products := make([]cloudinfo.VmInfo, 0, len(shapes))
+	ntwMapper := newNetworkMapper()
 	for _, shape := range shapes {
-		s := i.shapeSpecs[shape]
-		ntwMapper := newNetworkMapper()
-		ntwPerfCat, err := ntwMapper.MapNetworkPerf(fmt.Sprint(s.NtwPerf))
+		s, ok := i.shapeSpecs[shape]
+		if !ok {
+			logger.Warn(fmt.Sprintf("unsupported shape: %s", shape))
+			continue
+		}
+
+		ntwPerfCat, err := ntwMapper.MapNetworkPerf(s.NtwPerf)
 		if err != nil {
-			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
-				map[string]interface{}{"instanceType": shape})
+			logger.Warn("failed to get network performance category", map[string]interface{}{"shape": shape})
 		}
 
 		price, err := i.GetProductPrice(s)
 		if err != nil {
-			return nil, err
+			logger.Warn("failed to get product price", map[string]interface{}{"shape": shape})
+			continue
 		}
 
 		products = append(products, cloudinfo.VmInfo{
@@ -237,26 +249,26 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 		})
 	}
 
-	return
+	return products, nil
 }
 
 // GetRegions returns a map with available regions
-func (i *Infoer) GetRegions(service string) (regions map[string]string, err error) {
+func (i *Infoer) GetRegions(service string) (map[string]string, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	_regions, err := c.GetSubscribedRegionNames()
+	subscribedRegionNames, err := c.GetSubscribedRegionNames()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	regions = make(map[string]string)
-	for _, region := range _regions {
+	regions := make(map[string]string)
+	for _, region := range subscribedRegionNames {
 		description := region
 		if displayName, ok := regionNames[region]; ok {
 			description = displayName
@@ -265,35 +277,32 @@ func (i *Infoer) GetRegions(service string) (regions map[string]string, err erro
 	}
 
 	logger.Debug("found regions", map[string]interface{}{"numberOfRegions": len(regions)})
-	return
+	return regions, nil
 }
 
 // GetZones returns the availability zones in a region
-func (i *Infoer) GetZones(region string) (zones []string, err error) {
-	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
-	logger.Debug("getting zones")
-
-	err = i.client.ChangeRegion(region)
+func (i *Infoer) GetZones(region string) ([]string, error) {
+	err := i.client.ChangeRegion(region)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	c, err := i.client.NewIdentityClient()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	ads, err := c.GetAvailabilityDomains()
+	availabilityDomains, err := c.GetAvailabilityDomains()
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	for _, ad := range ads {
+	zones := make([]string, 0, len(availabilityDomains))
+	for _, ad := range availabilityDomains {
 		zones = append(zones, *ad.Name)
 	}
 
-	logger.Debug("found zones", map[string]interface{}{"numberOfZones": len(zones)})
-	return
+	return zones, nil
 }
 
 // HasShortLivedPriceInfo - Oracle doesn't have preemptible instances
@@ -307,15 +316,15 @@ func (i *Infoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (i *Infoer) GetServiceImages(service, region string) (images []cloudinfo.Image, err error) {
-
-	_images, err := i.client.GetSupportedImagesInARegion(service, region)
+func (i *Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+	imageNames, err := i.client.GetSupportedImagesInARegion(service, region)
 	if err != nil {
-		return images, err
+		return nil, err
 	}
 
-	for _, image := range _images {
-		images = append(images, cloudinfo.NewImage(image, "", false))
+	var images = make([]cloudinfo.Image, 0, len(imageNames))
+	for _, imageName := range imageNames {
+		images = append(images, cloudinfo.NewImage(imageName, "", false))
 	}
 
 	return images, nil
@@ -345,13 +354,9 @@ func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersio
 			return nil, err
 		}
 
-		var versions []string
+		versions := options.KubernetesVersions.Get()
 
-		for _, version := range options.KubernetesVersions.Get() {
-			versions = append(versions, version)
-		}
-
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, versions[0])}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, "")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}

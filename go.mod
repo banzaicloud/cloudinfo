@@ -1,6 +1,6 @@
 module github.com/banzaicloud/cloudinfo
 
-go 1.13
+go 1.13.4
 
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0
@@ -31,7 +31,7 @@ require (
 	github.com/goph/logur v0.11.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.0.0-20160529214634-33afcba6336a
-	github.com/oracle/oci-go-sdk v3.5.0+incompatible
+	github.com/oracle/oci-go-sdk v12.5.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.3
