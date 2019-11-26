@@ -52,6 +52,7 @@ func (sm *scrapingManager) initialize(ctx context.Context) {
 	if err != nil {
 		sm.log.Error(emperror.Wrap(err, "failed to initialize cloud product information").Error(),
 			log.ToMap(emperror.Context(err)))
+		return
 	}
 
 	for region, ap := range prices {
