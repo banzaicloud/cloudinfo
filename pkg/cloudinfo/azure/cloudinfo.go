@@ -421,6 +421,8 @@ func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId stri
 			}
 		}
 		return virtualMachines, nil
+	case "compute":
+		return a.GetVirtualMachines(regionId)
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}

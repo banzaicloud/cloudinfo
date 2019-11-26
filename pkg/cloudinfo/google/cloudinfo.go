@@ -385,6 +385,8 @@ func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string
 	switch service {
 	case svcGke:
 		return vms, nil
+	case "compute":
+		return g.GetVirtualMachines(regionId)
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}

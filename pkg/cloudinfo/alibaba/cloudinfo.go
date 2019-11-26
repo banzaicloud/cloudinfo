@@ -198,6 +198,8 @@ func (a *AlibabaInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId st
 	switch service {
 	case svcAck:
 		return vms, nil
+	case "compute":
+		return a.GetVirtualMachines(regionId)
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
