@@ -48,7 +48,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfodriver"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
@@ -168,8 +168,10 @@ func main() {
 		tracer = tracing.NewTracer()
 	}
 
+	cloudInfoLogger := cloudinfoadapter.NewLogger(logger)
+
 	// use the configured store implementation
-	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, cloudinfoadapter.NewLogger(logger))
+	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, cloudInfoLogger)
 	defer cloudInfoStore.Close()
 
 	infoers, providers, err := loadInfoers(config, logger)
@@ -184,11 +186,11 @@ func main() {
 
 	serviceManager.LoadServiceInformation(providers)
 
-	prodInfo, err := cloudinfo2.NewCloudInfo(providers, cloudInfoStore, logger)
+	prodInfo, err := cloudinfo.NewCloudInfo(providers, cloudInfoStore, cloudInfoLogger)
 	emperror.Panic(err)
 
 	if config.Scrape.Enabled {
-		scrapingDriver := cloudinfo2.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, cloudInfoLogger, reporter, tracer, eventBus)
 
 		err = scrapingDriver.StartScraping()
 		emperror.Panic(err)
@@ -204,10 +206,10 @@ func main() {
 	emperror.Panic(err)
 
 	cloudinfoLogger := cloudinfoadapter.NewLogger(logger)
-	providerService := cloudinfo2.NewProviderService(prodInfo)
-	serviceService := cloudinfo2.NewServiceService(prodInfo)
-	regionService := cloudinfo2.NewRegionService(prodInfo)
-	instanceTypeService := cloudinfo2.NewInstanceTypeService(prodInfo)
+	providerService := cloudinfo.NewProviderService(prodInfo)
+	serviceService := cloudinfo.NewServiceService(prodInfo)
+	regionService := cloudinfo.NewRegionService(prodInfo)
+	instanceTypeService := cloudinfo.NewInstanceTypeService(prodInfo)
 	endpoints := cloudinfodriver.MakeEndpoints(instanceTypeService)
 	providerEndpoints := cloudinfodriver.MakeProviderEndpoints(providerService, cloudinfoLogger)
 	serviceEndpoints := cloudinfodriver.MakeServiceEndpoints(serviceService, cloudinfoLogger)
@@ -253,8 +255,8 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
-func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo2.CloudInfoer, []string, error) {
-	infoers := map[string]cloudinfo2.CloudInfoer{}
+func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
+	infoers := map[string]cloudinfo.CloudInfoer{}
 
 	var providers []string
 

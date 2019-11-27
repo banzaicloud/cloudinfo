@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
@@ -40,7 +39,7 @@ type scrapingManager struct {
 	store    CloudInfoStore
 	metrics  metrics.Reporter
 	tracer   tracing.Tracer
-	log      logur.Logger
+	log      Logger
 	eventBus messaging.EventBus
 }
 
@@ -292,14 +291,14 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 }
 
-func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log logur.Logger,
+func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log Logger,
 	metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus) *scrapingManager {
 
 	return &scrapingManager{
 		provider: provider,
 		infoer:   infoer,
 		store:    store,
-		log:      logur.WithFields(log, map[string]interface{}{"component": "scraping-manager", "provider": provider}),
+		log:      log.WithFields(map[string]interface{}{"component": "scraping-manager", "provider": provider}),
 		metrics:  metrics,
 		tracer:   tracer,
 		eventBus: eventBus,
@@ -309,7 +308,7 @@ func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStor
 type ScrapingDriver struct {
 	scrapingManagers []*scrapingManager
 	renewalInterval  time.Duration
-	log              logur.Logger
+	log              Logger
 }
 
 func (sd *ScrapingDriver) StartScraping() error {
@@ -356,7 +355,7 @@ func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) 
 }
 
 func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
-	store CloudInfoStore, log logur.Logger, metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus) *ScrapingDriver {
+	store CloudInfoStore, log Logger, metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus) *ScrapingDriver {
 	var managers []*scrapingManager
 
 	for provider, infoer := range infoers {
@@ -366,6 +365,6 @@ func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudIn
 	return &ScrapingDriver{
 		scrapingManagers: managers,
 		renewalInterval:  renewalInterval,
-		log:              logur.WithFields(log, map[string]interface{}{"component": "scraping-driver"}),
+		log:              log.WithFields(map[string]interface{}{"component": "scraping-driver"}),
 	}
 }

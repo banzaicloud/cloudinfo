@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -28,13 +27,13 @@ import (
 // It's the entry point for the product info retrieval and management subsystem
 // It's also responsible for delegating to the cloud provider specific implementations
 type cloudInfo struct {
-	log            logur.Logger
+	log            Logger
 	providers      []string
 	cloudInfoStore CloudInfoStore
 }
 
 // NewCloudInfo creates a new cloudInfo instance
-func NewCloudInfo(providers []string, ciStore CloudInfoStore, logger logur.Logger) (*cloudInfo, error) {
+func NewCloudInfo(providers []string, ciStore CloudInfoStore, logger Logger) (*cloudInfo, error) {
 	if providers == nil || ciStore == nil {
 		return nil, errors.New("could not create product infoer")
 	}
@@ -42,7 +41,7 @@ func NewCloudInfo(providers []string, ciStore CloudInfoStore, logger logur.Logge
 	pi := cloudInfo{
 		providers:      providers,
 		cloudInfoStore: ciStore,
-		log:            logur.WithFields(logger, map[string]interface{}{"component": "cloudInfo"}),
+		log:            logger.WithFields(map[string]interface{}{"component": "cloudInfo"}),
 	}
 	return &pi, nil
 }

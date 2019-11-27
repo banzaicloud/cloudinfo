@@ -17,8 +17,6 @@ package cloudinfo
 import (
 	"context"
 	"time"
-
-	"github.com/goph/logur"
 )
 
 // TaskFn function type for executing task logic
@@ -33,7 +31,7 @@ type Executor interface {
 type PeriodicExecutor struct {
 	// interval specifies the time interval within the task function will be executed once
 	interval time.Duration
-	log      logur.Logger
+	log      Logger
 }
 
 // Execute executes the task function periodically in a new goroutine
@@ -60,7 +58,7 @@ func (ps *PeriodicExecutor) Execute(ctx context.Context, sf TaskFn) error {
 }
 
 // NewPeriodicExecutor creates a new Executor with the given time period
-func NewPeriodicExecutor(period time.Duration, log logur.Logger) Executor {
+func NewPeriodicExecutor(period time.Duration, log Logger) Executor {
 	return &PeriodicExecutor{
 		interval: period,
 		log:      log,
