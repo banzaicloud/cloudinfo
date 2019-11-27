@@ -626,7 +626,7 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]cloudinfo.Prod
 func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.11.10", "1.12.10", "1.13.10", "1.14.6"}, "1.14.6")}, nil
+		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.12.10", "1.13.11", "1.14.7"}, "1.14.7")}, nil
 	default:
 		return []cloudinfo.LocationVersion{}, nil
 	}
