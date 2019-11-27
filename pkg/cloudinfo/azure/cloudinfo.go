@@ -408,12 +408,21 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	var vmList = vms
+	if len(vmList) == 0 {
+		var err error
+		vmList, err = a.GetVirtualMachines(regionId)
+		if err != nil {
+			a.log.Warn("could not get machine types for region", map[string]interface{}{"regionId": regionId})
+			return nil, emperror.Wrap(err, "failed to get products")
+		}
+	}
 	switch service {
 	case svcAks:
 		var virtualMachines []cloudinfo.VmInfo
 		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
 		for _, vm := range possibleVmTypes {
-			for _, virtualMachine := range vms {
+			for _, virtualMachine := range vmList {
 				if string(vm) == virtualMachine.Type {
 					virtualMachines = append(virtualMachines, virtualMachine)
 					break
@@ -422,7 +431,7 @@ func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId stri
 		}
 		return virtualMachines, nil
 	case "compute":
-		return a.GetVirtualMachines(regionId)
+		return vmList, nil
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
