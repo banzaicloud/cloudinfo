@@ -18,10 +18,6 @@ import (
 	"context"
 	"testing"
 	"time"
-
-	"github.com/goph/logur"
-
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 )
 
 func TestPeriodicExecutor_Execute(t *testing.T) {
@@ -70,7 +66,7 @@ func TestPeriodicExecutor_Execute(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			ctx, cFn := test.ctx()
-			if err := NewPeriodicExecutor(test.period, cloudinfoadapter.NewLogger(logur.NewTestLogger())).Execute(ctx, test.task); err != nil {
+			if err := NewPeriodicExecutor(test.period, cloudinfoLogger).Execute(ctx, test.task); err != nil {
 				t.Fail()
 			}
 			test.checker(ctx, cFn)

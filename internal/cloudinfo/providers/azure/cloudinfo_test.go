@@ -32,6 +32,7 @@ import (
 )
 
 var cloudinfoLogger = cloudinfoadapter.NewLogger(logur.NewTestLogger())
+
 // testStruct helps to mock external calls
 type testStruct struct {
 	TcId string

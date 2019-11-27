@@ -17,10 +17,8 @@ package cloudinfo
 import (
 	"testing"
 
-	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
@@ -34,7 +32,7 @@ type DummyCloudInfoStore struct {
 
 const notCached = "error"
 
-var cloudinfoLogger = cloudinfoadapter.NewLogger(logur.NewTestLogger())
+var cloudinfoLogger = NoOpLogger()
 
 func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[string]string, bool) {
 	switch dcis.TcId {
