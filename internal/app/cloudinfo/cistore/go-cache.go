@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/patrickmn/go-cache"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
@@ -32,7 +31,7 @@ type cacheProductStore struct {
 	*cache.Cache
 	// all items are cached with this expiry
 	itemExpiry time.Duration
-	log        logur.Logger
+	log        cloudinfo.Logger
 }
 
 func (cis *cacheProductStore) DeleteRegions(provider, service string) {
@@ -166,7 +165,7 @@ func (cis *cacheProductStore) GetServices(provider string) ([]types.Service, boo
 
 // NewCacheProductStore creates a new store instance.
 // the backing cache is initialized with the defaultExpiration and cleanupInterval
-func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration, logger logur.Logger) cloudinfo.CloudInfoStore {
+func NewCacheProductStore(cloudInfoExpiration, cleanupInterval time.Duration, logger cloudinfo.Logger) cloudinfo.CloudInfoStore {
 	return &cacheProductStore{
 		cache.New(cloudInfoExpiration, cleanupInterval),
 		cleanupInterval,

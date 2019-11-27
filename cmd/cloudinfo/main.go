@@ -169,7 +169,7 @@ func main() {
 	}
 
 	// use the configured store implementation
-	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, logger)
+	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, cloudinfoadapter.NewLogger(logger))
 	defer cloudInfoStore.Close()
 
 	infoers, providers, err := loadInfoers(config, logger)

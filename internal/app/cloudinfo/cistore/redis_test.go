@@ -20,6 +20,7 @@ import (
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 )
 
@@ -32,7 +33,7 @@ func testRedisStore(t *testing.T) {
 		Port: 6379,
 	}
 
-	ps := NewRedisProductStore(cfg, logur.NewTestLogger())
+	ps := NewRedisProductStore(cfg, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
 
 	// insert an entry
 	ps.StoreStatus("amazon", "status")

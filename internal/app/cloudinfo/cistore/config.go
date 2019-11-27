@@ -17,9 +17,7 @@ package cistore
 import (
 	"time"
 
-	"github.com/goph/logur"
-
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
 	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
 )
@@ -39,7 +37,7 @@ type GoCacheConfig struct {
 
 // NewCloudInfoStore builds a new cloudinfo store based on the passed in configuration
 // This method is in charge to create the appropriate store instance eventually to implement a fallback mechanism to the default store
-func NewCloudInfoStore(conf Config, log logur.Logger) cloudinfo2.CloudInfoStore {
+func NewCloudInfoStore(conf Config, log cloudinfo.Logger) cloudinfo.CloudInfoStore {
 
 	// use redis if enabled
 	if conf.Redis.Enabled {

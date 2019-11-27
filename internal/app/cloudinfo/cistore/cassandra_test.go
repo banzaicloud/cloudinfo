@@ -20,6 +20,7 @@ import (
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
 )
 
@@ -31,7 +32,7 @@ func testCassandraStore(t *testing.T) {
 		Keyspace: "test",
 		Table:    "testPi",
 	},
-		logur.NewTestLogger())
+		cloudinfoadapter.NewLogger(logur.NewTestLogger()))
 
 	// insert an entry
 	cps.StoreStatus("amazon", "status")

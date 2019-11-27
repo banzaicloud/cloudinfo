@@ -20,7 +20,6 @@ import (
 	"io"
 
 	redigo "github.com/gomodule/redigo/redis"
-	"github.com/goph/logur"
 
 	cloudinfo "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -29,7 +28,7 @@ import (
 
 type redisProductStore struct {
 	pool *redigo.Pool
-	log  logur.Logger
+	log  cloudinfo.Logger
 }
 
 func (rps *redisProductStore) DeleteRegions(provider, service string) {
@@ -110,12 +109,12 @@ func (rps *redisProductStore) delete(key string) {
 	}
 }
 
-func NewRedisProductStore(config redis.Config, log logur.Logger) cloudinfo.CloudInfoStore {
+func NewRedisProductStore(config redis.Config, log cloudinfo.Logger) cloudinfo.CloudInfoStore {
 	pool := redis.NewPool(config)
 
 	return &redisProductStore{
 		pool: pool,
-		log:  logur.WithFields(log, map[string]interface{}{"cistore": "redis"}),
+		log:  log.WithFields(map[string]interface{}{"cistore": "redis"}),
 	}
 }
 

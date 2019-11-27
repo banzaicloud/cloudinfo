@@ -22,7 +22,6 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -30,17 +29,17 @@ import (
 )
 
 type cassandraProductStore struct {
-	log       logur.Logger
+	log       cloudinfo.Logger
 	keySpace  string
 	tableName string
 	cluster   *gocql.ClusterConfig
 	session   *gocql.Session
 }
 
-func NewCassandraProductStore(config cassandra.Config, logger logur.Logger) cloudinfo.CloudInfoStore {
+func NewCassandraProductStore(config cassandra.Config, logger cloudinfo.Logger) cloudinfo.CloudInfoStore {
 
 	return &cassandraProductStore{
-		log:       logur.WithFields(logger, map[string]interface{}{"cistore": "cassandra"}),
+		log:       logger.WithFields(map[string]interface{}{"cistore": "cassandra"}),
 		keySpace:  config.Keyspace,
 		tableName: config.Table,
 		cluster:   cassandra.NewCluster(config),
