@@ -225,7 +225,7 @@ func (e *Ec2Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([
 	}
 	switch service {
 	case svcEks:
-		vms = append(vms, types.VmInfo{
+		vmList = append(vmList, types.VmInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
 		})
