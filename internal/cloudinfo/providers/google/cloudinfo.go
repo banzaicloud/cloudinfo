@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/cloudbilling/v1"
@@ -65,11 +64,11 @@ type GceInfoer struct {
 	computeSvc   *compute.Service
 	containerSvc *container.Service
 	projectId    string
-	log          logur.Logger
+	log          cloudinfo.Logger
 }
 
 // NewGoogleInfoer creates a new instance of the Google infoer.
-func NewGoogleInfoer(config Config, logger logur.Logger) (*GceInfoer, error) {
+func NewGoogleInfoer(config Config, logger cloudinfo.Logger) (*GceInfoer, error) {
 	clientOpts := []option.ClientOption{
 		option.WithCredentialsFile(config.CredentialsFile),
 		option.WithScopes(compute.ComputeReadonlyScope, container.CloudPlatformScope),

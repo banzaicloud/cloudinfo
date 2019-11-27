@@ -35,7 +35,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr/v2"
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	vaultremote "github.com/sagikazarmark/viperx/remote"
 	_ "github.com/sagikazarmark/viperx/remote/bankvaults"
@@ -174,7 +173,7 @@ func main() {
 	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, cloudInfoLogger)
 	defer cloudInfoStore.Close()
 
-	infoers, providers, err := loadInfoers(config, logger)
+	infoers, providers, err := loadInfoers(config, cloudInfoLogger)
 	emperror.Panic(err)
 
 	reporter := metrics.NewDefaultMetricsReporter()
@@ -255,14 +254,14 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
-func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
+func loadInfoers(config configuration, logger cloudinfo.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
 	infoers := map[string]cloudinfo.CloudInfoer{}
 
 	var providers []string
 
 	if config.Provider.Amazon.Enabled {
 		providers = append(providers, Amazon)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Amazon})
+		logger := logger.WithFields(map[string]interface{}{"provider": Amazon})
 
 		infoer, err := amazon.NewAmazonInfoer(config.Provider.Amazon.Config, logger)
 		if err != nil {
@@ -276,7 +275,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Google.Enabled {
 		providers = append(providers, Google)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Google})
+		logger := logger.WithFields(map[string]interface{}{"provider": Google})
 
 		infoer, err := google.NewGoogleInfoer(config.Provider.Google.Config, logger)
 		if err != nil {
@@ -290,7 +289,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Alibaba.Enabled {
 		providers = append(providers, Alibaba)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Alibaba})
+		logger := logger.WithFields(map[string]interface{}{"provider": Alibaba})
 
 		infoer, err := alibaba.NewAlibabaInfoer(config.Provider.Alibaba.Config, logger)
 		if err != nil {
@@ -304,7 +303,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Oracle.Enabled {
 		providers = append(providers, Oracle)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Oracle})
+		logger := logger.WithFields(map[string]interface{}{"provider": Oracle})
 
 		infoer, err := oracle.NewOracleInfoer(config.Provider.Oracle.Config, logger)
 		if err != nil {
@@ -318,7 +317,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Azure.Enabled {
 		providers = append(providers, Azure)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Azure})
+		logger := logger.WithFields(map[string]interface{}{"provider": Azure})
 
 		infoer, err := azure.NewAzureInfoer(config.Provider.Azure.Config, logger)
 		if err != nil {
@@ -332,7 +331,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Digitalocean.Enabled {
 		providers = append(providers, Digitalocean)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Digitalocean})
+		logger := logger.WithFields(map[string]interface{}{"provider": Digitalocean})
 
 		infoer, err := digitalocean.NewDigitaloceanInfoer(config.Provider.Digitalocean.Config, logger)
 		if err != nil {

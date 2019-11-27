@@ -34,6 +34,8 @@ type DummyCloudInfoStore struct {
 
 const notCached = "error"
 
+var cloudinfoLogger = cloudinfoadapter.NewLogger(logur.NewTestLogger())
+
 func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[string]string, bool) {
 	switch dcis.TcId {
 	case notCached:
@@ -153,7 +155,8 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			test.checker(NewCloudInfo(test.CloudInfoer, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger())))
+
+			test.checker(NewCloudInfo(test.CloudInfoer, &DummyCloudInfoStore{}, cloudinfoLogger))
 		})
 	}
 
@@ -187,7 +190,7 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetRegions("dummyProvider", "dummyService"))
 		})
@@ -219,7 +222,7 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetVersions("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -251,7 +254,7 @@ func TestCachingCloudInfo_GetServiceImages(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetServiceImages("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -283,7 +286,7 @@ func TestCachingCloudInfo_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetZones("dummyProvider", "dummyService", "dummyRegion"))
 		})
@@ -315,7 +318,7 @@ func TestCachingCloudInfo_GetServices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetServices("dummyProvider"))
 		})
@@ -347,7 +350,7 @@ func TestCachingCloudInfo_GetStatus(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetStatus("dummyProvider"))
 		})

@@ -21,7 +21,6 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
@@ -34,11 +33,11 @@ import (
 type DigitaloceanInfoer struct {
 	client *godo.Client
 
-	logger logur.Logger
+	logger cloudinfo.Logger
 }
 
 // NewDigitaloceanInfoer creates a new instance of the Digitalocean infoer.
-func NewDigitaloceanInfoer(config Config, logger logur.Logger) (*DigitaloceanInfoer, error) {
+func NewDigitaloceanInfoer(config Config, logger cloudinfo.Logger) (*DigitaloceanInfoer, error) {
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: config.AccessToken,
 	})

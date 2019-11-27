@@ -25,8 +25,11 @@ import (
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
+
+var logger = cloudinfoadapter.NewLogger(logur.NewTestLogger())
 
 // testStruct helps to mock external calls
 type testStruct struct {
@@ -165,7 +168,7 @@ func TestNewEc2Infoer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: test.prom}
 
-			test.check(NewAmazonInfoer(c, logur.NewTestLogger()))
+			test.check(NewAmazonInfoer(c, logger))
 		})
 	}
 }
@@ -197,7 +200,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, logur.NewTestLogger())
+			cloudInfoer, err := NewAmazonInfoer(Config{}, logger)
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -239,7 +242,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, logur.NewTestLogger())
+			cloudInfoer, err := NewAmazonInfoer(Config{}, logger)
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
@@ -284,7 +287,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: "PromAPIAddress"}
-			cloudInfoer, err := NewAmazonInfoer(c, logur.NewTestLogger())
+			cloudInfoer, err := NewAmazonInfoer(c, logger)
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {
@@ -330,7 +333,7 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: "PromAPIAddress"}
-			cloudInfoer, err := NewAmazonInfoer(c, logur.NewTestLogger())
+			cloudInfoer, err := NewAmazonInfoer(c, logger)
 			// override ec2cli
 			cloudInfoer.ec2Describer = test.ec2CliMock
 			if err != nil {

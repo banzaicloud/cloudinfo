@@ -28,7 +28,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -48,7 +47,7 @@ type Ec2Infoer struct {
 	prometheus   v1.API
 	promQuery    string
 	ec2Describer func(region string) Ec2Describer
-	log          logur.Logger
+	log          cloudinfo.Logger
 }
 
 // Ec2Describer interface for operations describing EC2 artifacts. (a subset of the Ec2 cli operations used by this app)
@@ -59,7 +58,7 @@ type Ec2Describer interface {
 }
 
 // NewAmazonInfoer builds an infoer instance based on the provided configuration
-func NewAmazonInfoer(config Config, logger logur.Logger) (*Ec2Infoer, error) {
+func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error) {
 	const defaultPricingRegion = "us-east-1"
 
 	providers := []credentials.Provider{

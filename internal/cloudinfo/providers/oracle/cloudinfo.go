@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/pkg/errors"
 
@@ -35,7 +34,7 @@ type Infoer struct {
 	client         *client.OCI
 	shapeSpecs     map[string]ShapeSpecs
 	cloudInfoCache map[string]ITRACloudInfo
-	log            logur.Logger
+	log            cloudinfo.Logger
 }
 
 // ShapeSpecs representation the specs of a certain type of virtual machine
@@ -76,7 +75,7 @@ var shapeSpecs = map[string]ShapeSpecs{
 }
 
 // NewOracleInfoer creates a new instance of the Oracle infoer.
-func NewOracleInfoer(config Config, logger logur.Logger) (*Infoer, error) {
+func NewOracleInfoer(config Config, logger cloudinfo.Logger) (*Infoer, error) {
 	var privateKeyPassphrase string
 	if config.PrivateKeyPassphrase != nil {
 		privateKeyPassphrase = *config.PrivateKeyPassphrase

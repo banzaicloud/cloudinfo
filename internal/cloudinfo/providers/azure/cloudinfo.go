@@ -30,13 +30,11 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
 
 const svcAks = "aks"
@@ -77,7 +75,7 @@ type AzureInfoer struct {
 	skusClient          ResourceSkuRetriever
 	providersClient     ProviderSource
 	containerSvcClient  VersionRetriever
-	log                 logur.Logger
+	log                 cloudinfo.Logger
 }
 
 // LocationRetriever collects regions
@@ -106,7 +104,7 @@ type ResourceSkuRetriever interface {
 }
 
 // NewAzureInfoer creates a new instance of the Azure infoer.
-func NewAzureInfoer(config Config, logger logur.Logger) (*AzureInfoer, error) {
+func NewAzureInfoer(config Config, logger cloudinfo.Logger) (*AzureInfoer, error) {
 	var authorizer autorest.Authorizer
 	if config.ClientID != "" && config.ClientSecret != "" && config.TenantID != "" {
 		credentialsConfig := auth.NewClientCredentialsConfig(config.ClientID, config.ClientSecret, config.TenantID)
@@ -350,7 +348,7 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 }
 
 func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
-	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
+	logger := a.log.WithFields(map[string]interface{}{"region": region})
 	logger.Debug("getting product info")
 
 	skusResultPage, err := a.skusClient.List(context.Background())
@@ -441,7 +439,7 @@ func (a *AzureInfoer) GetProducts(vms []types.VmInfo, service, regionId string) 
 // GetZones returns the availability zones in a region
 // Zones are currently only returned by the SKU (https://docs.microsoft.com/en-us/rest/api/compute/resourceskus/list#resourceskulocationinfo)
 func (a *AzureInfoer) GetZones(region string) ([]string, error) {
-	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
+	logger := a.log.WithFields(map[string]interface{}{"region": region})
 	logger.Debug("getting zones")
 
 	skusResultPage, err := a.skusClient.List(context.Background())
@@ -474,7 +472,7 @@ func (a *AzureInfoer) GetZones(region string) ([]string, error) {
 
 // GetRegions returns a map with available regions transforms the api representation into a "plain" map
 func (a *AzureInfoer) GetRegions(service string) (map[string]string, error) {
-	logger := log.WithFields(a.log, map[string]interface{}{"service": service})
+	logger := a.log.WithFields(map[string]interface{}{"service": service})
 	logger.Debug("getting locations")
 
 	allLocations := make(map[string]string)

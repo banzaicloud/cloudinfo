@@ -23,7 +23,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/goph/emperror"
-	"github.com/goph/logur"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
@@ -35,13 +34,13 @@ import (
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
 	client CommonDescriber
-	log    logur.Logger
+	log    cloudinfo.Logger
 }
 
 const svcAck = "ack"
 
 // NewAlibabaInfoer creates a new instance of the Alibaba infoer.
-func NewAlibabaInfoer(config Config, logger logur.Logger) (*AlibabaInfoer, error) {
+func NewAlibabaInfoer(config Config, logger cloudinfo.Logger) (*AlibabaInfoer, error) {
 	client, err := sdk.NewClientWithAccessKey(
 		config.Region,
 		config.AccessKey,
