@@ -17,15 +17,16 @@ package alibaba
 import (
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 var (
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NtwLow:    {"0.0 Gbit/s", "0.1 Gbit/s", "0.2 Gbit/s", "0.4 Gbit/s", "0.5 Gbit/s", "0.8 Gbit/s", "1.0 Gbit/s", "1.2 Gbit/s", "1.5 Gbit/s", "2.0 Gbit/s"},
-		cloudinfo.NtwMedium: {"2.5 Gbit/s", "3.0 Gbit/s", "4.0 Gbit/s", "4.5 Gbit/s", "5.0 Gbit/s", "6.0 Gbit/s", "7.5 Gbit/s", "8.0 Gbit/s"},
-		cloudinfo.NtwHight:  {"10.0 Gbit/s", "12.0 Gbit/s"},
-		cloudinfo.NtwExtra:  {"15.0 Gbit/s", "16.0 Gbit/s", "17.0 Gbit/s", "20.0 Gbit/s", "25.0 Gbit/s", "30.0 Gbit/s", "35.0 Gbit/s"},
+		types.NtwLow:    {"0.0 Gbit/s", "0.1 Gbit/s", "0.2 Gbit/s", "0.4 Gbit/s", "0.5 Gbit/s", "0.8 Gbit/s", "1.0 Gbit/s", "1.2 Gbit/s", "1.5 Gbit/s", "2.0 Gbit/s"},
+		types.NtwMedium: {"2.5 Gbit/s", "3.0 Gbit/s", "4.0 Gbit/s", "4.5 Gbit/s", "5.0 Gbit/s", "6.0 Gbit/s", "7.5 Gbit/s", "8.0 Gbit/s"},
+		types.NtwHight:  {"10.0 Gbit/s", "12.0 Gbit/s"},
+		types.NtwExtra:  {"15.0 Gbit/s", "16.0 Gbit/s", "17.0 Gbit/s", "20.0 Gbit/s", "25.0 Gbit/s", "30.0 Gbit/s", "35.0 Gbit/s"},
 	}
 )
 
@@ -41,7 +42,7 @@ func newAlibabaNetworkMapper() *AlibabaNetworkMapper {
 // MapNetworkPerf maps the network performance of the alibaba instance to the category supported by telescopes
 func (nm *AlibabaNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo.Contains(strVals, ntwPerf) {
+		if cloudinfo2.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

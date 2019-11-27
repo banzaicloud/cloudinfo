@@ -15,22 +15,22 @@
 package cloudinfo
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // InMemoryProviderStore keeps providers in the memory.
 // Use it in tests or for development/demo purposes.
 type InMemoryProviderStore struct {
-	providers []cloudinfo.Provider
+	providers []types.Provider
 }
 
 // NewInMemoryProviderStore returns a new InMemoryProviderStore.
 func NewInMemoryProviderStore() *InMemoryProviderStore {
 	return &InMemoryProviderStore{
-		providers: []cloudinfo.Provider{},
+		providers: []types.Provider{},
 	}
 }
 
-func (s *InMemoryProviderStore) GetProviders() ([]cloudinfo.Provider, error) {
+func (s *InMemoryProviderStore) GetProviders() ([]types.Provider, error) {
 	return s.providers, nil
 }

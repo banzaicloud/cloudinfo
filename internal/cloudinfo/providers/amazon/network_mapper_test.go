@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
@@ -27,21 +27,21 @@ func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 	mapper := AmazonNetworkMapper{}
 	tests := []struct {
 		name  string
-		vm    cloudinfo.VmInfo
+		vm    types.VmInfo
 		check func(cat string, err error)
 	}{
 		{
 			name: "success - mapper maps to the lowest category",
-			vm: cloudinfo.VmInfo{
+			vm: types.VmInfo{
 				NtwPerf: "Very Low",
 			},
 			check: func(cat string, err error) {
-				assert.Equal(t, cloudinfo.NtwLow, cat, "not mapped to the right category")
+				assert.Equal(t, types.NtwLow, cat, "not mapped to the right category")
 			},
 		},
 		{
 			name: "error - mapper doesn't map to a category",
-			vm: cloudinfo.VmInfo{
+			vm: types.VmInfo{
 				NtwPerf: "invalid",
 			},
 			check: func(cat string, err error) {

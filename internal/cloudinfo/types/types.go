@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cloudinfo
+package types
+
+import (
+	"strings"
+)
 
 const (
 	// Memory represents the memory attribute for the product info
@@ -91,8 +95,8 @@ type ZonePrice struct {
 	Price float64 `json:"price"`
 }
 
-// newZonePrice creates a new zone price struct and returns its pointer
-func newZonePrice(zone string, price float64) *ZonePrice {
+// NewZonePrice creates a new zone price struct and returns its pointer
+func NewZonePrice(zone string, price float64) *ZonePrice {
 	return &ZonePrice{
 		Zone:  zone,
 		Price: price,
@@ -133,8 +137,8 @@ type ProductDetailSource interface {
 	GetProductDetails(provider string, region string) ([]ProductDetails, error)
 }
 
-// newProductDetails creates a new ProductDetails struct and returns a pointer to it
-func newProductDetails(vm VmInfo) *ProductDetails {
+// NewProductDetails creates a new ProductDetails struct and returns a pointer to it
+func NewProductDetails(vm VmInfo) *ProductDetails {
 	pd := ProductDetails{}
 	pd.VmInfo = vm
 	pd.Burst = vm.IsBurst()
@@ -214,4 +218,36 @@ func (v Version) VersionName() string {
 type Region struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// SpotPriceInfo represents different prices per availability zones
+type SpotPriceInfo map[string]float64
+
+// Price describes the on demand price and spot prices per availability zones
+type Price struct {
+	OnDemandPrice float64       `json:"onDemandPrice"`
+	SpotPrice     SpotPriceInfo `json:"spotPrice"`
+}
+
+// VmInfo representation of a virtual machine
+type VmInfo struct {
+	Category      string            `json:"category"`
+	Type          string            `json:"type"`
+	OnDemandPrice float64           `json:"onDemandPrice"`
+	SpotPrice     []ZonePrice       `json:"spotPrice"`
+	Cpus          float64           `json:"cpusPerVm"`
+	Mem           float64           `json:"memPerVm"`
+	Gpus          float64           `json:"gpusPerVm"`
+	NtwPerf       string            `json:"ntwPerf"`
+	NtwPerfCat    string            `json:"ntwPerfCategory"`
+	Zones         []string          `json:"zones"`
+	Attributes    map[string]string `json:"attributes"`
+	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
+	CurrentGen bool `json:"currentGen"`
+}
+
+// IsBurst returns true if the EC2 instance vCPU is burst type
+// the decision is made based on the instance type
+func (vm VmInfo) IsBurst() bool {
+	return strings.HasPrefix(strings.ToUpper(vm.Type), "T")
 }

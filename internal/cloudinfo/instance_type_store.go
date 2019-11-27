@@ -15,24 +15,24 @@
 package cloudinfo
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // InMemoryInstanceTypeStore keeps instance types in the memory.
 // Use it in tests or for development/demo purposes.
 type InMemoryInstanceTypeStore struct {
-	products map[string]map[string]map[string][]cloudinfo.ProductDetails
+	products map[string]map[string]map[string][]types.ProductDetails
 }
 
 // NewInMemoryInstanceTypeStore returns a new InMemoryInstanceTypeStore.
 func NewInMemoryInstanceTypeStore() *InMemoryInstanceTypeStore {
 	return &InMemoryInstanceTypeStore{
-		products: make(map[string]map[string]map[string][]cloudinfo.ProductDetails),
+		products: make(map[string]map[string]map[string][]types.ProductDetails),
 	}
 }
 
 // GetProductDetails retrieves product details from the given provider and region.
-func (s *InMemoryInstanceTypeStore) GetProductDetails(provider string, service string, region string) ([]cloudinfo.ProductDetails, error) {
+func (s *InMemoryInstanceTypeStore) GetProductDetails(provider string, service string, region string) ([]types.ProductDetails, error) {
 	return s.products[provider][service][region], nil
 }
 

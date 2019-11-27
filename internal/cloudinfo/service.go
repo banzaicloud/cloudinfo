@@ -19,13 +19,13 @@ import (
 
 	"github.com/goph/emperror"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // ServiceStore retrieves services.
 type ServiceStore interface {
 	// GetServices returns the supported services for a provider.
-	GetServices(provider string) ([]cloudinfo.Service, error)
+	GetServices(provider string) ([]types.Service, error)
 }
 
 // ServiceService returns the list of supported services.

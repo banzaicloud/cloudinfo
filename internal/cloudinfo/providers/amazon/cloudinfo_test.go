@@ -25,7 +25,7 @@ import (
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // testStruct helps to mock external calls
@@ -42,7 +42,7 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 					"attributes": map[string]interface{}{
 						"instanceType":       ec2.InstanceTypeT2Small,
 						"vcpu":               "1",
-						cloudinfo.Memory:     "2",
+						types.Memory:         "2",
 						"networkPerformance": "Low to Moderate",
 					}},
 				"terms": map[string]interface{}{
@@ -61,9 +61,9 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 			{
 				"product": map[string]interface{}{
 					"attributes": map[string]interface{}{
-						"instanceType":   ec2.InstanceTypeT2Small,
-						"vcpu":           "1",
-						cloudinfo.Memory: "2",
+						"instanceType": ec2.InstanceTypeT2Small,
+						"vcpu":         "1",
+						types.Memory:   "2",
 					}},
 				"terms": map[string]interface{}{
 					"OnDemand": map[string]interface{}{
@@ -212,7 +212,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 		name       string
 		region     string
 		ec2CliMock func(region string) Ec2Describer
-		check      func(data map[string]cloudinfo.SpotPriceInfo, err error)
+		check      func(data map[string]types.SpotPriceInfo, err error)
 	}{
 		{
 			name:   "successful - get current spot prices",
@@ -220,8 +220,8 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 			ec2CliMock: func(region string) Ec2Describer {
 				return &testStruct{}
 			},
-			check: func(data map[string]cloudinfo.SpotPriceInfo, err error) {
-				assert.Equal(t, map[string]cloudinfo.SpotPriceInfo{}, data)
+			check: func(data map[string]types.SpotPriceInfo, err error) {
+				assert.Equal(t, map[string]types.SpotPriceInfo{}, data)
 				assert.Nil(t, err, "the error should be nil")
 			},
 		},
@@ -231,7 +231,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 			ec2CliMock: func(region string) Ec2Describer {
 				return &testStruct{TcId: 11}
 			},
-			check: func(data map[string]cloudinfo.SpotPriceInfo, err error) {
+			check: func(data map[string]types.SpotPriceInfo, err error) {
 				assert.Nil(t, data, "the data should be nil")
 				assert.EqualError(t, err, "invalid")
 			},
@@ -256,7 +256,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 		name       string
 		region     string
 		ec2CliMock func(region string) Ec2Describer
-		check      func(price map[string]cloudinfo.Price, err error)
+		check      func(price map[string]types.Price, err error)
 	}{
 		{
 			name:   "success - known region",
@@ -264,7 +264,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 			ec2CliMock: func(region string) Ec2Describer {
 				return &testStruct{}
 			},
-			check: func(price map[string]cloudinfo.Price, err error) {
+			check: func(price map[string]types.Price, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				assert.Equal(t, 0, len(price))
 			},
@@ -275,7 +275,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 			ec2CliMock: func(region string) Ec2Describer {
 				return &testStruct{TcId: 11}
 			},
-			check: func(price map[string]cloudinfo.Price, err error) {
+			check: func(price map[string]types.Price, err error) {
 				assert.Nil(t, price, "the zones should be nil")
 				assert.EqualError(t, err, "invalid")
 			},
@@ -350,10 +350,10 @@ func TestPriceData_getDataForKey(t *testing.T) {
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
-					"instanceType":   0,
-					"vcpu":           1,
-					cloudinfo.Memory: 2,
-					"gpu":            3,
+					"instanceType": 0,
+					"vcpu":         1,
+					types.Memory:   2,
+					"gpu":          3,
 				}},
 		},
 	}
@@ -361,10 +361,10 @@ func TestPriceData_getDataForKey(t *testing.T) {
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
-					"instanceType":   ec2.InstanceTypeT2Small,
-					"vcpu":           "1",
-					cloudinfo.Memory: "2",
-					"gpu":            "5",
+					"instanceType": ec2.InstanceTypeT2Small,
+					"vcpu":         "1",
+					types.Memory:   "2",
+					"gpu":          "5",
 				}},
 			"terms": map[string]interface{}{
 				"OnDemand": map[string]interface{}{
@@ -438,7 +438,7 @@ func TestPriceData_getDataForKey(t *testing.T) {
 		},
 		{
 			name:  "successful - get memory",
-			attr:  cloudinfo.Memory,
+			attr:  types.Memory,
 			price: data,
 			check: func(s string, err error) {
 				assert.Nil(t, err, "the error should be nil")
@@ -447,7 +447,7 @@ func TestPriceData_getDataForKey(t *testing.T) {
 		},
 		{
 			name:  "cast problem - get memory",
-			attr:  cloudinfo.Memory,
+			attr:  types.Memory,
 			price: wrongCast,
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
@@ -456,7 +456,7 @@ func TestPriceData_getDataForKey(t *testing.T) {
 		},
 		{
 			name:  "missing data - get memory",
-			attr:  cloudinfo.Memory,
+			attr:  types.Memory,
 			price: missingData,
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
@@ -504,10 +504,10 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 		awsData: aws.JSONValue{
 			"product": map[string]interface{}{
 				"attributes": map[string]interface{}{
-					"instanceType":   ec2.InstanceTypeT2Small,
-					"vcpu":           "1",
-					cloudinfo.Memory: "2",
-					"gpu":            "5",
+					"instanceType": ec2.InstanceTypeT2Small,
+					"vcpu":         "1",
+					types.Memory:   "2",
+					"gpu":          "5",
 				}},
 			"terms": map[string]interface{}{
 				"OnDemand": map[string]interface{}{

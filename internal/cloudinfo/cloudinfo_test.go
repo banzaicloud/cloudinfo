@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import (
 	"github.com/goph/logur"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // DummyCloudInfoStore type implements the CloudInfoStore interface for mockig of external calls
@@ -59,12 +61,12 @@ func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) ([]s
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) ([]Image, bool) {
+func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) ([]types.Image, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
 	default:
-		return []Image{
+		return []types.Image{
 				{
 					Name:         "ami-12345676",
 					GpuAvailable: false,
@@ -80,12 +82,12 @@ func (dcis *DummyCloudInfoStore) GetImage(provider, service, regionId string) ([
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) ([]LocationVersion, bool) {
+func (dcis *DummyCloudInfoStore) GetVersion(provider, service, region string) ([]types.LocationVersion, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
 	default:
-		return []LocationVersion{
+		return []types.LocationVersion{
 				{
 					Versions: []string{
 						"1.10",
@@ -106,12 +108,12 @@ func (dcis *DummyCloudInfoStore) GetStatus(provider string) (string, bool) {
 	}
 }
 
-func (dcis *DummyCloudInfoStore) GetServices(provider string) ([]Service, bool) {
+func (dcis *DummyCloudInfoStore) GetServices(provider string) ([]types.Service, bool) {
 	switch dcis.TcId {
 	case notCached:
 		return nil, false
 	default:
-		return []Service{
+		return []types.Service{
 				{
 					Service:  "dummy1",
 					IsStatic: false,
@@ -196,12 +198,12 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 	tests := []struct {
 		name    string
 		ciStore CloudInfoStore
-		checker func(versions []LocationVersion, err error)
+		checker func(versions []types.LocationVersion, err error)
 	}{
 		{
 			name:    "successfully retrieved the versions",
 			ciStore: &DummyCloudInfoStore{},
-			checker: func(versions []LocationVersion, err error) {
+			checker: func(versions []types.LocationVersion, err error) {
 				assert.Equal(t, 1, len(versions))
 				assert.Nil(t, err, "the error should be nil")
 			},
@@ -209,7 +211,7 @@ func TestCachingCloudInfo_GetVersions(t *testing.T) {
 		{
 			name:    "failed to retrieve versions",
 			ciStore: &DummyCloudInfoStore{TcId: notCached},
-			checker: func(versions []LocationVersion, err error) {
+			checker: func(versions []types.LocationVersion, err error) {
 				assert.Nil(t, versions, "the versions should be nil")
 				assert.EqualError(t, err, "versions not yet cached")
 			},
@@ -228,12 +230,12 @@ func TestCachingCloudInfo_GetServiceImages(t *testing.T) {
 	tests := []struct {
 		name    string
 		ciStore CloudInfoStore
-		checker func(images []Image, err error)
+		checker func(images []types.Image, err error)
 	}{
 		{
 			name:    "successfully retrieved the images",
 			ciStore: &DummyCloudInfoStore{},
-			checker: func(images []Image, err error) {
+			checker: func(images []types.Image, err error) {
 				assert.Equal(t, 2, len(images))
 				assert.Nil(t, err, "the error should be nil")
 			},
@@ -241,7 +243,7 @@ func TestCachingCloudInfo_GetServiceImages(t *testing.T) {
 		{
 			name:    "failed to retrieve images",
 			ciStore: &DummyCloudInfoStore{TcId: notCached},
-			checker: func(images []Image, err error) {
+			checker: func(images []types.Image, err error) {
 				assert.Nil(t, images, "the images should be nil")
 				assert.EqualError(t, err, "images not yet cached")
 			},
@@ -292,12 +294,12 @@ func TestCachingCloudInfo_GetServices(t *testing.T) {
 	tests := []struct {
 		name    string
 		ciStore CloudInfoStore
-		checker func(services []Service, err error)
+		checker func(services []types.Service, err error)
 	}{
 		{
 			name:    "successfully retrieved the services",
 			ciStore: &DummyCloudInfoStore{},
-			checker: func(services []Service, err error) {
+			checker: func(services []types.Service, err error) {
 				assert.Equal(t, 2, len(services))
 				assert.Nil(t, err, "the error should be nil")
 			},
@@ -305,7 +307,7 @@ func TestCachingCloudInfo_GetServices(t *testing.T) {
 		{
 			name:    "failed to retrieve services",
 			ciStore: &DummyCloudInfoStore{TcId: notCached},
-			checker: func(services []Service, err error) {
+			checker: func(services []types.Service, err error) {
 				assert.Nil(t, services, "the services should be nil")
 				assert.EqualError(t, err, "services not yet cached")
 			},

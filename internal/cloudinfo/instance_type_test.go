@@ -23,7 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 func TestInstanceTypeService_BasicValidation(t *testing.T) {
@@ -73,7 +73,7 @@ func TestInstanceTypeService_Query(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var products []cloudinfo.ProductDetails
+	var products []types.ProductDetails
 	decoder := json.NewDecoder(productsFile)
 
 	err = decoder.Decode(&products)
@@ -82,7 +82,7 @@ func TestInstanceTypeService_Query(t *testing.T) {
 	}
 
 	store := NewInMemoryInstanceTypeStore()
-	store.products = map[string]map[string]map[string][]cloudinfo.ProductDetails{
+	store.products = map[string]map[string]map[string][]types.ProductDetails{
 		provider: {
 			service: {
 				region: products,

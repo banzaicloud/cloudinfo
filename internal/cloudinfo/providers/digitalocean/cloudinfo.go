@@ -25,8 +25,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // DigitaloceanInfoer encapsulates the data and operations needed to access external DigitalOcean resources.
@@ -79,9 +80,9 @@ func (i *DigitaloceanInfoer) getSizes() ([]godo.Size, error) {
 	return sizeList, nil
 }
 
-func (i *DigitaloceanInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+func (i *DigitaloceanInfoer) Initialize() (map[string]map[string]types.Price, error) {
 	i.logger.Debug("initializing price info")
-	allPrices := make(map[string]map[string]cloudinfo.Price)
+	allPrices := make(map[string]map[string]types.Price)
 
 	sizes, err := i.getSizes()
 	if err != nil {
@@ -95,10 +96,10 @@ func (i *DigitaloceanInfoer) Initialize() (map[string]map[string]cloudinfo.Price
 
 		for _, r := range size.Regions {
 			if allPrices[r] == nil {
-				allPrices[r] = make(map[string]cloudinfo.Price)
+				allPrices[r] = make(map[string]types.Price)
 			}
 
-			allPrices[r][size.Slug] = cloudinfo.Price{
+			allPrices[r][size.Slug] = types.Price{
 				OnDemandPrice: size.PriceHourly,
 			}
 		}
@@ -122,15 +123,15 @@ func getCategory(name string) string {
 	switch {
 	case strings.HasPrefix(name, "s-"):
 		// TODO: Standard and general are not the same at DO
-		return cloudinfo.CategoryGeneral
+		return types.CategoryGeneral
 	case strings.HasPrefix(name, "c-"):
-		return cloudinfo.CategoryCompute
+		return types.CategoryCompute
 	default:
-		return cloudinfo.CategoryGeneral
+		return types.CategoryGeneral
 	}
 }
 
-func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 	logger := log.WithFields(i.logger, map[string]interface{}{"region": region})
 	logger.Debug("getting product info")
 
@@ -139,30 +140,30 @@ func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmIn
 		return nil, err
 	}
 
-	var virtualMachines []cloudinfo.VmInfo
+	var virtualMachines []types.VmInfo
 
 	for _, size := range sizes {
 		if !size.Available || !contains(region, size.Regions) {
 			continue
 		}
 
-		virtualMachines = append(virtualMachines, cloudinfo.VmInfo{
+		virtualMachines = append(virtualMachines, types.VmInfo{
 			Category:      getCategory(size.Slug),
 			Type:          size.Slug,
 			OnDemandPrice: size.PriceHourly,
 			Mem:           float64(size.Memory) / 1024,
 			Cpus:          float64(size.Vcpus),
 			NtwPerf:       "300 Mbit/s",
-			NtwPerfCat:    cloudinfo.NtwLow,
+			NtwPerfCat:    types.NtwLow,
 			Zones:         []string{},
-			Attributes:    cloudinfo.Attributes(fmt.Sprint(size.Vcpus), fmt.Sprint(size.Memory), cloudinfo.NtwLow, getCategory(size.Slug)),
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(size.Vcpus), fmt.Sprint(size.Memory), types.NtwLow, getCategory(size.Slug)),
 		})
 	}
 
 	return virtualMachines, nil
 }
 
-func (i *DigitaloceanInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+func (i *DigitaloceanInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
 	switch service {
 	case "dok":
 		options, _, err := i.client.Kubernetes.GetOptions(context.Background())
@@ -175,7 +176,7 @@ func (i *DigitaloceanInfoer) GetProducts(vms []cloudinfo.VmInfo, service, region
 			sizes[i] = size.Slug
 		}
 
-		var virtualMachines []cloudinfo.VmInfo
+		var virtualMachines []types.VmInfo
 
 		for _, vm := range vms {
 			if !contains(vm.Type, sizes) {
@@ -239,7 +240,7 @@ func (*DigitaloceanInfoer) HasShortLivedPriceInfo() bool {
 	return false
 }
 
-func (*DigitaloceanInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+func (*DigitaloceanInfoer) GetCurrentPrices(region string) (map[string]types.Price, error) {
 	return nil, errors.New("GetCurrentPrices - not yet implemented")
 }
 
@@ -247,11 +248,11 @@ func (*DigitaloceanInfoer) HasImages() bool {
 	return false
 }
 
-func (*DigitaloceanInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+func (*DigitaloceanInfoer) GetServiceImages(service, region string) ([]types.Image, error) {
 	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
-func (i *DigitaloceanInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
+func (i *DigitaloceanInfoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case "dok":
 		options, _, err := i.client.Kubernetes.GetOptions(context.Background())
@@ -270,12 +271,12 @@ func (i *DigitaloceanInfoer) GetVersions(service, region string) ([]cloudinfo.Lo
 			versions[i] = version.Slug
 		}
 
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, defaultVersion)}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, versions, defaultVersion)}, nil
 	default:
-		return []cloudinfo.LocationVersion{}, nil
+		return []types.LocationVersion{}, nil
 	}
 }
 
-func (*DigitaloceanInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
+func (*DigitaloceanInfoer) GetServiceProducts(region, service string) ([]types.ProductDetails, error) {
 	return nil, errors.New("GetServiceProducts - not yet implemented")
 }

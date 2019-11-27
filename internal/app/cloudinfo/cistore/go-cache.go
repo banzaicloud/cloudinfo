@@ -23,7 +23,8 @@ import (
 	"github.com/goph/logur"
 	"github.com/patrickmn/go-cache"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // cacheProductStore in memory cloud product information storer
@@ -73,48 +74,48 @@ func (cis *cacheProductStore) GetZones(provider, service, region string) ([]stri
 	return nil, false
 }
 
-func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val cloudinfo.Price) {
+func (cis *cacheProductStore) StorePrice(provider, region, instanceType string, val types.Price) {
 	cis.Set(cis.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (cloudinfo.Price, bool) {
+func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (types.Price, bool) {
 	if res, ok := cis.get(cis.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType)); ok {
-		return res.(cloudinfo.Price), ok
+		return res.(types.Price), ok
 	}
-	return cloudinfo.Price{}, false
+	return types.Price{}, false
 }
 
-func (cis *cacheProductStore) StoreVm(provider, service, region string, val []cloudinfo.VmInfo) {
+func (cis *cacheProductStore) StoreVm(provider, service, region string, val []types.VmInfo) {
 	cis.Set(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetVm(provider, service, region string) ([]cloudinfo.VmInfo, bool) {
+func (cis *cacheProductStore) GetVm(provider, service, region string) ([]types.VmInfo, bool) {
 	if res, ok := cis.get(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region)); ok {
-		return res.([]cloudinfo.VmInfo), ok
+		return res.([]types.VmInfo), ok
 	}
 
 	return nil, false
 }
 
-func (cis *cacheProductStore) StoreImage(provider, service, regionId string, val []cloudinfo.Image) {
+func (cis *cacheProductStore) StoreImage(provider, service, regionId string, val []types.Image) {
 	cis.Set(cis.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
+func (cis *cacheProductStore) GetImage(provider, service, regionId string) ([]types.Image, bool) {
 	if res, ok := cis.get(cis.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId)); ok {
-		return res.([]cloudinfo.Image), ok
+		return res.([]types.Image), ok
 	}
 
 	return nil, false
 }
 
-func (cis *cacheProductStore) StoreVersion(provider, service, region string, val []cloudinfo.LocationVersion) {
+func (cis *cacheProductStore) StoreVersion(provider, service, region string, val []types.LocationVersion) {
 	cis.Set(cis.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetVersion(provider, service, region string) ([]cloudinfo.LocationVersion, bool) {
+func (cis *cacheProductStore) GetVersion(provider, service, region string) ([]types.LocationVersion, bool) {
 	if res, ok := cis.get(cis.getKey(cloudinfo.VersionKeyTemplate, provider, service, region)); ok {
-		return res.([]cloudinfo.LocationVersion), ok
+		return res.([]types.LocationVersion), ok
 	}
 
 	return nil, false
@@ -154,13 +155,13 @@ func (cis *cacheProductStore) DeleteVm(provider, service, region string) {
 	cis.Delete(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region))
 }
 
-func (cis *cacheProductStore) StoreServices(provider string, services []cloudinfo.Service) {
+func (cis *cacheProductStore) StoreServices(provider string, services []types.Service) {
 	cis.Set(cis.getKey(cloudinfo.ServicesKeyTemplate, provider), services, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetServices(provider string) ([]cloudinfo.Service, bool) {
+func (cis *cacheProductStore) GetServices(provider string) ([]types.Service, bool) {
 	r, o := cis.Get(cis.getKey(cloudinfo.ServicesKeyTemplate, provider))
-	return r.([]cloudinfo.Service), o
+	return r.([]types.Service), o
 }
 
 // NewCacheProductStore creates a new store instance.

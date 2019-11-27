@@ -23,7 +23,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // CloudInfoLoader operations for loading cloud information into the cloud info application
@@ -206,8 +207,8 @@ func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, 
 			scil.log.Error("versions not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVersions []cloudinfo.LocationVersion
-			for _, version := range versions.([]cloudinfo.LocationVersion) {
+			var availableVersions []types.LocationVersion
+			for _, version := range versions.([]types.LocationVersion) {
 				for _, data := range region.Data.Versions.Data {
 					if data.Location == version.Location {
 						for _, v := range version.Versions {
@@ -237,9 +238,9 @@ func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, 
 			scil.log.Error("versions not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVersions []cloudinfo.LocationVersion
+			var availableVersions []types.LocationVersion
 			for _, data := range region.Data.Versions.Data {
-				for _, version := range versions.([]cloudinfo.LocationVersion) {
+				for _, version := range versions.([]types.LocationVersion) {
 					if data.Location == version.Location {
 						for _, includeVersion := range data.Versions {
 							for _, v := range version.Versions {
@@ -274,8 +275,8 @@ func (scil *storeCloudInfoLoader) LoadImages(provider string, service string, re
 			scil.log.Error("images not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableImages []cloudinfo.Image
-			for _, image := range images.([]cloudinfo.Image) {
+			var availableImages []types.Image
+			for _, image := range images.([]types.Image) {
 				keep := true
 				for _, excludeImage := range region.Data.Images.Data {
 					if excludeImage.Name == image.Name {
@@ -299,9 +300,9 @@ func (scil *storeCloudInfoLoader) LoadImages(provider string, service string, re
 			scil.log.Error("images not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableImages []cloudinfo.Image
+			var availableImages []types.Image
 			for _, image := range region.Data.Images.Data {
-				for _, img := range images.([]cloudinfo.Image) {
+				for _, img := range images.([]types.Image) {
 					if image.Name == img.Name {
 						availableImages = append(availableImages, img)
 					}
@@ -330,8 +331,8 @@ func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, regio
 			scil.log.Error("vms not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVms []cloudinfo.VmInfo
-			for _, vm := range vms.([]cloudinfo.VmInfo) {
+			var availableVms []types.VmInfo
+			for _, vm := range vms.([]types.VmInfo) {
 				keep := true
 				for _, excludeVm := range region.Data.Vms.Data {
 					if excludeVm.Type == vm.Type {
@@ -355,9 +356,9 @@ func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, regio
 			scil.log.Error("vms not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVms []cloudinfo.VmInfo
+			var availableVms []types.VmInfo
 			for _, _vm := range region.Data.Vms.Data {
-				for _, vm := range vms.([]cloudinfo.VmInfo) {
+				for _, vm := range vms.([]types.VmInfo) {
 					if _vm.Type == vm.Type {
 						availableVms = append(availableVms, vm)
 					}

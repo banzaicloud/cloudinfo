@@ -17,15 +17,16 @@ package oracle
 import (
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 var (
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NtwLow:    {"0.6 Gbps", "0.7 Gbps"},
-		cloudinfo.NtwMedium: {"1 Gbps", "1.2 Gbps", "1.4 Gbps", "2 Gbps", "2.4 Gbps"},
-		cloudinfo.NtwHight:  {"4.1 Gbps", "4.8 Gbps", "8.2 Gbps"},
-		cloudinfo.NtwExtra:  {"16.4 Gbps", "24.6 Gbps"},
+		types.NtwLow:    {"0.6 Gbps", "0.7 Gbps"},
+		types.NtwMedium: {"1 Gbps", "1.2 Gbps", "1.4 Gbps", "2 Gbps", "2.4 Gbps"},
+		types.NtwHight:  {"4.1 Gbps", "4.8 Gbps", "8.2 Gbps"},
+		types.NtwExtra:  {"16.4 Gbps", "24.6 Gbps"},
 	}
 )
 
@@ -41,7 +42,7 @@ func newNetworkMapper() *OCINetworkMapper {
 // MapNetworkPerf maps the network performance of the instance to the category supported by telescopes
 func (nm *OCINetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo.Contains(strVals, ntwPerf) {
+		if cloudinfo2.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

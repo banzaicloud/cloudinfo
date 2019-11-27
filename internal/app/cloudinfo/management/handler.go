@@ -24,13 +24,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
 // mngmntRouteHandler struct collecting handlers for the management service
 type mngmntRouteHandler struct {
-	cis cloudinfo.CloudInfoStore
-	sd  cloudinfo.ScrapingDriver
+	cis cloudinfo2.CloudInfoStore
+	sd  cloudinfo2.ScrapingDriver
 	log logur.Logger
 }
 
@@ -93,7 +93,7 @@ func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
 	}
 }
 
-func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, sd cloudinfo.ScrapingDriver, log logur.Logger) *gin.Engine {
+func StartManagementEngine(cfg Config, cis cloudinfo2.CloudInfoStore, sd cloudinfo2.ScrapingDriver, log logur.Logger) *gin.Engine {
 	if err := cfg.Validate(); err != nil {
 		emperror.Panic(err)
 	}

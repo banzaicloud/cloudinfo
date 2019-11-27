@@ -14,7 +14,11 @@
 
 package cloudinfo
 
-import "io"
+import (
+	"io"
+
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
+)
 
 const (
 	// vmKeyTemplate format for generating vm cache keys
@@ -52,26 +56,26 @@ type CloudInfoStore interface {
 	GetZones(provider, service, region string) ([]string, bool)
 	DeleteZones(provider, service, region string)
 
-	StorePrice(provider, region, instanceType string, val Price)
-	GetPrice(provider, region, instanceType string) (Price, bool)
+	StorePrice(provider, region, instanceType string, val types.Price)
+	GetPrice(provider, region, instanceType string) (types.Price, bool)
 
-	StoreVm(provider, service, region string, val []VmInfo)
-	GetVm(provider, service, region string) ([]VmInfo, bool)
+	StoreVm(provider, service, region string, val []types.VmInfo)
+	GetVm(provider, service, region string) ([]types.VmInfo, bool)
 	DeleteVm(provider, service, region string)
 
-	StoreImage(provider, service, regionId string, val []Image)
-	GetImage(provider, service, regionId string) ([]Image, bool)
+	StoreImage(provider, service, regionId string, val []types.Image)
+	GetImage(provider, service, regionId string) ([]types.Image, bool)
 	DeleteImage(provider, service, regionId string)
 
-	StoreVersion(provider, service, region string, val []LocationVersion)
-	GetVersion(provider, service, region string) ([]LocationVersion, bool)
+	StoreVersion(provider, service, region string, val []types.LocationVersion)
+	GetVersion(provider, service, region string) ([]types.LocationVersion, bool)
 	DeleteVersion(provider, service, region string)
 
 	StoreStatus(provider string, val string)
 	GetStatus(provider string) (string, bool)
 
-	StoreServices(provider string, services []Service)
-	GetServices(provider string) ([]Service, bool)
+	StoreServices(provider string, services []types.Service)
+	GetServices(provider string) ([]types.Service, bool)
 
 	Export(w io.Writer) error
 	Import(r io.Reader) error

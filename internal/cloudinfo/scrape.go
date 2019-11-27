@@ -27,8 +27,9 @@ import (
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 // scrapingManager manages data renewal for a given provider
@@ -134,7 +135,7 @@ func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, service
 	return nil
 }
 
-func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services []Service) error {
+func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services []types.Service) error {
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-info", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
 
@@ -252,7 +253,7 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 			"provider", sm.provider, "service", service, "region", region)
 	}
 
-	virtualMachines := make([]VmInfo, 0, len(vms))
+	virtualMachines := make([]types.VmInfo, 0, len(vms))
 	for _, vm := range vms {
 		prices, found := sm.store.GetPrice(sm.provider, region, vm.Type)
 

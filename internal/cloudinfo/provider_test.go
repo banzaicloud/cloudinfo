@@ -21,12 +21,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 func TestProviderService_ListProviders(t *testing.T) {
 	store := NewInMemoryProviderStore()
-	store.providers = []cloudinfo.Provider{
+	store.providers = []types.Provider{
 		{
 			Provider: "amazon",
 		},

@@ -20,16 +20,17 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 var (
 	categoryMap = map[string][]string{
-		cloudinfo.CategoryGeneral: {"Dv2", "Av2", "Dv3", "DSv2", "DSv3", "BS", "DS", "D", "A0_A7", "A", "A8_A11", "DCS"},
-		cloudinfo.CategoryCompute: {"H", "FSv2", "FS", "", "HCS", "HBS"},
-		cloudinfo.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3", "PBS", "MSv2"},
-		cloudinfo.CategoryStorage: {"LS", "LSv2"},
-		cloudinfo.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2", "NVSv3"},
+		types.CategoryGeneral: {"Dv2", "Av2", "Dv3", "DSv2", "DSv3", "BS", "DS", "D", "A0_A7", "A", "A8_A11", "DCS"},
+		types.CategoryCompute: {"H", "FSv2", "FS", "", "HCS", "HBS"},
+		types.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3", "PBS", "MSv2"},
+		types.CategoryStorage: {"LS", "LSv2"},
+		types.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2", "NVSv3"},
 	}
 )
 
@@ -41,7 +42,7 @@ func (a *AzureInfoer) mapCategory(name string) (string, error) {
 	family = strings.TrimLeft(family, "basic")
 
 	for category, strVals := range categoryMap {
-		if cloudinfo.Contains(strVals, family) {
+		if cloudinfo2.Contains(strVals, family) {
 			return category, nil
 		}
 	}

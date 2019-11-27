@@ -24,13 +24,13 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // InstanceTypeStore retrieves instance types from the given provider and region.
 type InstanceTypeStore interface {
 	// GetProductDetails retrieves product details from the given provider and region.
-	GetProductDetails(provider string, service string, region string) ([]cloudinfo.ProductDetails, error)
+	GetProductDetails(provider string, service string, region string) ([]types.ProductDetails, error)
 
 	// GetZones returns all the availability zones for a region.
 	GetZones(provider, service, region string) ([]string, error)
@@ -134,18 +134,18 @@ func (e NetworkCategory) MarshalGQL(w io.Writer) {
 
 // instanceTypeCategoryMap mapping between instance type (graphql) categories and cloudinfo generalisation
 var instanceTypeCategoryMap = map[InstanceTypeCategory]string{
-	InstanceTypeCategoryGeneralPurpose:   cloudinfo.CategoryGeneral,
-	InstanceTypeCategoryComputeOptimized: cloudinfo.CategoryCompute,
-	InstanceTypeCategoryStorageOptimized: cloudinfo.CategoryStorage,
-	InstanceTypeCategoryMemoryOptimized:  cloudinfo.CategoryMemory,
+	InstanceTypeCategoryGeneralPurpose:   types.CategoryGeneral,
+	InstanceTypeCategoryComputeOptimized: types.CategoryCompute,
+	InstanceTypeCategoryStorageOptimized: types.CategoryStorage,
+	InstanceTypeCategoryMemoryOptimized:  types.CategoryMemory,
 }
 
 // instanceTypeCategoryReverseMap mapping between instance type (graphql) categories and cloudinfo generalisation
 var instanceTypeCategoryReverseMap = map[string]InstanceTypeCategory{
-	cloudinfo.CategoryGeneral: InstanceTypeCategoryGeneralPurpose,
-	cloudinfo.CategoryCompute: InstanceTypeCategoryComputeOptimized,
-	cloudinfo.CategoryStorage: InstanceTypeCategoryStorageOptimized,
-	cloudinfo.CategoryMemory:  InstanceTypeCategoryMemoryOptimized,
+	types.CategoryGeneral: InstanceTypeCategoryGeneralPurpose,
+	types.CategoryCompute: InstanceTypeCategoryComputeOptimized,
+	types.CategoryStorage: InstanceTypeCategoryStorageOptimized,
+	types.CategoryMemory:  InstanceTypeCategoryMemoryOptimized,
 }
 
 type InstanceTypeCategory string
@@ -275,7 +275,7 @@ func (s *InstanceTypeService) Query(ctx context.Context, provider string, servic
 	return instanceTypes, nil
 }
 
-func applyInstanceTypeFilter(product cloudinfo.ProductDetails, zone string, filter InstanceTypeQueryFilter) bool {
+func applyInstanceTypeFilter(product types.ProductDetails, zone string, filter InstanceTypeQueryFilter) bool {
 	if filter.Price != nil && !applyFloatFilter(product.OnDemandPrice, *filter.Price) {
 		return false
 	}
@@ -392,7 +392,7 @@ func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFi
 	return true
 }
 
-func transform(details cloudinfo.ProductDetails, region string, zone string) InstanceType {
+func transform(details types.ProductDetails, region string, zone string) InstanceType {
 	var spotPrice float64
 
 	for _, zonePrice := range details.SpotPrice {

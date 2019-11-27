@@ -14,7 +14,9 @@
 
 package loader
 
-import "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+import (
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
+)
 
 const (
 	exact   = "exact"
@@ -50,17 +52,17 @@ type ZoneData struct {
 
 type ImageData struct {
 	Strategy string
-	Data     []cloudinfo.Image
+	Data     []types.Image
 }
 
 type VersionData struct {
 	Strategy string
-	Data     []cloudinfo.LocationVersion
+	Data     []types.LocationVersion
 }
 
 type VmData struct {
 	Strategy string
-	Data     []cloudinfo.VmInfo
+	Data     []types.VmInfo
 }
 
 type Service struct {

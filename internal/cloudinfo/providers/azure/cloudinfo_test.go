@@ -27,7 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // testStruct helps to mock external calls
@@ -511,7 +511,7 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 }
 
 func TestAzureInfoer_GetProducts(t *testing.T) {
-	vms := []cloudinfo.VmInfo{
+	vms := []types.VmInfo{
 		{
 			Type: "Standard_A1",
 			Mem:  32,
@@ -533,13 +533,13 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		name    string
 		service string
 		vmSizes ResourceSkuRetriever
-		check   func(vms []cloudinfo.VmInfo, err error)
+		check   func(vms []types.VmInfo, err error)
 	}{
 		{
 			name:    "retrieve the available virtual machines for aks service",
 			service: "aks",
 			vmSizes: &testStruct{},
-			check: func(vms []cloudinfo.VmInfo, err error) {
+			check: func(vms []types.VmInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				var cpus []float64
 				var mems []float64
@@ -556,7 +556,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 			name:    "could not retrieve virtual machines",
 			service: "dummy",
 			vmSizes: &testStruct{GetVmsError},
-			check: func(vms []cloudinfo.VmInfo, err error) {
+			check: func(vms []types.VmInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
 				assert.EqualError(t, err, "invalid service: dummy")
 			},
@@ -647,14 +647,14 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 		location  LocationRetriever
 		providers ProviderSource
 		price     PriceRetriever
-		check     func(prices map[string]map[string]cloudinfo.Price, err error)
+		check     func(prices map[string]map[string]types.Price, err error)
 	}{
 		{
 			name:      "success",
 			location:  &testStruct{},
 			providers: &testStruct{},
 			price:     &test{},
-			check: func(prices map[string]map[string]cloudinfo.Price, err error) {
+			check: func(prices map[string]map[string]types.Price, err error) {
 				var onDemandPrice []float64
 				var spotPrice []float64
 				for _, allPrices := range prices {
@@ -675,7 +675,7 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 			location:  &testStruct{GetRegionsError},
 			providers: &testStruct{},
 			price:     &test{},
-			check: func(prices map[string]map[string]cloudinfo.Price, err error) {
+			check: func(prices map[string]map[string]types.Price, err error) {
 				assert.EqualError(t, err, GetRegionsError)
 				assert.Nil(t, prices, "the prices should be nil")
 			},
@@ -685,7 +685,7 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 			location:  &testStruct{},
 			providers: &testStruct{},
 			price:     &test{GetPriceError},
-			check: func(prices map[string]map[string]cloudinfo.Price, err error) {
+			check: func(prices map[string]map[string]types.Price, err error) {
 				assert.EqualError(t, err, GetPriceError)
 				assert.Nil(t, prices, "the prices should be nil")
 			},

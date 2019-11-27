@@ -22,12 +22,12 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v8"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(providers []string, ci cloudinfo.CloudInfo, logger logur.Logger) error {
+func ConfigureValidator(providers []string, ci types.CloudInfo, logger logur.Logger) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
@@ -50,7 +50,7 @@ func ConfigureValidator(providers []string, ci cloudinfo.CloudInfo, logger logur
 }
 
 // regionValidator validates the `region` path parameter
-func regionValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Func {
+func regionValidator(cpi types.CloudInfo, logger logur.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
@@ -76,7 +76,7 @@ func regionValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Fun
 }
 
 // serviceValidator validates the `service` path parameter
-func serviceValidator(cpi cloudinfo.CloudInfo, logger logur.Logger) validator.Func {
+func serviceValidator(cpi types.CloudInfo, logger logur.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
 		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {

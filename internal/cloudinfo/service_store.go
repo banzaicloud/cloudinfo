@@ -15,22 +15,22 @@
 package cloudinfo
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // InMemoryServiceStore keeps services in the memory.
 // Use it in tests or for development/demo purposes.
 type InMemoryServiceStore struct {
-	services map[string][]cloudinfo.Service
+	services map[string][]types.Service
 }
 
 // NewInMemoryServiceStore returns a new InMemoryServiceStore.
 func NewInMemoryServiceStore() *InMemoryServiceStore {
 	return &InMemoryServiceStore{
-		services: make(map[string][]cloudinfo.Service),
+		services: make(map[string][]types.Service),
 	}
 }
 
-func (s *InMemoryServiceStore) GetServices(provider string) ([]cloudinfo.Service, error) {
+func (s *InMemoryServiceStore) GetServices(provider string) ([]types.Service, error) {
 	return s.services[provider], nil
 }

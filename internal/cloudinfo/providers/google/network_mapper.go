@@ -17,15 +17,16 @@ package google
 import (
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 var (
 	ntwPerfMap = map[string][]string{
-		cloudinfo.NtwLow:    {"1 Gbit/s", "2 Gbit/s"},
-		cloudinfo.NtwMedium: {"4 Gbit/s", "6 Gbit/s", "8 Gbit/s"},
-		cloudinfo.NtwHight:  {"10 Gbit/s", "12 Gbit/s", "14 Gbit/s"},
-		cloudinfo.NtwExtra:  {"16 Gbit/s"},
+		types.NtwLow:    {"1 Gbit/s", "2 Gbit/s"},
+		types.NtwMedium: {"4 Gbit/s", "6 Gbit/s", "8 Gbit/s"},
+		types.NtwHight:  {"10 Gbit/s", "12 Gbit/s", "14 Gbit/s"},
+		types.NtwExtra:  {"16 Gbit/s"},
 	}
 )
 
@@ -41,7 +42,7 @@ func newGceNetworkMapper() *GceNetworkMapper {
 // MapNetworkPerf maps the network performance of the google instance to the category supported by telescopes
 func (nm *GceNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo.Contains(strVals, ntwPerf) {
+		if cloudinfo2.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

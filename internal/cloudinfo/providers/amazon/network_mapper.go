@@ -17,7 +17,8 @@ package amazon
 import (
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 var (
@@ -37,10 +38,10 @@ var (
 		// "Up to 10 Gigabit"
 		// "Very Low"
 
-		cloudinfo.NtwLow:    {"Very Low", "Low", "Low to Moderate"},
-		cloudinfo.NtwMedium: {"Moderate", "High"},
-		cloudinfo.NtwHight:  {"Up to 10 Gigabit", "10 Gigabit"},
-		cloudinfo.NtwExtra:  {"20 Gigabit", "25 Gigabit", "Up to 25 Gigabit", "50 Gigabit", "100 Gigabit"},
+		types.NtwLow:    {"Very Low", "Low", "Low to Moderate"},
+		types.NtwMedium: {"Moderate", "High"},
+		types.NtwHight:  {"Up to 10 Gigabit", "10 Gigabit"},
+		types.NtwExtra:  {"20 Gigabit", "25 Gigabit", "Up to 25 Gigabit", "50 Gigabit", "100 Gigabit"},
 	}
 )
 
@@ -56,7 +57,7 @@ func newAmazonNetworkMapper() AmazonNetworkMapper {
 // MapNetworkPerf maps the network performance of the ec2 to the category supported ny telescope
 func (nm *AmazonNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo.Contains(strVals, ntwPerf) {
+		if cloudinfo2.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

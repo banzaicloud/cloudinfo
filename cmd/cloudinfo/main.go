@@ -51,17 +51,16 @@ import (
 	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfodriver"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/alibaba"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/amazon"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/azure"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/digitalocean"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/google"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/errorhandler"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/digitalocean"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
 
 // Provisioned by ldflags
@@ -185,11 +184,11 @@ func main() {
 
 	serviceManager.LoadServiceInformation(providers)
 
-	prodInfo, err := cloudinfo.NewCloudInfo(providers, cloudInfoStore, logger)
+	prodInfo, err := cloudinfo2.NewCloudInfo(providers, cloudInfoStore, logger)
 	emperror.Panic(err)
 
 	if config.Scrape.Enabled {
-		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+		scrapingDriver := cloudinfo2.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
 
 		err = scrapingDriver.StartScraping()
 		emperror.Panic(err)
@@ -254,8 +253,8 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
-func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
-	infoers := map[string]cloudinfo.CloudInfoer{}
+func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo2.CloudInfoer, []string, error) {
+	infoers := map[string]cloudinfo2.CloudInfoer{}
 
 	var providers []string
 

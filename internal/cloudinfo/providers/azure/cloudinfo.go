@@ -33,9 +33,10 @@ import (
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 const svcAks = "aks"
@@ -200,9 +201,9 @@ func (a *AzureInfoer) checkRegionID(regionID string, regions map[string]string) 
 }
 
 // Initialize downloads and parses the Rate Card API's meter list on Azure
-func (a *AzureInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+func (a *AzureInfoer) Initialize() (map[string]map[string]types.Price, error) {
 	a.log.Debug("initializing price info")
-	allPrices := make(map[string]map[string]cloudinfo.Price)
+	allPrices := make(map[string]map[string]types.Price)
 
 	regions, err := a.GetRegions("compute")
 	if err != nil {
@@ -237,14 +238,14 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error
 					priceInUsd += *rate
 				}
 				if allPrices[region] == nil {
-					allPrices[region] = make(map[string]cloudinfo.Price)
+					allPrices[region] = make(map[string]types.Price)
 				}
 				for _, instanceType := range instanceTypes {
 					price := allPrices[region][instanceType]
 					if !strings.Contains(*v.MeterName, "Low Priority") {
 						price.OnDemandPrice = priceInUsd
 					} else {
-						spotPrice := make(cloudinfo.SpotPriceInfo)
+						spotPrice := make(types.SpotPriceInfo)
 						spotPrice[region] = priceInUsd
 						price.SpotPrice = spotPrice
 						metrics.ReportAzureSpotPrice(region, instanceType, priceInUsd)
@@ -267,7 +268,7 @@ func (a *AzureInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error
 }
 
 func (a *AzureInfoer) machineType(meterName string, subCategory string) []string {
-	var instanceTypes []string
+	var instanceTypes = make([]string, 0)
 	name := strings.TrimSuffix(meterName, " Low Priority")
 	instanceType := strings.Split(name, "/")
 	for _, it := range instanceType {
@@ -348,7 +349,7 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	return result
 }
 
-func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
 	logger.Debug("getting product info")
 
@@ -357,7 +358,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 		return nil, err
 	}
 
-	var virtualMachines []cloudinfo.VmInfo
+	var virtualMachines []types.VmInfo
 
 	for _, sku := range skusResultPage.Values() {
 		for _, locationInfo := range *sku.LocationInfo {
@@ -387,15 +388,15 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 							map[string]interface{}{"instanceType": *sku.Name})
 					}
 
-					virtualMachines = append(virtualMachines, cloudinfo.VmInfo{
+					virtualMachines = append(virtualMachines, types.VmInfo{
 						Category:   category,
 						Type:       *sku.Name,
 						Mem:        memory,
 						Cpus:       cpu,
 						NtwPerf:    "1 Gbit/s",
-						NtwPerfCat: cloudinfo.NtwLow,
+						NtwPerfCat: types.NtwLow,
 						Zones:      *locationInfo.Zones,
-						Attributes: cloudinfo.Attributes(fmt.Sprint(cpu), fmt.Sprint(memory), cloudinfo.NtwLow, category),
+						Attributes: cloudinfo.Attributes(fmt.Sprint(cpu), fmt.Sprint(memory), types.NtwLow, category),
 					})
 				}
 			}
@@ -407,7 +408,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, err
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+func (a *AzureInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error
@@ -419,7 +420,7 @@ func (a *AzureInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId stri
 	}
 	switch service {
 	case svcAks:
-		var virtualMachines []cloudinfo.VmInfo
+		var virtualMachines []types.VmInfo
 		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
 		for _, vm := range possibleVmTypes {
 			for _, virtualMachine := range vmList {
@@ -550,7 +551,7 @@ func (a *AzureInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices retrieves all the price info in a region
-func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+func (a *AzureInfoer) GetCurrentPrices(region string) (map[string]types.Price, error) {
 	return nil, errors.New("azure prices cannot be queried on the fly")
 }
 
@@ -560,17 +561,17 @@ func (a *AzureInfoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (a *AzureInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+func (a *AzureInfoer) GetServiceImages(service, region string) ([]types.Image, error) {
 	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
-func (a *AzureInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
+func (a *AzureInfoer) GetServiceProducts(region, service string) ([]types.ProductDetails, error) {
 	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
+func (a *AzureInfoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcAks:
 		const resourceTypeForAks = "managedClusters"
@@ -591,9 +592,9 @@ func (a *AzureInfoer) GetVersions(service, region string) ([]cloudinfo.LocationV
 				}
 			}
 		}
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, def)}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, versions, def)}, nil
 	default:
-		return []cloudinfo.LocationVersion{}, nil
+		return []types.LocationVersion{}, nil
 	}
 }
 

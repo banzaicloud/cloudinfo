@@ -14,18 +14,22 @@
 
 package cloudinfo
 
+import (
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
+)
+
 // CloudInfoer lists operations for retrieving cloud provider information
 // Implementers are expected to know the cloud provider specific logic (eg.: cloud provider client usage etc ...)
 // This interface abstracts the cloud provider specifics to its clients
 type CloudInfoer interface {
 	// Initialize is called once per product info renewals so it can be used to download a large price descriptor
-	Initialize() (map[string]map[string]Price, error)
+	Initialize() (map[string]map[string]types.Price, error)
 
 	// GetVirtualMachines retrieves the available virtual machines in a region
-	GetVirtualMachines(region string) ([]VmInfo, error)
+	GetVirtualMachines(region string) ([]types.VmInfo, error)
 
 	// GetProducts gets product information based on the given arguments from an external system
-	GetProducts(vms []VmInfo, service, regionId string) ([]VmInfo, error)
+	GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error)
 
 	// GetZones returns the availability zones in a region
 	GetZones(region string) ([]string, error)
@@ -37,17 +41,17 @@ type CloudInfoer interface {
 	HasShortLivedPriceInfo() bool
 
 	// GetCurrentPrices retrieves all the spot prices in a region
-	GetCurrentPrices(region string) (map[string]Price, error)
+	GetCurrentPrices(region string) (map[string]types.Price, error)
 
 	// HasImages signals if a product info provider has image support
 	HasImages() bool
 
 	// GetServiceImages retrieves the images supported by the given service in the given region
-	GetServiceImages(service, region string) ([]Image, error)
+	GetServiceImages(service, region string) ([]types.Image, error)
 
 	// GetVersions retrieves the  versions supported by the given service in the given region
-	GetVersions(service, region string) ([]LocationVersion, error)
+	GetVersions(service, region string) ([]types.LocationVersion, error)
 
 	// GetServiceProducts retrieves the products supported by the given service in the given region
-	GetServiceProducts(region, service string) ([]ProductDetails, error)
+	GetServiceProducts(region, service string) ([]types.ProductDetails, error)
 }

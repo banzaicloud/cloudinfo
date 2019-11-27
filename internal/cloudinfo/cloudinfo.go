@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import (
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // cloudInfo is the module struct, holds configuration and cache
@@ -29,38 +31,6 @@ type cloudInfo struct {
 	log            logur.Logger
 	providers      []string
 	cloudInfoStore CloudInfoStore
-}
-
-// SpotPriceInfo represents different prices per availability zones
-type SpotPriceInfo map[string]float64
-
-// Price describes the on demand price and spot prices per availability zones
-type Price struct {
-	OnDemandPrice float64       `json:"onDemandPrice"`
-	SpotPrice     SpotPriceInfo `json:"spotPrice"`
-}
-
-// VmInfo representation of a virtual machine
-type VmInfo struct {
-	Category      string            `json:"category"`
-	Type          string            `json:"type"`
-	OnDemandPrice float64           `json:"onDemandPrice"`
-	SpotPrice     []ZonePrice       `json:"spotPrice"`
-	Cpus          float64           `json:"cpusPerVm"`
-	Mem           float64           `json:"memPerVm"`
-	Gpus          float64           `json:"gpusPerVm"`
-	NtwPerf       string            `json:"ntwPerf"`
-	NtwPerfCat    string            `json:"ntwPerfCategory"`
-	Zones         []string          `json:"zones"`
-	Attributes    map[string]string `json:"attributes"`
-	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
-	CurrentGen bool `json:"currentGen"`
-}
-
-// IsBurst returns true if the EC2 instance vCPU is burst type
-// the decision is made based on the instance type
-func (vm VmInfo) IsBurst() bool {
-	return strings.HasPrefix(strings.ToUpper(vm.Type), "T")
 }
 
 // NewCloudInfo creates a new cloudInfo instance
@@ -78,10 +48,10 @@ func NewCloudInfo(providers []string, ciStore CloudInfoStore, logger logur.Logge
 }
 
 // GetProviders returns the supported providers
-func (cpi *cloudInfo) GetProviders() ([]Provider, error) {
+func (cpi *cloudInfo) GetProviders() ([]types.Provider, error) {
 	var (
-		providers []Provider
-		provider  Provider
+		providers []types.Provider
+		provider  types.Provider
 		err       error
 	)
 
@@ -98,22 +68,22 @@ func (cpi *cloudInfo) GetProviders() ([]Provider, error) {
 }
 
 // GetProvider returns the supported provider
-func (cpi *cloudInfo) GetProvider(provider string) (Provider, error) {
+func (cpi *cloudInfo) GetProvider(provider string) (types.Provider, error) {
 	var (
-		srvcs []Service
+		srvcs []types.Service
 		err   error
 	)
 
 	if !cpi.providerEnabled(provider) {
-		return Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
+		return types.Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
 	}
 
 	if srvcs, err = cpi.GetServices(provider); err != nil {
-		return Provider{}, emperror.WrapWith(err, "failed to get services", "provider", provider)
+		return types.Provider{}, emperror.WrapWith(err, "failed to get services", "provider", provider)
 	}
 
 	// decorate the provider with service information
-	p := NewProvider(provider)
+	p := types.NewProvider(provider)
 	p.Services = srvcs
 
 	return p, nil
@@ -150,7 +120,7 @@ func (cpi *cloudInfo) GetRegions(provider, service string) (map[string]string, e
 	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
 }
 
-func (cpi *cloudInfo) GetServices(provider string) ([]Service, error) {
+func (cpi *cloudInfo) GetServices(provider string) ([]types.Service, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetServices(provider); ok {
 		return cachedVal, nil
 	}
@@ -159,7 +129,7 @@ func (cpi *cloudInfo) GetServices(provider string) ([]Service, error) {
 }
 
 // GetProductDetails retrieves product details form the given provider and region
-func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]ProductDetails, error) {
+func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]types.ProductDetails, error) {
 	var (
 		vms interface{}
 		ok  bool
@@ -170,13 +140,14 @@ func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]Pro
 			"provider", provider, "service", service, "region", region)
 	}
 
-	var details []ProductDetails
+	var details []types.ProductDetails
 
-	for _, vm := range vms.([]VmInfo) {
-		pd := newProductDetails(vm)
+	for _, vm := range vms.([]types.VmInfo) {
+
+		pd := types.NewProductDetails(vm)
 		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
 			for zone, price := range cachedVal.SpotPrice {
-				pd.SpotPrice = append(pd.SpotPrice, *newZonePrice(zone, price))
+				pd.SpotPrice = append(pd.SpotPrice, *types.NewZonePrice(zone, price))
 			}
 		} else {
 			cpi.log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
@@ -197,7 +168,7 @@ func (cpi *cloudInfo) GetStatus(provider string) (string, error) {
 }
 
 // GetServiceImages retrieves available images for the given provider, service and region
-func (cpi *cloudInfo) GetServiceImages(provider, service, region string) ([]Image, error) {
+func (cpi *cloudInfo) GetServiceImages(provider, service, region string) ([]types.Image, error) {
 	if cachedImages, ok := cpi.cloudInfoStore.GetImage(provider, service, region); ok {
 		return cachedImages, nil
 	}
@@ -207,7 +178,7 @@ func (cpi *cloudInfo) GetServiceImages(provider, service, region string) ([]Imag
 }
 
 // GetVersions retrieves available versions for the given provider, service and region
-func (cpi *cloudInfo) GetVersions(provider, service, region string) ([]LocationVersion, error) {
+func (cpi *cloudInfo) GetVersions(provider, service, region string) ([]types.LocationVersion, error) {
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
 		return cachedVersions, nil
 	}
@@ -217,16 +188,16 @@ func (cpi *cloudInfo) GetVersions(provider, service, region string) ([]LocationV
 
 // GetContinents retrieves available continents
 func (cpi *cloudInfo) GetContinents() []string {
-	return []string{ContinentAsia, ContinentAustralia, ContinentEurope, ContinentNorthAmerica, ContinentSouthAmerica}
+	return []string{types.ContinentAsia, types.ContinentAustralia, types.ContinentEurope, types.ContinentNorthAmerica, types.ContinentSouthAmerica}
 }
 
 // GetContinents gets the continents and regions for the provided provider
-func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]Region, error) {
+func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]types.Region, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
-		var continents = make(map[string][]Region)
+		var continents = make(map[string][]types.Region)
 		for id, name := range cachedVal {
 			continent := getContinent(id)
-			continents[continent] = append(continents[continent], Region{
+			continents[continent] = append(continents[continent], types.Region{
 				Id:   id,
 				Name: name,
 			})
@@ -241,25 +212,25 @@ func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]
 func getContinent(region string) string {
 	switch {
 	case checkContinent(region, []string{"ap-southeast-2", "australia"}):
-		return ContinentAustralia
+		return types.ContinentAustralia
 	case checkContinent(region, []string{"cn-", "ap-", "me-", "asia", "japan", "india", "korea"}),
 		strings.HasPrefix(region, "sgp"),
 		strings.HasPrefix(region, "blr"):
-		return ContinentAsia
+		return types.ContinentAsia
 	case checkContinent(region, []string{"eu", "uk", "france"}),
 		strings.HasPrefix(region, "ams"),
 		strings.HasPrefix(region, "lon"),
 		strings.HasPrefix(region, "fra"):
-		return ContinentEurope
+		return types.ContinentEurope
 	case checkContinent(region, []string{"us", "ca-central-1", "canada", "northamerica"}),
 		strings.HasPrefix(region, "nyc"),
 		strings.HasPrefix(region, "sfo"),
 		strings.HasPrefix(region, "tor"):
-		return ContinentNorthAmerica
+		return types.ContinentNorthAmerica
 	case checkContinent(region, []string{"southamerica", "brazil", "sa-"}):
-		return ContinentSouthAmerica
+		return types.ContinentSouthAmerica
 	case checkContinent(region, []string{"africa"}):
-		return ContinentAfrica
+		return types.ContinentAfrica
 	default:
 		return "unknown"
 	}
@@ -288,8 +259,8 @@ func Contains(slice []string, s string) bool {
 func Attributes(cpu, memory, ntwPerfCat, vmCategory string) map[string]string {
 	var attributes = make(map[string]string)
 
-	attributes[Cpu] = cpu
-	attributes[Memory] = memory
+	attributes[types.Cpu] = cpu
+	attributes[types.Memory] = memory
 	attributes["networkPerfCategory"] = ntwPerfCat
 	attributes["instanceTypeCategory"] = vmCategory
 

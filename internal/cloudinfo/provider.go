@@ -19,7 +19,7 @@ import (
 
 	"github.com/goph/emperror"
 
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // nolint: gochecknoglobals
@@ -34,7 +34,7 @@ var providerNames = map[string]string{
 // ProviderStore retrieves providers.
 type ProviderStore interface {
 	// GetProviders returns the supported providers.
-	GetProviders() ([]cloudinfo.Provider, error)
+	GetProviders() ([]types.Provider, error)
 }
 
 // ProviderService returns the list of supported providers and relevant information.

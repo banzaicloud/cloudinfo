@@ -22,8 +22,9 @@ import (
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/goph/logur"
 
+	cloudinfo "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 type redisProductStore struct {
@@ -156,26 +157,26 @@ func (rps *redisProductStore) GetZones(provider, service, region string) ([]stri
 	return res, ok
 }
 
-func (rps *redisProductStore) StorePrice(provider, region, instanceType string, val cloudinfo.Price) {
+func (rps *redisProductStore) StorePrice(provider, region, instanceType string, val types.Price) {
 	rps.set(rps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), val)
 }
 
-func (rps *redisProductStore) GetPrice(provider, region, instanceType string) (cloudinfo.Price, bool) {
+func (rps *redisProductStore) GetPrice(provider, region, instanceType string) (types.Price, bool) {
 	var (
-		res = cloudinfo.Price{}
+		res = types.Price{}
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), &res)
 
 	return res, ok
 }
 
-func (rps *redisProductStore) StoreVm(provider, service, region string, val []cloudinfo.VmInfo) {
+func (rps *redisProductStore) StoreVm(provider, service, region string, val []types.VmInfo) {
 	rps.set(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val)
 }
 
-func (rps *redisProductStore) GetVm(provider, service, region string) ([]cloudinfo.VmInfo, bool) {
+func (rps *redisProductStore) GetVm(provider, service, region string) ([]types.VmInfo, bool) {
 	var (
-		res = make([]cloudinfo.VmInfo, 0)
+		res = make([]types.VmInfo, 0)
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &res)
 
@@ -186,26 +187,26 @@ func (rps *redisProductStore) DeleteVm(provider, service, region string) {
 	rps.delete(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region))
 }
 
-func (rps *redisProductStore) StoreImage(provider, service, regionId string, val []cloudinfo.Image) {
+func (rps *redisProductStore) StoreImage(provider, service, regionId string, val []types.Image) {
 	rps.set(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), val)
 }
 
-func (rps *redisProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
+func (rps *redisProductStore) GetImage(provider, service, regionId string) ([]types.Image, bool) {
 	var (
-		res = make([]cloudinfo.Image, 0)
+		res = make([]types.Image, 0)
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), &res)
 
 	return res, ok
 }
 
-func (rps *redisProductStore) StoreVersion(provider, service, region string, val []cloudinfo.LocationVersion) {
+func (rps *redisProductStore) StoreVersion(provider, service, region string, val []types.LocationVersion) {
 	rps.set(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), val)
 }
 
-func (rps *redisProductStore) GetVersion(provider, service, region string) ([]cloudinfo.LocationVersion, bool) {
+func (rps *redisProductStore) GetVersion(provider, service, region string) ([]types.LocationVersion, bool) {
 	var (
-		res = make([]cloudinfo.LocationVersion, 0)
+		res = make([]types.LocationVersion, 0)
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), &res)
 
@@ -225,13 +226,13 @@ func (rps *redisProductStore) GetStatus(provider string) (string, bool) {
 	return res, ok
 }
 
-func (rps *redisProductStore) StoreServices(provider string, services []cloudinfo.Service) {
+func (rps *redisProductStore) StoreServices(provider string, services []types.Service) {
 	rps.set(rps.getKey(cloudinfo.ServicesKeyTemplate, provider), services)
 }
 
-func (rps *redisProductStore) GetServices(provider string) ([]cloudinfo.Service, bool) {
+func (rps *redisProductStore) GetServices(provider string) ([]types.Service, bool) {
 	var (
-		res = make([]cloudinfo.Service, 0)
+		res = make([]types.Service, 0)
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.ServicesKeyTemplate, provider), &res)
 

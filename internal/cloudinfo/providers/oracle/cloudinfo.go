@@ -22,9 +22,10 @@ import (
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/pkg/errors"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle/client"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle/client"
 )
 
 const svcOke = "oke"
@@ -123,12 +124,12 @@ func NewOracleInfoer(config Config, logger logur.Logger) (*Infoer, error) {
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (i *Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+func (i *Infoer) Initialize() (map[string]map[string]types.Price, error) {
 	return nil, nil
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (i *Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+func (i *Infoer) GetCurrentPrices(region string) (map[string]types.Price, error) {
 	return nil, errors.New("oracle prices cannot be queried on the fly")
 }
 
@@ -143,7 +144,7 @@ func (i *Infoer) GetProductPrice(specs ShapeSpecs) (float64, error) {
 
 }
 
-func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+func (i *Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
 
 	err := i.client.ChangeRegion(region)
@@ -161,7 +162,7 @@ func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 		return nil, err
 	}
 
-	products := make([]cloudinfo.VmInfo, 0, len(shapes))
+	products := make([]types.VmInfo, 0, len(shapes))
 	for _, shape := range shapes {
 		s, ok := i.shapeSpecs[shape]
 		if !ok {
@@ -181,8 +182,8 @@ func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 			return nil, err
 		}
 
-		products = append(products, cloudinfo.VmInfo{
-			Category:      cloudinfo.CategoryMemory,
+		products = append(products, types.VmInfo{
+			Category:      types.CategoryMemory,
 			Type:          shape,
 			OnDemandPrice: price,
 			NtwPerf:       s.NtwPerf,
@@ -190,7 +191,7 @@ func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 			Cpus:          s.Cpus,
 			Mem:           s.Mem,
 			Zones:         zones,
-			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat, cloudinfo.CategoryMemory),
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat, types.CategoryMemory),
 		})
 	}
 
@@ -198,7 +199,7 @@ func (i *Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+func (i *Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
 	err := i.client.ChangeRegion(regionId)
@@ -216,7 +217,7 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 		return nil, err
 	}
 
-	products := make([]cloudinfo.VmInfo, 0, len(shapes))
+	products := make([]types.VmInfo, 0, len(shapes))
 	ntwMapper := newNetworkMapper()
 	for _, shape := range shapes {
 		s, ok := i.shapeSpecs[shape]
@@ -236,8 +237,8 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 			continue
 		}
 
-		products = append(products, cloudinfo.VmInfo{
-			Category:      cloudinfo.CategoryMemory,
+		products = append(products, types.VmInfo{
+			Category:      types.CategoryMemory,
 			Type:          shape,
 			OnDemandPrice: price,
 			NtwPerf:       s.NtwPerf,
@@ -245,7 +246,7 @@ func (i *Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) (
 			Cpus:          s.Cpus,
 			Mem:           s.Mem,
 			Zones:         zones,
-			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat, cloudinfo.CategoryMemory),
+			Attributes:    cloudinfo.Attributes(fmt.Sprint(s.Cpus), fmt.Sprint(s.Mem), ntwPerfCat, types.CategoryMemory),
 		})
 	}
 
@@ -316,27 +317,27 @@ func (i *Infoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (i *Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+func (i *Infoer) GetServiceImages(service, region string) ([]types.Image, error) {
 	imageNames, err := i.client.GetSupportedImagesInARegion(service, region)
 	if err != nil {
 		return nil, err
 	}
 
-	var images = make([]cloudinfo.Image, 0, len(imageNames))
+	var images = make([]types.Image, 0, len(imageNames))
 	for _, imageName := range imageNames {
-		images = append(images, cloudinfo.NewImage(imageName, "", false))
+		images = append(images, types.NewImage(imageName, "", false))
 	}
 
 	return images, nil
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
-func (i *Infoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
+func (i *Infoer) GetServiceProducts(region, service string) ([]types.ProductDetails, error) {
 	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
+func (i *Infoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcOke:
 		err := i.client.ChangeRegion(region)
@@ -356,8 +357,8 @@ func (i *Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersio
 
 		versions := options.KubernetesVersions.Get()
 
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, versions, "")}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, versions, "")}, nil
 	default:
-		return []cloudinfo.LocationVersion{}, nil
+		return []types.LocationVersion{}, nil
 	}
 }

@@ -34,9 +34,10 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 const svcEks = "eks"
@@ -110,18 +111,18 @@ func NewAmazonInfoer(config Config, logger logur.Logger) (*Ec2Infoer, error) {
 }
 
 // Initialize is not needed on EC2 because price info is changing frequently
-func (e *Ec2Infoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+func (e *Ec2Infoer) Initialize() (map[string]map[string]types.Price, error) {
 	return nil, nil
 }
 
-func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
 	logger.Debug("getting available instance types from AWS API")
 
 	missingAttributes := make(map[string][]string)
 	var (
 		missingGpu []string
-		vms        []cloudinfo.VmInfo
+		vms        []types.VmInfo
 		priceList  []aws.JSONValue
 		err        error
 	)
@@ -150,7 +151,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "cpu")
 		}
-		memStr, err := pd.getDataForKey(cloudinfo.Memory)
+		memStr, err := pd.getDataForKey(types.Memory)
 		if err != nil {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "memory")
 		}
@@ -185,7 +186,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 		cpus, _ := strconv.ParseFloat(cpusStr, 64)
 		mem, _ := strconv.ParseFloat(strings.Split(memStr, " ")[0], 64)
 		gpus, _ := strconv.ParseFloat(gpu, 64)
-		vm := cloudinfo.VmInfo{
+		vm := types.VmInfo{
 			Category:      instanceFamily,
 			Type:          instanceType,
 			OnDemandPrice: onDemandPrice,
@@ -212,7 +213,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+func (e *Ec2Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error
@@ -224,7 +225,7 @@ func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string
 	}
 	switch service {
 	case svcEks:
-		vmList = append(vmList, cloudinfo.VmInfo{
+		vms = append(vms, types.VmInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
 		})
@@ -450,10 +451,10 @@ func (e *Ec2Infoer) HasShortLivedPriceInfo() bool {
 	return true
 }
 
-func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
+func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]types.SpotPriceInfo, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
 	logger.Debug("getting spot price averages from Prometheus API")
-	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
+	priceInfo := make(map[string]types.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
 	logger.Debug("sending prometheus query", map[string]interface{}{"query": query})
 	result, err := e.prometheus.Query(context.Background(), query, time.Now())
@@ -472,7 +473,7 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]cloud
 				return nil, err
 			}
 			if priceInfo[instanceType] == nil {
-				priceInfo[instanceType] = make(cloudinfo.SpotPriceInfo)
+				priceInfo[instanceType] = make(types.SpotPriceInfo)
 			}
 			priceInfo[instanceType][az] = price
 		}
@@ -480,9 +481,9 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]cloud
 	return priceInfo, nil
 }
 
-func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.SpotPriceInfo, error) {
+func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]types.SpotPriceInfo, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
-	priceInfo := make(map[string]cloudinfo.SpotPriceInfo)
+	priceInfo := make(map[string]types.SpotPriceInfo)
 	err := e.ec2Describer(region).DescribeSpotPriceHistoryPages(&ec2.DescribeSpotPriceHistoryInput{
 		StartTime:           aws.Time(time.Now()),
 		ProductDescriptions: []*string{aws.String("Linux/UNIX")},
@@ -494,7 +495,7 @@ func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.Sp
 				continue
 			}
 			if priceInfo[*pe.InstanceType] == nil {
-				priceInfo[*pe.InstanceType] = make(cloudinfo.SpotPriceInfo)
+				priceInfo[*pe.InstanceType] = make(types.SpotPriceInfo)
 			}
 			priceInfo[*pe.InstanceType][*pe.AvailabilityZone] = price
 		}
@@ -507,9 +508,9 @@ func (e *Ec2Infoer) getCurrentSpotPrices(region string) (map[string]cloudinfo.Sp
 }
 
 // GetCurrentPrices returns the current spot prices of every instance type in every availability zone in a given region
-func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]types.Price, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
-	var spotPrices map[string]cloudinfo.SpotPriceInfo
+	var spotPrices map[string]types.SpotPriceInfo
 	var err error
 	if e.prometheus != nil {
 		spotPrices, err = e.getSpotPricesFromPrometheus(region)
@@ -527,9 +528,9 @@ func (e *Ec2Infoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price,
 		}
 	}
 
-	prices := make(map[string]cloudinfo.Price)
+	prices := make(map[string]types.Price)
 	for instanceType, sp := range spotPrices {
-		prices[instanceType] = cloudinfo.Price{
+		prices[instanceType] = types.Price{
 			SpotPrice:     sp,
 			OnDemandPrice: -1,
 		}
@@ -546,8 +547,8 @@ func (e *Ec2Infoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
-	imageDescribers := make([]cloudinfo.Image, 0)
+func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, error) {
+	imageDescribers := make([]types.Image, 0)
 
 	if service == svcEks {
 		for _, version := range []string{"1.11", "1.12", "1.13", "1.14"} {
@@ -583,7 +584,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 			}
 
 			if latestImage != nil {
-				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, true))
+				imageDescribers = append(imageDescribers, types.NewImage(*latestImage.ImageId, version, true))
 			}
 
 			input = &ec2.DescribeImagesInput{
@@ -618,7 +619,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 			}
 
 			if latestImage != nil {
-				imageDescribers = append(imageDescribers, cloudinfo.NewImage(*latestImage.ImageId, version, false))
+				imageDescribers = append(imageDescribers, types.NewImage(*latestImage.ImageId, version, false))
 			}
 		}
 	}
@@ -627,17 +628,17 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]cloudinfo.Image,
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
-func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
+func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]types.ProductDetails, error) {
 	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (e *Ec2Infoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
+func (e *Ec2Infoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []cloudinfo.LocationVersion{cloudinfo.NewLocationVersion(region, []string{"1.12.10", "1.13.11", "1.14.7"}, "1.14.7")}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.12.10", "1.13.11", "1.14.7"}, "1.14.7")}, nil
 	default:
-		return []cloudinfo.LocationVersion{}, nil
+		return []types.LocationVersion{}, nil
 	}
 }
 

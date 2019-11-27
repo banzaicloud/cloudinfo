@@ -30,9 +30,10 @@ import (
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/option"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 const svcGke = "gke"
@@ -165,9 +166,9 @@ func getProject(config Config) (string, error) {
 }
 
 // Initialize downloads and parses the SKU list of the Compute Engine service
-func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) {
+func (g *GceInfoer) Initialize() (map[string]map[string]types.Price, error) {
 	g.log.Debug("initializing price info")
-	allPrices := make(map[string]map[string]cloudinfo.Price)
+	allPrices := make(map[string]map[string]types.Price)
 	unsupportedInstanceTypes := []string{"n1-ultramem-40", "n1-ultramem-80", "n1-megamem-96", "n1-ultramem-160"}
 
 	zonesInRegions := make(map[string][]string)
@@ -191,23 +192,23 @@ func (g *GceInfoer) Initialize() (map[string]map[string]cloudinfo.Price, error) 
 				for _, mt := range allMts.Items {
 					if !cloudinfo.Contains(unsupportedInstanceTypes, mt.Name) {
 						if allPrices[region] == nil {
-							allPrices[region] = make(map[string]cloudinfo.Price)
+							allPrices[region] = make(map[string]types.Price)
 						}
 						prices := allPrices[region][mt.Name]
 
 						if mt.Name == "f1-micro" || mt.Name == "g1-small" {
 							prices.OnDemandPrice = price[mt.Name]["OnDemand"]
 						} else {
-							prices.OnDemandPrice = price[cloudinfo.Cpu]["OnDemand"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
+							prices.OnDemandPrice = price[types.Cpu]["OnDemand"]*float64(mt.GuestCpus) + price[types.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
 						}
-						spotPrice := make(cloudinfo.SpotPriceInfo)
+						spotPrice := make(types.SpotPriceInfo)
 						for _, z := range zonesInRegions[region] {
 							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
 								spotPrice[z] = price[mt.Name]["Preemptible"]
 								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
 
 							} else {
-								spotPrice[z] = price[cloudinfo.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[cloudinfo.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+								spotPrice[z] = price[types.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[types.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
 							}
 
 							metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
@@ -274,10 +275,10 @@ func (g *GceInfoer) getPrice() (map[string]map[string]map[string]float64, error)
 							price[region] = make(map[string]map[string]float64)
 						}
 						if strings.Contains(sku.Description, "Instance Ram") {
-							price[region][cloudinfo.Memory] = g.priceFromSku(price, region, cloudinfo.Memory, sku.Category.UsageType, priceInUsd)
+							price[region][types.Memory] = g.priceFromSku(price, region, types.Memory, sku.Category.UsageType, priceInUsd)
 
 						} else {
-							price[region][cloudinfo.Cpu] = g.priceFromSku(price, region, cloudinfo.Cpu, sku.Category.UsageType, priceInUsd)
+							price[region][types.Cpu] = g.priceFromSku(price, region, types.Cpu, sku.Category.UsageType, priceInUsd)
 						}
 					}
 				}
@@ -313,10 +314,10 @@ func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64,
 	return pr
 }
 
-func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error) {
+func (g *GceInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 	logger := log.WithFields(g.log, map[string]interface{}{"region": region})
 	logger.Debug("retrieving product information")
-	var vmsMap = make(map[string]cloudinfo.VmInfo)
+	var vmsMap = make(map[string]types.VmInfo)
 	var ntwPerf uint
 
 	zones, err := g.GetZones(region)
@@ -343,7 +344,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 					logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 						map[string]interface{}{"instanceType": mt.Name})
 				}
-				vmsMap[mt.Name] = cloudinfo.VmInfo{
+				vmsMap[mt.Name] = types.VmInfo{
 					Category:   g.getCategory(mt.Name),
 					Type:       mt.Name,
 					Cpus:       float64(mt.GuestCpus),
@@ -360,7 +361,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 	if err != nil {
 		return nil, err
 	}
-	var vms []cloudinfo.VmInfo
+	var vms []types.VmInfo
 	for _, vm := range vmsMap {
 		vms = append(vms, vm)
 	}
@@ -371,17 +372,17 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 func (g *GceInfoer) getCategory(name string) string {
 	switch {
 	case strings.Contains(name, "highmem"):
-		return cloudinfo.CategoryMemory
+		return types.CategoryMemory
 	case strings.Contains(name, "highcpu"):
-		return cloudinfo.CategoryCompute
+		return types.CategoryCompute
 	default:
-		return cloudinfo.CategoryGeneral
+		return types.CategoryGeneral
 	}
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
-func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+func (g *GceInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error
@@ -450,7 +451,7 @@ func (g *GceInfoer) HasShortLivedPriceInfo() bool {
 }
 
 // GetCurrentPrices retrieves all the spot prices in a region
-func (g *GceInfoer) GetCurrentPrices(region string) (map[string]cloudinfo.Price, error) {
+func (g *GceInfoer) GetCurrentPrices(region string) (map[string]types.Price, error) {
 	return nil, errors.New("google prices cannot be queried on the fly")
 }
 
@@ -460,20 +461,20 @@ func (g *GceInfoer) HasImages() bool {
 }
 
 // GetServiceImages retrieves the images supported by the given service in the given region
-func (g *GceInfoer) GetServiceImages(service, region string) ([]cloudinfo.Image, error) {
+func (g *GceInfoer) GetServiceImages(service, region string) ([]types.Image, error) {
 	return nil, errors.New("GetServiceImages - not yet implemented")
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region
-func (g *GceInfoer) GetServiceProducts(region, service string) ([]cloudinfo.ProductDetails, error) {
+func (g *GceInfoer) GetServiceProducts(region, service string) ([]types.ProductDetails, error) {
 	return nil, errors.New("GetServiceProducts - not yet implemented")
 }
 
 // GetVersions retrieves the kubernetes versions supported by the given service in the given region
-func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVersion, error) {
+func (g *GceInfoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcGke:
-		var zoneVersions []cloudinfo.LocationVersion
+		var zoneVersions []types.LocationVersion
 		zones, err := g.GetZones(region)
 		if err != nil {
 			return nil, err
@@ -495,11 +496,11 @@ func (g *GceInfoer) GetVersions(service, region string) ([]cloudinfo.LocationVer
 					}
 				}
 			}
-			zoneVersions = append(zoneVersions, cloudinfo.NewLocationVersion(zone, versions, serverConf.DefaultClusterVersion))
+			zoneVersions = append(zoneVersions, types.NewLocationVersion(zone, versions, serverConf.DefaultClusterVersion))
 		}
 
 		return zoneVersions, nil
 	default:
-		return []cloudinfo.LocationVersion{}, nil
+		return []types.LocationVersion{}, nil
 	}
 }
