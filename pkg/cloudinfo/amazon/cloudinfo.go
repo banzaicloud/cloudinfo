@@ -220,6 +220,9 @@ func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string
 			OnDemandPrice: 0.2,
 		})
 		return vms, nil
+
+	case "compute":
+		return e.GetVirtualMachines(regionId)
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
