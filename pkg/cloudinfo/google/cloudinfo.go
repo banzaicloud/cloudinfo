@@ -382,11 +382,19 @@ func (g *GceInfoer) getCategory(name string) string {
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
 func (g *GceInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	var vmList = vms
+	if len(vmList) == 0 {
+		var err error
+		vmList, err = g.GetVirtualMachines(regionId)
+		if err != nil {
+			g.log.Warn("could not get machine types for region", map[string]interface{}{"regionId": regionId})
+			return nil, emperror.Wrap(err, "failed to get products")
+		}
+	}
+
 	switch service {
-	case svcGke:
-		return vms, nil
-	case "compute":
-		return g.GetVirtualMachines(regionId)
+	case svcGke, "compute":
+		return vmList, nil
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
