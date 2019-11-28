@@ -23,7 +23,7 @@ const (
 	Memory = "memory"
 
 	// Cpu represents the cpu attribute for the product info
-	Cpu = "cpu"
+	CPU = "cpu"
 )
 
 // CloudInfo is the main entry point for retrieving vm type characteristics and pricing information on different cloud providers
@@ -125,7 +125,7 @@ func NewLocationVersion(location string, versions []string, def string) Location
 // ProductDetails extended view of the virtual machine details
 type ProductDetails struct {
 	// Embedded struct!
-	VmInfo
+	VMInfo
 
 	// Burst this is derived for now
 	Burst bool `json:"burst,omitempty"`
@@ -138,9 +138,9 @@ type ProductDetailSource interface {
 }
 
 // NewProductDetails creates a new ProductDetails struct and returns a pointer to it
-func NewProductDetails(vm VmInfo) *ProductDetails {
+func NewProductDetails(vm VMInfo) *ProductDetails {
 	pd := ProductDetails{}
-	pd.VmInfo = vm
+	pd.VMInfo = vm
 	pd.Burst = vm.IsBurst()
 	return &pd
 }
@@ -216,7 +216,7 @@ func (v Version) VersionName() string {
 
 // Region hold the id and name of a cloud provider region
 type Region struct {
-	Id   string `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -229,8 +229,8 @@ type Price struct {
 	SpotPrice     SpotPriceInfo `json:"spotPrice"`
 }
 
-// VmInfo representation of a virtual machine
-type VmInfo struct {
+// VMInfo representation of a virtual machine
+type VMInfo struct {
 	Category      string            `json:"category"`
 	Type          string            `json:"type"`
 	OnDemandPrice float64           `json:"onDemandPrice"`
@@ -248,6 +248,6 @@ type VmInfo struct {
 
 // IsBurst returns true if the EC2 instance vCPU is burst type
 // the decision is made based on the instance type
-func (vm VmInfo) IsBurst() bool {
+func (vm VMInfo) IsBurst() bool {
 	return strings.HasPrefix(strings.ToUpper(vm.Type), "T")
 }

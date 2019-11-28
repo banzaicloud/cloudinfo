@@ -59,8 +59,8 @@ type CloudInfoStore interface {
 	StorePrice(provider, region, instanceType string, val types.Price)
 	GetPrice(provider, region, instanceType string) (types.Price, bool)
 
-	StoreVm(provider, service, region string, val []types.VmInfo)
-	GetVm(provider, service, region string) ([]types.VmInfo, bool)
+	StoreVm(provider, service, region string, val []types.VMInfo)
+	GetVm(provider, service, region string) ([]types.VMInfo, bool)
 	DeleteVm(provider, service, region string)
 
 	StoreImage(provider, service, regionId string, val []types.Image)

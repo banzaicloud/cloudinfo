@@ -18,8 +18,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
 	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
 

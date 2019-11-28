@@ -17,9 +17,9 @@ package api
 import (
 	"reflect"
 
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/goph/logur"
-	"emperror.dev/errors"
 	"gopkg.in/go-playground/validator.v8"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"

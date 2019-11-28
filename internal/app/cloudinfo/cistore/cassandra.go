@@ -20,8 +20,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/gocql/gocql"
 	"emperror.dev/emperror"
+	"github.com/gocql/gocql"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -86,12 +86,12 @@ func (cps *cassandraProductStore) GetPrice(provider, region, instanceType string
 	return res, ok
 }
 
-func (cps *cassandraProductStore) StoreVm(provider, service, region string, val []types.VmInfo) {
+func (cps *cassandraProductStore) StoreVm(provider, service, region string, val []types.VMInfo) {
 	cps.set(cps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val)
 }
 
-func (cps *cassandraProductStore) GetVm(provider, service, region string) ([]types.VmInfo, bool) {
-	res := make([]types.VmInfo, 0)
+func (cps *cassandraProductStore) GetVm(provider, service, region string) ([]types.VMInfo, bool) {
+	res := make([]types.VMInfo, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &res)
 
 	return res, ok

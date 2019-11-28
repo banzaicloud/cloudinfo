@@ -178,7 +178,7 @@ func main() {
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	eventBus := messaging.NewDefaultEventBus()
+	eventBus := messaging.NewDefaultEventBus(errorHandler)
 
 	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
 	serviceManager.ConfigureServices(providers)

@@ -252,7 +252,7 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 			"provider", sm.provider, "service", service, "region", region)
 	}
 
-	virtualMachines := make([]types.VmInfo, 0, len(vms))
+	virtualMachines := make([]types.VMInfo, 0, len(vms))
 	for _, vm := range vms {
 		prices, found := sm.store.GetPrice(sm.provider, region, vm.Type)
 

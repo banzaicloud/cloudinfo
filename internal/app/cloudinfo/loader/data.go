@@ -62,7 +62,7 @@ type VersionData struct {
 
 type VmData struct {
 	Strategy string
-	Data     []types.VmInfo
+	Data     []types.VMInfo
 }
 
 type Service struct {

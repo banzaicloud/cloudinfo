@@ -141,7 +141,7 @@ func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]typ
 
 	var details []types.ProductDetails
 
-	for _, vm := range vms.([]types.VmInfo) {
+	for _, vm := range vms.([]types.VMInfo) {
 
 		pd := types.NewProductDetails(vm)
 		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
@@ -197,7 +197,7 @@ func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]
 		for id, name := range cachedVal {
 			continent := getContinent(id)
 			continents[continent] = append(continents[continent], types.Region{
-				Id:   id,
+				ID:   id,
 				Name: name,
 			})
 		}
@@ -258,7 +258,7 @@ func Contains(slice []string, s string) bool {
 func Attributes(cpu, memory, ntwPerfCat, vmCategory string) map[string]string {
 	var attributes = make(map[string]string)
 
-	attributes[types.Cpu] = cpu
+	attributes[types.CPU] = cpu
 	attributes[types.Memory] = memory
 	attributes["networkPerfCategory"] = ntwPerfCat
 	attributes["instanceTypeCategory"] = vmCategory

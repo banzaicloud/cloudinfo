@@ -21,14 +21,14 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/pricing"
-	"emperror.dev/emperror"
-	"emperror.dev/errors"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -114,14 +114,14 @@ func (e *Ec2Infoer) Initialize() (map[string]map[string]types.Price, error) {
 	return nil, nil
 }
 
-func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
+func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"region": region})
 	logger.Debug("getting available instance types from AWS API")
 
 	missingAttributes := make(map[string][]string)
 	var (
 		missingGpu []string
-		vms        []types.VmInfo
+		vms        []types.VMInfo
 		priceList  []aws.JSONValue
 		err        error
 	)
@@ -185,7 +185,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 		cpus, _ := strconv.ParseFloat(cpusStr, 64)
 		mem, _ := strconv.ParseFloat(strings.Split(memStr, " ")[0], 64)
 		gpus, _ := strconv.ParseFloat(gpu, 64)
-		vm := types.VmInfo{
+		vm := types.VMInfo{
 			Category:      instanceFamily,
 			Type:          instanceType,
 			OnDemandPrice: onDemandPrice,
@@ -212,7 +212,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
-func (e *Ec2Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
+func (e *Ec2Infoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error
@@ -224,7 +224,7 @@ func (e *Ec2Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([
 	}
 	switch service {
 	case svcEks:
-		vmList = append(vmList, types.VmInfo{
+		vmList = append(vmList, types.VMInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
 		})

@@ -169,13 +169,13 @@ func (rps *redisProductStore) GetPrice(provider, region, instanceType string) (t
 	return res, ok
 }
 
-func (rps *redisProductStore) StoreVm(provider, service, region string, val []types.VmInfo) {
+func (rps *redisProductStore) StoreVm(provider, service, region string, val []types.VMInfo) {
 	rps.set(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val)
 }
 
-func (rps *redisProductStore) GetVm(provider, service, region string) ([]types.VmInfo, bool) {
+func (rps *redisProductStore) GetVm(provider, service, region string) ([]types.VMInfo, bool) {
 	var (
-		res = make([]types.VmInfo, 0)
+		res = make([]types.VMInfo, 0)
 	)
 	_, ok := rps.get(rps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &res)
 

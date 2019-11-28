@@ -331,8 +331,8 @@ func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, regio
 			scil.log.Error("vms not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVms []types.VmInfo
-			for _, vm := range vms.([]types.VmInfo) {
+			var availableVms []types.VMInfo
+			for _, vm := range vms.([]types.VMInfo) {
 				keep := true
 				for _, excludeVm := range region.Data.Vms.Data {
 					if excludeVm.Type == vm.Type {
@@ -356,9 +356,9 @@ func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, regio
 			scil.log.Error("vms not yet cached",
 				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
 		} else {
-			var availableVms []types.VmInfo
+			var availableVms []types.VMInfo
 			for _, _vm := range region.Data.Vms.Data {
-				for _, vm := range vms.([]types.VmInfo) {
+				for _, vm := range vms.([]types.VMInfo) {
 					if _vm.Type == vm.Type {
 						availableVms = append(availableVms, vm)
 					}

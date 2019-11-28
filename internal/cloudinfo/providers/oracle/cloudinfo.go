@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"emperror.dev/emperror"
-	"github.com/oracle/oci-go-sdk/common"
 	"emperror.dev/errors"
+	"github.com/oracle/oci-go-sdk/common"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle/client"
@@ -143,7 +143,7 @@ func (i *Infoer) GetProductPrice(specs ShapeSpecs) (float64, error) {
 
 }
 
-func (i *Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
+func (i *Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"region": region})
 
 	err := i.client.ChangeRegion(region)
@@ -161,7 +161,7 @@ func (i *Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 		return nil, err
 	}
 
-	products := make([]types.VmInfo, 0, len(shapes))
+	products := make([]types.VMInfo, 0, len(shapes))
 	for _, shape := range shapes {
 		s, ok := i.shapeSpecs[shape]
 		if !ok {
@@ -181,7 +181,7 @@ func (i *Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 			return nil, err
 		}
 
-		products = append(products, types.VmInfo{
+		products = append(products, types.VMInfo{
 			Category:      types.CategoryMemory,
 			Type:          shape,
 			OnDemandPrice: price,
@@ -198,7 +198,7 @@ func (i *Infoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 }
 
 // GetProducts retrieves the available virtual machines types in a region
-func (i *Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
+func (i *Infoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
 	logger := log.WithFields(i.log, map[string]interface{}{"service": service, "region": regionId})
 
 	err := i.client.ChangeRegion(regionId)
@@ -216,7 +216,7 @@ func (i *Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]ty
 		return nil, err
 	}
 
-	products := make([]types.VmInfo, 0, len(shapes))
+	products := make([]types.VMInfo, 0, len(shapes))
 	ntwMapper := newNetworkMapper()
 	for _, shape := range shapes {
 		s, ok := i.shapeSpecs[shape]
@@ -236,7 +236,7 @@ func (i *Infoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]ty
 			continue
 		}
 
-		products = append(products, types.VmInfo{
+		products = append(products, types.VMInfo{
 			Category:      types.CategoryMemory,
 			Type:          shape,
 			OnDemandPrice: price,

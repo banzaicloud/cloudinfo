@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/digitalocean/godo"
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
@@ -130,7 +130,7 @@ func getCategory(name string) string {
 	}
 }
 
-func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
+func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 	logger := log.WithFields(i.logger, map[string]interface{}{"region": region})
 	logger.Debug("getting product info")
 
@@ -139,14 +139,14 @@ func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]types.VmInfo, 
 		return nil, err
 	}
 
-	var virtualMachines []types.VmInfo
+	var virtualMachines []types.VMInfo
 
 	for _, size := range sizes {
 		if !size.Available || !contains(region, size.Regions) {
 			continue
 		}
 
-		virtualMachines = append(virtualMachines, types.VmInfo{
+		virtualMachines = append(virtualMachines, types.VMInfo{
 			Category:      getCategory(size.Slug),
 			Type:          size.Slug,
 			OnDemandPrice: size.PriceHourly,
@@ -162,7 +162,7 @@ func (i *DigitaloceanInfoer) GetVirtualMachines(region string) ([]types.VmInfo, 
 	return virtualMachines, nil
 }
 
-func (i *DigitaloceanInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
+func (i *DigitaloceanInfoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
 	switch service {
 	case "dok":
 		options, _, err := i.client.Kubernetes.GetOptions(context.Background())
@@ -175,7 +175,7 @@ func (i *DigitaloceanInfoer) GetProducts(vms []types.VmInfo, service, regionId s
 			sizes[i] = size.Slug
 		}
 
-		var virtualMachines []types.VmInfo
+		var virtualMachines []types.VMInfo
 
 		for _, vm := range vms {
 			if !contains(vm.Type, sizes) {

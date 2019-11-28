@@ -84,13 +84,13 @@ func (cis *cacheProductStore) GetPrice(provider, region, instanceType string) (t
 	return types.Price{}, false
 }
 
-func (cis *cacheProductStore) StoreVm(provider, service, region string, val []types.VmInfo) {
+func (cis *cacheProductStore) StoreVm(provider, service, region string, val []types.VMInfo) {
 	cis.Set(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val, cis.itemExpiry)
 }
 
-func (cis *cacheProductStore) GetVm(provider, service, region string) ([]types.VmInfo, bool) {
+func (cis *cacheProductStore) GetVm(provider, service, region string) ([]types.VMInfo, bool) {
 	if res, ok := cis.get(cis.getKey(cloudinfo.VmKeyTemplate, provider, service, region)); ok {
-		return res.([]types.VmInfo), ok
+		return res.([]types.VMInfo), ok
 	}
 
 	return nil, false

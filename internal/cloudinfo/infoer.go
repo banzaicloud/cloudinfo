@@ -26,10 +26,10 @@ type CloudInfoer interface {
 	Initialize() (map[string]map[string]types.Price, error)
 
 	// GetVirtualMachines retrieves the available virtual machines in a region
-	GetVirtualMachines(region string) ([]types.VmInfo, error)
+	GetVirtualMachines(region string) ([]types.VMInfo, error)
 
 	// GetProducts gets product information based on the given arguments from an external system
-	GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error)
+	GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error)
 
 	// GetZones returns the availability zones in a region
 	GetZones(region string) ([]string, error)

@@ -21,6 +21,8 @@ import (
 	"strconv"
 	"strings"
 
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
@@ -29,8 +31,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"emperror.dev/emperror"
-	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
@@ -347,7 +347,7 @@ func (a *AzureInfoer) addSuffix(mt string, suffixes ...string) []string {
 	return result
 }
 
-func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
+func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 	logger := a.log.WithFields(map[string]interface{}{"region": region})
 	logger.Debug("getting product info")
 
@@ -356,7 +356,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) 
 		return nil, err
 	}
 
-	var virtualMachines []types.VmInfo
+	var virtualMachines []types.VMInfo
 
 	for _, sku := range skusResultPage.Values() {
 		for _, locationInfo := range *sku.LocationInfo {
@@ -386,7 +386,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) 
 							map[string]interface{}{"instanceType": *sku.Name})
 					}
 
-					virtualMachines = append(virtualMachines, types.VmInfo{
+					virtualMachines = append(virtualMachines, types.VMInfo{
 						Category:   category,
 						Type:       *sku.Name,
 						Mem:        memory,
@@ -406,7 +406,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) 
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AzureInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
+func (a *AzureInfoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error
@@ -418,7 +418,7 @@ func (a *AzureInfoer) GetProducts(vms []types.VmInfo, service, regionId string) 
 	}
 	switch service {
 	case svcAks:
-		var virtualMachines []types.VmInfo
+		var virtualMachines []types.VMInfo
 		possibleVmTypes := containerservice.PossibleVMSizeTypesValues()
 		for _, vm := range possibleVmTypes {
 			for _, virtualMachine := range vmList {

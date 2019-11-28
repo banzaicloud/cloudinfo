@@ -27,12 +27,12 @@ func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 	mapper := AmazonNetworkMapper{}
 	tests := []struct {
 		name  string
-		vm    types.VmInfo
+		vm    types.VMInfo
 		check func(cat string, err error)
 	}{
 		{
 			name: "success - mapper maps to the lowest category",
-			vm: types.VmInfo{
+			vm: types.VMInfo{
 				NtwPerf: "Very Low",
 			},
 			check: func(cat string, err error) {
@@ -41,7 +41,7 @@ func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
 		},
 		{
 			name: "error - mapper doesn't map to a category",
-			vm: types.VmInfo{
+			vm: types.VMInfo{
 				NtwPerf: "invalid",
 			},
 			check: func(cat string, err error) {

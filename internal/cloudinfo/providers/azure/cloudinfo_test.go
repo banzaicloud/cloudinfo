@@ -18,13 +18,13 @@ import (
 	"context"
 	"testing"
 
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-09-01/skus"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/preview/commerce/mgmt/2015-06-01-preview/commerce"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/goph/logur"
-	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
@@ -515,7 +515,7 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 }
 
 func TestAzureInfoer_GetProducts(t *testing.T) {
-	vms := []types.VmInfo{
+	vms := []types.VMInfo{
 		{
 			Type: "Standard_A1",
 			Mem:  32,
@@ -537,13 +537,13 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 		name    string
 		service string
 		vmSizes ResourceSkuRetriever
-		check   func(vms []types.VmInfo, err error)
+		check   func(vms []types.VMInfo, err error)
 	}{
 		{
 			name:    "retrieve the available virtual machines for aks service",
 			service: "aks",
 			vmSizes: &testStruct{},
-			check: func(vms []types.VmInfo, err error) {
+			check: func(vms []types.VMInfo, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				var cpus []float64
 				var mems []float64
@@ -560,7 +560,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 			name:    "could not retrieve virtual machines",
 			service: "dummy",
 			vmSizes: &testStruct{GetVmsError},
-			check: func(vms []types.VmInfo, err error) {
+			check: func(vms []types.VMInfo, err error) {
 				assert.Nil(t, vms, "the vms should be nil")
 				assert.EqualError(t, err, "invalid service: dummy")
 			},

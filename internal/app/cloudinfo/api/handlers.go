@@ -18,8 +18,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -288,7 +288,7 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 		var response RegionsResponse
 		for id, name := range regions {
 			response = append(response, types.Region{
-				Id:   id,
+				ID:   id,
 				Name: name,
 			})
 		}

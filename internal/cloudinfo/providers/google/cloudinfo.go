@@ -198,7 +198,7 @@ func (g *GceInfoer) Initialize() (map[string]map[string]types.Price, error) {
 						if mt.Name == "f1-micro" || mt.Name == "g1-small" {
 							prices.OnDemandPrice = price[mt.Name]["OnDemand"]
 						} else {
-							prices.OnDemandPrice = price[types.Cpu]["OnDemand"]*float64(mt.GuestCpus) + price[types.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
+							prices.OnDemandPrice = price[types.CPU]["OnDemand"]*float64(mt.GuestCpus) + price[types.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
 						}
 						spotPrice := make(types.SpotPriceInfo)
 						for _, z := range zonesInRegions[region] {
@@ -207,7 +207,7 @@ func (g *GceInfoer) Initialize() (map[string]map[string]types.Price, error) {
 								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
 
 							} else {
-								spotPrice[z] = price[types.Cpu]["Preemptible"]*float64(mt.GuestCpus) + price[types.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+								spotPrice[z] = price[types.CPU]["Preemptible"]*float64(mt.GuestCpus) + price[types.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
 							}
 
 							metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
@@ -277,7 +277,7 @@ func (g *GceInfoer) getPrice() (map[string]map[string]map[string]float64, error)
 							price[region][types.Memory] = g.priceFromSku(price, region, types.Memory, sku.Category.UsageType, priceInUsd)
 
 						} else {
-							price[region][types.Cpu] = g.priceFromSku(price, region, types.Cpu, sku.Category.UsageType, priceInUsd)
+							price[region][types.CPU] = g.priceFromSku(price, region, types.CPU, sku.Category.UsageType, priceInUsd)
 						}
 					}
 				}
@@ -313,10 +313,10 @@ func (g *GceInfoer) priceFromSku(price map[string]map[string]map[string]float64,
 	return pr
 }
 
-func (g *GceInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
+func (g *GceInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 	logger := log.WithFields(g.log, map[string]interface{}{"region": region})
 	logger.Debug("retrieving product information")
-	var vmsMap = make(map[string]types.VmInfo)
+	var vmsMap = make(map[string]types.VMInfo)
 	var ntwPerf uint
 
 	zones, err := g.GetZones(region)
@@ -343,7 +343,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 					logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
 						map[string]interface{}{"instanceType": mt.Name})
 				}
-				vmsMap[mt.Name] = types.VmInfo{
+				vmsMap[mt.Name] = types.VMInfo{
 					Category:   g.getCategory(mt.Name),
 					Type:       mt.Name,
 					Cpus:       float64(mt.GuestCpus),
@@ -360,7 +360,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var vms []types.VmInfo
+	var vms []types.VMInfo
 	for _, vm := range vmsMap {
 		vms = append(vms, vm)
 	}
@@ -381,7 +381,7 @@ func (g *GceInfoer) getCategory(name string) string {
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Queries the Google Cloud Compute API's machine type list endpoint and CloudBilling's sku list endpoint
-func (g *GceInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
+func (g *GceInfoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error

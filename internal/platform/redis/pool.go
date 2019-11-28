@@ -17,8 +17,8 @@ package redis
 import (
 	"time"
 
-	"github.com/gomodule/redigo/redis"
 	"emperror.dev/errors"
+	"github.com/gomodule/redigo/redis"
 )
 
 type PoolWrapper struct {

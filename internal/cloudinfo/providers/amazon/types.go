@@ -15,10 +15,10 @@
 package amazon
 
 import (
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/pricing"
-	"emperror.dev/emperror"
 )
 
 // PricingSource list of operations for retrieving pricing information

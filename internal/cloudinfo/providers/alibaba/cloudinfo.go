@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/bssopenapi"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"emperror.dev/emperror"
-	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
@@ -127,10 +127,10 @@ func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
 	return response.Zones.Zone, nil
 }
 
-func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error) {
+func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 	logger := log.WithFields(a.log, map[string]interface{}{"region": region})
 	logger.Debug("getting product info")
-	vms := make([]types.VmInfo, 0)
+	vms := make([]types.VMInfo, 0)
 
 	instanceTypes, err := a.getInstanceTypes()
 	if err != nil {
@@ -170,7 +170,7 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error
 					map[string]interface{}{"instanceType": instanceType.InstanceTypeId})
 			}
 
-			vms = append(vms, types.VmInfo{
+			vms = append(vms, types.VMInfo{
 				Category:   category,
 				Type:       instanceType.InstanceTypeId,
 				Cpus:       float64(instanceType.CpuCoreCount),
@@ -194,7 +194,7 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]types.VmInfo, error
 }
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
-func (a *AlibabaInfoer) GetProducts(vms []types.VmInfo, service, regionId string) ([]types.VmInfo, error) {
+func (a *AlibabaInfoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
 	var vmList = vms
 	if len(vmList) == 0 {
 		var err error
@@ -232,9 +232,9 @@ func (a *AlibabaInfoer) getInstanceTypes() ([]ecs.InstanceType, error) {
 	return response.InstanceTypes.InstanceType, nil
 }
 
-func (a *AlibabaInfoer) getOnDemandPrice(vms []types.VmInfo, region string) ([]types.VmInfo, error) {
+func (a *AlibabaInfoer) getOnDemandPrice(vms []types.VMInfo, region string) ([]types.VMInfo, error) {
 	allPrices := make(map[string]float64, 0)
-	vmsWithPrice := make([]types.VmInfo, 0)
+	vmsWithPrice := make([]types.VMInfo, 0)
 	var (
 		prices []float64
 		err    error
@@ -272,7 +272,7 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []types.VmInfo, region string) ([]t
 	}
 
 	for _, vm := range vms {
-		vmsWithPrice = append(vmsWithPrice, types.VmInfo{
+		vmsWithPrice = append(vmsWithPrice, types.VMInfo{
 			Category:      vm.Category,
 			Type:          vm.Type,
 			OnDemandPrice: allPrices[vm.Type],
