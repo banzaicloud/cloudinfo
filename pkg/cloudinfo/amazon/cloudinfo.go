@@ -213,16 +213,25 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, error
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
 func (e *Ec2Infoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+	var vmList = vms
+	if len(vmList) == 0 {
+		var err error
+		vmList, err = e.GetVirtualMachines(regionId)
+		if err != nil {
+			e.log.Warn("could not get machine types for region", map[string]interface{}{"regionId": regionId})
+			return nil, emperror.Wrap(err, "failed to get products")
+		}
+	}
 	switch service {
 	case svcEks:
-		vms = append(vms, cloudinfo.VmInfo{
+		vmList = append(vmList, cloudinfo.VmInfo{
 			Type:          "EKS Control Plane",
 			OnDemandPrice: 0.2,
 		})
-		return vms, nil
+		return vmList, nil
 
 	case "compute":
-		return e.GetVirtualMachines(regionId)
+		return vmList, nil
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
