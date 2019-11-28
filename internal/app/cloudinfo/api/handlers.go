@@ -19,7 +19,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"

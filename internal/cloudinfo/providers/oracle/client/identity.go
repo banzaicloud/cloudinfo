@@ -19,7 +19,7 @@ import (
 
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/identity"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 )
 
 // Identity is for managing Identity related calls of OCI

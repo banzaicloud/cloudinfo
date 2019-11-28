@@ -21,8 +21,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/cloudbilling/v1"
 	"google.golang.org/api/compute/v1"

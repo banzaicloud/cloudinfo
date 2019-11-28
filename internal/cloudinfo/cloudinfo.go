@@ -17,8 +17,8 @@ package cloudinfo
 import (
 	"strings"
 
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )

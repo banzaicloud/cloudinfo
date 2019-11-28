@@ -21,7 +21,7 @@ import (
 	"sync"
 
 	"github.com/gocql/gocql"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"

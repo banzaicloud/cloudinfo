@@ -15,7 +15,7 @@
 package loader
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/goph/logur"
 	"github.com/spf13/viper"
 

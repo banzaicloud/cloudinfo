@@ -20,7 +20,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"

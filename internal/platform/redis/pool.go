@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 )
 
 type PoolWrapper struct {

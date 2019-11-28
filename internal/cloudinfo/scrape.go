@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"

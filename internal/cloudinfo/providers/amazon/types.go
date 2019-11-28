@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/pricing"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 // PricingSource list of operations for retrieving pricing information

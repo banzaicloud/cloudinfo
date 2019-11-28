@@ -19,8 +19,8 @@ import (
 	"net/url"
 
 	"github.com/go-openapi/runtime"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/problems"
 )

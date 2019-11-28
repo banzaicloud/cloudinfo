@@ -19,7 +19,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/patrickmn/go-cache"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"

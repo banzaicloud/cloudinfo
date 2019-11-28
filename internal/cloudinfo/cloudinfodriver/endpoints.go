@@ -19,7 +19,7 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	kitoc "github.com/go-kit/kit/tracing/opencensus"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )

@@ -17,9 +17,9 @@ package oracle
 import (
 	"fmt"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/oracle/oci-go-sdk/common"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle/client"

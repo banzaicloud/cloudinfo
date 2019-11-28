@@ -19,7 +19,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
 

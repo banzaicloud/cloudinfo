@@ -19,7 +19,7 @@ import (
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/goph/logur"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"gopkg.in/go-playground/validator.v8"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"

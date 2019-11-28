@@ -15,7 +15,7 @@
 package google
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"

@@ -32,10 +32,10 @@ import (
 	"os"
 	"strings"
 
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr/v2"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	vaultremote "github.com/sagikazarmark/viperx/remote"
 	_ "github.com/sagikazarmark/viperx/remote/bankvaults"
 	"github.com/spf13/pflag"
