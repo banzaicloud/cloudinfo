@@ -195,11 +195,23 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]cloudinfo.VmInfo, e
 
 // GetProducts retrieves the available virtual machines based on the arguments provided
 func (a *AlibabaInfoer) GetProducts(vms []cloudinfo.VmInfo, service, regionId string) ([]cloudinfo.VmInfo, error) {
+
+	var vmList = vms
+	if len(vmList) == 0 {
+		var err error
+		vmList, err = a.GetVirtualMachines(regionId)
+		if err != nil {
+			a.log.Warn("could not get machine types for region", map[string]interface{}{"regionId": regionId})
+			return nil, emperror.Wrap(err, "failed to get products")
+		}
+	}
 	switch service {
 	case svcAck:
-		return vms, nil
+		return vmList, nil
+
 	case "compute":
-		return a.GetVirtualMachines(regionId)
+		return vmList, nil
+
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
 	}
