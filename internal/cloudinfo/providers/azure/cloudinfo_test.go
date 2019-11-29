@@ -31,8 +31,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
-var cloudinfoLogger = cloudinfoadapter.NewLogger(logur.NewTestLogger())
-
 // testStruct helps to mock external calls
 type testStruct struct {
 	TcId string
@@ -321,7 +319,7 @@ func TestAzureInfoer_toRegionID(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			azureInfoer := AzureInfoer{log: cloudinfoLogger}
+			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(logur.NewTestLogger())}
 			test.check(azureInfoer.toRegionID(test.sourceRegion, regionMap))
 		})
 	}
@@ -359,7 +357,7 @@ func TestAzureInfoer_transformMachineType(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: cloudinfoLogger}
+			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(logur.NewTestLogger())}
 			test.check(azureInfoer.transformMachineType(test.subCategory, test.sourceMt))
 		})
 	}
@@ -508,7 +506,7 @@ func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: cloudinfoLogger}
+			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(logur.NewTestLogger())}
 			test.check(azureInfoer.getMachineTypeVariants(test.sourceMt))
 		})
 	}
@@ -568,7 +566,7 @@ func TestAzureInfoer_GetProducts(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: cloudinfoLogger}
+			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(logur.NewTestLogger())}
 
 			test.check(azureInfoer.GetProducts(vms, test.service, "dummyRegion"))
 		})
@@ -636,7 +634,7 @@ func TestAzureInfoer_GetRegions(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: cloudinfoLogger}
+			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(logur.NewTestLogger())}
 
 			azureInfoer.subscriptionsClient = test.location
 			azureInfoer.providersClient = test.providers
@@ -697,7 +695,7 @@ func TestAzureInfoer_Initialize(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			azureInfoer := AzureInfoer{log: cloudinfoLogger}
+			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(logur.NewTestLogger())}
 
 			azureInfoer.subscriptionsClient = test.location
 			azureInfoer.providersClient = test.providers

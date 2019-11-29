@@ -17,7 +17,7 @@ package amazon
 import (
 	"emperror.dev/errors"
 
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
@@ -57,7 +57,7 @@ func newAmazonNetworkMapper() AmazonNetworkMapper {
 // MapNetworkPerf maps the network performance of the ec2 to the category supported ny telescope
 func (nm *AmazonNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo2.Contains(strVals, ntwPerf) {
+		if cloudinfo.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

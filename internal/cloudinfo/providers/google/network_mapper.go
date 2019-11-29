@@ -17,7 +17,7 @@ package google
 import (
 	"emperror.dev/errors"
 
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
@@ -42,7 +42,7 @@ func newGceNetworkMapper() *GceNetworkMapper {
 // MapNetworkPerf maps the network performance of the google instance to the category supported by telescopes
 func (nm *GceNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo2.Contains(strVals, ntwPerf) {
+		if cloudinfo.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

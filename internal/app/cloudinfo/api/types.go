@@ -145,7 +145,7 @@ func NewServiceResponse(sd types.Service) ServiceResponse {
 	}
 }
 
-// NewServicesResponse assembles a new services response
+// NewServicesResponse assembles a new services respons
 func NewServicesResponse(sds []types.Service) ServicesResponse {
 	return ServicesResponse{
 		Services: sds,

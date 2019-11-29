@@ -17,7 +17,7 @@ package alibaba
 import (
 	"emperror.dev/errors"
 
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
@@ -42,7 +42,7 @@ func newAlibabaNetworkMapper() *AlibabaNetworkMapper {
 // MapNetworkPerf maps the network performance of the alibaba instance to the category supported by telescopes
 func (nm *AlibabaNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
 	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo2.Contains(strVals, ntwPerf) {
+		if cloudinfo.Contains(strVals, ntwPerf) {
 			return perfCat, nil
 		}
 	}

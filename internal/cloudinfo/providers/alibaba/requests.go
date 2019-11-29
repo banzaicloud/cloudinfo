@@ -21,7 +21,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
 
 // CommonDescriber interface for all Alibaba API calls
@@ -76,10 +76,10 @@ func (a *AlibabaInfoer) getPayAsYouGoPriceRequest(region string, instanceTypes [
 	request.QueryParams["ProductCode"] = "ecs"
 	request.QueryParams["SubscriptionType"] = "PayAsYouGo"
 	for i, instanceType := range instanceTypes {
-		request.QueryParams[cloudinfo2.CreateString("ModuleList.", strconv.Itoa(i+1), ".ModuleCode")] = "InstanceType"
-		request.QueryParams[cloudinfo2.CreateString("ModuleList.", strconv.Itoa(i+1), ".Config")] =
-			cloudinfo2.CreateString("InstanceType:", instanceType, ",IoOptimized:IoOptimized,ImageOs:linux")
-		request.QueryParams[cloudinfo2.CreateString("ModuleList.", strconv.Itoa(i+1), ".PriceType")] = "Hour"
+		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".ModuleCode")] = "InstanceType"
+		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".Config")] =
+			cloudinfo.CreateString("InstanceType:", instanceType, ",IoOptimized:IoOptimized,ImageOs:linux")
+		request.QueryParams[cloudinfo.CreateString("ModuleList.", strconv.Itoa(i+1), ".PriceType")] = "Hour"
 	}
 
 	return request

@@ -20,7 +20,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
@@ -42,7 +42,7 @@ func (a *AzureInfoer) mapCategory(name string) (string, error) {
 	family = strings.TrimLeft(family, "basic")
 
 	for category, strVals := range categoryMap {
-		if cloudinfo2.Contains(strVals, family) {
+		if cloudinfo.Contains(strVals, family) {
 			return category, nil
 		}
 	}

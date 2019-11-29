@@ -29,8 +29,6 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
-var logger = cloudinfoadapter.NewLogger(logur.NewTestLogger())
-
 // testStruct helps to mock external calls
 type testStruct struct {
 	TcId int
@@ -168,7 +166,7 @@ func TestNewEc2Infoer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: test.prom}
 
-			test.check(NewAmazonInfoer(c, logger))
+			test.check(NewAmazonInfoer(c, cloudinfoadapter.NewLogger(logur.NewTestLogger())))
 		})
 	}
 }
@@ -200,7 +198,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, logger)
+			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -242,12 +240,12 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, logger)
-			// override ec2cli
-			cloudInfoer.ec2Describer = test.ec2CliMock
+			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
+			// override ec2cli
+			cloudInfoer.ec2Describer = test.ec2CliMock
 
 			test.check(cloudInfoer.getCurrentSpotPrices(test.region))
 		})
@@ -287,12 +285,12 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: "PromAPIAddress"}
-			cloudInfoer, err := NewAmazonInfoer(c, logger)
-			// override ec2cli
-			cloudInfoer.ec2Describer = test.ec2CliMock
+			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
+			// override ec2cli
+			cloudInfoer.ec2Describer = test.ec2CliMock
 
 			test.check(cloudInfoer.GetCurrentPrices(test.region))
 		})
@@ -333,12 +331,13 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: "PromAPIAddress"}
-			cloudInfoer, err := NewAmazonInfoer(c, logger)
-			// override ec2cli
-			cloudInfoer.ec2Describer = test.ec2CliMock
+			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
+			// override ec2cli
+			cloudInfoer.ec2Describer = test.ec2CliMock
+
 			test.check(cloudInfoer.GetZones(test.region))
 		})
 	}
