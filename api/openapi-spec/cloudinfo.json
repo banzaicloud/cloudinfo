@@ -497,84 +497,6 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
-    "GetAttributeValuesPathParams": {
-      "description": "GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters",
-      "type": "object",
-      "properties": {
-        "attribute": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Attribute"
-        },
-        "provider": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Provider"
-        },
-        "region": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Region"
-        },
-        "service": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Service"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
-    "GetImagesQueryParams": {
-      "description": "GetImagesQueryParams is a placeholder for the get images query parameters",
-      "type": "object",
-      "properties": {
-        "gpu": {
-          "description": "in:query",
-          "type": "string",
-          "x-go-name": "Gpu"
-        },
-        "version": {
-          "description": "in:query",
-          "type": "string",
-          "x-go-name": "Version"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
-    "GetProviderPathParams": {
-      "description": "GetProviderPathParams is a placeholder for the providers related route path parameters",
-      "type": "object",
-      "properties": {
-        "provider": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Provider"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
-    "GetRegionPathParams": {
-      "description": "GetRegionPathParams is a placeholder for the regions related route path parameters",
-      "type": "object",
-      "properties": {
-        "provider": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Provider"
-        },
-        "region": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Region"
-        },
-        "service": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Service"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
     "GetRegionResp": {
       "description": "GetRegionResp holds the detailed description of a specific region of a cloud provider",
       "type": "object",
@@ -597,23 +519,6 @@
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
-    "GetServicesPathParams": {
-      "description": "GetServicesPathParams is a placeholder for the services related route path parameters",
-      "type": "object",
-      "properties": {
-        "provider": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Provider"
-        },
-        "service": {
-          "description": "in:path",
-          "type": "string",
-          "x-go-name": "Service"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
     "Image": {
       "description": "Image represents an image",
       "type": "object",
@@ -631,7 +536,7 @@
           "x-go-name": "Version"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     },
     "ImagesResponse": {
       "description": "ImagesResponse holds the list of available images",
@@ -644,35 +549,6 @@
           },
           "x-go-name": "Images"
         }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
-    },
-    "LocationVersion": {
-      "description": "LocationVersion struct for displaying version information per location",
-      "type": "object",
-      "properties": {
-        "default": {
-          "type": "string",
-          "x-go-name": "Default"
-        },
-        "location": {
-          "type": "string",
-          "x-go-name": "Location"
-        },
-        "versions": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "Versions"
-        }
-      },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-    },
-    "LocationVersionArray": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/LocationVersion"
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
@@ -748,7 +624,7 @@
           "x-go-name": "Zones"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     },
     "ProductDetailsResponse": {
       "description": "ProductDetailsResponse Api object to be mapped to product info response",
@@ -786,7 +662,7 @@
           "x-go-name": "Services"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     },
     "ProviderResponse": {
       "description": "ProviderResponse is the response used for the requested provider",
@@ -818,14 +694,14 @@
       "properties": {
         "id": {
           "type": "string",
-          "x-go-name": "Id"
+          "x-go-name": "ID"
         },
         "name": {
           "type": "string",
           "x-go-name": "Name"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     },
     "RegionsResponse": {
       "description": "RegionsResponse holds the list of available regions of a cloud provider",
@@ -849,7 +725,7 @@
           "x-go-name": "Service"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     },
     "ServiceResponse": {
       "description": "ServiceResponse holds the list of available services",
@@ -878,9 +754,6 @@
     "VersionsResponse": {
       "description": "VersionsResponse holds the list of available versions",
       "type": "object",
-      "items": {
-        "$ref": "#/definitions/LocationVersion"
-      },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },
     "ZonePrice": {
@@ -897,7 +770,7 @@
           "x-go-name": "Zone"
         }
       },
-      "x-go-package": "github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     }
   }
 }

@@ -18,12 +18,12 @@ import (
 	"errors"
 	"net/http"
 
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 // swagger:route GET /providers providers getProviders
@@ -287,8 +287,8 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 		}
 		var response RegionsResponse
 		for id, name := range regions {
-			response = append(response, cloudinfo.Region{
-				Id:   id,
+			response = append(response, types.Region{
+				ID:   id,
 				Name: name,
 			})
 		}

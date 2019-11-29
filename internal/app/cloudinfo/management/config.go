@@ -15,8 +15,8 @@
 package management
 
 import (
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 )
 
 type Config struct {

@@ -26,23 +26,23 @@ import (
 	"github.com/gobuffalo/packr/v2/file"
 	"github.com/goph/logur"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
 )
 
 // RouteHandler configures the REST API routes in the gin router
 type RouteHandler struct {
 	log            logur.Logger
-	prod           cloudinfo.CloudInfo
+	prod           types.CloudInfo
 	buildInfo      buildinfo.BuildInfo
 	errorResponder Responder
 	graphqlHandler http.Handler
 }
 
 // NewRouteHandler creates a new RouteHandler and returns a reference to it
-func NewRouteHandler(p cloudinfo.CloudInfo, bi buildinfo.BuildInfo, graphqlHandler http.Handler, log logur.Logger) *RouteHandler {
+func NewRouteHandler(p types.CloudInfo, bi buildinfo.BuildInfo, graphqlHandler http.Handler, log logur.Logger) *RouteHandler {
 	return &RouteHandler{
 		prod:           p,
 		buildInfo:      bi,

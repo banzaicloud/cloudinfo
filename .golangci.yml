@@ -1,35 +1,34 @@
 run:
     skip-dirs:
+        - .gen
         - client
-
-linters:
-    enable-all: true
-    disable:
-        - funlen
-        - errcheck
-        - gas
-        - megacheck
-        - varcheck
-
-        # TODO: Fix these
-        - unparam
-        - interfacer
-        - dupl
-        - lll
-        - gocyclo
-        - gocritic
-        - unconvert
-        - gochecknoglobals
-        - nakedret
-        - goconst
-        - scopelint
-        - prealloc
 
 linters-settings:
     golint:
-        # TODO: lower this value
         min-confidence: 0.9
     gocyclo:
         min-complexity: 15
     goimports:
-        local-prefixes: github.com/banzaicloud/cloudinfo
+        local-prefixes: github.com/banzaicloud/pipeline
+
+linters:
+    enable:
+        - errcheck
+        - staticcheck
+        - deadcode
+        - misspell
+        - gofmt
+        - golint
+        - goimports
+    #        todo enable this
+    #        - gochecknoglobals
+    disable:
+        - funlen
+        - gas
+        - megacheck
+        - varcheck
+
+        # Disable govet for now because it fails on Circle
+        - govet
+
+    fast: false

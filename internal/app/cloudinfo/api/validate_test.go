@@ -53,7 +53,9 @@ func TestGetProviderPathParamsValidation(t *testing.T) {
 	// setup the validator
 	config := &validator.Config{TagName: "binding"}
 	v := validator.New(config)
-	v.RegisterValidation("provider", providerValidator([]string{"test-provider-1", "test-provider-2"}))
+	if err := v.RegisterValidation("provider", providerValidator([]string{"test-provider-1", "test-provider-2"})); err != nil {
+		t.Fatal("failed to register provider validator")
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

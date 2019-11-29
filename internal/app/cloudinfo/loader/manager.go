@@ -15,12 +15,13 @@
 package loader
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/goph/logur"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // ServiceManager abstracts the operations related to cloud info services
@@ -73,9 +74,9 @@ func (sm *defaultServiceManager) ConfigureServices(providers []string) {
 			sm.log.Debug("skip loading services for provider", map[string]interface{}{"provider": p})
 			continue
 		}
-		var svcs []cloudinfo.Service
+		var svcs []types.Service
 		for _, psvc := range psvcs {
-			svcs = append(svcs, cloudinfo.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
+			svcs = append(svcs, types.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
 		}
 		sm.store.StoreServices(p, svcs)
 	}

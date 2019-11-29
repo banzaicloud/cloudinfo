@@ -17,6 +17,7 @@ package messaging
 import (
 	"strings"
 
+	"emperror.dev/emperror"
 	evbus "github.com/asaskevich/EventBus"
 )
 
@@ -36,7 +37,8 @@ const (
 
 // defaultEventBus default EventBus component implementation backed by https://github.com/asaskevich/EventBus
 type defaultEventBus struct {
-	eventBus evbus.Bus
+	eventBus     evbus.Bus
+	errorHandler emperror.Handler
 }
 
 func (eb *defaultEventBus) PublishScrapingComplete(provider string) {
@@ -44,7 +46,9 @@ func (eb *defaultEventBus) PublishScrapingComplete(provider string) {
 }
 
 func (eb *defaultEventBus) SubscribeScrapingComplete(provider string, callback interface{}) {
-	eb.eventBus.SubscribeAsync(eb.providerScrapingTopic(provider), callback, false)
+	if err := eb.eventBus.SubscribeAsync(eb.providerScrapingTopic(provider), callback, false); err != nil {
+		eb.errorHandler.Handle(err)
+	}
 }
 
 func (eb *defaultEventBus) providerScrapingTopic(provider string) string {
@@ -52,7 +56,7 @@ func (eb *defaultEventBus) providerScrapingTopic(provider string) string {
 }
 
 // NewDefaultEventBus creates an event bus backed by  https://github.com/asaskevich/EventBus
-func NewDefaultEventBus() EventBus {
+func NewDefaultEventBus(handler emperror.Handler) EventBus {
 	return &defaultEventBus{
 		eventBus: evbus.New(),
 	}

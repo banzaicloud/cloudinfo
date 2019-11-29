@@ -5,6 +5,8 @@ go 1.13.4
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	emperror.dev/emperror v0.21.3
+	emperror.dev/errors v0.4.3
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Azure/azure-sdk-for-go v33.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.1
@@ -27,13 +29,11 @@ require (
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/goph/emperror v0.16.0
 	github.com/goph/logur v0.11.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.0.0-20160529214634-33afcba6336a
 	github.com/oracle/oci-go-sdk v12.5.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.3
 	github.com/prometheus/common v0.4.0
 	github.com/sagikazarmark/viperx v0.3.0

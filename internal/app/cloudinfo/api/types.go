@@ -15,7 +15,7 @@
 package api
 
 import (
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // GetProviderPathParams is a placeholder for the providers related route path parameters
@@ -62,14 +62,14 @@ type GetImagesQueryParams struct {
 // swagger:model ProductDetailsResponse
 type ProductDetailsResponse struct {
 	// Products represents a slice of products for a given provider (VMs with attributes and process)
-	Products []cloudinfo.ProductDetails `json:"products"`
+	Products []types.ProductDetails `json:"products"`
 	// ScrapingTime represents scraping time for a given provider in milliseconds
 	ScrapingTime string `json:"scrapingTime"`
 }
 
 // RegionsResponse holds the list of available regions of a cloud provider
 // swagger:model RegionsResponse
-type RegionsResponse []cloudinfo.Region
+type RegionsResponse []types.Region
 
 // ContinentsDataResponse holds the list of available continents and regions of a cloud provider
 // swagger:model ContinentsDataResponse
@@ -77,8 +77,8 @@ type ContinentsDataResponse []Continent
 
 // Continent holds continent and regions of a cloud provider
 type Continent struct {
-	Name    string             `json:"name"`
-	Regions []cloudinfo.Region `json:"regions"`
+	Name    string         `json:"name"`
+	Regions []types.Region `json:"regions"`
 }
 
 // ContinentsResponse holds the list of available continents
@@ -103,34 +103,34 @@ type AttributeResponse struct {
 // ProviderResponse is the response used for the requested provider
 // swagger:model ProviderResponse
 type ProviderResponse struct {
-	Provider cloudinfo.Provider `json:"provider"`
+	Provider types.Provider `json:"provider"`
 }
 
 // ProvidersResponse is the response used for the supported providers
 // swagger:model ProvidersResponse
 type ProvidersResponse struct {
-	Providers []cloudinfo.Provider `json:"providers"`
+	Providers []types.Provider `json:"providers"`
 }
 
 // ServicesResponse holds the list of available services
 // swagger:model ServicesResponse
 type ServicesResponse struct {
-	Services []cloudinfo.Service `json:"services"`
+	Services []types.Service `json:"services"`
 }
 
 // ServiceResponse holds the list of available services
 // swagger:model ServiceResponse
 type ServiceResponse struct {
-	Service cloudinfo.Service `json:"service"`
+	Service types.Service `json:"service"`
 }
 
 // ImagesResponse holds the list of available images
 // swagger:model ImagesResponse
 type ImagesResponse struct {
-	Images []cloudinfo.Image `json:"images"`
+	Images []types.Image `json:"images"`
 }
 
-type LocationVersionArray = []cloudinfo.LocationVersion
+type LocationVersionArray = []types.LocationVersion
 
 // VersionsResponse holds the list of available versions
 // swagger:model VersionsResponse
@@ -139,14 +139,14 @@ type VersionsResponse struct {
 }
 
 // NewServiceResponse assembles a service response
-func NewServiceResponse(sd cloudinfo.Service) ServiceResponse {
+func NewServiceResponse(sd types.Service) ServiceResponse {
 	return ServiceResponse{
 		Service: sd,
 	}
 }
 
-// NewServicesResponse assembles a new services response
-func NewServicesResponse(sds []cloudinfo.Service) ServicesResponse {
+// NewServicesResponse assembles a new services respons
+func NewServicesResponse(sds []types.Service) ServicesResponse {
 	return ServicesResponse{
 		Services: sds,
 	}

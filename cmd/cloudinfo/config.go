@@ -21,21 +21,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/alibaba"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/amazon"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/azure"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/digitalocean"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/google"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle"
 	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/digitalocean"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
 
 // Provider constants

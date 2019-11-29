@@ -20,26 +20,26 @@ import (
 	"io"
 	"sync"
 
+	"emperror.dev/emperror"
 	"github.com/gocql/gocql"
-	"github.com/goph/emperror"
-	"github.com/goph/logur"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 )
 
 type cassandraProductStore struct {
-	log       logur.Logger
+	log       cloudinfo.Logger
 	keySpace  string
 	tableName string
 	cluster   *gocql.ClusterConfig
 	session   *gocql.Session
 }
 
-func NewCassandraProductStore(config cassandra.Config, logger logur.Logger) cloudinfo.CloudInfoStore {
+func NewCassandraProductStore(config cassandra.Config, logger cloudinfo.Logger) cloudinfo.CloudInfoStore {
 
 	return &cassandraProductStore{
-		log:       logur.WithFields(logger, map[string]interface{}{"cistore": "cassandra"}),
+		log:       logger.WithFields(map[string]interface{}{"cistore": "cassandra"}),
 		keySpace:  config.Keyspace,
 		tableName: config.Table,
 		cluster:   cassandra.NewCluster(config),
@@ -76,22 +76,22 @@ func (cps *cassandraProductStore) DeleteZones(provider, service, region string) 
 	cps.delete(cps.getKey(cloudinfo.ZoneKeyTemplate, provider, service, region))
 }
 
-func (cps *cassandraProductStore) StorePrice(provider, region, instanceType string, val cloudinfo.Price) {
+func (cps *cassandraProductStore) StorePrice(provider, region, instanceType string, val types.Price) {
 	cps.set(cps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), val)
 }
 
-func (cps *cassandraProductStore) GetPrice(provider, region, instanceType string) (cloudinfo.Price, bool) {
-	var res cloudinfo.Price
+func (cps *cassandraProductStore) GetPrice(provider, region, instanceType string) (types.Price, bool) {
+	var res types.Price
 	_, ok := cps.get(cps.getKey(cloudinfo.PriceKeyTemplate, provider, region, instanceType), &res)
 	return res, ok
 }
 
-func (cps *cassandraProductStore) StoreVm(provider, service, region string, val []cloudinfo.VmInfo) {
+func (cps *cassandraProductStore) StoreVm(provider, service, region string, val []types.VMInfo) {
 	cps.set(cps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), val)
 }
 
-func (cps *cassandraProductStore) GetVm(provider, service, region string) ([]cloudinfo.VmInfo, bool) {
-	res := make([]cloudinfo.VmInfo, 0)
+func (cps *cassandraProductStore) GetVm(provider, service, region string) ([]types.VMInfo, bool) {
+	res := make([]types.VMInfo, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.VmKeyTemplate, provider, service, region), &res)
 
 	return res, ok
@@ -101,12 +101,12 @@ func (cps *cassandraProductStore) DeleteVm(provider, service, region string) {
 	cps.delete(cps.getKey(cloudinfo.VmKeyTemplate, provider, service, region))
 }
 
-func (cps *cassandraProductStore) StoreImage(provider, service, regionId string, val []cloudinfo.Image) {
+func (cps *cassandraProductStore) StoreImage(provider, service, regionId string, val []types.Image) {
 	cps.set(cps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), val)
 }
 
-func (cps *cassandraProductStore) GetImage(provider, service, regionId string) ([]cloudinfo.Image, bool) {
-	res := make([]cloudinfo.Image, 0)
+func (cps *cassandraProductStore) GetImage(provider, service, regionId string) ([]types.Image, bool) {
+	res := make([]types.Image, 0)
 	cps.get(cps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId), &res)
 
 	return res, false
@@ -116,12 +116,12 @@ func (cps *cassandraProductStore) DeleteImage(provider, service, regionId string
 	cps.delete(cps.getKey(cloudinfo.ImageKeyTemplate, provider, service, regionId))
 }
 
-func (cps *cassandraProductStore) StoreVersion(provider, service, region string, val []cloudinfo.LocationVersion) {
+func (cps *cassandraProductStore) StoreVersion(provider, service, region string, val []types.LocationVersion) {
 	cps.set(cps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), val)
 }
 
-func (cps *cassandraProductStore) GetVersion(provider, service, region string) ([]cloudinfo.LocationVersion, bool) {
-	res := make([]cloudinfo.LocationVersion, 0)
+func (cps *cassandraProductStore) GetVersion(provider, service, region string) ([]types.LocationVersion, bool) {
+	res := make([]types.LocationVersion, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.VersionKeyTemplate, provider, service, region), &res)
 
 	return res, ok
@@ -142,12 +142,12 @@ func (cps *cassandraProductStore) GetStatus(provider string) (string, bool) {
 	return res, ok
 }
 
-func (cps *cassandraProductStore) StoreServices(provider string, services []cloudinfo.Service) {
+func (cps *cassandraProductStore) StoreServices(provider string, services []types.Service) {
 	cps.set(cps.getKey(cloudinfo.ServicesKeyTemplate, provider), services)
 }
 
-func (cps *cassandraProductStore) GetServices(provider string) ([]cloudinfo.Service, bool) {
-	res := make([]cloudinfo.Service, 0)
+func (cps *cassandraProductStore) GetServices(provider string) ([]types.Service, bool) {
+	res := make([]types.Service, 0)
 	_, ok := cps.get(cps.getKey(cloudinfo.ServicesKeyTemplate, provider), &res)
 
 	return res, ok

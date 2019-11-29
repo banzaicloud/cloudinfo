@@ -17,9 +17,9 @@ package cloudinfodriver
 import (
 	"context"
 
+	"emperror.dev/errors"
 	"github.com/go-kit/kit/endpoint"
 	kitoc "github.com/go-kit/kit/tracing/opencensus"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )

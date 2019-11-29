@@ -32,11 +32,10 @@ import (
 	"os"
 	"strings"
 
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr/v2"
-	"github.com/goph/emperror"
-	"github.com/goph/logur"
-	"github.com/pkg/errors"
 	vaultremote "github.com/sagikazarmark/viperx/remote"
 	_ "github.com/sagikazarmark/viperx/remote/bankvaults"
 	"github.com/spf13/pflag"
@@ -48,20 +47,19 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/tracing"
-	cloudinfo2 "github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfodriver"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/alibaba"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/amazon"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/azure"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/digitalocean"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/google"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/errorhandler"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/alibaba"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/amazon"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/azure"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/digitalocean"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/google"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/metrics"
-	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/oracle"
 )
 
 // Provisioned by ldflags
@@ -169,27 +167,29 @@ func main() {
 		tracer = tracing.NewTracer()
 	}
 
+	cloudInfoLogger := cloudinfoadapter.NewLogger(logger)
+
 	// use the configured store implementation
-	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, logger)
+	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, cloudInfoLogger)
 	defer cloudInfoStore.Close()
 
-	infoers, providers, err := loadInfoers(config, logger)
+	infoers, providers, err := loadInfoers(config, cloudInfoLogger)
 	emperror.Panic(err)
 
 	reporter := metrics.NewDefaultMetricsReporter()
 
-	eventBus := messaging.NewDefaultEventBus()
+	eventBus := messaging.NewDefaultEventBus(errorHandler)
 
 	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
 	serviceManager.ConfigureServices(providers)
 
 	serviceManager.LoadServiceInformation(providers)
 
-	prodInfo, err := cloudinfo.NewCloudInfo(providers, cloudInfoStore, logger)
+	prodInfo, err := cloudinfo.NewCloudInfo(providers, cloudInfoStore, cloudInfoLogger)
 	emperror.Panic(err)
 
 	if config.Scrape.Enabled {
-		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, logger, reporter, tracer, eventBus)
+		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, cloudInfoLogger, reporter, tracer, eventBus)
 
 		err = scrapingDriver.StartScraping()
 		emperror.Panic(err)
@@ -205,10 +205,10 @@ func main() {
 	emperror.Panic(err)
 
 	cloudinfoLogger := cloudinfoadapter.NewLogger(logger)
-	providerService := cloudinfo2.NewProviderService(prodInfo)
-	serviceService := cloudinfo2.NewServiceService(prodInfo)
-	regionService := cloudinfo2.NewRegionService(prodInfo)
-	instanceTypeService := cloudinfo2.NewInstanceTypeService(prodInfo)
+	providerService := cloudinfo.NewProviderService(prodInfo)
+	serviceService := cloudinfo.NewServiceService(prodInfo)
+	regionService := cloudinfo.NewRegionService(prodInfo)
+	instanceTypeService := cloudinfo.NewInstanceTypeService(prodInfo)
 	endpoints := cloudinfodriver.MakeEndpoints(instanceTypeService)
 	providerEndpoints := cloudinfodriver.MakeProviderEndpoints(providerService, cloudinfoLogger)
 	serviceEndpoints := cloudinfodriver.MakeServiceEndpoints(serviceService, cloudinfoLogger)
@@ -254,14 +254,14 @@ func main() {
 	emperror.Panic(errors.Wrap(err, "failed to run router"))
 }
 
-func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
+func loadInfoers(config configuration, logger cloudinfo.Logger) (map[string]cloudinfo.CloudInfoer, []string, error) {
 	infoers := map[string]cloudinfo.CloudInfoer{}
 
 	var providers []string
 
 	if config.Provider.Amazon.Enabled {
 		providers = append(providers, Amazon)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Amazon})
+		logger := logger.WithFields(map[string]interface{}{"provider": Amazon})
 
 		infoer, err := amazon.NewAmazonInfoer(config.Provider.Amazon.Config, logger)
 		if err != nil {
@@ -275,7 +275,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Google.Enabled {
 		providers = append(providers, Google)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Google})
+		logger := logger.WithFields(map[string]interface{}{"provider": Google})
 
 		infoer, err := google.NewGoogleInfoer(config.Provider.Google.Config, logger)
 		if err != nil {
@@ -289,7 +289,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Alibaba.Enabled {
 		providers = append(providers, Alibaba)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Alibaba})
+		logger := logger.WithFields(map[string]interface{}{"provider": Alibaba})
 
 		infoer, err := alibaba.NewAlibabaInfoer(config.Provider.Alibaba.Config, logger)
 		if err != nil {
@@ -303,7 +303,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Oracle.Enabled {
 		providers = append(providers, Oracle)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Oracle})
+		logger := logger.WithFields(map[string]interface{}{"provider": Oracle})
 
 		infoer, err := oracle.NewOracleInfoer(config.Provider.Oracle.Config, logger)
 		if err != nil {
@@ -317,7 +317,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Azure.Enabled {
 		providers = append(providers, Azure)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Azure})
+		logger := logger.WithFields(map[string]interface{}{"provider": Azure})
 
 		infoer, err := azure.NewAzureInfoer(config.Provider.Azure.Config, logger)
 		if err != nil {
@@ -331,7 +331,7 @@ func loadInfoers(config configuration, logger logur.Logger) (map[string]cloudinf
 
 	if config.Provider.Digitalocean.Enabled {
 		providers = append(providers, Digitalocean)
-		logger := logur.WithFields(logger, map[string]interface{}{"provider": Digitalocean})
+		logger := logger.WithFields(map[string]interface{}{"provider": Digitalocean})
 
 		infoer, err := digitalocean.NewDigitaloceanInfoer(config.Provider.Digitalocean.Config, logger)
 		if err != nil {

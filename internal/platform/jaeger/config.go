@@ -14,7 +14,7 @@
 
 package jaeger
 
-import "github.com/pkg/errors"
+import "emperror.dev/errors"
 
 // Config holds information necessary for sending trace to Jaeger.
 type Config struct {

@@ -24,17 +24,21 @@ endif
 # Docker variables
 DOCKER_TAG ?= ${VERSION}
 
-GOTESTSUM_VERSION = 0.3.5
-GOLANGCI_VERSION = 1.18.0
 MISSPELL_VERSION = 0.3.4
-JQ_VERSION = 1.5
-LICENSEI_VERSION = 0.1.0
-GOBIN_VERSION = 0.0.13
 GQLGEN_VERSION = 0.8.3
 PACKR_VERSION = 2.2.0
 
+GOLANGCI_VERSION = 1.20.0
+LICENSEI_VERSION = 0.2.0
+OPENAPI_GENERATOR_VERSION = v4.1.3
+GOTESTSUM_VERSION = 0.3.5
+GOBIN_VERSION = 0.0.13
+PROTOTOOL_VERSION = 1.8.0
+PROTOC_GEN_GO_VERSION = 1.3.2
+MGA_VERSION = 0.0.10
+
 GOLANG_VERSION = 1.13
-SWAGGER_VERSION = 0.19.0
+SWAGGER_VERSION = 0.21.0
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
@@ -64,8 +68,8 @@ bin/swagger-${SWAGGER_VERSION}: bin/gobin
 
 .PHONY: swagger
 swagger: bin/swagger
-	GO111MODULE="off" bin/swagger generate spec -m -b ./cmd/cloudinfo -o $(SWAGGER_PI_TMP_FILE)
-	GO111MODULE="off" swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
+	bin/swagger generate spec -m -o $(SWAGGER_PI_TMP_FILE)
+	swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
 
 bin/packr2: bin/packr2-${PACKR_VERSION}
 	@ln -sf packr2-${PACKR_VERSION} bin/packr2

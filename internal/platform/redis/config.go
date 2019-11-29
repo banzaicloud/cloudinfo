@@ -17,7 +17,7 @@ package redis
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 )
 
 // Config holds information necessary for connecting to Redis.
