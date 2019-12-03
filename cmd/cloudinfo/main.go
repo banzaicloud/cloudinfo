@@ -180,7 +180,7 @@ func main() {
 
 	eventBus := messaging.NewDefaultEventBus(errorHandler)
 
-	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, logger, eventBus)
+	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, cloudInfoLogger, eventBus)
 	serviceManager.ConfigureServices(providers)
 
 	serviceManager.LoadServiceInformation(providers)

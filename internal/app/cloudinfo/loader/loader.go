@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/goph/logur"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
@@ -48,70 +47,70 @@ type defaultCloudInfoLoader struct {
 	store cloudinfo.CloudInfoStore
 
 	// component logger
-	log logur.Logger
+	log cloudinfo.Logger
 }
 
-func (sl *defaultCloudInfoLoader) Load() {
-	sl.LoadRegions()
+func (dl *defaultCloudInfoLoader) Load() {
+	dl.LoadRegions()
 }
 
 // loadRegions loads regions in the cloud info store
-func (sl *defaultCloudInfoLoader) LoadRegions() {
-	sl.log.Debug("loading region data...")
+func (dl *defaultCloudInfoLoader) LoadRegions() {
+	dl.log.Debug("loading region data...")
 
 	regionMap := make(map[string]string)
-	for _, region := range sl.serviceData.Regions {
+	for _, region := range dl.serviceData.Regions {
 		regionMap[region.Id] = region.Name
 
-		sl.LoadZones(sl.serviceData.Provider, sl.serviceData.Name, region)
+		dl.LoadZones(dl.serviceData.Provider, dl.serviceData.Name, region)
 
-		sl.LoadVersions(sl.serviceData.Provider, sl.serviceData.Name, region)
+		dl.LoadVersions(dl.serviceData.Provider, dl.serviceData.Name, region)
 
-		sl.LoadImages(sl.serviceData.Provider, sl.serviceData.Name, region)
+		dl.LoadImages(dl.serviceData.Provider, dl.serviceData.Name, region)
 
-		sl.LoadVms(sl.serviceData.Provider, sl.serviceData.Name, region)
+		dl.LoadVms(dl.serviceData.Provider, dl.serviceData.Name, region)
 	}
 
-	sl.store.StoreRegions(sl.serviceData.Provider, sl.serviceData.Name, regionMap)
-	sl.log.Debug("regions loaded")
+	dl.store.StoreRegions(dl.serviceData.Provider, dl.serviceData.Name, regionMap)
+	dl.log.Debug("regions loaded")
 
 	// set the status
-	sl.store.StoreStatus(sl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
-	sl.log.Debug("status updated")
+	dl.store.StoreStatus(dl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
+	dl.log.Debug("status updated")
 
 }
 
 // loadZones loads zones for a given region in the store
-func (sl *defaultCloudInfoLoader) LoadZones(provider, service string, region Region) {
-	sl.log.Debug("loading zones...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
-	sl.log.Debug("zones loaded", map[string]interface{}{"service": service, "region": region.Id})
+func (dl *defaultCloudInfoLoader) LoadZones(provider, service string, region Region) {
+	dl.log.Debug("loading zones...", map[string]interface{}{"service": service, "region": region.Id})
+	dl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
+	dl.log.Debug("zones loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 // loadVersions loads versions for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
-	sl.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-	sl.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Id})
+func (dl *defaultCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
+	dl.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Id})
+	dl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
+	dl.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 // loadImages loads images for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadImages(provider string, service string, region Region) {
-	sl.log.Debug("loading images...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
-	sl.log.Debug("images loaded", map[string]interface{}{"service": service, "region": region.Id})
+func (dl *defaultCloudInfoLoader) LoadImages(provider string, service string, region Region) {
+	dl.log.Debug("loading images...", map[string]interface{}{"service": service, "region": region.Id})
+	dl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
+	dl.log.Debug("images loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 // loadVms loads vms for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVms(provider string, service string, region Region) {
-	sl.log.Debug("loading vms...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
-	sl.log.Debug("vms loaded", map[string]interface{}{"service": service, "region": region.Id})
+func (dl *defaultCloudInfoLoader) LoadVms(provider string, service string, region Region) {
+	dl.log.Debug("loading vms...", map[string]interface{}{"service": service, "region": region.Id})
+	dl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
+	dl.log.Debug("vms loaded", map[string]interface{}{"service": service, "region": region.Id})
 }
 
 type storeCloudInfoLoader struct {
 	store       cloudinfo.CloudInfoStore
-	log         logur.Logger
+	log         cloudinfo.Logger
 	serviceData ServiceData
 	eventBus    messaging.EventBus
 }
@@ -372,7 +371,8 @@ func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, regio
 	}
 }
 
-func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log logur.Logger, eventBus messaging.EventBus) CloudInfoLoader {
+func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log cloudinfo.Logger,
+	eventBus messaging.EventBus) CloudInfoLoader {
 
 	dataViper := viper.New()
 	dataViper.SetConfigName(datafile)
@@ -402,6 +402,6 @@ func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.Clo
 	return &defaultCloudInfoLoader{
 		serviceData: serviceData,
 		store:       store,
-		log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
+		log:         log.WithFields(map[string]interface{}{"component": "service-loader"}),
 	}
 }

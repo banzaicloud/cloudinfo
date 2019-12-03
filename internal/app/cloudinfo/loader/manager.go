@@ -16,7 +16,6 @@ package loader
 
 import (
 	"emperror.dev/emperror"
-	"github.com/goph/logur"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
@@ -42,7 +41,7 @@ type defaultServiceManager struct {
 	store cloudinfo.CloudInfoStore
 
 	// component logger instance
-	log logur.Logger
+	log cloudinfo.Logger
 
 	// component eventbus instance
 	eventBus messaging.EventBus
@@ -83,7 +82,7 @@ func (sm *defaultServiceManager) ConfigureServices(providers []string) {
 	sm.log.Info("services initialized")
 }
 
-func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log logur.Logger, eventBus messaging.EventBus) ServiceManager {
+func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log cloudinfo.Logger, eventBus messaging.EventBus) ServiceManager {
 	// using a viper instance for loading data
 	vp := viper.New()
 	vp.AddConfigPath(config.ServiceConfigLocation)
@@ -105,7 +104,7 @@ func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log
 
 	return &defaultServiceManager{
 		store:    store,
-		log:      logur.WithFields(log, map[string]interface{}{"component": "service-manager"}),
+		log:      log.WithFields(map[string]interface{}{"component": "service-manager"}),
 		services: sds,
 		eventBus: eventBus,
 	}
