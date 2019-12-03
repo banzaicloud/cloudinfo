@@ -67,19 +67,19 @@ func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 }
 
 func (sm *defaultServiceManager) ConfigureServices(providers []string) {
-	sm.log.Info("initializing services for providers...")
-	for p, psvcs := range sm.services {
-		if !cloudinfo.Contains(providers, p) {
-			sm.log.Debug("skip loading services for provider", map[string]interface{}{"provider": p})
+	for provider, providerServices := range sm.services {
+		if !cloudinfo.Contains(providers, provider) {
+			sm.log.Debug("provider not enabled", map[string]interface{}{"provider": provider})
 			continue
 		}
-		var svcs []types.Service
-		for _, psvc := range psvcs {
-			svcs = append(svcs, types.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
+
+		services := make([]types.Service, 0, len(providerServices))
+		for _, psvc := range providerServices {
+			services = append(services, types.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
 		}
-		sm.store.StoreServices(p, svcs)
+		sm.log.Debug("initialized provider services", map[string]interface{}{"provider": provider, "services #": len(services)})
+		sm.store.StoreServices(provider, services)
 	}
-	sm.log.Info("services initialized")
 }
 
 func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log cloudinfo.Logger, eventBus messaging.EventBus) ServiceManager {
