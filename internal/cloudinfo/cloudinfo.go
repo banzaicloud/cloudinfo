@@ -135,8 +135,8 @@ func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]typ
 	)
 
 	if vms, ok = cpi.cloudInfoStore.GetVm(provider, service, region); !ok {
-		return nil, emperror.With(errors.New("vms not yet cached"),
-			"provider", provider, "service", service, "region", region)
+		cpi.log.Debug("VMs not yet cached")
+		return nil, errors.NewWithDetails("VMs not yet cached", "provider", provider, "service", service, "region", region)
 	}
 
 	var details []types.ProductDetails
