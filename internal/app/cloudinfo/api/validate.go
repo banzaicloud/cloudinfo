@@ -52,20 +52,22 @@ func ConfigureValidator(providers []string, ci types.CloudInfo, logger cloudinfo
 func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-		currentProvider := digValueForName(currentStruct, "Provider")
-		currentService := digValueForName(currentStruct, "Service")
-		currentRegion := digValueForName(currentStruct, "Region")
 
-		logger = logger.WithFields(map[string]interface{}{"provider": currentProvider, "service": currentService, "region": currentRegion})
+		regionPathParams, ok := currentStruct.Interface().(GetRegionPathParams)
+		if !ok {
+			return false
+		}
 
-		regions, err := cpi.GetRegions(currentProvider, currentService)
+		logger = logger.WithFields(map[string]interface{}{"provider": regionPathParams.Provider, "service": regionPathParams.Service, "region": regionPathParams.Region})
+
+		regions, err := cpi.GetRegions(regionPathParams.Provider, regionPathParams.Service)
 		if err != nil {
-			logger.Error("could not get regions")
+			logger.Error("validation failed, could not retrieve regions")
 			return false
 		}
 
 		for reg := range regions {
-			if reg == currentRegion {
+			if reg == regionPathParams.Region {
 				return true
 			}
 		}
@@ -79,35 +81,26 @@ func serviceValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fu
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
 		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 
-		currentProvider := digValueForName(currentStruct, "Provider")
-		currentService := digValueForName(currentStruct, "Service")
+		servicesPathParams, ok := currentStruct.Interface().(GetServicesPathParams)
+		if !ok {
+			return false
+		}
 
-		logger = logger.WithFields(map[string]interface{}{"provider": currentProvider, "service": currentService})
+		logger = logger.WithFields(map[string]interface{}{"provider": servicesPathParams.Provider, "service": servicesPathParams.Service})
 
-		services, err := cpi.GetServices(currentProvider)
+		services, err := cpi.GetServices(servicesPathParams.Provider)
 		if err != nil {
-			logger.Error("could not get services")
+			logger.Error("validation failed, could not retrieve services")
 			return false
 		}
 
 		for _, svc := range services {
-			if svc.ServiceName() == currentService {
+			if svc.ServiceName() == servicesPathParams.Service {
 				return true
 			}
 		}
 		return false
 	}
-}
-
-func digValueForName(value reflect.Value, field string) string {
-	var ret string
-	switch value.Kind() {
-	case reflect.Struct:
-		ret = value.FieldByName(field).String()
-	case reflect.Ptr:
-		ret = value.Elem().FieldByName(field).String()
-	}
-	return ret
 }
 
 // providerValidator validates the `provider` path parameter
