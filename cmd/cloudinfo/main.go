@@ -189,7 +189,7 @@ func main() {
 	emperror.Panic(err)
 
 	if config.Scrape.Enabled {
-		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, cloudInfoLogger, reporter, tracer, eventBus)
+		scrapingDriver := cloudinfo.NewScrapingDriver(config.Scrape.Interval, infoers, cloudInfoStore, cloudInfoLogger, reporter, tracer, eventBus, errorHandler)
 
 		err = scrapingDriver.StartScraping()
 		emperror.Panic(err)
