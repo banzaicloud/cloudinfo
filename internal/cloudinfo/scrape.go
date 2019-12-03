@@ -148,7 +148,7 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		regions, err := sm.infoer.GetRegions(service.ServiceName())
 		if err != nil {
 			sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), "N/A")
-			return errors.WrapIff(err, "failed to retrieve regions", "service", service.ServiceName())
+			return errors.WithDetails(err, "failed to retrieve regions", "service", service.ServiceName())
 		}
 
 		sm.store.DeleteRegions(sm.provider, service.ServiceName())

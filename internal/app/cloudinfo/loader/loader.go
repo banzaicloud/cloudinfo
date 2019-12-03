@@ -199,8 +199,7 @@ func (sl *storeCloudInfoLoader) LoadZones(provider string, service string, regio
 		sl.store.StoreZones(provider, service, region.Id, availableZones)
 
 	default:
-		log.Error("unsupported strategy for loading zones", map[string]interface{}{"strategy":
-		region.Data.Zones.Strategy})
+		log.Error("unsupported strategy for loading zones", map[string]interface{}{"strategy": region.Data.Zones.Strategy})
 	}
 }
 
