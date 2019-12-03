@@ -290,7 +290,7 @@ func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, regi
 			for _, excludeImage := range region.Data.Images.Data {
 
 				if excludeImage.Name != sourceImage.Name {
-					sourceImages = append(filteredImages, sourceImage)
+					filteredImages = append(filteredImages, sourceImage)
 					break
 				}
 			}
@@ -310,7 +310,7 @@ func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, regi
 			for _, excludeImage := range region.Data.Images.Data {
 
 				if excludeImage.Name == sourceImage.Name {
-					sourceImages = append(filteredImages, sourceImage)
+					filteredImages = append(filteredImages, sourceImage)
 					break
 				}
 			}
