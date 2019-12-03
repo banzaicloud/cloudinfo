@@ -19,15 +19,14 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/goph/logur"
 	"gopkg.in/go-playground/validator.v8"
 
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
 
 // ConfigureValidator configures the Gin validator with custom validator functions
-func ConfigureValidator(providers []string, ci types.CloudInfo, logger logur.Logger) error {
+func ConfigureValidator(providers []string, ci types.CloudInfo, logger cloudinfo.Logger) error {
 	// retrieve the gin validator
 	v := binding.Validator.Engine().(*validator.Validate)
 
@@ -50,15 +49,14 @@ func ConfigureValidator(providers []string, ci types.CloudInfo, logger logur.Log
 }
 
 // regionValidator validates the `region` path parameter
-func regionValidator(cpi types.CloudInfo, logger logur.Logger) validator.Func {
+func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 		currentRegion := digValueForName(currentStruct, "Region")
 
-		logger = log.WithFields(logger,
-			map[string]interface{}{"provider": currentProvider, "service": currentService, "region": currentRegion})
+		logger = logger.WithFields(map[string]interface{}{"provider": currentProvider, "service": currentService, "region": currentRegion})
 
 		regions, err := cpi.GetRegions(currentProvider, currentService)
 		if err != nil {
@@ -76,7 +74,7 @@ func regionValidator(cpi types.CloudInfo, logger logur.Logger) validator.Func {
 }
 
 // serviceValidator validates the `service` path parameter
-func serviceValidator(cpi types.CloudInfo, logger logur.Logger) validator.Func {
+func serviceValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
 
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
 		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
@@ -84,8 +82,7 @@ func serviceValidator(cpi types.CloudInfo, logger logur.Logger) validator.Func {
 		currentProvider := digValueForName(currentStruct, "Provider")
 		currentService := digValueForName(currentStruct, "Service")
 
-		logger = log.WithFields(logger,
-			map[string]interface{}{"provider": currentProvider, "service": currentService})
+		logger = logger.WithFields(map[string]interface{}{"provider": currentProvider, "service": currentService})
 
 		services, err := cpi.GetServices(currentProvider)
 		if err != nil {

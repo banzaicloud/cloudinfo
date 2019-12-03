@@ -197,11 +197,11 @@ func main() {
 		// start the management service
 		// TODO: management requires scraping at the moment. Let's remove that dependency.
 		if config.Management.Enabled {
-			go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, logger)
+			go management.StartManagementEngine(config.Management, cloudInfoStore, *scrapingDriver, cloudInfoLogger)
 		}
 	}
 
-	err = api.ConfigureValidator(providers, prodInfo, logger)
+	err = api.ConfigureValidator(providers, prodInfo, cloudInfoLogger)
 	emperror.Panic(err)
 
 	cloudinfoLogger := cloudinfoadapter.NewLogger(logger)
@@ -221,7 +221,7 @@ func main() {
 		errorHandler,
 	)
 
-	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, graphqlHandler, logger)
+	routeHandler := api.NewRouteHandler(prodInfo, buildInfo, graphqlHandler, cloudInfoLogger)
 
 	// new default gin engine (recovery, logger middleware)
 	router := gin.Default()

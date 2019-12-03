@@ -20,7 +20,6 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
@@ -31,7 +30,7 @@ import (
 type mngmntRouteHandler struct {
 	cis cloudinfo.CloudInfoStore
 	sd  cloudinfo.ScrapingDriver
-	log logur.Logger
+	log cloudinfo.Logger
 }
 
 // Export exports the content of the Store into the response body
@@ -93,7 +92,7 @@ func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
 	}
 }
 
-func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, sd cloudinfo.ScrapingDriver, log logur.Logger) *gin.Engine {
+func StartManagementEngine(cfg Config, cis cloudinfo.CloudInfoStore, sd cloudinfo.ScrapingDriver, log cloudinfo.Logger) *gin.Engine {
 	if err := cfg.Validate(); err != nil {
 		emperror.Panic(err)
 	}
