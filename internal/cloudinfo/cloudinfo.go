@@ -17,7 +17,6 @@ package cloudinfo
 import (
 	"strings"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -74,11 +73,11 @@ func (cpi *cloudInfo) GetProvider(provider string) (types.Provider, error) {
 	)
 
 	if !cpi.providerEnabled(provider) {
-		return types.Provider{}, emperror.With(errors.New("unsupported provider"), "provider", provider)
+		return types.Provider{}, errors.NewWithDetails("unsupported provider", "provider", provider)
 	}
 
 	if srvcs, err = cpi.GetServices(provider); err != nil {
-		return types.Provider{}, emperror.WrapWith(err, "failed to get services", "provider", provider)
+		return types.Provider{}, errors.WithDetails(err, "failed to get services", "provider", provider)
 	}
 
 	// decorate the provider with service information
@@ -89,7 +88,7 @@ func (cpi *cloudInfo) GetProvider(provider string) (types.Provider, error) {
 }
 
 func (cpi *cloudInfo) providerEnabled(provider string) bool {
-	var enabled bool = false
+	var enabled = false
 
 	for _, p := range cpi.providers {
 		if p == provider {
@@ -107,7 +106,7 @@ func (cpi *cloudInfo) GetZones(provider, service, region string) ([]string, erro
 		return cachedVal, nil
 	}
 
-	return nil, emperror.With(errors.New("zones not yet cached"), "provider", provider, "region", region)
+	return nil, errors.NewWithDetails("zones not yet cached", "provider", provider, "region", region)
 }
 
 // GetRegions gets the regions for the provided provider
@@ -116,7 +115,7 @@ func (cpi *cloudInfo) GetRegions(provider, service string) (map[string]string, e
 		return cachedVal, nil
 	}
 
-	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
+	return nil, errors.NewWithDetails("regions not yet cached", "provider", provider, "services", service)
 }
 
 func (cpi *cloudInfo) GetServices(provider string) ([]types.Service, error) {
@@ -124,32 +123,28 @@ func (cpi *cloudInfo) GetServices(provider string) ([]types.Service, error) {
 		return cachedVal, nil
 	}
 
-	return nil, emperror.With(errors.New("services not yet cached"), "provider", provider)
+	return nil, errors.NewWithDetails("services not yet cached", "provider", provider)
 }
 
 // GetProductDetails retrieves product details form the given provider and region
 func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]types.ProductDetails, error) {
-	var (
-		vms interface{}
-		ok  bool
-	)
-
-	if vms, ok = cpi.cloudInfoStore.GetVm(provider, service, region); !ok {
+	vms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
+	if !ok {
 		cpi.log.Debug("VMs not yet cached")
 		return nil, errors.NewWithDetails("VMs not yet cached", "provider", provider, "service", service, "region", region)
 	}
 
-	var details []types.ProductDetails
-
-	for _, vm := range vms.([]types.VMInfo) {
+	details := make([]types.ProductDetails, 0, len(vms))
+	for _, vm := range vms {
 
 		pd := types.NewProductDetails(vm)
-		if cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type); ok {
-			for zone, price := range cachedVal.SpotPrice {
-				pd.SpotPrice = append(pd.SpotPrice, *types.NewZonePrice(zone, price))
-			}
-		} else {
+		cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type)
+		if !ok {
 			cpi.log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
+		}
+
+		for zone, price := range cachedVal.SpotPrice {
+			pd.SpotPrice = append(pd.SpotPrice, *types.NewZonePrice(zone, price))
 		}
 
 		details = append(details, *pd)
@@ -163,7 +158,7 @@ func (cpi *cloudInfo) GetStatus(provider string) (string, error) {
 	if cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider); ok {
 		return cachedStatus, nil
 	}
-	return "", emperror.With(errors.New("status not yet cached"), "provider", provider)
+	return "", errors.NewWithDetails("status not yet cached", "provider", provider)
 }
 
 // GetServiceImages retrieves available images for the given provider, service and region
@@ -172,7 +167,7 @@ func (cpi *cloudInfo) GetServiceImages(provider, service, region string) ([]type
 		return cachedImages, nil
 	}
 
-	return nil, emperror.With(errors.New("images not yet cached"), "provider", provider,
+	return nil, errors.NewWithDetails("images not yet cached", "provider", provider,
 		"service", service, "region", region)
 }
 
@@ -181,8 +176,8 @@ func (cpi *cloudInfo) GetVersions(provider, service, region string) ([]types.Loc
 	if cachedVersions, ok := cpi.cloudInfoStore.GetVersion(provider, service, region); ok {
 		return cachedVersions, nil
 	}
-	return nil, emperror.With(errors.New("versions not yet cached"),
-		"provider", provider, "service", service, "region", region)
+	return nil, errors.NewWithDetails("versions not yet cached", "provider", provider,
+		"service", service, "region", region)
 }
 
 // GetContinents retrieves available continents
@@ -193,7 +188,7 @@ func (cpi *cloudInfo) GetContinents() []string {
 // GetContinents gets the continents and regions for the provided provider
 func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]types.Region, error) {
 	if cachedVal, ok := cpi.cloudInfoStore.GetRegions(provider, service); ok {
-		var continents = make(map[string][]types.Region)
+		continents := make(map[string][]types.Region)
 		for id, name := range cachedVal {
 			continent := getContinent(id)
 			continents[continent] = append(continents[continent], types.Region{
@@ -204,7 +199,7 @@ func (cpi *cloudInfo) GetContinentsData(provider, service string) (map[string][]
 		return continents, nil
 	}
 
-	return nil, emperror.With(errors.New("regions not yet cached"), "provider", provider, "services", service)
+	return nil, errors.NewWithDetails("regions not yet cached", "provider", provider, "services", service)
 }
 
 // getContinent categorizes regions by continents
