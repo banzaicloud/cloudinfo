@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/goph/logur"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
@@ -48,15 +47,90 @@ type defaultCloudInfoLoader struct {
 	store cloudinfo.CloudInfoStore
 
 	// component logger
-	log logur.Logger
+	log cloudinfo.Logger
 }
 
-func (sl *defaultCloudInfoLoader) Load() {
-	sl.LoadRegions()
+func (dl *defaultCloudInfoLoader) Load() {
+	dl.LoadRegions()
 }
 
 // loadRegions loads regions in the cloud info store
-func (sl *defaultCloudInfoLoader) LoadRegions() {
+func (dl *defaultCloudInfoLoader) LoadRegions() {
+	dl.log.Debug("loading region data...")
+
+	regionMap := make(map[string]string)
+	for _, region := range dl.serviceData.Regions {
+		regionMap[region.Id] = region.Name
+
+		dl.LoadZones(dl.serviceData.Provider, dl.serviceData.Name, region)
+
+		dl.LoadVersions(dl.serviceData.Provider, dl.serviceData.Name, region)
+
+		dl.LoadImages(dl.serviceData.Provider, dl.serviceData.Name, region)
+
+		dl.LoadVms(dl.serviceData.Provider, dl.serviceData.Name, region)
+	}
+
+	dl.store.StoreRegions(dl.serviceData.Provider, dl.serviceData.Name, regionMap)
+	dl.log.Debug("regions loaded")
+
+	// set the status
+	dl.store.StoreStatus(dl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
+	dl.log.Debug("status updated")
+
+}
+
+// loadZones loads zones for a given region in the store
+func (dl *defaultCloudInfoLoader) LoadZones(provider, service string, region Region) {
+	log := dl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading zones...")
+	defer log.Debug("loading zones... DONE.")
+
+	dl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
+}
+
+// loadVersions loads versions for a given region into the store
+func (dl *defaultCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
+	log := dl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading versions...")
+	defer log.Debug("loading versions... DONE.")
+
+	dl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
+
+}
+
+// loadImages loads images for a given region into the store
+func (dl *defaultCloudInfoLoader) LoadImages(provider string, service string, region Region) {
+	log := dl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading images...")
+	defer log.Debug("loading images... DONE.")
+
+	dl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
+}
+
+// loadVms loads vms for a given region into the store
+func (dl *defaultCloudInfoLoader) LoadVms(provider string, service string, region Region) {
+	log := dl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading VMs...")
+	defer log.Debug("loading VMs... DONE.")
+
+	dl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
+}
+
+// loader implementation that populates service related data based on a source service available in the info store
+type storeCloudInfoLoader struct {
+	store       cloudinfo.CloudInfoStore
+	log         cloudinfo.Logger
+	serviceData ServiceData
+	eventBus    messaging.EventBus
+}
+
+func (sl *storeCloudInfoLoader) Load() {
+	sl.eventBus.SubscribeScrapingComplete(sl.serviceData.Provider, sl.LoadRegions)
+}
+
+// loadRegions loads regions in the cloud info store
+func (sl *storeCloudInfoLoader) LoadRegions() {
 	sl.log.Debug("loading region data...")
 
 	regionMap := make(map[string]string)
@@ -81,298 +155,229 @@ func (sl *defaultCloudInfoLoader) LoadRegions() {
 
 }
 
-// loadZones loads zones for a given region in the store
-func (sl *defaultCloudInfoLoader) LoadZones(provider, service string, region Region) {
-	sl.log.Debug("loading zones...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
-	sl.log.Debug("zones loaded", map[string]interface{}{"service": service, "region": region.Id})
-}
+func (sl *storeCloudInfoLoader) LoadZones(provider string, service string, region Region) {
+	// add method context to the logger
+	log := sl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading zones...")
+	defer log.Debug("loading zones... DONE.")
 
-// loadVersions loads versions for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
-	sl.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-	sl.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Id})
-}
-
-// loadImages loads images for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadImages(provider string, service string, region Region) {
-	sl.log.Debug("loading images...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
-	sl.log.Debug("images loaded", map[string]interface{}{"service": service, "region": region.Id})
-}
-
-// loadVms loads vms for a given region into the store
-func (sl *defaultCloudInfoLoader) LoadVms(provider string, service string, region Region) {
-	sl.log.Debug("loading vms...", map[string]interface{}{"service": service, "region": region.Id})
-	sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
-	sl.log.Debug("vms loaded", map[string]interface{}{"service": service, "region": region.Id})
-}
-
-type storeCloudInfoLoader struct {
-	store       cloudinfo.CloudInfoStore
-	log         logur.Logger
-	serviceData ServiceData
-	eventBus    messaging.EventBus
-}
-
-func (scil *storeCloudInfoLoader) Load() {
-	scil.eventBus.SubscribeScrapingComplete(scil.serviceData.Provider, scil.LoadRegions)
-}
-
-// loadRegions loads regions in the cloud info store
-func (scil *storeCloudInfoLoader) LoadRegions() {
-	scil.log.Debug("loading region data...")
-
-	regionMap := make(map[string]string)
-	for _, region := range scil.serviceData.Regions {
-		regionMap[region.Id] = region.Name
-
-		scil.LoadZones(scil.serviceData.Provider, scil.serviceData.Name, region)
-
-		scil.LoadVersions(scil.serviceData.Provider, scil.serviceData.Name, region)
-
-		scil.LoadImages(scil.serviceData.Provider, scil.serviceData.Name, region)
-
-		scil.LoadVms(scil.serviceData.Provider, scil.serviceData.Name, region)
-	}
-
-	scil.store.StoreRegions(scil.serviceData.Provider, scil.serviceData.Name, regionMap)
-	scil.log.Debug("regions loaded")
-
-	// set the status
-	scil.store.StoreStatus(scil.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
-	scil.log.Debug("status updated")
-
-}
-
-func (scil *storeCloudInfoLoader) LoadZones(provider string, service string, region Region) {
 	switch region.Data.Zones.Strategy {
 	case exact:
-		scil.log.Debug("loading zones...")
-		scil.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
-		scil.log.Debug("zones loaded")
+		sl.store.StoreZones(provider, service, region.Id, region.Data.Zones.Data)
+
 	case exclude:
-		var (
-			zones interface{}
-			ok    bool
-		)
-		if zones, ok = scil.store.GetZones(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("zones not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableZones []string
-			for _, zone := range zones.([]string) {
-				if !cloudinfo.Contains(region.Data.Zones.Data, string(zone)) {
-					availableZones = append(availableZones, string(zone))
-				}
-			}
-			scil.store.StoreZones(provider, service, region.Id, availableZones)
+		zones, ok := sl.store.GetZones(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service zones not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
 		}
+
+		filteredZones := make([]string, 0, len(zones))
+		for _, zone := range zones {
+			if cloudinfo.Contains(region.Data.Zones.Data, zone) {
+				continue
+			}
+			filteredZones = append(filteredZones, zone)
+		}
+
+		sl.store.StoreZones(provider, service, region.Id, filteredZones)
+
 	case include:
-		var (
-			zones interface{}
-			ok    bool
-		)
-		if zones, ok = scil.store.GetZones(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("zones not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableZones []string
-			for _, zone := range region.Data.Zones.Data {
-				if cloudinfo.Contains(zones.([]string), zone) {
-					availableZones = append(availableZones, zone)
-				}
-			}
-			scil.store.StoreZones(provider, service, region.Id, availableZones)
+		zones, ok := sl.store.GetZones(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service zones not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
 		}
+
+		filteredZones := make([]string, 0, len(zones))
+		for _, zone := range region.Data.Zones.Data {
+			if cloudinfo.Contains(zones, zone) {
+				filteredZones = append(filteredZones, zone)
+			}
+		}
+
+		sl.store.StoreZones(provider, service, region.Id, filteredZones)
+
 	default:
-		scil.log.Error("invalid zone strategy",
-			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Zones.Strategy})
+		log.Error("unsupported strategy for loading zones", map[string]interface{}{"strategy": region.Data.Zones.Strategy})
 	}
 }
 
-func (scil *storeCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
+func (sl *storeCloudInfoLoader) LoadVersions(provider string, service string, region Region) {
+	// add method context to the logger
+	log := sl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading versions...")
+	defer log.Debug("loading versions... DONE.")
+
 	switch region.Data.Versions.Strategy {
 	case exact:
-		scil.log.Debug("loading versions...", map[string]interface{}{"service": service, "region": region.Id})
-		scil.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-		scil.log.Debug("versions loaded", map[string]interface{}{"service": service, "region": region.Id})
+		sl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
+
 	case exclude:
-		var (
-			versions interface{}
-			ok       bool
-		)
-		if versions, ok = scil.store.GetVersion(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("versions not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableVersions []types.LocationVersion
-			for _, version := range versions.([]types.LocationVersion) {
-				for _, data := range region.Data.Versions.Data {
-					if data.Location == version.Location {
-						for _, v := range version.Versions {
-							keep := true
-							for _, excludeVersion := range data.Versions {
-								if v == excludeVersion {
-									keep = false
-									break
-								}
-							}
-							if keep {
-								availableVersions = append(availableVersions, version)
-							}
-						}
+		sourceVersions, ok := sl.store.GetVersion(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service versions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
+		}
+
+		filteredVersions := make([]types.LocationVersion, 0, len(sourceVersions))
+		for _, version := range sourceVersions {
+			for _, versionData := range region.Data.Versions.Data {
+				if versionData.Location != version.Location {
+					continue
+				}
+
+				for _, sourceVersion := range version.Versions {
+					if cloudinfo.Contains(versionData.Versions, sourceVersion) {
+						continue
 					}
 
+					filteredVersions = append(filteredVersions, version)
 				}
 			}
-			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
 		}
+		sl.store.StoreVersion(provider, service, region.Id, filteredVersions)
+
 	case include:
-		var (
-			versions interface{}
-			ok       bool
-		)
-		if versions, ok = scil.store.GetVersion(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("versions not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableVersions []types.LocationVersion
-			for _, data := range region.Data.Versions.Data {
-				for _, version := range versions.([]types.LocationVersion) {
-					if data.Location == version.Location {
-						for _, includeVersion := range data.Versions {
-							for _, v := range version.Versions {
-								if includeVersion == v {
-									availableVersions = append(availableVersions, version)
-								}
-							}
-						}
+		sourceVersions, ok := sl.store.GetVersion(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service versions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
+		}
+
+		filteredVersions := make([]types.LocationVersion, 0, len(sourceVersions))
+		for _, sourceVersion := range sourceVersions {
+			for _, versionData := range region.Data.Versions.Data {
+
+				if versionData.Location != sourceVersion.Location {
+					continue
+				}
+
+				for _, sourceVersionValue := range sourceVersion.Versions {
+					if cloudinfo.Contains(versionData.Versions, sourceVersionValue) {
+						filteredVersions = append(filteredVersions, sourceVersion)
 					}
 				}
 			}
-			scil.store.StoreVersion(provider, service, region.Id, availableVersions)
 		}
+
+		sl.store.StoreVersion(provider, service, region.Id, filteredVersions)
+
 	default:
-		scil.log.Error("invalid version strategy",
-			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Versions.Strategy})
+		log.Error("unsupported strategy for loading versions", map[string]interface{}{"strategy": region.Data.Zones.Strategy})
 	}
 }
 
-func (scil *storeCloudInfoLoader) LoadImages(provider string, service string, region Region) {
+func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, region Region) {
+	// add method context to the logger
+	log := sl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading images...")
+	defer log.Debug("loading images... DONE.")
+
 	switch region.Data.Images.Strategy {
 	case exact:
-		scil.log.Debug("loading images...")
-		scil.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
-		scil.log.Debug("images loaded")
-	case exclude:
-		var (
-			images interface{}
-			ok     bool
-		)
-		if images, ok = scil.store.GetImage(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("images not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableImages []types.Image
-			for _, image := range images.([]types.Image) {
-				keep := true
-				for _, excludeImage := range region.Data.Images.Data {
-					if excludeImage.Name == image.Name {
-						keep = false
-						break
-					}
-				}
-				if keep {
-					availableImages = append(availableImages, image)
-				}
-			}
+		sl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
 
-			scil.store.StoreImage(provider, service, region.Id, availableImages)
+	case exclude:
+		sourceImages, ok := sl.store.GetImage(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service images not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
 		}
-	case include:
-		var (
-			images interface{}
-			ok     bool
-		)
-		if images, ok = scil.store.GetImage(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("images not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableImages []types.Image
-			for _, image := range region.Data.Images.Data {
-				for _, img := range images.([]types.Image) {
-					if image.Name == img.Name {
-						availableImages = append(availableImages, img)
-					}
+
+		filteredImages := make([]types.Image, 0, len(sourceImages))
+		for _, sourceImage := range sourceImages {
+			for _, excludeImage := range region.Data.Images.Data {
+
+				if excludeImage.Name != sourceImage.Name {
+					filteredImages = append(filteredImages, sourceImage)
+					break
 				}
 			}
-			scil.store.StoreImage(provider, service, region.Id, availableImages)
 		}
+
+		sl.store.StoreImage(provider, service, region.Id, filteredImages)
+
+	case include:
+		sourceImages, ok := sl.store.GetImage(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service images not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
+		}
+
+		filteredImages := make([]types.Image, 0, len(sourceImages))
+		for _, sourceImage := range sourceImages {
+			for _, excludeImage := range region.Data.Images.Data {
+
+				if excludeImage.Name == sourceImage.Name {
+					filteredImages = append(filteredImages, sourceImage)
+					break
+				}
+			}
+		}
+
+		sl.store.StoreImage(provider, service, region.Id, filteredImages)
+
 	default:
-		scil.log.Error("invalid image strategy",
-			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Images.Strategy})
+		log.Error("unsupported strategy for loading images", map[string]interface{}{"strategy": region.Data.Zones.Strategy})
 	}
 }
 
-func (scil *storeCloudInfoLoader) LoadVms(provider string, service string, region Region) {
+func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region Region) {
+	// add method context to the logger
+	log := sl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+	log.Debug("loading VMs...")
+	defer log.Debug("loading VMs... DONE.")
+
 	switch region.Data.Vms.Strategy {
 	case exact:
-		scil.log.Debug("loading vms...")
-		scil.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
-		scil.log.Debug("vms loaded")
-	case exclude:
-		var (
-			vms interface{}
-			ok  bool
-		)
-		if vms, ok = scil.store.GetVm(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("vms not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableVms []types.VMInfo
-			for _, vm := range vms.([]types.VMInfo) {
-				keep := true
-				for _, excludeVm := range region.Data.Vms.Data {
-					if excludeVm.Type == vm.Type {
-						keep = false
-						break
-					}
-				}
-				if keep {
-					availableVms = append(availableVms, vm)
-				}
-			}
+		sl.store.StoreVm(provider, service, region.Id, region.Data.Vms.Data)
 
-			scil.store.StoreVm(provider, service, region.Id, availableVms)
+	case exclude:
+		sourceVMs, ok := sl.store.GetVm(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
 		}
-	case include:
-		var (
-			vms interface{}
-			ok  bool
-		)
-		if vms, ok = scil.store.GetVm(provider, scil.serviceData.Source, region.Id); !ok {
-			scil.log.Error("vms not yet cached",
-				map[string]interface{}{"provider": provider, "service": scil.serviceData.Source, "region": region.Id})
-		} else {
-			var availableVms []types.VMInfo
-			for _, _vm := range region.Data.Vms.Data {
-				for _, vm := range vms.([]types.VMInfo) {
-					if _vm.Type == vm.Type {
-						availableVms = append(availableVms, vm)
-					}
+
+		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
+		for _, sourceVM := range sourceVMs {
+
+			for _, excludeVM := range region.Data.Vms.Data {
+				if excludeVM.Type != sourceVM.Type {
+					filteredVMs = append(filteredVMs, sourceVM)
 				}
 			}
-			scil.store.StoreVm(provider, service, region.Id, availableVms)
 		}
+
+		sl.store.StoreVm(provider, service, region.Id, filteredVMs)
+
+	case include:
+		sourceVMs, ok := sl.store.GetVm(provider, sl.serviceData.Source, region.Id)
+		if !ok {
+			log.Warn("source service VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			return
+		}
+
+		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
+		for _, sourceVM := range sourceVMs {
+
+			for _, excludeVM := range region.Data.Vms.Data {
+				if excludeVM.Type == sourceVM.Type {
+					filteredVMs = append(filteredVMs, sourceVM)
+				}
+			}
+		}
+
+		sl.store.StoreVm(provider, service, region.Id, filteredVMs)
+
 	default:
-		scil.log.Error("invalid vm strategy",
-			map[string]interface{}{"provider": provider, "service": service, "region": region.Id, "strategy": region.Data.Vms.Strategy})
+		log.Error("unsupported strategy for loading VMs", map[string]interface{}{"strategy": region.Data.Zones.Strategy})
 	}
 }
 
-func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log logur.Logger, eventBus messaging.EventBus) CloudInfoLoader {
+func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log cloudinfo.Logger,
+	eventBus messaging.EventBus) CloudInfoLoader {
 
 	dataViper := viper.New()
 	dataViper.SetConfigName(datafile)
@@ -390,9 +395,9 @@ func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.Clo
 	}
 
 	if serviceData.Source != "" {
-		// servicloader implementation that uses another service as source
+		// serviceloader implementation that uses another service as source
 		return &storeCloudInfoLoader{
-			log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
+			log:         log.WithFields(map[string]interface{}{"component": "service-loader"}),
 			store:       store,
 			serviceData: serviceData,
 			eventBus:    eventBus,
@@ -402,6 +407,6 @@ func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.Clo
 	return &defaultCloudInfoLoader{
 		serviceData: serviceData,
 		store:       store,
-		log:         logur.WithFields(log, map[string]interface{}{"component": "service-loader"}),
+		log:         log.WithFields(map[string]interface{}{"component": "service-loader"}),
 	}
 }

@@ -28,7 +28,7 @@ type GetProviderPathParams struct {
 // GetServicesPathParams is a placeholder for the services related route path parameters
 // swagger:parameters getRegions getService getContinentsData
 type GetServicesPathParams struct {
-	GetProviderPathParams `binding:"required,structonly" mapstructure:",squash"`
+	GetProviderPathParams `binding:"required" mapstructure:",squash"`
 	// in:path
 	Service string `binding:"required,service" json:"service"`
 }
@@ -36,7 +36,7 @@ type GetServicesPathParams struct {
 // GetRegionPathParams is a placeholder for the regions related route path parameters
 // swagger:parameters getRegion getImages getProducts getVersions
 type GetRegionPathParams struct {
-	GetServicesPathParams `binding:"required,structonly" mapstructure:",squash"`
+	GetServicesPathParams `binding:"required" mapstructure:",squash"`
 	// in:path
 	Region string `binding:"required,region" json:"region"`
 }
@@ -44,7 +44,7 @@ type GetRegionPathParams struct {
 // GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
 // swagger:parameters getAttrValues
 type GetAttributeValuesPathParams struct {
-	GetRegionPathParams `binding:"required,structonly" mapstructure:",squash"`
+	GetRegionPathParams `binding:"required" mapstructure:",squash"`
 	// in:path
 	Attribute string `binding:"required,attribute" json:"attribute"`
 }

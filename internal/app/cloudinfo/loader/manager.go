@@ -16,7 +16,6 @@ package loader
 
 import (
 	"emperror.dev/emperror"
-	"github.com/goph/logur"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
@@ -42,7 +41,7 @@ type defaultServiceManager struct {
 	store cloudinfo.CloudInfoStore
 
 	// component logger instance
-	log logur.Logger
+	log cloudinfo.Logger
 
 	// component eventbus instance
 	eventBus messaging.EventBus
@@ -68,22 +67,22 @@ func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 }
 
 func (sm *defaultServiceManager) ConfigureServices(providers []string) {
-	sm.log.Info("initializing services for providers...")
-	for p, psvcs := range sm.services {
-		if !cloudinfo.Contains(providers, p) {
-			sm.log.Debug("skip loading services for provider", map[string]interface{}{"provider": p})
+	for provider, providerServices := range sm.services {
+		if !cloudinfo.Contains(providers, provider) {
+			sm.log.Debug("provider not enabled", map[string]interface{}{"provider": provider})
 			continue
 		}
-		var svcs []types.Service
-		for _, psvc := range psvcs {
-			svcs = append(svcs, types.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
+
+		services := make([]types.Service, 0, len(providerServices))
+		for _, psvc := range providerServices {
+			services = append(services, types.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
 		}
-		sm.store.StoreServices(p, svcs)
+		sm.log.Debug("initialized provider services", map[string]interface{}{"provider": provider, "services #": len(services)})
+		sm.store.StoreServices(provider, services)
 	}
-	sm.log.Info("services initialized")
 }
 
-func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log logur.Logger, eventBus messaging.EventBus) ServiceManager {
+func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log cloudinfo.Logger, eventBus messaging.EventBus) ServiceManager {
 	// using a viper instance for loading data
 	vp := viper.New()
 	vp.AddConfigPath(config.ServiceConfigLocation)
@@ -105,7 +104,7 @@ func NewDefaultServiceManager(config Config, store cloudinfo.CloudInfoStore, log
 
 	return &defaultServiceManager{
 		store:    store,
-		log:      logur.WithFields(log, map[string]interface{}{"component": "service-manager"}),
+		log:      log.WithFields(map[string]interface{}{"component": "service-manager"}),
 		services: sds,
 		eventBus: eventBus,
 	}

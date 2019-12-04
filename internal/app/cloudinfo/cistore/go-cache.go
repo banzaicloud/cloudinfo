@@ -160,6 +160,9 @@ func (cis *cacheProductStore) StoreServices(provider string, services []types.Se
 
 func (cis *cacheProductStore) GetServices(provider string) ([]types.Service, bool) {
 	r, o := cis.Get(cis.getKey(cloudinfo.ServicesKeyTemplate, provider))
+	if !o {
+		return nil, o
+	}
 	return r.([]types.Service), o
 }
 
