@@ -168,35 +168,35 @@ func (sl *storeCloudInfoLoader) LoadZones(provider string, service string, regio
 	case exclude:
 		zones, ok := sl.store.GetZones(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' service zones not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service zones not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
-		availableZones := make([]string, 0, len(zones))
+		filteredZones := make([]string, 0, len(zones))
 		for _, zone := range zones {
 			if cloudinfo.Contains(region.Data.Zones.Data, zone) {
 				continue
 			}
-			availableZones = append(availableZones, zone)
+			filteredZones = append(filteredZones, zone)
 		}
 
-		sl.store.StoreZones(provider, service, region.Id, availableZones)
+		sl.store.StoreZones(provider, service, region.Id, filteredZones)
 
 	case include:
 		zones, ok := sl.store.GetZones(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' service zones not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service zones not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
-		availableZones := make([]string, 0, len(zones))
+		filteredZones := make([]string, 0, len(zones))
 		for _, zone := range region.Data.Zones.Data {
 			if cloudinfo.Contains(zones, zone) {
-				availableZones = append(availableZones, zone)
+				filteredZones = append(filteredZones, zone)
 			}
 		}
 
-		sl.store.StoreZones(provider, service, region.Id, availableZones)
+		sl.store.StoreZones(provider, service, region.Id, filteredZones)
 
 	default:
 		log.Error("unsupported strategy for loading zones", map[string]interface{}{"strategy": region.Data.Zones.Strategy})
@@ -216,11 +216,11 @@ func (sl *storeCloudInfoLoader) LoadVersions(provider string, service string, re
 	case exclude:
 		sourceVersions, ok := sl.store.GetVersion(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' versions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service versions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
-		filteredVersions := make([]types.LocationVersion, len(sourceVersions))
+		filteredVersions := make([]types.LocationVersion, 0, len(sourceVersions))
 		for _, version := range sourceVersions {
 			for _, versionData := range region.Data.Versions.Data {
 				if versionData.Location != version.Location {
@@ -241,11 +241,11 @@ func (sl *storeCloudInfoLoader) LoadVersions(provider string, service string, re
 	case include:
 		sourceVersions, ok := sl.store.GetVersion(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' versions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service versions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
-		filteredVersions := make([]types.LocationVersion, len(sourceVersions))
+		filteredVersions := make([]types.LocationVersion, 0, len(sourceVersions))
 		for _, sourceVersion := range sourceVersions {
 			for _, versionData := range region.Data.Versions.Data {
 
@@ -281,11 +281,11 @@ func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, regi
 	case exclude:
 		sourceImages, ok := sl.store.GetImage(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' images not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service images not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
-		filteredImages := make([]types.Image, len(sourceImages))
+		filteredImages := make([]types.Image, 0, len(sourceImages))
 		for _, sourceImage := range sourceImages {
 			for _, excludeImage := range region.Data.Images.Data {
 
@@ -301,11 +301,11 @@ func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, regi
 	case include:
 		sourceImages, ok := sl.store.GetImage(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' images not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service images not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
-		filteredImages := make([]types.Image, len(sourceImages))
+		filteredImages := make([]types.Image, 0, len(sourceImages))
 		for _, sourceImage := range sourceImages {
 			for _, excludeImage := range region.Data.Images.Data {
 
@@ -336,7 +336,7 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 	case exclude:
 		sourceVMs, ok := sl.store.GetVm(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
@@ -355,7 +355,7 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 	case include:
 		sourceVMs, ok := sl.store.GetVm(provider, sl.serviceData.Source, region.Id)
 		if !ok {
-			log.Warn("source' VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+			log.Warn("source service VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
 			return
 		}
 
@@ -395,7 +395,7 @@ func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.Clo
 	}
 
 	if serviceData.Source != "" {
-		// serviloader implementation that uses another service as source
+		// serviceloader implementation that uses another service as source
 		return &storeCloudInfoLoader{
 			log:         log.WithFields(map[string]interface{}{"component": "service-loader"}),
 			store:       store,
