@@ -235,7 +235,7 @@ func (e *Ec2Infoer) GetProducts(vms []types.VMInfo, service, regionId string) ([
 	case "compute":
 		return vmList, nil
 	default:
-		return nil, errors.Wrap(errors.New(service), "invalid service")
+		return nil, errors.NewWithDetails("invalid service", "service", service)
 	}
 }
 
@@ -302,12 +302,12 @@ func (pd *priceData) getOnDemandPrice() (string, error) {
 func getMapForKey(key string, srcMap map[string]interface{}) (map[string]interface{}, error) {
 	rawMap, ok := srcMap[key]
 	if !ok {
-		return nil, errors.Wrap(errors.New(key), "could not get map for key")
+		return nil, errors.NewWithDetails("could not get map for key", "key", key)
 	}
 
 	remap, ok := rawMap.(map[string]interface{})
 	if !ok {
-		return nil, errors.Wrap(errors.New(key), "could not be cast to map[string]interface{} for key")
+		return nil, errors.NewWithDetails("unexpected value for key", "key", key, "value", rawMap)
 	}
 	return remap, nil
 }

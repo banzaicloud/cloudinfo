@@ -359,9 +359,15 @@ func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) 
 	}
 }
 
-func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
-	store CloudInfoStore, log Logger, metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus, errorHandler ErrorHandler) *ScrapingDriver {
-	var managers []*scrapingManager
+func NewScrapingDriver(renewalInterval time.Duration,
+	infoers map[string]CloudInfoer,
+	store CloudInfoStore,
+	eventBus messaging.EventBus,
+	metrics metrics.Reporter,
+	tracer tracing.Tracer,
+	errorHandler ErrorHandler,
+	log Logger) *ScrapingDriver {
+	managers := make([]*scrapingManager, 0, len(infoers))
 
 	for provider, infoer := range infoers {
 		managers = append(managers, NewScrapingManager(provider, infoer, store, log, metrics, tracer, eventBus, errorHandler))
