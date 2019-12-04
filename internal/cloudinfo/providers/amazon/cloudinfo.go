@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -39,7 +38,10 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
 
-const svcEks = "eks"
+const (
+	svcEks = "eks"
+	svcPKE = "pke"
+)
 
 // Ec2Infoer encapsulates the data and operations needed to access external resources
 type Ec2Infoer struct {
@@ -177,8 +179,8 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 		ntwMapper := newAmazonNetworkMapper()
 		ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
 		if err != nil {
-			logger.Debug(emperror.Wrap(err, "failed to get network performance category").Error(),
-				map[string]interface{}{"instanceType": instanceType})
+			// leave the value unfilled, don't break the flow
+			logger.Debug("failed to get network performance category", map[string]interface{}{"instanceType": instanceType})
 		}
 
 		onDemandPrice, _ := strconv.ParseFloat(odPriceStr, 64)
@@ -219,7 +221,7 @@ func (e *Ec2Infoer) GetProducts(vms []types.VMInfo, service, regionId string) ([
 		vmList, err = e.GetVirtualMachines(regionId)
 		if err != nil {
 			e.log.Warn("could not get machine types for region", map[string]interface{}{"regionId": regionId})
-			return nil, emperror.Wrap(err, "failed to get products")
+			return nil, errors.WrapIf(err, "failed to get products")
 		}
 	}
 	switch service {
@@ -547,32 +549,12 @@ func (e *Ec2Infoer) HasImages() bool {
 
 // GetServiceImages retrieves the images supported by the given service in the given region
 func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, error) {
-	imageDescribers := make([]types.Image, 0)
+	serviceImages := make([]types.Image, 0)
+	switch service {
+	case svcEks:
+		for _, k8sVersion := range []string{"1.11", "1.12", "1.13", "1.14"} {
 
-	if service == svcEks {
-		for _, version := range []string{"1.11", "1.12", "1.13", "1.14"} {
-			input := &ec2.DescribeImagesInput{
-				Filters: []*ec2.Filter{
-					{
-						Name:   aws.String("name"),
-						Values: []*string{aws.String("amazon-eks-gpu-node-" + version + "*")},
-					},
-					{
-						Name:   aws.String("is-public"),
-						Values: []*string{aws.String("true")},
-					},
-					{
-						Name:   aws.String("state"),
-						Values: []*string{aws.String("available")},
-					},
-					{
-						Name:   aws.String("owner-alias"),
-						Values: []*string{aws.String("amazon")},
-					},
-				},
-			}
-
-			gpuImages, err := e.ec2Describer(region).DescribeImages(input)
+			gpuImages, err := e.ec2Describer(region).DescribeImages(getEKSDescribeImagesInput(k8sVersion, true))
 			if err != nil {
 				return nil, err
 			}
@@ -583,31 +565,10 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 			}
 
 			if latestImage != nil {
-				imageDescribers = append(imageDescribers, types.NewImage(*latestImage.ImageId, version, true))
+				serviceImages = append(serviceImages, types.NewImage(*latestImage.ImageId, k8sVersion, true))
 			}
 
-			input = &ec2.DescribeImagesInput{
-				Filters: []*ec2.Filter{
-					{
-						Name:   aws.String("name"),
-						Values: []*string{aws.String("amazon-eks-node-" + version + "*")},
-					},
-					{
-						Name:   aws.String("is-public"),
-						Values: []*string{aws.String("true")},
-					},
-					{
-						Name:   aws.String("state"),
-						Values: []*string{aws.String("available")},
-					},
-					{
-						Name:   aws.String("owner-alias"),
-						Values: []*string{aws.String("amazon")},
-					},
-				},
-			}
-
-			images, err := e.ec2Describer(region).DescribeImages(input)
+			images, err := e.ec2Describer(region).DescribeImages(getEKSDescribeImagesInput(k8sVersion, false))
 			if err != nil {
 				return nil, err
 			}
@@ -618,12 +579,29 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 			}
 
 			if latestImage != nil {
-				imageDescribers = append(imageDescribers, types.NewImage(*latestImage.ImageId, version, false))
+				serviceImages = append(serviceImages, types.NewImage(*latestImage.ImageId, k8sVersion, false))
 			}
+		}
+	case svcPKE:
+		gpuImages, err := e.ec2Describer(region).DescribeImages(getPKEDescribeImagesInput())
+		if err != nil {
+			return nil, err
+		}
+
+		latestImage, err := getLatestImage(gpuImages.Images)
+		if err != nil {
+			return nil, err
+		}
+
+		if latestImage != nil {
+			imageTags := tagsFormImage(latestImage)
+			pkeImage := types.NewImage(*latestImage.ImageId, imageTags[tagK8SVersion], false)
+			pkeImage.Tags = imageTags
+			serviceImages = append(serviceImages, pkeImage)
 		}
 	}
 
-	return imageDescribers, nil
+	return serviceImages, nil
 }
 
 // GetServiceProducts retrieves the products supported by the given service in the given region

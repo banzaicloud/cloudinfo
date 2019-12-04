@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	ntwPerfMap = map[string][]string{
+	networkPerformanceCategories = map[string][]string{
 		// available categories
 		// "Up to 25 Gigabit"
 		// "50 Gigabit"
@@ -55,11 +55,11 @@ func newAmazonNetworkMapper() AmazonNetworkMapper {
 }
 
 // MapNetworkPerf maps the network performance of the ec2 to the category supported ny telescope
-func (nm *AmazonNetworkMapper) MapNetworkPerf(ntwPerf string) (string, error) {
-	for perfCat, strVals := range ntwPerfMap {
-		if cloudinfo.Contains(strVals, ntwPerf) {
-			return perfCat, nil
+func (nm *AmazonNetworkMapper) MapNetworkPerf(networkPerformance string) (string, error) {
+	for category, values := range networkPerformanceCategories {
+		if cloudinfo.Contains(values, networkPerformance) {
+			return category, nil
 		}
 	}
-	return "", errors.Wrap(errors.New(ntwPerf), "could not determine network performance")
+	return "", errors.NewWithDetails("could not determine network performance", "networkPerf", networkPerformance)
 }
