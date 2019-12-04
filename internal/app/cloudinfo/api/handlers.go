@@ -15,10 +15,9 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
 
@@ -77,12 +76,12 @@ func (r *RouteHandler) getProvider() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProviderPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -120,7 +119,7 @@ func (r *RouteHandler) getServices() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProviderPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
@@ -129,14 +128,13 @@ func (r *RouteHandler) getServices() gin.HandlerFunc {
 		logger.Info("getting services")
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
 		services, err := r.prod.GetServices(pathParams.Provider)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err,
-				"could not retrieve services for provider: %s", pathParams.Provider))
+			r.errorResponder.Respond(c, errors.WrapIff(err, "could not retrieve services for provider: %s", pathParams.Provider))
 			return
 		}
 
@@ -163,12 +161,12 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 		// bind the path parameters
 		pathParams := GetServicesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -179,8 +177,8 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 
 		services, err := r.prod.GetServices(pathParams.Provider)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err,
-				"could not retrieve services for provider: %s", pathParams.Provider))
+			r.errorResponder.Respond(c, errors.WrapIff(err, "could not retrieve services for provider: %s",
+				pathParams.Provider))
 			return
 		}
 
@@ -193,7 +191,7 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 			}
 		}
 
-		r.errorResponder.Respond(c, emperror.With(errors.New("could not retrieve service"),
+		r.errorResponder.Respond(c, errors.NewWithDetails("could not retrieve service",
 			"service", pathParams.Service, "provider", pathParams.Provider))
 	}
 }
@@ -215,12 +213,12 @@ func (r *RouteHandler) getContinentsData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetServicesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -231,7 +229,7 @@ func (r *RouteHandler) getContinentsData() gin.HandlerFunc {
 
 		locations, err := r.prod.GetContinentsData(pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve continents data for provider [%s], service [%s]",
+			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve continents data for provider [%s], service [%s]",
 				pathParams.Provider, pathParams.Service))
 			return
 		}
@@ -265,12 +263,12 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetServicesPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -281,7 +279,7 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 
 		regions, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve regions for provider [%s], service [%s]",
+			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve regions for provider [%s], service [%s]",
 				pathParams.Provider, pathParams.Service))
 			return
 		}
@@ -315,12 +313,12 @@ func (r *RouteHandler) getRegion() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -331,13 +329,13 @@ func (r *RouteHandler) getRegion() gin.HandlerFunc {
 
 		regions, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err,
+			r.errorResponder.Respond(c, errors.WrapIff(err,
 				"failed to retrieve regions. provider [%s], service [%s]", pathParams.Provider, pathParams.Service))
 			return
 		}
 		zones, err := r.prod.GetZones(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err,
+			r.errorResponder.Respond(c, errors.WrapIff(err,
 				"failed to retrieve zones. provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 
 			return
@@ -365,12 +363,12 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -381,13 +379,12 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 
 		scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err,
-				"failed to retrieve status. provider [%s]", pathParams.Provider))
+			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve status. provider [%s]", pathParams.Provider))
 			return
 		}
 		details, err := r.prod.GetProductDetails(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err,
+			r.errorResponder.Respond(c, errors.WrapIff(err,
 				"failed to retrieve product details. service [%s], provider [%s], region [%s]", pathParams.Service,
 				pathParams.Service, pathParams.Region))
 			return
@@ -415,17 +412,17 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 		queryParams := GetImagesQueryParams{}
 		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version"), &queryParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -436,7 +433,7 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 
 		images, err := r.prod.GetServiceImages(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve service images details. "+
+			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve service images details. "+
 				"provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 			return
 
@@ -479,12 +476,12 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
-			r.errorResponder.Respond(c, emperror.With(err, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
 
 		if ve := ValidatePathData(pathParams); ve != nil {
-			r.errorResponder.Respond(c, emperror.With(ve, "validation"))
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
 			return
 		}
 
@@ -495,7 +492,7 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 
 		versions, err := r.prod.GetVersions(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, emperror.Wrapf(err, "failed to retrieve versions. provider [%s], "+
+			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve versions. provider [%s], "+
 				"service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
 			return
 		}
