@@ -16,6 +16,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
@@ -86,15 +87,12 @@ func (r *RouteHandler) getProvider() gin.HandlerFunc {
 		}
 
 		logger := log.WithFieldsForHandlers(c, r.log, map[string]interface{}{"provider": pathParams.Provider})
-
 		logger.Info("getting provider details")
 
 		provider, err := r.prod.GetProvider(pathParams.Provider)
 		if err != nil {
-			// todo this code is unreachable, the validation catches the possible problems
 			r.errorResponder.Respond(c, err)
 			return
-
 		}
 
 		logger.Debug("successfully retrieved provider details")
@@ -124,7 +122,6 @@ func (r *RouteHandler) getServices() gin.HandlerFunc {
 		}
 
 		logger := log.WithFieldsForHandlers(c, r.log, map[string]interface{}{"provider": pathParams.Provider})
-
 		logger.Info("getting services")
 
 		if ve := ValidatePathData(pathParams); ve != nil {
@@ -134,7 +131,8 @@ func (r *RouteHandler) getServices() gin.HandlerFunc {
 
 		services, err := r.prod.GetServices(pathParams.Provider)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err, "could not retrieve services for provider: %s", pathParams.Provider))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "could not retrieve services",
+				"provider", pathParams.Provider))
 			return
 		}
 
@@ -172,7 +170,6 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 
 		logger := log.WithFieldsForHandlers(c, r.log,
 			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service})
-
 		logger.Info("getting service details")
 
 		services, err := r.prod.GetServices(pathParams.Provider)
@@ -229,10 +226,11 @@ func (r *RouteHandler) getContinentsData() gin.HandlerFunc {
 
 		locations, err := r.prod.GetContinentsData(pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve continents data for provider [%s], service [%s]",
-				pathParams.Provider, pathParams.Service))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve continents data for provider",
+				"provider", pathParams.Provider, "service", pathParams.Service))
 			return
 		}
+
 		var response ContinentsDataResponse
 		for continent, regions := range locations {
 			response = append(response, Continent{
@@ -279,8 +277,8 @@ func (r *RouteHandler) getRegions() gin.HandlerFunc {
 
 		regions, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve regions for provider [%s], service [%s]",
-				pathParams.Provider, pathParams.Service))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve regions",
+				"provider", pathParams.Provider, "service", pathParams.Service))
 			return
 		}
 		var response RegionsResponse
@@ -324,20 +322,18 @@ func (r *RouteHandler) getRegion() gin.HandlerFunc {
 
 		logger := log.WithFieldsForHandlers(c, r.log,
 			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service, "region": pathParams.Region})
-
 		logger.Info("getting region details")
 
 		regions, err := r.prod.GetRegions(pathParams.Provider, pathParams.Service)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err,
-				"failed to retrieve regions. provider [%s], service [%s]", pathParams.Provider, pathParams.Service))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve regions",
+				"provider", pathParams.Provider, "service", pathParams.Service))
 			return
 		}
 		zones, err := r.prod.GetZones(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err,
-				"failed to retrieve zones. provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
-
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve zones",
+				"provider", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region))
 			return
 		}
 
@@ -374,19 +370,19 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 
 		logger := log.WithFieldsForHandlers(c, r.log,
 			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service, "region": pathParams.Region})
-
 		logger.Info("getting product details")
 
 		scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve status. provider [%s]", pathParams.Provider))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve status",
+				"provider", pathParams.Provider))
 			return
 		}
 		details, err := r.prod.GetProductDetails(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err,
-				"failed to retrieve product details. service [%s], provider [%s], region [%s]", pathParams.Service,
-				pathParams.Service, pathParams.Region))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err,
+				"failed to retrieve product details",
+				"provider", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region))
 			return
 		}
 
@@ -416,7 +412,7 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 			return
 		}
 		queryParams := GetImagesQueryParams{}
-		if err := mapstructure.Decode(getQueryParamMap(c, "gpu", "version"), &queryParams); err != nil {
+		if err := mapstructure.Decode(getQueryAsMap(c), &queryParams); err != nil {
 			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
 			return
 		}
@@ -433,29 +429,36 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 
 		images, err := r.prod.GetServiceImages(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve service images details. "+
-				"provider [%s], service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve service images details",
+				"provider", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region))
 			return
 
 		}
 
-		if queryParams.Gpu != "" && queryParams.Version != "" {
-			filteredImages := make([]string, 0)
+		zeroQuery := GetImagesQueryParams{}
+		if queryParams != zeroQuery {
+			filteredImages := make([]types.Image, 0, len(images))
 			for _, image := range images {
-				if queryParams.Version == image.Version {
-					if queryParams.Gpu == "0" && !image.GpuAvailable {
-						filteredImages = append(filteredImages, image.Name)
-					} else if queryParams.Gpu != "0" && image.GpuAvailable {
-						filteredImages = append(filteredImages, image.Name)
-					}
+				if queryParams.Version != "" && queryParams.Version != image.Version {
+					continue
 				}
+				if queryParams.Gpu != "" && !image.GpuAvailable {
+					continue
+				}
+				if queryParams.Os != "" && queryParams.Os != image.Tags["os-type"] {
+					continue
+				}
+				if queryParams.PkeVersion != "" && queryParams.PkeVersion != image.Tags["pke-version"] {
+					continue
+				}
+				filteredImages = append(filteredImages, image)
 			}
-			logger.Debug("successfully retrieved image details")
 			c.JSON(http.StatusOK, filteredImages)
-		} else {
-			logger.Debug("successfully retrieved image details")
-			c.JSON(http.StatusOK, images)
+			return
 		}
+
+		logger.Debug("successfully retrieved image details")
+		c.JSON(http.StatusOK, images)
 	}
 }
 
@@ -487,13 +490,12 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 
 		logger := log.WithFieldsForHandlers(c, r.log,
 			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service, "region": pathParams.Region})
-
 		logger.Info("getting version details")
 
 		versions, err := r.prod.GetVersions(pathParams.Provider, pathParams.Service, pathParams.Region)
 		if err != nil {
-			r.errorResponder.Respond(c, errors.WrapIff(err, "failed to retrieve versions. provider [%s], "+
-				"service [%s], region [%s]", pathParams.Provider, pathParams.Service, pathParams.Region))
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve versions",
+				"service", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region))
 			return
 		}
 
@@ -537,20 +539,19 @@ func getPathParamMap(c *gin.Context) map[string]string {
 	return pm
 }
 
-// getQueryParamMap transforms the query params into a map to be able to easily bind to param structs
-func getQueryParamMap(c *gin.Context, queries ...string) map[string]string {
-	queriesMap := make(map[string]string, 0)
-	for _, query := range queries {
-		if value, ok := c.GetQuery(query); ok {
-			queriesMap[query] = value
-		}
-	}
-	return queriesMap
-}
-
 // entry point to the search API
 func (r *RouteHandler) query() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r.graphqlHandler.ServeHTTP(c.Writer, c.Request)
 	}
+}
+
+func getQueryAsMap(c *gin.Context) map[string]string {
+	queryMap := make(map[string]string)
+
+	for paramKey, paramValues := range c.Request.URL.Query() {
+		queryMap[paramKey] = strings.Join(paramValues, ",")
+	}
+
+	return queryMap
 }
