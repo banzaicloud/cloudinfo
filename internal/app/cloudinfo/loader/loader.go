@@ -104,7 +104,9 @@ func (dl *defaultCloudInfoLoader) LoadImages(provider string, service string, re
 	log := dl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
 	log.Debug("loading images...")
 	defer log.Debug("loading images... DONE.")
-
+	if service == "pke" {
+		return
+	}
 	dl.store.StoreImage(provider, service, region.Id, region.Data.Images.Data)
 }
 
@@ -269,8 +271,15 @@ func (sl *storeCloudInfoLoader) LoadVersions(provider string, service string, re
 }
 
 func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, region Region) {
+
 	// add method context to the logger
 	log := sl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
+
+	if service == "pke" {
+		log.Debug("skip loading images - special case pke")
+		return
+	}
+
 	log.Debug("loading images...")
 	defer log.Debug("loading images... DONE.")
 
