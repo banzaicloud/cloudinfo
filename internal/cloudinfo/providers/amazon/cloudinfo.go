@@ -583,20 +583,17 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 			}
 		}
 	case svcPKE:
-		gpuImages, err := e.ec2Describer(region).DescribeImages(getPKEDescribeImagesInput())
+		amazonImages, err := e.ec2Describer(region).DescribeImages(getPKEDescribeImagesInput())
 		if err != nil {
 			return nil, err
 		}
 
-		latestImage, err := getLatestImage(gpuImages.Images)
-		if err != nil {
-			return nil, err
-		}
-
-		if latestImage != nil {
-			imageTags := tagsFormImage(latestImage)
-			pkeImage := types.NewImage(*latestImage.ImageId, imageTags[tagK8SVersion], false)
+		for _, amazonImage := range amazonImages.Images {
+			imageTags := tagsFormImage(amazonImage)
+			pkeImage := types.NewImage(*amazonImage.ImageId, imageTags[tagK8SVersion], false)
 			pkeImage.Tags = imageTags
+			creationDate, _ := getImageCreateDate(amazonImage)
+			pkeImage.CreationDate = creationDate
 			serviceImages = append(serviceImages, pkeImage)
 		}
 	}
