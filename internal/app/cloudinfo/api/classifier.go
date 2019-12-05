@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/go-openapi/runtime"
 
@@ -58,13 +57,13 @@ func (erc *errClassifier) Classify(inErr interface{}) (interface{}, error) {
 
 	case *runtime.APIError:
 		// (cloud info) service is reachable - operation failed (eg.: bad request)
-		problem = erc.classifyApiError(e, emperror.Context(err))
+		problem = erc.classifyApiError(e, errors.GetDetails(err))
 	case *url.Error:
 		// the cloud info service is not available
-		problem = erc.classifyUrlError(e, emperror.Context(err))
+		problem = erc.classifyUrlError(e, errors.GetDetails(err))
 	default:
 		// unclassified error
-		problem = erc.classifyGenericError(cause, emperror.Context(err))
+		problem = erc.classifyGenericError(cause, errors.GetDetails(err))
 	}
 
 	return problem, nil

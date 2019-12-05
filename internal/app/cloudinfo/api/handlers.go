@@ -16,6 +16,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"emperror.dev/errors"
@@ -422,9 +423,8 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 			return
 		}
 
-		logger := log.WithFieldsForHandlers(c, r.log,
-			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service, "region": pathParams.Region})
-
+		logger := log.WithFieldsForHandlers(c, r.log, map[string]interface{}{"provider": pathParams.Provider,
+			"service": pathParams.Service, "region": pathParams.Region})
 		logger.Info("getting image details")
 
 		images, err := r.prod.GetServiceImages(pathParams.Provider, pathParams.Service, pathParams.Region)
@@ -445,6 +445,7 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 				if queryParams.Gpu != "" && !image.GpuAvailable {
 					continue
 				}
+				// todo possibly add filtering by all tags (generic)
 				if queryParams.Os != "" && queryParams.Os != image.Tags["os-type"] {
 					continue
 				}
@@ -452,6 +453,19 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 					continue
 				}
 				filteredImages = append(filteredImages, image)
+			}
+
+			latestOnly, _ := strconv.ParseBool(queryParams.LatestOnly)
+			if latestOnly {
+				var latestImage = types.Image{}
+				for _, filteredImage := range filteredImages {
+					if filteredImage.CreationDate.After(latestImage.CreationDate) {
+						latestImage = filteredImage
+					}
+				}
+
+				// override the filtered slice
+				filteredImages = []types.Image{latestImage}
 			}
 			c.JSON(http.StatusOK, filteredImages)
 			return

@@ -60,6 +60,8 @@ type GetImagesQueryParams struct {
 	Os string `json:"os,omitempty"`
 	// in:query
 	PkeVersion string `json:"pkeVersion,omitempty"`
+	// in:query
+	LatestOnly string `json:"latestOnly"`
 }
 
 // ProductDetailsResponse Api object to be mapped to product info response
