@@ -140,7 +140,13 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 
 	for _, service := range services {
 		sm.log.Info("start to scrape service region information", map[string]interface{}{"service": service.ServiceName()})
+
 		if service.IsStatic {
+			// todo hack for the PKE static service - image info needs to be scraped
+			if err := sm.scrapePKEImages(ctx, service); err != nil {
+				sm.errorHandler.Handle(err)
+			}
+
 			sm.log.Info("service is static, skip scraping for region information", map[string]interface{}{"service": service.ServiceName()})
 			continue
 		}
@@ -294,6 +300,28 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 	sm.metrics.ReportScrapeProviderCompleted(sm.provider, start)
 }
 
+func (sm *scrapingManager) scrapePKEImages(ctx context.Context, service types.Service) error {
+
+	// todo find a better solution - PKE service is static but images need to be scraped
+	if service.ServiceName() == "pke" {
+
+		regions, err := sm.infoer.GetRegions(service.ServiceName())
+		if err != nil {
+			sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), "N/A")
+			return errors.WithDetails(err, "failed to retrieve regions", "service", service.ServiceName())
+		}
+
+		for regionId := range regions {
+			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {
+				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
+				return errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
+			}
+		}
+	}
+
+	return nil
+}
+
 func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log Logger,
 	metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus, errorHandler ErrorHandler) *scrapingManager {
 
@@ -359,9 +387,15 @@ func (sd *ScrapingDriver) RefreshProvider(ctx context.Context, provider string) 
 	}
 }
 
-func NewScrapingDriver(renewalInterval time.Duration, infoers map[string]CloudInfoer,
-	store CloudInfoStore, log Logger, metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus, errorHandler ErrorHandler) *ScrapingDriver {
-	var managers []*scrapingManager
+func NewScrapingDriver(renewalInterval time.Duration,
+	infoers map[string]CloudInfoer,
+	store CloudInfoStore,
+	eventBus messaging.EventBus,
+	metrics metrics.Reporter,
+	tracer tracing.Tracer,
+	errorHandler ErrorHandler,
+	log Logger) *ScrapingDriver {
+	managers := make([]*scrapingManager, 0, len(infoers))
 
 	for provider, infoer := range infoers {
 		managers = append(managers, NewScrapingManager(provider, infoer, store, log, metrics, tracer, eventBus, errorHandler))

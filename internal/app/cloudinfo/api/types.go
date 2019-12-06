@@ -56,6 +56,12 @@ type GetImagesQueryParams struct {
 	Gpu string `json:"gpu"`
 	// in:query
 	Version string `json:"version"`
+	// in:query
+	Os string `json:"os,omitempty"`
+	// in:query
+	PkeVersion string `json:"pkeVersion,omitempty"`
+	// in:query
+	LatestOnly string `json:"latestOnly"`
 }
 
 // ProductDetailsResponse Api object to be mapped to product info response

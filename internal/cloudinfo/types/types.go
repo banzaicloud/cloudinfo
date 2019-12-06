@@ -16,6 +16,7 @@ package types
 
 import (
 	"strings"
+	"time"
 )
 
 const (
@@ -190,9 +191,11 @@ func NewProvider(name string) Provider {
 
 // Image represents an image
 type Image struct {
-	Name         string `json:"name"`
-	Version      string `json:"version,omitempty"`
-	GpuAvailable bool   `json:"gpu,omitempty"`
+	Name         string            `json:"name"`
+	CreationDate time.Time         `json:"creationDate,omitempty"`
+	Version      string            `json:"version,omitempty"`
+	GpuAvailable bool              `json:"gpu,omitempty"`
+	Tags         map[string]string `json:"tags,omitempty"`
 }
 
 // NewImage create new provider describer struct

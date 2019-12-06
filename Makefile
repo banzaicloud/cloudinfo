@@ -57,7 +57,7 @@ endif
 
 
 generate-pi-client:
-	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A cloudinfo -t pkg/cloudinfo-client/
+	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A cloudinfo -t .gen/cloudinfo-client/
 
 bin/swagger: bin/swagger-${SWAGGER_VERSION}
 	@ln -sf swagger-${SWAGGER_VERSION} bin/swagger

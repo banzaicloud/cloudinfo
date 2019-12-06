@@ -577,7 +577,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 									"randomNumber": map[string]interface{}{}}}}}}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: pricePerUnit")
+				assert.EqualError(t, err, "could not get map for key")
 			},
 		},
 		{
@@ -589,7 +589,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 							"randomNumber": map[string]interface{}{}}}}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: priceDimensions")
+				assert.EqualError(t, err, "could not get map for key")
 			},
 		},
 		{
@@ -599,7 +599,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 					"terms": map[string]interface{}{}}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: OnDemand")
+				assert.EqualError(t, err, "could not get map for key")
 			},
 		},
 		{
@@ -608,7 +608,7 @@ func TestPriceData_GetOnDemandPrice(t *testing.T) {
 				awsData: aws.JSONValue{}},
 			check: func(s string, err error) {
 				assert.Equal(t, "", s)
-				assert.EqualError(t, err, "could not get map for key: terms")
+				assert.EqualError(t, err, "could not get map for key")
 			},
 		},
 	}
@@ -638,7 +638,7 @@ func TestPriceData_newPriceData(t *testing.T) {
 			prData: aws.JSONValue{"product": map[string]interface{}{}},
 			check: func(data *priceData, err error) {
 				assert.Nil(t, data, "the data should be nil")
-				assert.EqualError(t, err, "could not get map for key: attributes")
+				assert.EqualError(t, err, "could not get map for key")
 			},
 		},
 		{
@@ -646,7 +646,7 @@ func TestPriceData_newPriceData(t *testing.T) {
 			prData: aws.JSONValue{},
 			check: func(data *priceData, err error) {
 				assert.Nil(t, data, "the data should be nil")
-				assert.EqualError(t, err, "could not get map for key: product")
+				assert.EqualError(t, err, "could not get map for key")
 			},
 		},
 	}
