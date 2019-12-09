@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, Output, ViewChild } from '@angular/core';
-import { MatSort, MatTableDataSource } from '@angular/material';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { TimeAgoPipe } from 'time-ago-pipe';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,7 +21,7 @@ export class BanzaiTableComponent {
 
   private _sort: MatSort;
 
-  @ViewChild(MatSort) set sort(value: MatSort) {
+  @ViewChild(MatSort, { static: false }) set sort(value: MatSort) {
     this._sort = value;
     if (this._dataSource) {
       this._dataSource.sortingDataAccessor = (item: TableRowItem, property: string) => {

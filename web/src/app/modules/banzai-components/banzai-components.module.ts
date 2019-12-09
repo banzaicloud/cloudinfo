@@ -1,14 +1,12 @@
 import { NgModule } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { BanzaiSelectorComponent } from './components/banzai-selector/banzai-selector.component';
-import {
-  MatProgressSpinnerModule,
-  MatRippleModule,
-  MatSelectModule,
-  MatSortModule,
-  MatTableModule,
-  MatTooltipModule,
-} from '@angular/material';
+import { MatRippleModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BanzaiTableComponent } from './components/banzai-table/banzai-table.component';
 import { BanzaiTableCellTextOverflowDirective } from './components/banzai-table/directives/banzai-table-cell-text-overflow.directive';
 import { BanzaiTableBorderDetailsStatusDirective } from './components/banzai-table/directives/banzai-table-border-details-status.directive';

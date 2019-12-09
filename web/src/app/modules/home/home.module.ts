@@ -7,7 +7,7 @@ import { NavBarModule } from '../nav-bar/nav-bar.module';
 import { BanzaiComponentsModule } from '../banzai-components/banzai-components.module';
 import { ProductCategoryIconComponent } from './components/product-category-icon/product-category-icon.component';
 import { CategoryIconPipe } from './components/product-category-icon/pipe/category-icon.pipe';
-import { MatTooltipModule } from '@angular/material';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   imports: [
