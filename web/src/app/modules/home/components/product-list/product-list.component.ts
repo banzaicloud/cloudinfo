@@ -20,7 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class ProductListComponent implements OnInit, OnDestroy {
 
-  @ViewChild('categoryTemplate') categoryTemplate: ElementRef;
+  @ViewChild('categoryTemplate', { static: true }) categoryTemplate: ElementRef;
 
   private readonly currentURL: string;
   private unsubscribe$ = new Subject();

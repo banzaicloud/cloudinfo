@@ -12,7 +12,7 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   @Output() filterChanged: EventEmitter<string> = new EventEmitter<string>();
 
-  @ViewChild('filterInput') filterInput: ElementRef;
+  @ViewChild('filterInput', { static: true }) filterInput: ElementRef;
 
   private $unsubscribe = new Subject();
   private filter$ = new Subject<string>();
