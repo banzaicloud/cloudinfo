@@ -467,12 +467,12 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 				// override the filtered slice
 				filteredImages = []types.Image{latestImage}
 			}
-			c.JSON(http.StatusOK, filteredImages)
+			c.JSON(http.StatusOK, ImagesResponse{Images: filteredImages})
 			return
 		}
 
 		logger.Debug("successfully retrieved image details")
-		c.JSON(http.StatusOK, images)
+		c.JSON(http.StatusOK, ImagesResponse{Images: images})
 	}
 }
 
@@ -514,7 +514,7 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 		}
 
 		logger.Debug("successfully retrieved version details")
-		c.JSON(http.StatusOK, versions)
+		c.JSON(http.StatusOK, VersionsResponse{versions})
 	}
 }
 
