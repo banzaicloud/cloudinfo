@@ -9,7 +9,7 @@ The management service can be configured with the following environment variable
 
 ``management.enabled`` true by default
 
-``management.address`` :8099 by default
+``management.address`` :8001 by default
 
 If enabled, along with the Cloudinfo application there will be another service started which listens at the address specified in the second env var.
 
@@ -24,7 +24,7 @@ The context path for management operations is:
     This operation exports the content of the Cloud Product Store
 ```bash
 curl -X GET \
-  http://localhost:8099/management/store/export > store.txt
+  http://localhost:8001/management/store/export > store.txt
 ```
 
 * Import
@@ -33,14 +33,14 @@ curl -X GET \
 
 ```bash
 curl -X PUT -F "data=@store.txt" \
-  http://localhost:8099/management/store/import
+  http://localhost:8001/management/store/import
 ```
 
 * Refresh
 Initiates a scraping process for the given provider for cloud product information. The refresh operation is performed asynchronously so it should only be used to trigger it.
 ```bash
 curl -X PUT \
-  http://localhost:8099/management/store/refresh/<provider>
+  http://localhost:8001/management/store/refresh/<provider>
 ```
 
 
