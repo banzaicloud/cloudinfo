@@ -9,7 +9,7 @@ executors:
         parameters:
             build_image:
                 type: string
-                default: "cimg/go"
+                default: "circleci/golang"
                 description: Go build image
             go_version:
                 type: string
@@ -85,7 +85,7 @@ jobs:
     integration-tests:
         executor: go
         docker:
-            -   image: cimg/go:1.13
+            -   image: circleci/golang:1.13
                 environment:
                     GOFLAGS: -mod=readonly
             -   image: redis:5.0
