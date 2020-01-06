@@ -349,12 +349,6 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 			return
 		}
 
-		// there are no exclusions
-		if len(region.Data.Vms.Data) == 0 {
-			sl.store.StoreVm(provider, service, region.Id, sourceVMs)
-			return
-		}
-
 		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
 		for _, sourceVM := range sourceVMs {
 
@@ -370,12 +364,6 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 		sourceVMs, ok := sl.store.GetVm(provider, sl.serviceData.Source, region.Id)
 		if !ok {
 			log.Warn("source service VMs not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
-			return
-		}
-
-		// there are no inclusions
-		if len(region.Data.Vms.Data) == 0 {
-			sl.store.StoreVm(provider, service, region.Id, sourceVMs)
 			return
 		}
 
