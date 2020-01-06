@@ -65,6 +65,17 @@ type VmData struct {
 	Data     []types.VMInfo
 }
 
+func (wmd VmData) ContainsVM(VMType string) bool {
+	for _, VMInfo := range wmd.Data {
+		if VMInfo.Type == VMType {
+			
+			return true
+		}
+	}
+
+	return false
+}
+
 type Service struct {
 	Name         string
 	IsStatic     bool
