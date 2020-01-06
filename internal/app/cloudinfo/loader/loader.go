@@ -349,6 +349,12 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 			return
 		}
 
+		// there are no exclusions
+		if len(region.Data.Vms.Data) == 0 {
+			sl.store.StoreVm(provider, service, region.Id, sourceVMs)
+			return
+		}
+
 		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
 		for _, sourceVM := range sourceVMs {
 
