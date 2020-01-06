@@ -352,10 +352,9 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
 		for _, sourceVM := range sourceVMs {
 
-			for _, excludeVM := range region.Data.Vms.Data {
-				if excludeVM.Type != sourceVM.Type {
-					filteredVMs = append(filteredVMs, sourceVM)
-				}
+			if !region.Data.Vms.ContainsVM(sourceVM.Type) {
+				// only append values that are not excluded
+				filteredVMs = append(filteredVMs, sourceVM)
 			}
 		}
 
@@ -371,10 +370,9 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
 		for _, sourceVM := range sourceVMs {
 
-			for _, excludeVM := range region.Data.Vms.Data {
-				if excludeVM.Type == sourceVM.Type {
-					filteredVMs = append(filteredVMs, sourceVM)
-				}
+			if region.Data.Vms.ContainsVM(sourceVM.Type) {
+				// only append included values
+				filteredVMs = append(filteredVMs, sourceVM)
 			}
 		}
 
