@@ -31,9 +31,9 @@ const (
 )
 
 func getEKSDescribeImagesInput(kubernetesVersion string, GPUs bool) *ec2.DescribeImagesInput {
-	nameFilter := fmt.Sprintf(eksImageNameFormat, kubernetesVersion, eksImageNamePrefix)
+	nameFilter := fmt.Sprintf(eksImageNameFormat, eksImageNamePrefix, kubernetesVersion)
 	if GPUs {
-		nameFilter = fmt.Sprintf(eksImageNameFormat, kubernetesVersion, eksGPUImageNamePrefix)
+		nameFilter = fmt.Sprintf(eksImageNameFormat, eksGPUImageNamePrefix, kubernetesVersion)
 	}
 
 	describeImagesInput := ec2.DescribeImagesInput{
