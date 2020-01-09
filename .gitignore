@@ -29,4 +29,3 @@ packrd/
 *.swp
 test.txt
 client_test.go
-.gen/cloudinfo-client
