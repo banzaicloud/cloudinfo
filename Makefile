@@ -55,10 +55,6 @@ ifeq ($(shell which swagger2openapi),)
 	npm install -g swagger2openapi
 endif
 
-
-generate-pi-client:
-	swagger generate client -f $(SWAGGER_PI_TMP_FILE) -A cloudinfo -t .gen/cloudinfo-client/
-
 bin/swagger: bin/swagger-${SWAGGER_VERSION}
 	@ln -sf swagger-${SWAGGER_VERSION} bin/swagger
 bin/swagger-${SWAGGER_VERSION}: bin/gobin
@@ -80,3 +76,21 @@ bin/packr2-${PACKR_VERSION}:
 .PHONY: uibundle
 uibundle: bin/packr2
 	GO111MODULE=on cd cmd/cloudinfo && $(abspath bin/packr2)
+
+define generate_openapi_client
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	--additional-properties packageName=${2} \
+	--additional-properties withGoCodegenComment=true \
+	-i /local/${1} \
+	-g go \
+	-o /local/${3}
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) ${3}; fi
+	rm ${3}/{.travis.yml,git_push.sh,go.*}
+endef
+
+api/openapi-spec/cloudinfo.yaml:swagger
+
+.PHONY: generate-cloudinfo-client
+generate-cloudinfo-client: api/openapi-spec/cloudinfo.yaml ## Generate client from Cloudinfo OpenAPI spec
+	$(call generate_openapi_client,api/openapi-spec/cloudinfo.yaml,cloudinfo,.gen/cloudinfo-client)
