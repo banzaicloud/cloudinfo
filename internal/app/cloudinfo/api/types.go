@@ -130,10 +130,12 @@ type ServiceResponse struct {
 	Service types.Service `json:"service"`
 }
 
+type ImageArray = []types.Image
+
 // ImagesResponse holds the list of available images
 // swagger:model ImagesResponse
 type ImagesResponse struct {
-	Images []types.Image `json:"images"`
+	ImageArray
 }
 
 type LocationVersionArray = []types.LocationVersion

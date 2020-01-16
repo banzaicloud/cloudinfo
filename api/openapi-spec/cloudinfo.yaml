@@ -376,38 +376,9 @@ components:
             type: string
           x-go-name: Zones
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
-    Image:
-      description: Image represents an image
-      type: object
-      properties:
-        creationDate:
-          type: string
-          format: date-time
-          x-go-name: CreationDate
-        gpu:
-          type: boolean
-          x-go-name: GpuAvailable
-        name:
-          type: string
-          x-go-name: Name
-        tags:
-          type: object
-          additionalProperties:
-            type: string
-          x-go-name: Tags
-        version:
-          type: string
-          x-go-name: Version
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     ImagesResponse:
       description: ImagesResponse holds the list of available images
       type: object
-      properties:
-        images:
-          type: array
-          items:
-            $ref: "#/components/schemas/Image"
-          x-go-name: Images
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     ProductDetails:
       description: ProductDetails extended view of the virtual machine details
