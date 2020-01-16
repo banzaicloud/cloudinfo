@@ -43,7 +43,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.3.0
-	github.com/ugorji/go/codec v1.1.7 // indirect
+	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vektah/gqlparser v1.1.2
 	go.opencensus.io v0.22.1
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45

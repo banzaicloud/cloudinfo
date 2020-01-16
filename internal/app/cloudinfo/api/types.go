@@ -134,13 +134,9 @@ type ServiceResponse struct {
 // swagger:model ImagesResponse
 type ImagesResponse []types.Image
 
-type LocationVersionArray = []types.LocationVersion
-
 // VersionsResponse holds the list of available versions
 // swagger:model VersionsResponse
-type VersionsResponse struct {
-	LocationVersionArray
-}
+type VersionsResponse []types.LocationVersion
 
 // NewServiceResponse assembles a service response
 func NewServiceResponse(sd types.Service) ServiceResponse {
