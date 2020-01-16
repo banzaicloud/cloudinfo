@@ -55,8 +55,7 @@ func TestImagesApi(t *testing.T) {
 			provider: "amazon",
 			service:  "pke",
 			region:   "eu-west-2",
-			options: cloudinfo.GetImagesOpts{
-			},
+			options:  cloudinfo.GetImagesOpts{},
 			asserter: func(t *testing.T, images []cloudinfo.Image, response *http.Response, err error) {
 				assert.Nil(t, err)
 				assert.True(t, response.StatusCode == http.StatusOK)
