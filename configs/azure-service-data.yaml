@@ -16,9 +16,11 @@ regions:
                     -   location: centralus
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: East US
@@ -34,9 +36,11 @@ regions:
                     -   location: eastus
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: East US 2
@@ -52,9 +56,11 @@ regions:
                     -   location: eastus2
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: West US 2
@@ -70,9 +76,11 @@ regions:
                     -   location: westus2
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: France Central
@@ -88,9 +96,11 @@ regions:
                     -   location: francecentral
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: North Europe
@@ -106,9 +116,11 @@ regions:
                     -   location: northeurope
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: UK South
@@ -124,9 +136,11 @@ regions:
                     -   location: uksouth
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: West Europe
@@ -142,9 +156,11 @@ regions:
                     -   location: westeurope
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Japan East
@@ -160,9 +176,11 @@ regions:
                     -   location: japaneast
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Southeast Asia
@@ -178,9 +196,11 @@ regions:
                     -   location: southeastasia
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Australia Southeast
@@ -196,9 +216,11 @@ regions:
                     -   location: australiasoutheast
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: East Asia
@@ -214,9 +236,11 @@ regions:
                     -   location: eastasia
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Canada Central
@@ -232,9 +256,11 @@ regions:
                     -   location: canadacentral
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Canada East
@@ -250,9 +276,11 @@ regions:
                     -   location: canadaeast
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Korea South
@@ -268,9 +296,11 @@ regions:
                     -   location: koreasouth
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Japan West
@@ -286,9 +316,11 @@ regions:
                     -   location: japanwest
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: South India
@@ -304,9 +336,11 @@ regions:
                     -   location: southindia
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: West US
@@ -322,9 +356,11 @@ regions:
                     -   location: westus
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: South Central US
@@ -340,9 +376,11 @@ regions:
                     -   location: southcentralus
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: North Central US
@@ -358,9 +396,11 @@ regions:
                     -   location: northcentralus
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Australia East
@@ -376,9 +416,11 @@ regions:
                     -   location: australiaeast
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Central India
@@ -394,9 +436,11 @@ regions:
                     -   location: centralindia
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: UK West
@@ -412,9 +456,11 @@ regions:
                     -   location: ukwest
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
     -   name: Korea Central
@@ -430,8 +476,10 @@ regions:
                     -   location: koreacentral
                         versions:
                             - 1.13.10
-                            - 1.14.6
-                            - 1.15.3
-                        default: 1.15.3
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
             vms:
                 strategy: exclude
