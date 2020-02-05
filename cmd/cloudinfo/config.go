@@ -263,8 +263,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-amazon", false, "enable amazon provider")
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("provider-amazon"))
 
-	_ = v.BindEnv("provider.amazon.accessKey")
-	_ = v.BindEnv("provider.amazon.secretKey")
+	_ = v.BindEnv("provider.amazon.accessKey", "AWS_ACCESS_KEY_ID")
+	_ = v.BindEnv("provider.amazon.secretKey", "AWS_SECRET_ACCESS_KEY")
 	_ = v.BindEnv("provider.amazon.sharedCredentialsFile")
 	_ = v.BindEnv("provider.amazon.profile")
 	v.SetDefault("provider.amazon.prometheusAddress", "")
