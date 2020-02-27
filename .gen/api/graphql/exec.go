@@ -11,7 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -486,7 +486,7 @@ func (ec *executionContext) field_Query_instanceTypes_args(ctx context.Context, 
 	args["zone"] = arg3
 	var arg4 *cloudinfo.InstanceTypeQueryFilter
 	if tmp, ok := rawArgs["filter"]; ok {
-		arg4, err = ec.unmarshalOInstanceTypeQueryInput2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, tmp)
+		arg4, err = ec.unmarshalOInstanceTypeQueryInput2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -767,7 +767,7 @@ func (ec *executionContext) _InstanceType_networkCategory(ctx context.Context, f
 	res := resTmp.(cloudinfo.NetworkCategory)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, field.Selections, res)
+	return ec.marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _InstanceType_category(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.InstanceType) graphql.Marshaler {
@@ -794,7 +794,7 @@ func (ec *executionContext) _InstanceType_category(ctx context.Context, field gr
 	res := resTmp.(cloudinfo.InstanceTypeCategory)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, field.Selections, res)
+	return ec.marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Provider_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Provider) graphql.Marshaler {
@@ -875,7 +875,7 @@ func (ec *executionContext) _Provider_services(ctx context.Context, field graphq
 	res := resTmp.([]cloudinfo.Service)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx, field.Selections, res)
+	return ec.marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐService(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_providers(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -902,7 +902,7 @@ func (ec *executionContext) _Query_providers(ctx context.Context, field graphql.
 	res := resTmp.([]cloudinfo.Provider)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐProvider(ctx, field.Selections, res)
+	return ec.marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐProvider(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_instanceTypes(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -936,7 +936,7 @@ func (ec *executionContext) _Query_instanceTypes(ctx context.Context, field grap
 	res := resTmp.([]cloudinfo.InstanceType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInstanceType2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceType(ctx, field.Selections, res)
+	return ec.marshalNInstanceType2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1072,7 +1072,7 @@ func (ec *executionContext) _Region_zones(ctx context.Context, field graphql.Col
 	res := resTmp.([]cloudinfo.Zone)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx, field.Selections, res)
+	return ec.marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐZone(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Service_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Service) graphql.Marshaler {
@@ -1126,7 +1126,7 @@ func (ec *executionContext) _Service_regions(ctx context.Context, field graphql.
 	res := resTmp.([]cloudinfo.Region)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐRegion(ctx, field.Selections, res)
+	return ec.marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐRegion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Zone_code(ctx context.Context, field graphql.CollectedField, obj *cloudinfo.Zone) graphql.Marshaler {
@@ -2055,25 +2055,25 @@ func (ec *executionContext) unmarshalInputInstanceTypeCategoryFilter(ctx context
 		switch k {
 		case "eq":
 			var err error
-			it.Eq, err = ec.unmarshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
+			it.Eq, err = ec.unmarshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "ne":
 			var err error
-			it.Ne, err = ec.unmarshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
+			it.Ne, err = ec.unmarshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "in":
 			var err error
-			it.In, err = ec.unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
+			it.In, err = ec.unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "nin":
 			var err error
-			it.Nin, err = ec.unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
+			it.Nin, err = ec.unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2091,13 +2091,13 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 		switch k {
 		case "price":
 			var err error
-			it.Price, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+			it.Price, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "spotPrice":
 			var err error
-			it.SpotPrice, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+			it.SpotPrice, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2109,31 +2109,31 @@ func (ec *executionContext) unmarshalInputInstanceTypeQueryInput(ctx context.Con
 			}
 		case "cpu":
 			var err error
-			it.CPU, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+			it.CPU, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "memory":
 			var err error
-			it.Memory, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+			it.Memory, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "gpu":
 			var err error
-			it.Gpu, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+			it.Gpu, err = ec.unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "networkCategory":
 			var err error
-			it.NetworkCategory, err = ec.unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategoryFilter(ctx, v)
+			it.NetworkCategory, err = ec.unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategoryFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "category":
 			var err error
-			it.Category, err = ec.unmarshalOInstanceTypeCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx, v)
+			it.Category, err = ec.unmarshalOInstanceTypeCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2211,25 +2211,25 @@ func (ec *executionContext) unmarshalInputNetworkCategoryFilter(ctx context.Cont
 		switch k {
 		case "eq":
 			var err error
-			it.Eq, err = ec.unmarshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, v)
+			it.Eq, err = ec.unmarshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "ne":
 			var err error
-			it.Ne, err = ec.unmarshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, v)
+			it.Ne, err = ec.unmarshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "in":
 			var err error
-			it.In, err = ec.unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, v)
+			it.In, err = ec.unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "nin":
 			var err error
-			it.Nin, err = ec.unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, v)
+			it.Nin, err = ec.unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2798,11 +2798,11 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.MarshalFloat(v)
 }
 
-func (ec *executionContext) marshalNInstanceType2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceType(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceType) graphql.Marshaler {
+func (ec *executionContext) marshalNInstanceType2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceType(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceType) graphql.Marshaler {
 	return ec._InstanceType(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNInstanceType2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceType(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.InstanceType) graphql.Marshaler {
+func (ec *executionContext) marshalNInstanceType2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceType(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.InstanceType) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2826,7 +2826,7 @@ func (ec *executionContext) marshalNInstanceType2ᚕgithubᚗcomᚋbanzaicloud�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInstanceType2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceType(ctx, sel, v[i])
+			ret[i] = ec.marshalNInstanceType2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2839,12 +2839,12 @@ func (ec *executionContext) marshalNInstanceType2ᚕgithubᚗcomᚋbanzaicloud�
 	return ret
 }
 
-func (ec *executionContext) unmarshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeCategory, error) {
+func (ec *executionContext) unmarshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeCategory, error) {
 	var res cloudinfo.InstanceTypeCategory
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceTypeCategory) graphql.Marshaler {
+func (ec *executionContext) marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceTypeCategory) graphql.Marshaler {
 	return v
 }
 
@@ -2856,20 +2856,20 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return graphql.MarshalInt(v)
 }
 
-func (ec *executionContext) unmarshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) (cloudinfo.NetworkCategory, error) {
+func (ec *executionContext) unmarshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) (cloudinfo.NetworkCategory, error) {
 	var res cloudinfo.NetworkCategory
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.NetworkCategory) graphql.Marshaler {
+func (ec *executionContext) marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.NetworkCategory) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNProvider2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐProvider(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Provider) graphql.Marshaler {
+func (ec *executionContext) marshalNProvider2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐProvider(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Provider) graphql.Marshaler {
 	return ec._Provider(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐProvider(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Provider) graphql.Marshaler {
+func (ec *executionContext) marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐProvider(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Provider) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2893,7 +2893,7 @@ func (ec *executionContext) marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋclo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProvider2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐProvider(ctx, sel, v[i])
+			ret[i] = ec.marshalNProvider2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐProvider(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2906,11 +2906,11 @@ func (ec *executionContext) marshalNProvider2ᚕgithubᚗcomᚋbanzaicloudᚋclo
 	return ret
 }
 
-func (ec *executionContext) marshalNRegion2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐRegion(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Region) graphql.Marshaler {
+func (ec *executionContext) marshalNRegion2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐRegion(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Region) graphql.Marshaler {
 	return ec._Region(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐRegion(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Region) graphql.Marshaler {
+func (ec *executionContext) marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐRegion(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Region) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2934,7 +2934,7 @@ func (ec *executionContext) marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloud
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRegion2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐRegion(ctx, sel, v[i])
+			ret[i] = ec.marshalNRegion2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐRegion(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2947,11 +2947,11 @@ func (ec *executionContext) marshalNRegion2ᚕgithubᚗcomᚋbanzaicloudᚋcloud
 	return ret
 }
 
-func (ec *executionContext) marshalNService2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNService2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐService(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Service) graphql.Marshaler {
 	return ec._Service(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐService(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Service) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2975,7 +2975,7 @@ func (ec *executionContext) marshalNService2ᚕgithubᚗcomᚋbanzaicloudᚋclou
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNService2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐService(ctx, sel, v[i])
+			ret[i] = ec.marshalNService2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐService(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2996,11 +2996,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return graphql.MarshalString(v)
 }
 
-func (ec *executionContext) marshalNZone2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Zone) graphql.Marshaler {
+func (ec *executionContext) marshalNZone2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐZone(ctx context.Context, sel ast.SelectionSet, v cloudinfo.Zone) graphql.Marshaler {
 	return ec._Zone(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Zone) graphql.Marshaler {
+func (ec *executionContext) marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐZone(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.Zone) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3024,7 +3024,7 @@ func (ec *executionContext) marshalNZone2ᚕgithubᚗcomᚋbanzaicloudᚋcloudin
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNZone2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐZone(ctx, sel, v[i])
+			ret[i] = ec.marshalNZone2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐZone(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3329,28 +3329,28 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return ec.marshalOFloat2float64(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOFloatFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx context.Context, v interface{}) (cloudinfo.FloatFilter, error) {
+func (ec *executionContext) unmarshalOFloatFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx context.Context, v interface{}) (cloudinfo.FloatFilter, error) {
 	return ec.unmarshalInputFloatFilter(ctx, v)
 }
 
-func (ec *executionContext) unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx context.Context, v interface{}) (*cloudinfo.FloatFilter, error) {
+func (ec *executionContext) unmarshalOFloatFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx context.Context, v interface{}) (*cloudinfo.FloatFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOFloatFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐFloatFilter(ctx, v)
+	res, err := ec.unmarshalOFloatFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐFloatFilter(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeCategory, error) {
+func (ec *executionContext) unmarshalOInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeCategory, error) {
 	var res cloudinfo.InstanceTypeCategory
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceTypeCategory) graphql.Marshaler {
+func (ec *executionContext) marshalOInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.InstanceTypeCategory) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) ([]cloudinfo.InstanceTypeCategory, error) {
+func (ec *executionContext) unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) ([]cloudinfo.InstanceTypeCategory, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -3362,7 +3362,7 @@ func (ec *executionContext) unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋban
 	var err error
 	res := make([]cloudinfo.InstanceTypeCategory, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -3370,7 +3370,7 @@ func (ec *executionContext) unmarshalOInstanceTypeCategory2ᚕgithubᚗcomᚋban
 	return res, nil
 }
 
-func (ec *executionContext) marshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.InstanceTypeCategory) graphql.Marshaler {
+func (ec *executionContext) marshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.InstanceTypeCategory) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3397,7 +3397,7 @@ func (ec *executionContext) marshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanza
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3410,42 +3410,42 @@ func (ec *executionContext) marshalOInstanceTypeCategory2ᚕgithubᚗcomᚋbanza
 	return ret
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeCategory, error) {
+func (ec *executionContext) unmarshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeCategory, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
+	res, err := ec.unmarshalOInstanceTypeCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v *cloudinfo.InstanceTypeCategory) graphql.Marshaler {
+func (ec *executionContext) marshalOInstanceTypeCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategory(ctx context.Context, sel ast.SelectionSet, v *cloudinfo.InstanceTypeCategory) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeCategoryFilter, error) {
+func (ec *executionContext) unmarshalOInstanceTypeCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeCategoryFilter, error) {
 	return ec.unmarshalInputInstanceTypeCategoryFilter(ctx, v)
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeCategoryFilter, error) {
+func (ec *executionContext) unmarshalOInstanceTypeCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeCategoryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOInstanceTypeCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx, v)
+	res, err := ec.unmarshalOInstanceTypeCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeCategoryFilter(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeQueryFilter, error) {
+func (ec *executionContext) unmarshalOInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (cloudinfo.InstanceTypeQueryFilter, error) {
 	return ec.unmarshalInputInstanceTypeQueryInput(ctx, v)
 }
 
-func (ec *executionContext) unmarshalOInstanceTypeQueryInput2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeQueryFilter, error) {
+func (ec *executionContext) unmarshalOInstanceTypeQueryInput2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeQueryFilter(ctx context.Context, v interface{}) (*cloudinfo.InstanceTypeQueryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, v)
+	res, err := ec.unmarshalOInstanceTypeQueryInput2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐInstanceTypeQueryFilter(ctx, v)
 	return &res, err
 }
 
@@ -3504,16 +3504,16 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) (cloudinfo.NetworkCategory, error) {
+func (ec *executionContext) unmarshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) (cloudinfo.NetworkCategory, error) {
 	var res cloudinfo.NetworkCategory
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.NetworkCategory) graphql.Marshaler {
+func (ec *executionContext) marshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v cloudinfo.NetworkCategory) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) ([]cloudinfo.NetworkCategory, error) {
+func (ec *executionContext) unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) ([]cloudinfo.NetworkCategory, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -3525,7 +3525,7 @@ func (ec *executionContext) unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicl
 	var err error
 	res := make([]cloudinfo.NetworkCategory, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -3533,7 +3533,7 @@ func (ec *executionContext) unmarshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicl
 	return res, nil
 }
 
-func (ec *executionContext) marshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.NetworkCategory) graphql.Marshaler {
+func (ec *executionContext) marshalONetworkCategory2ᚕgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v []cloudinfo.NetworkCategory) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3560,7 +3560,7 @@ func (ec *executionContext) marshalONetworkCategory2ᚕgithubᚗcomᚋbanzaiclou
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNNetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3573,30 +3573,30 @@ func (ec *executionContext) marshalONetworkCategory2ᚕgithubᚗcomᚋbanzaiclou
 	return ret
 }
 
-func (ec *executionContext) unmarshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) (*cloudinfo.NetworkCategory, error) {
+func (ec *executionContext) unmarshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, v interface{}) (*cloudinfo.NetworkCategory, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx, v)
+	res, err := ec.unmarshalONetworkCategory2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v *cloudinfo.NetworkCategory) graphql.Marshaler {
+func (ec *executionContext) marshalONetworkCategory2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategory(ctx context.Context, sel ast.SelectionSet, v *cloudinfo.NetworkCategory) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalONetworkCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategoryFilter(ctx context.Context, v interface{}) (cloudinfo.NetworkCategoryFilter, error) {
+func (ec *executionContext) unmarshalONetworkCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategoryFilter(ctx context.Context, v interface{}) (cloudinfo.NetworkCategoryFilter, error) {
 	return ec.unmarshalInputNetworkCategoryFilter(ctx, v)
 }
 
-func (ec *executionContext) unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategoryFilter(ctx context.Context, v interface{}) (*cloudinfo.NetworkCategoryFilter, error) {
+func (ec *executionContext) unmarshalONetworkCategoryFilter2ᚖgithubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategoryFilter(ctx context.Context, v interface{}) (*cloudinfo.NetworkCategoryFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalONetworkCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋinternalᚋcloudinfoᚐNetworkCategoryFilter(ctx, v)
+	res, err := ec.unmarshalONetworkCategoryFilter2githubᚗcomᚋbanzaicloudᚋcloudinfoᚋpkgᚋcloudinfoᚐNetworkCategoryFilter(ctx, v)
 	return &res, err
 }
 

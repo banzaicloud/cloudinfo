@@ -11,7 +11,7 @@ packrd/
 
 # IDE integration
 /.vscode/*
-!/.vscode/launch.json
+/.vscode/launch.json
 !/.vscode/tasks.json
 /.idea/*
 !/.idea/codeStyles/

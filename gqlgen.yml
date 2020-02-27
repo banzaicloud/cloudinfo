@@ -13,37 +13,37 @@ struct_tag: json
 
 models:
     Provider:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Provider
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.Provider
 
     Service:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Service
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.Service
 
     Region:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Region
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.Region
 
     Zone:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.Zone
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.Zone
 
     InstanceType:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceType
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.InstanceType
 
     NetworkCategory:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.NetworkCategory
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.NetworkCategory
 
     InstanceTypeCategory:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceTypeCategory
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.InstanceTypeCategory
 
     IntFilter:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.IntFilter
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.IntFilter
 
     FloatFilter:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.FloatFilter
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.FloatFilter
 
     NetworkCategoryFilter:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.NetworkCategoryFilter
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.NetworkCategoryFilter
 
     InstanceTypeCategoryFilter:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceTypeCategoryFilter
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.InstanceTypeCategoryFilter
 
     InstanceTypeQueryInput:
-        model: github.com/banzaicloud/cloudinfo/internal/cloudinfo.InstanceTypeQueryFilter
+        model: github.com/banzaicloud/cloudinfo/pkg/cloudinfo.InstanceTypeQueryFilter
