@@ -3,16 +3,13 @@ FROM node:12.3.1 as frontend
 
 WORKDIR /web
 
-RUN npm install -g @angular/cli
-
 COPY web/package.json web/package-lock.json /web/
 
 RUN npm install
 
 COPY web/ /web/
 
-RUN ng build --configuration=production --base-href=/
-
+RUN npm run build-prod
 
 # Build image
 FROM golang:1.13-alpine AS builder
