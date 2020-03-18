@@ -1,0 +1,95 @@
+isstatic: true
+name: pke
+provider: vsphere
+regions:
+    -   name: Default
+        id: default
+        data:
+            zones:
+                strategy: exact
+                data:
+                    -   default
+            versions:
+                strategy: exact
+                data:
+                    -   location: default
+                        versions:
+                            - 1.13.10
+                            - 1.14.10
+                            - 1.15.7
+                            - 1.16.4
+                            - 1.17.0
+                        default: 1.15.7
+            vms:
+                strategy: exact
+                data:
+                    -   category: "small"
+                        type: "small_1"
+                        cpusPerVm: 1
+                        memPerVm: 0.5
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "1"
+                            instanceTypeCategory: "small"
+                            memory: "0.5"
+                        onDemandPrice: 0
+                    -   category: "small"
+                        type: "small_2"
+                        cpusPerVm: 1
+                        memPerVm: 1
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "1"
+                            instanceTypeCategory: "small"
+                            memory: "1"
+                        onDemandPrice: 0
+                    -   category: "small"
+                        type: "small_3"
+                        cpusPerVm: 2
+                        memPerVm: 2
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "2"
+                            instanceTypeCategory: "small"
+                            memory: "2"
+                        onDemandPrice: 0
+                    -   category: "small"
+                        type: "small_4"
+                        cpusPerVm: 2
+                        memPerVm: 4
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "2"
+                            instanceTypeCategory: "small"
+                            memory: "4"
+                        onDemandPrice: 0
+                    -   category: "medium"
+                        type: "medium_1"
+                        cpusPerVm: 4
+                        memPerVm: 4
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "4"
+                            instanceTypeCategory: "medium"
+                            memory: "4"
+                        onDemandPrice: 0
+                    -   category: "medium"
+                        type: "medium_2"
+                        cpusPerVm: 4
+                        memPerVm: 8
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "4"
+                            instanceTypeCategory: "medium"
+                            memory: "8"
+                        onDemandPrice: 0
+                    -   category: "large"
+                        type: "large_1"
+                        cpusPerVm: 8
+                        memPerVm: 8
+                        gpusPerVm: 0
+                        attributes:
+                            cpu: "8"
+                            instanceTypeCategory: "large"
+                            memory: "8"
+                        onDemandPrice: 0

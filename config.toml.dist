@@ -95,6 +95,9 @@ enabled = false
 [provider.digitalocean]
 enabled = false
 
+[provider.vsphere]
+enabled = false
+
 # accessToken = ""
 
 [management]

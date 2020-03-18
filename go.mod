@@ -1,6 +1,6 @@
 module github.com/banzaicloud/cloudinfo
 
-go 1.13.4
+go 1.13
 
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0

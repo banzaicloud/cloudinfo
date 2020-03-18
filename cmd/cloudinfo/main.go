@@ -343,5 +343,11 @@ func loadInfoers(config configuration, logger cloudinfo.Logger) (map[string]clou
 		logger.Info("configured cloud info provider")
 	}
 
+	if config.Provider.VSphere.Enabled {
+		providers = append(providers, Vsphere)
+		logger := logger.WithFields(map[string]interface{}{"provider": Vsphere})
+		logger.Info("configured cloud info provider")
+	}
+
 	return infoers, providers, nil
 }
