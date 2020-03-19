@@ -25,17 +25,17 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
-	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/alibaba"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/amazon"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/azure"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/digitalocean"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/google"
-	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/oracle"
-	"github.com/banzaicloud/cloudinfo/internal/platform/jaeger"
-	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/cistore"
+	"github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/loader"
+	"github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/providers/alibaba"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/providers/amazon"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/providers/azure"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/providers/digitalocean"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/providers/google"
+	"github.com/banzaicloud/cloudinfo/pkg/cloudinfo/providers/oracle"
+	"github.com/banzaicloud/cloudinfo/pkg/platform/jaeger"
+	"github.com/banzaicloud/cloudinfo/pkg/platform/log"
 )
 
 // Provider constants

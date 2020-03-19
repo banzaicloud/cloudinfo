@@ -332,7 +332,7 @@ components:
             type: number
             format: double
           x-go-name: AttributeValues
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     Continent:
       description: Continent holds continent and regions of a cloud provider
       type: object
@@ -345,20 +345,20 @@ components:
           items:
             $ref: "#/components/schemas/Region"
           x-go-name: Regions
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     ContinentsDataResponse:
       description: ContinentsDataResponse holds the list of available continents and
         regions of a cloud provider
       type: array
       items:
         $ref: "#/components/schemas/Continent"
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     ContinentsResponse:
       description: ContinentsResponse holds the list of available continents
       type: array
       items:
         type: string
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     GetRegionResp:
       description: GetRegionResp holds the detailed description of a specific region of a
         cloud provider
@@ -375,7 +375,7 @@ components:
           items:
             type: string
           x-go-name: Zones
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     Image:
       description: Image represents an image
       type: object
@@ -398,13 +398,13 @@ components:
         version:
           type: string
           x-go-name: Version
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
     ImagesResponse:
       description: ImagesResponse holds the list of available images
       type: array
       items:
         $ref: "#/components/schemas/Image"
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     LocationVersion:
       description: LocationVersion struct for displaying version information per location
       type: object
@@ -420,7 +420,7 @@ components:
           items:
             type: string
           x-go-name: Versions
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
     ProductDetails:
       description: ProductDetails extended view of the virtual machine details
       type: object
@@ -477,7 +477,7 @@ components:
           items:
             type: string
           x-go-name: Zones
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
     ProductDetailsResponse:
       description: ProductDetailsResponse Api object to be mapped to product info response
       type: object
@@ -494,7 +494,7 @@ components:
             milliseconds
           type: string
           x-go-name: ScrapingTime
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     Provider:
       description: Provider represents a cloud provider
       type: object
@@ -507,14 +507,14 @@ components:
           items:
             $ref: "#/components/schemas/Service"
           x-go-name: Services
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
     ProviderResponse:
       description: ProviderResponse is the response used for the requested provider
       type: object
       properties:
         provider:
           $ref: "#/components/schemas/Provider"
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     ProvidersResponse:
       description: ProvidersResponse is the response used for the supported providers
       type: object
@@ -524,7 +524,7 @@ components:
           items:
             $ref: "#/components/schemas/Provider"
           x-go-name: Providers
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     Region:
       description: Region hold the id and name of a cloud provider region
       type: object
@@ -535,13 +535,13 @@ components:
         name:
           type: string
           x-go-name: Name
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
     RegionsResponse:
       description: RegionsResponse holds the list of available regions of a cloud provider
       type: array
       items:
         $ref: "#/components/schemas/Region"
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     Service:
       description: it's intended to implement the ServiceDescriber interface
       type: object
@@ -553,14 +553,14 @@ components:
         service:
           type: string
           x-go-name: Service
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
     ServiceResponse:
       description: ServiceResponse holds the list of available services
       type: object
       properties:
         service:
           $ref: "#/components/schemas/Service"
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     ServicesResponse:
       description: ServicesResponse holds the list of available services
       type: object
@@ -570,13 +570,13 @@ components:
           items:
             $ref: "#/components/schemas/Service"
           x-go-name: Services
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     VersionsResponse:
       description: VersionsResponse holds the list of available versions
       type: array
       items:
         $ref: "#/components/schemas/LocationVersion"
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/app/cloudinfo/api
     ZonePrice:
       description: ZonePrice struct for displaying price information per zone
       type: object
@@ -588,5 +588,5 @@ components:
         zone:
           type: string
           x-go-name: Zone
-      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo/types
 
