@@ -167,7 +167,7 @@ type configuration struct {
 
 		// VSphere configuration
 		VSphere struct {
-			Enabled       bool
+			Enabled bool
 		}
 	}
 
