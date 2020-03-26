@@ -21,7 +21,7 @@ export class BanzaiTableComponent {
 
   private _sort: MatSort;
 
-  @ViewChild(MatSort, { static: false }) set sort(value: MatSort) {
+  @ViewChild(MatSort) set sort(value: MatSort) {
     this._sort = value;
     if (this._dataSource) {
       this._dataSource.sortingDataAccessor = (item: TableRowItem, property: string) => {
