@@ -55,7 +55,7 @@ scraper:
 
   image:
     repository: banzaicloud/cloudinfo
-    tag: 0.9.7
+    tag: 0.9.8
     pullPolicy: IfNotPresent
 
   deployment:
