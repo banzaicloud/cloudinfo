@@ -52,6 +52,8 @@ const (
 	Azure = "azure"
 	// Digitalocean is the identifier of the Digitalocean provider
 	Digitalocean = "digitalocean"
+	// Vsphere is the identifier of the Vsphere provider
+	Vsphere = "vsphere"
 )
 
 // metaConfiguration contains meta configuration for eg. remote config providers.
@@ -161,6 +163,11 @@ type configuration struct {
 		Digitalocean struct {
 			Enabled             bool
 			digitalocean.Config `mapstructure:",squash"`
+		}
+
+		// VSphere configuration
+		VSphere struct {
+			Enabled bool
 		}
 	}
 
