@@ -15,7 +15,6 @@ import { BanzaiTableStyleDirective } from './components/banzai-table/directives/
 import { BanzaiTableCellConfigDirective } from './components/banzai-table/directives/banzai-table-cell-config.directive';
 import { BanzaiTableCellWidthDirective } from './components/banzai-table/directives/banzai-table-cell-width.directive';
 import { TruncateAtMiddlePipe } from './components/banzai-table/pipe/truncate-at-middle.pipe';
-import { TimeAgoPipe } from 'time-ago-pipe';
 import { BanzaiCopyIconComponent } from './components/banzai-copy-icon/banzai-copy-icon.component';
 import { ClipboardModule } from 'ngx-clipboard';
 import { ToFixedNumberPipe } from './components/banzai-table/pipe/to-fixed-number.pipe';
@@ -34,7 +33,6 @@ import { ToFixedNumberPipe } from './components/banzai-table/pipe/to-fixed-numbe
   declarations: [
     BanzaiSelectorComponent,
     BanzaiTableComponent,
-    TimeAgoPipe,
     TruncateAtMiddlePipe,
     BanzaiTableCellWidthDirective,
     BanzaiTableCellConfigDirective,
