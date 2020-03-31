@@ -8,7 +8,7 @@ frontend:
 
   image:
     repository: banzaicloud/cloudinfo
-    tag: 0.9.7
+    tag: 0.9.10
     pullPolicy: IfNotPresent
 
   deployment:
@@ -55,7 +55,7 @@ scraper:
 
   image:
     repository: banzaicloud/cloudinfo
-    tag: 0.9.8
+    tag: 0.9.10
     pullPolicy: IfNotPresent
 
   deployment:
