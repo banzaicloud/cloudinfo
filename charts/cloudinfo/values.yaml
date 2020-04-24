@@ -8,7 +8,7 @@ frontend:
 
   image:
     repository: banzaicloud/cloudinfo
-    tag: 0.9.12
+    tag: 0.9.13
     pullPolicy: IfNotPresent
 
   deployment:
