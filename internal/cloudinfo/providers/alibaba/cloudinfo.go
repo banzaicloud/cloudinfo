@@ -430,7 +430,7 @@ func (a *AlibabaInfoer) GetServiceProducts(region, service string) ([]types.Prod
 func (a *AlibabaInfoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcAck:
-		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.12.6"}, "1.12.6")}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.16.6"}, "1.14.8")}, nil
 	default:
 		return []types.LocationVersion{}, nil
 	}

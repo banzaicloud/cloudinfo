@@ -3,14 +3,19 @@ fullnameOverride: ""
 
 serviceAccountName: ""
 
+image:
+  repository: banzaicloud/cloudinfo
+  tag: 0.9.14
+  pullPolicy: IfNotPresent
+
 frontend:
   replicaCount: 1
 
-  image:
-    repository: banzaicloud/cloudinfo
-    tag: 0.9.13
-    pullPolicy: IfNotPresent
-
+  image: {}
+#    repository: banzaicloud/cloudinfo
+#    tag: 0.9.14
+#    pullPolicy: IfNotPresent
+#
   deployment:
     labels: {}
     annotations: {}
@@ -53,10 +58,11 @@ frontend:
 scraper:
   replicaCount: 1
 
-  image:
-    repository: banzaicloud/cloudinfo
-    tag: 0.9.12
-    pullPolicy: IfNotPresent
+  image: {}
+  #    repository: banzaicloud/cloudinfo
+  #    tag: 0.9.14
+  #    pullPolicy: IfNotPresent
+  #
 
   deployment:
     labels: {}
