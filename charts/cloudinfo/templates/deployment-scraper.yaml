@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloudinfo.scraper.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+    app.kubernetes.io/component: "scraper"
+    helm.sh/chart: {{ include "cloudinfo.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- with .Values.scraper.deployment.labels }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.scraper.deployment.annotations }}
+  annotations:
+    {{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.scraper.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+      app.kubernetes.io/component: "scraper"
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "cloudinfo.name" . }}
+        app.kubernetes.io/component: "scraper"
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- if .Values.serviceAccountName }}
+      serviceAccountName: {{ .Values.serviceAccountName }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ default .Values.image.repository .Values.scraper.image.repository }}:{{ default .Values.image.tag .Values.scraper.image.tag }}"
+          imagePullPolicy: {{ default .Values.image.pullPolicy .Values.scraper.image.pullPolicy }}
+          args: ["cloudinfo", "--scrape=true", "--config=/etc/cloudinfo/config.yaml", "--listen-address=0.0.0.0:8000", "--metrics-address=0.0.0.0:{{ .Values.metrics.port }}"]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/cloudinfo/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          env:
+            - name: VAULT_SKIP_VERIFY
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: {{ template "cloudinfo.fullname" . }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+                  {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+                {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.basePath }}/status
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.basePath }}/status
+              port: http
+          resources:
+            {{ toYaml .Values.scraper.resources | nindent 12 }}
+      volumes:
+        - name: config
+          secret:
+            secretName: "{{ template "cloudinfo.fullname" . }}"
+      {{- with .Values.scraper.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.scraper.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.scraper.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
