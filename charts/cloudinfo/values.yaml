@@ -5,7 +5,7 @@ serviceAccountName: ""
 
 image:
   repository: banzaicloud/cloudinfo
-  tag: 0.9.14
+  tag: 0.9.15
   pullPolicy: IfNotPresent
 
 frontend:
