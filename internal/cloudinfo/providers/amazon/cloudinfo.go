@@ -588,7 +588,14 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 
 		for _, amazonImage := range amazonImages.Images {
 			imageTags := tagsFormImage(amazonImage)
-			pkeImage := types.NewImage(*amazonImage.ImageId, imageTags[tagK8SVersion], false)
+
+			gpuTagValue, ok := imageTags["gpu"]
+			var gpu bool
+			if ok {
+				gpu, _ = strconv.ParseBool(gpuTagValue)
+			}
+
+			pkeImage := types.NewImage(*amazonImage.ImageId, imageTags[tagK8SVersion], gpu)
 			pkeImage.Tags = imageTags
 			creationDate, _ := getImageCreateDate(amazonImage)
 			pkeImage.CreationDate = creationDate
