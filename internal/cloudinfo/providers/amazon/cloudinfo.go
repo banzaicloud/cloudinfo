@@ -458,7 +458,7 @@ func (e *Ec2Infoer) getSpotPricesFromPrometheus(region string) (map[string]types
 	priceInfo := make(map[string]types.SpotPriceInfo)
 	query := fmt.Sprintf(e.promQuery, region)
 	logger.Debug("sending prometheus query", map[string]interface{}{"query": query})
-	result, err := e.prometheus.Query(context.Background(), query, time.Now())
+	result, _, err := e.prometheus.Query(context.Background(), query, time.Now())
 	if err != nil {
 		return nil, err
 	}
