@@ -17,8 +17,8 @@ package cistore
 import (
 	"testing"
 
-	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/platform/redis"
@@ -33,7 +33,7 @@ func testRedisStore(t *testing.T) {
 		Port: 6379,
 	}
 
-	ps := NewRedisProductStore(cfg, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+	ps := NewRedisProductStore(cfg, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 
 	// insert an entry
 	ps.StoreStatus("amazon", "status")

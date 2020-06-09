@@ -17,7 +17,7 @@ package cloudinfoadapter
 import (
 	"context"
 
-	"github.com/goph/logur"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
@@ -93,5 +93,5 @@ func (l *Logger) WithContext(ctx context.Context) cloudinfo.Logger {
 
 // NewNoopLogger returns a logger that discards all received log events.
 func NewNoopLogger() *Logger {
-	return NewLogger(logur.NewNoopLogger())
+	return NewLogger(logur.NoopLogger{})
 }

@@ -109,6 +109,10 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 lint: bin/golangci-lint ## Run linter
 	bin/golangci-lint run
 
+.PHONY: fix
+fix: bin/golangci-lint ## Fix lint violations
+	bin/golangci-lint run --fix
+
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
 bin/licensei-${LICENSEI_VERSION}:
@@ -124,21 +128,6 @@ license-check: bin/licensei ## Run license check
 .PHONY: license-cache
 license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
-
-.PHONY: fmt
-fmt:
-	@gofmt -s -w ${GOFILES_NOVENDOR}
-
-bin/misspell: bin/misspell-${MISSPELL_VERSION}
-	@ln -sf misspell-${MISSPELL_VERSION} bin/misspell
-bin/misspell-${MISSPELL_VERSION}:
-	@mkdir -p bin
-	curl -sfL https://git.io/misspell | bash -s -- -b ./bin/ v${MISSPELL_VERSION}
-	@mv bin/misspell $@
-
-.PHONY: misspell
-misspell: bin/misspell ## Fix spelling mistakes
-	misspell -w ${GOFILES_NOVENDOR}
 
 .PHONY: list
 list: ## List all make targets

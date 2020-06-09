@@ -17,8 +17,8 @@ package cistore
 import (
 	"testing"
 
-	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/cloudinfoadapter"
 	"github.com/banzaicloud/cloudinfo/internal/platform/cassandra"
@@ -26,13 +26,15 @@ import (
 
 func testCassandraStore(t *testing.T) {
 
-	cps := NewCassandraProductStore(cassandra.Config{
-		Hosts:    []string{"localhost"},
-		Port:     9042,
-		Keyspace: "test",
-		Table:    "testPi",
-	},
-		cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+	cps := NewCassandraProductStore(
+		cassandra.Config{
+			Hosts:    []string{"localhost"},
+			Port:     9042,
+			Keyspace: "test",
+			Table:    "testPi",
+		},
+		cloudinfoadapter.NewLogger(&logur.TestLogger{}),
+	)
 
 	// insert an entry
 	cps.StoreStatus("amazon", "status")
