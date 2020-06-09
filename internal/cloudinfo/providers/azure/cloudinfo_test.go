@@ -153,7 +153,6 @@ func floatPointer(i float64) *float64 {
 }
 
 func TestAzureInfoer_toRegionID(t *testing.T) {
-
 	regionMap := map[string]string{
 		"japanwest":          "Japan West",
 		"centralindia":       "Central India",
@@ -318,7 +317,6 @@ func TestAzureInfoer_toRegionID(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			azureInfoer := AzureInfoer{log: cloudinfoadapter.NewLogger(&logur.TestLogger{})}
 			test.check(azureInfoer.toRegionID(test.sourceRegion, regionMap))
 		})
@@ -364,7 +362,6 @@ func TestAzureInfoer_transformMachineType(t *testing.T) {
 }
 
 func TestAzureInfoer_getMachineTypeVariants(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		sourceMt string

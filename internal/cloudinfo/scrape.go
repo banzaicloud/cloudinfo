@@ -109,7 +109,6 @@ func (sm *scrapingManager) scrapeServiceRegionImages(ctx context.Context, servic
 }
 
 func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, service string, regionId string) error {
-
 	versions, err := sm.infoer.GetVersions(service, regionId)
 	if err != nil {
 		return errors.WrapIf(err, "failed to retrieve service versions for region")
@@ -122,7 +121,6 @@ func (sm *scrapingManager) scrapeServiceRegionVersions(ctx context.Context, serv
 }
 
 func (sm *scrapingManager) scrapeServiceRegionZones(ctx context.Context, service, region string) error {
-
 	zones, err := sm.infoer.GetZones(region)
 	if err != nil {
 		return errors.WrapIf(err, "failed to retrieve zones for region")
@@ -161,7 +159,6 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		sm.store.StoreRegions(sm.provider, service.ServiceName(), regions)
 
 		for regionId := range regions {
-
 			start := time.Now()
 			if err = sm.scrapeServiceRegionZones(ctx, service.ServiceName(), regionId); err != nil {
 				return errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
@@ -301,10 +298,8 @@ func (sm *scrapingManager) scrape(ctx context.Context) {
 }
 
 func (sm *scrapingManager) scrapePKEImages(ctx context.Context, service types.Service) error {
-
 	// todo find a better solution - PKE service is static but images need to be scraped
 	if service.ServiceName() == "pke" {
-
 		regions, err := sm.infoer.GetRegions(service.ServiceName())
 		if err != nil {
 			sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), "N/A")
@@ -324,7 +319,6 @@ func (sm *scrapingManager) scrapePKEImages(ctx context.Context, service types.Se
 
 func NewScrapingManager(provider string, infoer CloudInfoer, store CloudInfoStore, log Logger,
 	metrics metrics.Reporter, tracer tracing.Tracer, eventBus messaging.EventBus, errorHandler ErrorHandler) *scrapingManager {
-
 	return &scrapingManager{
 		provider:     provider,
 		infoer:       infoer,
@@ -345,7 +339,6 @@ type ScrapingDriver struct {
 }
 
 func (sd *ScrapingDriver) StartScraping() error {
-
 	ctx := context.Background()
 
 	if err := NewPeriodicExecutor(sd.renewalInterval, sd.log).Execute(ctx, sd.renewAll); err != nil {
@@ -361,14 +354,12 @@ func (sd *ScrapingDriver) StartScraping() error {
 }
 
 func (sd *ScrapingDriver) renewAll(ctx context.Context) {
-
 	for _, manager := range sd.scrapingManagers {
 		go manager.scrape(ctx)
 	}
 }
 
 func (sd *ScrapingDriver) renewShortLived(ctx context.Context) {
-
 	for _, manager := range sd.scrapingManagers {
 		if !manager.infoer.HasShortLivedPriceInfo() {
 			// the manager's logger is used here - that has the provider in it's context

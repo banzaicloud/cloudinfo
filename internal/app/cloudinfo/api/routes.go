@@ -127,5 +127,4 @@ func (r *RouteHandler) EnableMetrics(router *gin.Engine, metricsAddr string) {
 	p.Use(router, "/metrics")
 	p.UseWithCustomMetrics(router, metrics.GetPriceGatherers(), "/metrics/price")
 	p.UseWithCustomMetrics(router, metrics.GetSpotPriceGatherers(), "/metrics/spotprice")
-
 }

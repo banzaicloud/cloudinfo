@@ -40,7 +40,6 @@ func NewPricingSource(s *session.Session, cfg ...*aws.Config) *pricingDetails {
 }
 
 func (pd *pricingDetails) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSONValue, error) {
-
 	list := make([]aws.JSONValue, 0)
 
 	if err := pd.GetProductsPages(input, func(output *pricing.GetProductsOutput, b bool) bool {

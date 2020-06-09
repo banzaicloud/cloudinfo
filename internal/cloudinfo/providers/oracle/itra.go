@@ -47,7 +47,6 @@ type ITRAResponse struct {
 
 // GetCloudInfoFromITRA gets product information from ITRA api by part number
 func (i *Infoer) GetCloudInfoFromITRA(partNumber string) (info ITRACloudInfo, err error) {
-
 	if i.cloudInfoCache == nil {
 		i.cloudInfoCache = make(map[string]ITRACloudInfo)
 	}
@@ -87,7 +86,6 @@ func (i *Infoer) GetCloudInfoFromITRA(partNumber string) (info ITRACloudInfo, er
 
 // GetPrice gets the value of the given price model from gathered prices
 func (ipi *ITRACloudInfo) GetPrice(model string) float64 {
-
 	for _, price := range ipi.Prices {
 		if model == price.Model {
 			return price.Value

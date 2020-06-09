@@ -50,7 +50,6 @@ type defaultServiceManager struct {
 func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 	sm.log.Info("triggering cloud information importing ...")
 	for _, provider := range providers {
-
 		for _, service := range sm.services[provider] {
 			if !service.IsStatic {
 				sm.log.Debug("skip loading static cloud information, dynamic service", map[string]interface{}{"service": service.Name})
@@ -61,7 +60,6 @@ func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 
 			cloudInfoLoader.Load()
 		}
-
 	}
 	sm.log.Info("cloud information imported.")
 }

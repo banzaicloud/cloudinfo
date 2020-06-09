@@ -140,7 +140,6 @@ func (i *Infoer) GetProductPrice(specs ShapeSpecs) (float64, error) {
 	}
 
 	return info.GetPrice("PAY_AS_YOU_GO") * specs.Cpus, nil
-
 }
 
 func (i *Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {

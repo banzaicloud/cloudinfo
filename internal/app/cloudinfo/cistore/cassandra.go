@@ -37,7 +37,6 @@ type cassandraProductStore struct {
 }
 
 func NewCassandraProductStore(config cassandra.Config, logger cloudinfo.Logger) cloudinfo.CloudInfoStore {
-
 	return &cassandraProductStore{
 		log:       logger.WithFields(map[string]interface{}{"cistore": "cassandra"}),
 		keySpace:  config.Keyspace,
@@ -175,7 +174,6 @@ func (cps *cassandraProductStore) getKey(keyTemplate string, args ...interface{}
 }
 
 func (cps *cassandraProductStore) set(key string, value interface{}) (interface{}, bool) {
-
 	if err := cps.initSession(); err != nil {
 		cps.log.Error("failed to connect to backend")
 		return nil, false
@@ -203,7 +201,6 @@ func (cps *cassandraProductStore) set(key string, value interface{}) (interface{
 
 // get retrieves the value of the passed in key in it's raw format
 func (cps *cassandraProductStore) get(key string, toTypePtr interface{}) (interface{}, bool) {
-
 	if err := cps.initSession(); err != nil {
 		cps.log.Error("failed to connect to backend")
 		return nil, false

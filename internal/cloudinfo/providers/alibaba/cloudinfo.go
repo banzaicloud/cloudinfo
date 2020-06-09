@@ -80,7 +80,6 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]types.Sp
 	for _, zone := range zones {
 		for _, instanceType := range zone.AvailableInstanceTypes.InstanceTypes {
 			if priceInfo[instanceType] == nil {
-
 				describeSpotPriceHistory, err := a.client.ProcessCommonRequest(a.describeSpotPriceHistoryRequest(region, instanceType))
 				if err != nil {
 					logger.Error("failed to get spot price history", map[string]interface{}{"instancetype": instanceType})
@@ -155,7 +154,6 @@ func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error
 			}
 		}
 		if len(zones) > 0 {
-
 			ntwMapper := newAlibabaNetworkMapper()
 			ntwPerf := fmt.Sprintf("%.1f Gbit/s", float64(instanceType.InstanceBandwidthRx)/1024000)
 			ntwPerfCat, err := ntwMapper.MapNetworkPerf(ntwPerf)
@@ -243,7 +241,6 @@ func (a *AlibabaInfoer) getOnDemandPrice(vms []types.VMInfo, region string) ([]t
 	instanceTypes := make([]string, 0)
 
 	for index, vm := range vms {
-
 		instanceTypes = append(instanceTypes, vm.Type)
 
 		if len(instanceTypes) == 25 || index+1 == len(vms) {

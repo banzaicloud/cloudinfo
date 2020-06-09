@@ -54,7 +54,6 @@ func (erc *errClassifier) Classify(inErr interface{}) (interface{}, error) {
 	cause := errors.Cause(err)
 
 	switch e := cause.(type) {
-
 	case *runtime.APIError:
 		// (cloud info) service is reachable - operation failed (eg.: bad request)
 		problem = erc.classifyApiError(e, errors.GetDetails(err))
@@ -67,12 +66,10 @@ func (erc *errClassifier) Classify(inErr interface{}) (interface{}, error) {
 	}
 
 	return problem, nil
-
 }
 
 // classifyApiError assembles data to be sent in the response to the caller when the error originates from the cloud info service
 func (erc *errClassifier) classifyApiError(e *runtime.APIError, ctx []interface{}) *problems.ProblemWrapper {
-
 	var (
 		httpCode int
 		details  = "unknown failure"

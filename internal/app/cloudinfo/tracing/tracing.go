@@ -63,7 +63,6 @@ func (t *ciTracer) StartAndLink(parentCtx context.Context, name string) (context
 	}
 
 	return newCtx, &CiSpan{rootSpan}
-
 }
 
 func (t *ciTracer) EndSpanInstance(span *CiSpan) {

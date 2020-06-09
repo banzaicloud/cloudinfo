@@ -146,7 +146,6 @@ func (ms *DefaultMetricsReporter) ReportScrapeShortLivedFailure(provider, region
 
 // NewMetricsSource assembles a Reporter with custom collectors
 func NewDefaultMetricsReporter() Reporter {
-
 	dms := &DefaultMetricsReporter{}
 	dms.addCollector(scrapeCompleteDurationGauge)
 	dms.addCollector(scrapeRegionDurationGauge)

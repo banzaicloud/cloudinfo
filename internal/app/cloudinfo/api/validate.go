@@ -50,9 +50,7 @@ func ConfigureValidator(providers []string, ci types.CloudInfo, logger cloudinfo
 
 // regionValidator validates the `region` path parameter
 func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
-
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-
 		regionPathParams, ok := currentStruct.Interface().(GetRegionPathParams)
 		if !ok {
 			return false
@@ -77,10 +75,8 @@ func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fun
 
 // serviceValidator validates the `service` path parameter
 func serviceValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
-
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
 		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
-
 		servicesPathParams, ok := currentStruct.Interface().(GetServicesPathParams)
 		if !ok {
 			return false
@@ -105,7 +101,6 @@ func serviceValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fu
 
 // providerValidator validates the `provider` path parameter
 func providerValidator(providers []string) validator.Func {
-
 	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
 		for _, p := range providers {
 			if field.String() == p {

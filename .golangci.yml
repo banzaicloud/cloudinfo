@@ -36,6 +36,7 @@ linters:
         - unconvert
         - unused
         - varcheck
+        - whitespace
 
         # disabled for now
         # - dupl
@@ -52,7 +53,6 @@ linters:
         # - scopelint
         # - stylecheck
         # - unparam
-        # - whitespace
 
         # unused
         # - depguard

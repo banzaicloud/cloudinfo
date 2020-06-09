@@ -98,7 +98,6 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 					"attributes": map[string]interface{}{},
 				}},
 		}, nil
-
 	}
 	return nil, nil
 }

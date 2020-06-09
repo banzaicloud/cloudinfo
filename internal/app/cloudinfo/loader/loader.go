@@ -77,7 +77,6 @@ func (dl *defaultCloudInfoLoader) LoadRegions() {
 	// set the status
 	dl.store.StoreStatus(dl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
 	dl.log.Debug("status updated")
-
 }
 
 // loadZones loads zones for a given region in the store
@@ -96,7 +95,6 @@ func (dl *defaultCloudInfoLoader) LoadVersions(provider string, service string, 
 	defer log.Debug("loading versions... DONE.")
 
 	dl.store.StoreVersion(provider, service, region.Id, region.Data.Versions.Data)
-
 }
 
 // loadImages loads images for a given region into the store
@@ -154,7 +152,6 @@ func (sl *storeCloudInfoLoader) LoadRegions() {
 	// set the status
 	sl.store.StoreStatus(sl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
 	sl.log.Debug("status updated")
-
 }
 
 func (sl *storeCloudInfoLoader) LoadZones(provider string, service string, region Region) {
@@ -250,7 +247,6 @@ func (sl *storeCloudInfoLoader) LoadVersions(provider string, service string, re
 		filteredVersions := make([]types.LocationVersion, 0, len(sourceVersions))
 		for _, sourceVersion := range sourceVersions {
 			for _, versionData := range region.Data.Versions.Data {
-
 				if versionData.Location != sourceVersion.Location {
 					continue
 				}
@@ -271,7 +267,6 @@ func (sl *storeCloudInfoLoader) LoadVersions(provider string, service string, re
 }
 
 func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, region Region) {
-
 	// add method context to the logger
 	log := sl.log.WithFields(map[string]interface{}{"provider": provider, "service": service, "region": region.Id})
 
@@ -297,7 +292,6 @@ func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, regi
 		filteredImages := make([]types.Image, 0, len(sourceImages))
 		for _, sourceImage := range sourceImages {
 			for _, excludeImage := range region.Data.Images.Data {
-
 				if excludeImage.Name != sourceImage.Name {
 					filteredImages = append(filteredImages, sourceImage)
 					break
@@ -317,7 +311,6 @@ func (sl *storeCloudInfoLoader) LoadImages(provider string, service string, regi
 		filteredImages := make([]types.Image, 0, len(sourceImages))
 		for _, sourceImage := range sourceImages {
 			for _, excludeImage := range region.Data.Images.Data {
-
 				if excludeImage.Name == sourceImage.Name {
 					filteredImages = append(filteredImages, sourceImage)
 					break
@@ -351,7 +344,6 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 
 		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
 		for _, sourceVM := range sourceVMs {
-
 			if !region.Data.Vms.ContainsVM(sourceVM.Type) {
 				// only append values that are not excluded
 				filteredVMs = append(filteredVMs, sourceVM)
@@ -369,7 +361,6 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 
 		filteredVMs := make([]types.VMInfo, 0, len(sourceVMs))
 		for _, sourceVM := range sourceVMs {
-
 			if region.Data.Vms.ContainsVM(sourceVM.Type) {
 				// only append included values
 				filteredVMs = append(filteredVMs, sourceVM)
@@ -385,7 +376,6 @@ func (sl *storeCloudInfoLoader) LoadVms(provider string, service string, region 
 
 func NewCloudInfoLoader(datapath, datafile, datatype string, store cloudinfo.CloudInfoStore, log cloudinfo.Logger,
 	eventBus messaging.EventBus) CloudInfoLoader {
-
 	dataViper := viper.New()
 	dataViper.SetConfigName(datafile)
 	dataViper.SetConfigType(datatype)
