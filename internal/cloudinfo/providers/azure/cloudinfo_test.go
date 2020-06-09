@@ -336,7 +336,7 @@ func TestAzureInfoer_transformMachineType(t *testing.T) {
 			name:     "return source if transformation not needed",
 			sourceMt: []string{"A1_v2"},
 			check: func(mt []string) {
-				assert.Equal(t, []string([]string{"Standard_A1_v2"}), mt, "invalid machine type returned")
+				assert.Equal(t, []string{"Standard_A1_v2"}, mt, "invalid machine type returned")
 			},
 		},
 		{
@@ -344,14 +344,14 @@ func TestAzureInfoer_transformMachineType(t *testing.T) {
 			subCategory: "A Series Basic",
 			sourceMt:    []string{"A8"},
 			check: func(mt []string) {
-				assert.Equal(t, []string([]string{"Basic_A8"}), mt, "invalid machine type returned")
+				assert.Equal(t, []string{"Basic_A8"}, mt, "invalid machine type returned")
 			},
 		},
 		{
 			name:     "successful check for Standard_A",
 			sourceMt: []string{"A6"},
 			check: func(mt []string) {
-				assert.Equal(t, []string([]string{"Standard_A6"}), mt, "invalid machine type returned")
+				assert.Equal(t, []string{"Standard_A6"}, mt, "invalid machine type returned")
 			},
 		},
 	}

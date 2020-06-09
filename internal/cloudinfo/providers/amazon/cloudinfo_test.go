@@ -624,7 +624,7 @@ func TestPriceData_newPriceData(t *testing.T) {
 			name:   "successful",
 			prData: aws.JSONValue{"product": map[string]interface{}{"attributes": map[string]interface{}{"dummy": "dummyInterface"}}},
 			check: func(data *priceData, err error) {
-				assert.Equal(t, map[string]interface{}(map[string]interface{}{"dummy": "dummyInterface"}), data.attrMap)
+				assert.Equal(t, map[string]interface{}{"dummy": "dummyInterface"}, data.attrMap)
 				assert.Nil(t, err)
 			},
 		},

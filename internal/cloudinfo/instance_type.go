@@ -359,18 +359,18 @@ func applyNetworkCategoryFilter(value string, filter NetworkCategoryFilter) bool
 }
 
 func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFilter) bool {
-	if filter.Eq != nil && !(value == instanceTypeCategoryMap[InstanceTypeCategory(*filter.Eq)]) {
+	if filter.Eq != nil && !(value == instanceTypeCategoryMap[*filter.Eq]) {
 		return false
 	}
 
-	if filter.Ne != nil && !(value != instanceTypeCategoryMap[InstanceTypeCategory(*filter.Ne)]) {
+	if filter.Ne != nil && !(value != instanceTypeCategoryMap[*filter.Ne]) {
 		return false
 	}
 
 	if filter.In != nil {
 		var in = false
 		for _, v := range filter.In {
-			if value == instanceTypeCategoryMap[InstanceTypeCategory(v)] {
+			if value == instanceTypeCategoryMap[v] {
 				in = true
 				break
 			}
@@ -383,7 +383,7 @@ func applyInstanceTypeCategoryFilter(value string, filter InstanceTypeCategoryFi
 
 	if filter.Nin != nil {
 		for _, v := range filter.In {
-			if value == instanceTypeCategoryMap[InstanceTypeCategory(v)] {
+			if value == instanceTypeCategoryMap[v] {
 				return false
 			}
 		}
