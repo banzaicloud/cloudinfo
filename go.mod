@@ -21,9 +21,9 @@ require (
 	github.com/bitly/go-hostpool v0.0.0-20171023180738-a3a6125de932 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/digitalocean/godo v1.37.0
-	github.com/gin-contrib/cors v1.3.1
-	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
+	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
+	github.com/gin-gonic/gin v1.4.0
 	github.com/go-kit/kit v0.10.0
 	github.com/go-openapi/runtime v0.18.0
 	github.com/gobuffalo/logger v1.0.3 // indirect
@@ -46,6 +46,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
+	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vektah/gqlparser v1.1.2
 	go.opencensus.io v0.22.2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
