@@ -9,26 +9,63 @@ linters-settings:
     gocyclo:
         min-complexity: 15
     goimports:
-        local-prefixes: github.com/banzaicloud/pipeline
+        local-prefixes: github.com/banzaicloud/cloudinfo
 
 linters:
+    disable-all: true
     enable:
-        - errcheck
-        - staticcheck
+        - bodyclose
         - deadcode
-        - misspell
+        - dogsled
+        - errcheck
+        # - exportloopref
+        - gochecknoinits
         - gofmt
-        - golint
         - goimports
-    #        todo enable this
-    #        - gochecknoglobals
-    disable:
-        - funlen
-        - gas
-        - megacheck
+        - golint
+        - goprintffuncname
+        - govet
+        - ineffassign
+        - misspell
+        - nakedret
+        - nolintlint
+        - rowserrcheck
+        - structcheck
+        - typecheck
         - varcheck
 
-        # Disable govet for now because it fails on Circle
-        - govet
+        # disabled for now
+        # - dupl
+        # - gochecknoglobals
+        # - gocognit
+        # - goconst
+        # - gocritic
+        # - gocyclo
+        # - godot
+        # - gosec
+        # - gosimple
+        # - lll
+        # - prealloc
+        # - scopelint
+        # - staticcheck
+        # - stylecheck
+        # - unconvert
+        # - unparam
+        # - unused
+        # - whitespace
 
-    fast: false
+        # unused
+        # - depguard
+        # - gomodguard
+
+        # don't enable:
+        # - asciicheck
+        # - funlen
+        # - godox
+        # - goerr113
+        # - gomnd
+        # - interfacer
+        # - maligned
+        # - nestif
+        # - testpackage
+        # - wsl
