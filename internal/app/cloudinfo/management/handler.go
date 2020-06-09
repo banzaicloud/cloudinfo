@@ -48,7 +48,6 @@ func (mrh *mngmntRouteHandler) Export() gin.HandlerFunc {
 
 // Import loads the data into the underlying store implementation from the stdin
 func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		mrh.log.Info("importing cloud information")
 		f, fh, err := c.Request.FormFile("data")
@@ -70,7 +69,6 @@ func (mrh *mngmntRouteHandler) Import() gin.HandlerFunc {
 
 // Refresh handler that triggers the refresh process for a provider
 func (mrh *mngmntRouteHandler) Refresh() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		pathParams := api.GetProviderPathParams{}
 		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {

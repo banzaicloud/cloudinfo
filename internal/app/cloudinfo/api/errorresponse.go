@@ -35,7 +35,6 @@ type errorResponder struct {
 
 // Respond assembles the error response corresponding to the passed in error
 func (er *errorResponder) Respond(ginCtx *gin.Context, err error) {
-
 	if responseData, e := er.errClassifier.Classify(err); e == nil {
 		er.respond(ginCtx, responseData)
 		return
@@ -46,7 +45,6 @@ func (er *errorResponder) Respond(ginCtx *gin.Context, err error) {
 
 // respond sets the response in the gin context
 func (er *errorResponder) respond(ginCtx *gin.Context, d interface{}) {
-
 	if problems.IsDefaultProblem(d) {
 		ginCtx.AbortWithStatusJSON(problems.ProblemStatus(d), d)
 		return

@@ -23,7 +23,6 @@ import (
 )
 
 func TestEc2NetworkMapper_MapNetworkPerf(t *testing.T) {
-
 	mapper := AmazonNetworkMapper{}
 	tests := []struct {
 		name  string

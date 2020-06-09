@@ -136,7 +136,6 @@ func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]typ
 
 	details := make([]types.ProductDetails, 0, len(vms))
 	for _, vm := range vms {
-
 		pd := types.NewProductDetails(vm)
 		cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type)
 		if !ok {

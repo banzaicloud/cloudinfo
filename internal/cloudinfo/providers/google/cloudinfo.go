@@ -205,7 +205,6 @@ func (g *GceInfoer) Initialize() (map[string]map[string]types.Price, error) {
 							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
 								spotPrice[z] = price[mt.Name]["Preemptible"]
 								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
-
 							} else {
 								spotPrice[z] = price[types.CPU]["Preemptible"]*float64(mt.GuestCpus) + price[types.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
 							}
@@ -275,7 +274,6 @@ func (g *GceInfoer) getPrice() (map[string]map[string]map[string]float64, error)
 						}
 						if strings.Contains(sku.Description, "Instance Ram") {
 							price[region][types.Memory] = g.priceFromSku(price, region, types.Memory, sku.Category.UsageType, priceInUsd)
-
 						} else {
 							price[region][types.CPU] = g.priceFromSku(price, region, types.CPU, sku.Category.UsageType, priceInUsd)
 						}

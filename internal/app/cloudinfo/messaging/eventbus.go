@@ -38,7 +38,7 @@ const (
 // defaultEventBus default EventBus component implementation backed by https://github.com/asaskevich/EventBus
 type defaultEventBus struct {
 	eventBus     evbus.Bus
-	errorHandler emperror.Handler
+	errorHandler emperror.ErrorHandler
 }
 
 func (eb *defaultEventBus) PublishScrapingComplete(provider string) {
@@ -56,7 +56,7 @@ func (eb *defaultEventBus) providerScrapingTopic(provider string) string {
 }
 
 // NewDefaultEventBus creates an event bus backed by  https://github.com/asaskevich/EventBus
-func NewDefaultEventBus(handler emperror.Handler) EventBus {
+func NewDefaultEventBus(_ emperror.ErrorHandler) EventBus {
 	return &defaultEventBus{
 		eventBus: evbus.New(),
 	}

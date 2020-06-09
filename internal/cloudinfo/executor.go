@@ -37,7 +37,6 @@ type PeriodicExecutor struct {
 // Execute executes the task function periodically in a new goroutine
 // For tasks that need to be periodically executed within a defined deadline, the appropriate context needs to be passed in
 func (ps *PeriodicExecutor) Execute(ctx context.Context, sf TaskFn) error {
-
 	go sf(ctx)
 
 	ticker := time.NewTicker(ps.interval)

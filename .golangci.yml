@@ -30,9 +30,13 @@ linters:
         - nakedret
         - nolintlint
         - rowserrcheck
+        - staticcheck
         - structcheck
         - typecheck
+        - unconvert
+        - unused
         - varcheck
+        - whitespace
 
         # disabled for now
         # - dupl
@@ -47,12 +51,8 @@ linters:
         # - lll
         # - prealloc
         # - scopelint
-        # - staticcheck
         # - stylecheck
-        # - unconvert
         # - unparam
-        # - unused
-        # - whitespace
 
         # unused
         # - depguard

@@ -284,7 +284,6 @@ func (pd *priceData) getOnDemandPrice() (string, error) {
 			return "", err
 		}
 		for _, dimension := range priceDimensionsMap {
-
 			pricePerUnitMap, err := getMapForKey("pricePerUnit", dimension.(map[string]interface{}))
 			if err != nil {
 				return "", err
@@ -553,7 +552,6 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 	switch service {
 	case svcEks:
 		for _, k8sVersion := range []string{"1.14", "1.15", "1.16"} {
-
 			gpuImages, err := e.ec2Describer(region).DescribeImages(getEKSDescribeImagesInput(k8sVersion, true))
 			if err != nil {
 				return nil, err

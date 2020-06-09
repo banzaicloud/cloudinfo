@@ -163,7 +163,7 @@ func main() {
 	if config.Jaeger.Enabled {
 		logger.Info("jaeger exporter enabled")
 
-		tracing.SetupTracing(config.Jaeger.Config, emperror.NewNoopHandler())
+		tracing.SetupTracing(config.Jaeger.Config, emperror.NoopHandler{})
 		tracer = tracing.NewTracer()
 	}
 

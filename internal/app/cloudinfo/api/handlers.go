@@ -42,7 +42,6 @@ import (
 //       200: ProvidersResponse
 func (r *RouteHandler) getProviders() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		logger := log.WithFieldsForHandlers(c, r.log, nil)
 
 		logger.Info("getting providers")
@@ -182,7 +181,6 @@ func (r *RouteHandler) getService() gin.HandlerFunc {
 
 		for _, service := range services {
 			if service.ServiceName() == pathParams.Service {
-
 				logger.Debug("successfully retrieved service details")
 				c.JSON(http.StatusOK, NewServiceResponse(service))
 				return
@@ -432,7 +430,6 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve service images details",
 				"provider", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region))
 			return
-
 		}
 
 		zeroQuery := GetImagesQueryParams{}
@@ -533,7 +530,6 @@ func (r *RouteHandler) getVersions() gin.HandlerFunc {
 //       200: ContinentsResponse
 func (r *RouteHandler) getContinents() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		logger := log.WithFieldsForHandlers(c, r.log, nil)
 
 		logger.Info("getting continents")

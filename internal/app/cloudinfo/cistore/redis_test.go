@@ -27,7 +27,6 @@ import (
 // Skeleton for dev testing the redis store
 // use the attached docker-compose.yaml compose file
 func testRedisStore(t *testing.T) {
-
 	cfg := redis.Config{
 		Host: "localhost",
 		Port: 6379,
@@ -42,5 +41,4 @@ func testRedisStore(t *testing.T) {
 	status, ok := ps.GetStatus("amazon")
 	assert.True(t, ok)
 	assert.Equal(t, "status", status)
-
 }

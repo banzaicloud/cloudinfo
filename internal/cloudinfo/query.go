@@ -88,7 +88,7 @@ func applyFloatFilter(value float64, filter FloatFilter) bool {
 	return true
 }
 
-// nolint: deadcode
+// nolint: deadcode,unused
 func applyIntFilter(value int, filter IntFilter) bool {
 	if filter.Eq != nil && !(value == *filter.Eq) {
 		return false

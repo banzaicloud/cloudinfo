@@ -153,11 +153,9 @@ func TestNewCachingCloudInfo(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-
 			test.checker(NewCloudInfo(test.CloudInfoer, &DummyCloudInfoStore{}, cloudinfoLogger))
 		})
 	}
-
 }
 
 func TestCachingCloudInfo_GetRegions(t *testing.T) {

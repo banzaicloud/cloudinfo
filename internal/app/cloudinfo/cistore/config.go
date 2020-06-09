@@ -38,7 +38,6 @@ type GoCacheConfig struct {
 // NewCloudInfoStore builds a new cloudinfo store based on the passed in configuration
 // This method is in charge to create the appropriate store instance eventually to implement a fallback mechanism to the default store
 func NewCloudInfoStore(conf Config, log cloudinfo.Logger) cloudinfo.CloudInfoStore {
-
 	// use redis if enabled
 	if conf.Redis.Enabled {
 		log.Info("using Redis as product store")

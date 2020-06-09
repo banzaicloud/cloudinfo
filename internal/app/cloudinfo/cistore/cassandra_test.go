@@ -25,7 +25,6 @@ import (
 )
 
 func testCassandraStore(t *testing.T) {
-
 	cps := NewCassandraProductStore(
 		cassandra.Config{
 			Hosts:    []string{"localhost"},
@@ -43,5 +42,4 @@ func testCassandraStore(t *testing.T) {
 	status, ok := cps.GetStatus("amazon")
 	assert.True(t, ok)
 	assert.Equal(t, "status", status)
-
 }
