@@ -21,7 +21,7 @@ import (
 type panicHandler struct{}
 
 // NewPanicHandler returns an error handler that panics.
-func NewPanicHandler() emperror.Handler {
+func NewPanicHandler() emperror.ErrorHandler {
 	return &panicHandler{}
 }
 

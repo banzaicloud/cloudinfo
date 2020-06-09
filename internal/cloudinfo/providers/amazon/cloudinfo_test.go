@@ -161,7 +161,7 @@ func TestNewEc2Infoer(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: test.prom}
 
-			test.check(NewAmazonInfoer(c, cloudinfoadapter.NewLogger(logur.NewTestLogger())))
+			test.check(NewAmazonInfoer(c, cloudinfoadapter.NewLogger(&logur.TestLogger{})))
 		})
 	}
 }
@@ -193,7 +193,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -235,7 +235,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -280,7 +280,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: "PromAPIAddress"}
-			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -326,7 +326,7 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := Config{PrometheusAddress: "PromAPIAddress"}
-			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(logur.NewTestLogger()))
+			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}

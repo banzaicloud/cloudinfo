@@ -20,7 +20,7 @@ import (
 )
 
 // NewExporter creates a new, configured Prometheus exporter.
-func NewExporter(config Config, errorHandler emperror.Handler) (*prometheus.Exporter, error) {
+func NewExporter(config Config, errorHandler emperror.ErrorHandler) (*prometheus.Exporter, error) {
 	exporter, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: config.Namespace,
 		OnError:   errorHandler.Handle,

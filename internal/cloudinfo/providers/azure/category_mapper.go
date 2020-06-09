@@ -37,8 +37,8 @@ var (
 // mapCategory maps the family of the azure instance to category
 func (a *AzureInfoer) mapCategory(name string) (string, error) {
 	family := strings.TrimRight(name, "Family")
-	family = strings.TrimLeft(family, "standard")
-	family = strings.TrimRight(family, "Promo")
+	family = strings.TrimLeft(family, "standard") // nolint: staticcheck
+	family = strings.TrimRight(family, "Promo")   // nolint: staticcheck
 	family = strings.TrimLeft(family, "basic")
 
 	for category, strVals := range categoryMap {

@@ -21,7 +21,7 @@ import (
 )
 
 // NewExporter creates a new, configured Jaeger exporter.
-func NewExporter(config Config, errorHandler emperror.Handler) (*jaeger.Exporter, error) {
+func NewExporter(config Config, errorHandler emperror.ErrorHandler) (*jaeger.Exporter, error) {
 	exporter, err := jaeger.NewExporter(jaeger.Options{
 		CollectorEndpoint: config.CollectorEndpoint,
 		AgentEndpoint:     config.AgentEndpoint,

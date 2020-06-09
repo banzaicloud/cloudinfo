@@ -109,7 +109,7 @@ func NewTracer() Tracer {
 	return &ciTracer{}
 }
 
-func SetupTracing(config jaeger.Config, errorHandler emperror.Handler) {
+func SetupTracing(config jaeger.Config, errorHandler emperror.ErrorHandler) {
 	exporter, err := jaeger.NewExporter(config, errorHandler)
 	errorHandler.Handle(err)
 
