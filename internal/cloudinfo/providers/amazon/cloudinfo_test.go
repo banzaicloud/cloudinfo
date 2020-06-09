@@ -103,11 +103,6 @@ func (dps *testStruct) GetPriceList(input *pricing.GetProductsInput) ([]aws.JSON
 	return nil, nil
 }
 
-// strPointer gets the pointer to the passed string
-func (dps *testStruct) strPointer(str string) *string {
-	return &str
-}
-
 func (dps *testStruct) DescribeAvailabilityZones(input *ec2.DescribeAvailabilityZonesInput) (*ec2.DescribeAvailabilityZonesOutput, error) {
 	if dps.TcId == 10 {
 		return nil, errors.New("could not get information about zones")

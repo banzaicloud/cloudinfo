@@ -32,6 +32,7 @@ linters:
         - rowserrcheck
         - structcheck
         - typecheck
+        - unused
         - varcheck
 
         # disabled for now
@@ -51,7 +52,6 @@ linters:
         # - stylecheck
         # - unconvert
         # - unparam
-        # - unused
         # - whitespace
 
         # unused
