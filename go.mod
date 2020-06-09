@@ -39,7 +39,7 @@ require (
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.10.0
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
-	github.com/sagikazarmark/viperx v0.4.0
+	github.com/sagikazarmark/viperx v0.3.0
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
