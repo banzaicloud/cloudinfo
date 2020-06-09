@@ -7,6 +7,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	emperror.dev/emperror v0.32.0
 	emperror.dev/errors v0.7.0
+	emperror.dev/handler/logur v0.4.0
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Azure/azure-sdk-for-go v33.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.1
@@ -29,7 +30,6 @@ require (
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/goph/logur v0.11.0
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moogar0880/problems v0.1.1
 	github.com/oracle/oci-go-sdk v12.5.0+incompatible
@@ -37,6 +37,7 @@ require (
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.10.0
 	github.com/sagikazarmark/viperx v0.4.0
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/pflag v1.0.3
@@ -47,6 +48,8 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.13.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
+	logur.dev/adapter/logrus v0.5.0
+	logur.dev/logur v0.16.2
 )
 
 replace (

@@ -16,10 +16,11 @@ package errorhandler
 
 import (
 	"emperror.dev/emperror"
-	"github.com/goph/logur"
+	logurhandler "emperror.dev/handler/logur"
+	"logur.dev/logur"
 )
 
 // New returns a new error handler.
-func New(logger logur.ErrorLogger) emperror.Handler {
-	return logur.NewErrorHandler(logger)
+func New(logger logur.Logger) emperror.ErrorHandler {
+	return logurhandler.New(logger)
 }
