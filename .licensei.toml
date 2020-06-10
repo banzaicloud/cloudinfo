@@ -36,4 +36,5 @@ ignored = [
     "go.uber.org/atomic",
     "go.uber.org/multierr",
     "emperror.dev/errors",
+    "go.mongodb.org/mongo-driver",
 ]
