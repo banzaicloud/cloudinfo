@@ -13,7 +13,6 @@ ignored = [
     "github.com/golang/protobuf",
     "github.com/stretchr/testify",
     "github.com/jmespath/go-jmespath",
-    "github.com/go-openapi/spec",
     "github.com/magiconair/properties",
     "github.com/pmezard/go-difflib",
     "github.com/shopspring/decimal",
@@ -36,5 +35,4 @@ ignored = [
     "go.uber.org/atomic",
     "go.uber.org/multierr",
     "emperror.dev/errors",
-    "go.mongodb.org/mongo-driver",
 ]
