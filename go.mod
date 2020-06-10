@@ -25,7 +25,7 @@ require (
 	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-kit/kit v0.10.0
-	github.com/go-openapi/runtime v0.18.0
+	github.com/go-openapi/runtime v0.19.4
 	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/gobuffalo/packd v1.0.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
@@ -39,11 +39,11 @@ require (
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.10.0
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
-	github.com/sagikazarmark/viperx v0.3.0
+	github.com/sagikazarmark/viperx v0.5.0
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/ugorji/go v1.1.7 // indirect
@@ -58,8 +58,8 @@ require (
 )
 
 replace (
-	// Kubernetes 1.13.5
-	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
-	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
+	// Kubernetes 1.17.2
+	k8s.io/api => k8s.io/api v0.17.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.17.2
+	k8s.io/client-go => k8s.io/client-go v0.17.2
 )
