@@ -19,7 +19,6 @@ import (
 	"net/url"
 
 	"emperror.dev/errors"
-	"github.com/go-openapi/runtime"
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/problems"
 )
@@ -54,9 +53,6 @@ func (erc *errClassifier) Classify(inErr interface{}) (interface{}, error) {
 	cause := errors.Cause(err)
 
 	switch e := cause.(type) {
-	case *runtime.APIError:
-		// (cloud info) service is reachable - operation failed (eg.: bad request)
-		problem = erc.classifyApiError(e, errors.GetDetails(err))
 	case *url.Error:
 		// the cloud info service is not available
 		problem = erc.classifyUrlError(e, errors.GetDetails(err))
@@ -68,35 +64,7 @@ func (erc *errClassifier) Classify(inErr interface{}) (interface{}, error) {
 	return problem, nil
 }
 
-// classifyApiError assembles data to be sent in the response to the caller when the error originates from the cloud info service
-func (erc *errClassifier) classifyApiError(e *runtime.APIError, ctx []interface{}) *problems.ProblemWrapper {
-	var (
-		httpCode int
-		details  = "unknown failure"
-	)
-
-	// determine http status code
-	switch c := e.Code; {
-	case c < http.StatusInternalServerError:
-		// all non-server error status codes translated to user error status code
-		httpCode = http.StatusBadRequest
-	default:
-		// all server errors left unchanged
-		httpCode = c
-	}
-
-	// determine error code and status message - from the error and the context
-	// the message should contain the flow related information and
-	if hasLabel(ctx, "validation") {
-		// provider, service, region - path data
-		details = "validation failed - no cloud information available for the request path data"
-		return problems.NewValidationProblem(httpCode, details)
-	}
-
-	return problems.NewDetailedProblem(httpCode, details)
-}
-
-func (erc *errClassifier) classifyUrlError(e *url.Error, ctx []interface{}) *problems.ProblemWrapper {
+func (erc *errClassifier) classifyUrlError(e *url.Error, _ []interface{}) *problems.ProblemWrapper {
 	// todo
 	var problem = problems.NewUnknownProblem(e)
 

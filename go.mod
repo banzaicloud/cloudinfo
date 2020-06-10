@@ -25,7 +25,6 @@ require (
 	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-kit/kit v0.10.0
-	github.com/go-openapi/runtime v0.19.4
 	github.com/gobuffalo/logger v1.0.3 // indirect
 	github.com/gobuffalo/packd v1.0.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.7.1
