@@ -30,12 +30,10 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/gobuffalo/packr/v2"
 	vaultremote "github.com/sagikazarmark/viperx/remote"
 	_ "github.com/sagikazarmark/viperx/remote/bankvaults"
 	"github.com/spf13/pflag"
@@ -233,22 +231,7 @@ func main() {
 		routeHandler.EnableMetrics(router, config.Metrics.Address)
 	}
 
-	ui := packr.New("ui", "../../web/dist/web")
-
-	index, err := ui.FindString("index.html")
-	if err == nil {
-		index = strings.Replace(
-			index,
-			"<base href=\"/\">",
-			fmt.Sprintf("<base href=\"%s/\">", config.App.BasePath),
-			-1,
-		)
-
-		err := ui.AddString("index.html", index)
-		emperror.Panic(err)
-	}
-
-	routeHandler.ConfigureRoutes(router, config.App.BasePath, ui)
+	routeHandler.ConfigureRoutes(router, config.App.BasePath)
 
 	err = router.Run(config.App.Address)
 	emperror.Panic(errors.Wrap(err, "failed to run router"))

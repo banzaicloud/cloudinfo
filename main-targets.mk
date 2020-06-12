@@ -14,6 +14,7 @@ reset: down up ## Reset the development environment
 .PHONY: clear
 clear: ## Clear the working area and the project
 	rm -rf bin/
+	rm -rf cmd/*/pkged.go
 
 docker-compose.override.yml:
 	cp docker-compose.override.yml.dist docker-compose.override.yml
@@ -46,12 +47,19 @@ endif
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME} ${BUILD_PACKAGE}
 
 .PHONY: build-release
-build-release: ## Build all binaries without debug information
+build-release: $(patsubst cmd/%,cmd/%/pkged.go,$(wildcard cmd/*)) ## Build all binaries without debug information
 	@${MAKE} LDFLAGS="-w ${LDFLAGS}" GOARGS="${GOARGS} -trimpath" BUILD_DIR="${BUILD_DIR}/release" build
 
 .PHONY: build-debug
-build-debug: ## Build all binaries with remote debugging capabilities
+build-debug: $(patsubst cmd/%,cmd/%/pkged.go,$(wildcard cmd/*)) ## Build all binaries with remote debugging capabilities
 	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BUILD_DIR="${BUILD_DIR}/debug" build
+
+bin/pkger: go.mod
+	@mkdir -p bin
+	go build -o bin/pkger github.com/markbates/pkger/cmd/pkger
+
+cmd/%/pkged.go: bin/pkger ## Embed static files
+	bin/pkger -o cmd/$*
 
 .PHONY: docker
 docker: ## Build a Docker image
