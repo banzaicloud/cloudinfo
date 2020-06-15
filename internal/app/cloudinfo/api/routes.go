@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
@@ -72,8 +73,8 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string) {
 	base := router.Group(basePath)
 
 	{
-		indexFile, err := dir.Open("index.html")
-		emperror.Panic(err)
+		indexFile, err := dir.Open("/index.html")
+		emperror.Panic(errors.WrapIf(err, "open index.html"))
 
 		indexContent, err := ioutil.ReadAll(indexFile)
 		emperror.Panic(err)
