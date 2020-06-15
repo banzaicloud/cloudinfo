@@ -26,7 +26,6 @@ DOCKER_TAG ?= ${VERSION}
 
 MISSPELL_VERSION = 0.3.4
 GQLGEN_VERSION = 0.8.3
-PACKR_VERSION = 2.7.1
 
 GOTESTSUM_VERSION = 0.4.2
 GOLANGCI_VERSION = 1.27.0
@@ -62,16 +61,6 @@ bin/swagger-${SWAGGER_VERSION}: bin/gobin
 swagger: bin/swagger
 	bin/swagger generate spec -m -o $(SWAGGER_PI_TMP_FILE)
 	swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
-
-bin/packr2: bin/packr2-${PACKR_VERSION}
-	@ln -sf packr2-${PACKR_VERSION} bin/packr2
-bin/packr2-${PACKR_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/gobuffalo/packr/releases/download/v${PACKR_VERSION}/packr_${PACKR_VERSION}_${OS}_amd64.tar.gz | tar -zOxf - packr2 > ./bin/packr2-${PACKR_VERSION} && chmod +x ./bin/packr2-${PACKR_VERSION}
-
-.PHONY: uibundle
-uibundle: bin/packr2
-	GO111MODULE=on cd cmd/cloudinfo && $(abspath bin/packr2)
 
 define generate_openapi_client
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi

@@ -15,15 +15,17 @@
 package api
 
 import (
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
+	"emperror.dev/emperror"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/gobuffalo/packr/v2"
-	"github.com/gobuffalo/packr/v2/file"
+	"github.com/markbates/pkger"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
@@ -52,33 +54,8 @@ func NewRouteHandler(p types.CloudInfo, bi buildinfo.BuildInfo, graphqlHandler h
 	}
 }
 
-type binaryFileSystem struct {
-	fs *packr.Box
-}
-
-func (b *binaryFileSystem) Open(name string) (http.File, error) {
-	// This is necessary because of https://github.com/gobuffalo/packr/issues/173
-	if b.fs.HasDir(name) {
-		return file.NewDir(name)
-	}
-
-	return b.fs.Open(name)
-}
-
-func (b *binaryFileSystem) Exists(prefix string, filepath string) bool {
-	if p := strings.TrimPrefix(filepath, prefix); len(p) < len(filepath) {
-		if p == "" || p == "/" {
-			p = "index.html"
-		}
-
-		return b.fs.Has(p)
-	}
-
-	return false
-}
-
 // ConfigureRoutes configures the gin engine, defines the rest API for this application
-func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string, box *packr.Box) {
+func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string) {
 	r.log.Info("configuring routes")
 
 	corsConfig := cors.DefaultConfig()
@@ -88,9 +65,34 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string, box 
 	router.Use(log.MiddlewareCorrelationId())
 	router.Use(log.Middleware())
 	router.Use(cors.New(corsConfig))
-	router.Use(static.Serve(basePath, &binaryFileSystem{fs: box}))
+
+	dir := pkger.Dir("/web/dist/web")
+	router.Use(static.Serve(basePath, pkgerFileSystem{dir}))
 
 	base := router.Group(basePath)
+
+	{
+		indexFile, err := dir.Open("index.html")
+		emperror.Panic(err)
+
+		indexContent, err := ioutil.ReadAll(indexFile)
+		emperror.Panic(err)
+
+		newIndexContent := []byte(strings.Replace(
+			string(indexContent),
+			"<base href=\"/\">",
+			fmt.Sprintf("<base href=\"%s/\">", basePath),
+			-1,
+		))
+
+		base.GET("/", func(c *gin.Context) {
+			_, _ = c.Writer.Write(newIndexContent)
+		})
+		base.GET("index.html", func(c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, "./")
+		})
+	}
+
 	{
 		base.GET("/status", r.signalStatus)
 		base.GET("/version", r.versionHandler)

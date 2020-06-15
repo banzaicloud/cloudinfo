@@ -25,19 +25,16 @@ require (
 	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-kit/kit v0.10.0
-	github.com/gobuffalo/logger v1.0.3 // indirect
-	github.com/gobuffalo/packd v1.0.0 // indirect
-	github.com/gobuffalo/packr/v2 v2.7.1
 	github.com/gocql/gocql v0.0.0-20190402132108-0e1d5de854df
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible
+	github.com/markbates/pkger v0.17.0
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moogar0880/problems v0.1.1
 	github.com/oracle/oci-go-sdk v12.5.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.10.0
-	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/sagikazarmark/viperx v0.5.0
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -48,6 +45,7 @@ require (
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vektah/gqlparser v1.1.2
 	go.opencensus.io v0.22.2
+	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools v0.0.0-20200308013534-11ec41452d41 // indirect
 	google.golang.org/api v0.13.0
