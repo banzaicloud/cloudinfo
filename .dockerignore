@@ -10,5 +10,6 @@
 /gqlgen.yml
 /.licensei.toml
 /scripts/
+pkged.go
 /web/dist/
 /web/node_modules/
