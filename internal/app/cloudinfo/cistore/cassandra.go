@@ -45,6 +45,16 @@ func NewCassandraProductStore(config cassandra.Config, logger cloudinfo.Logger) 
 	}
 }
 
+func (cps *cassandraProductStore) Ready() bool {
+	err := cps.initSession()
+	if err != nil {
+		cps.log.Error("failure checking cassandra ready", map[string]interface{}{"error": err})
+		return false
+	}
+	cps.log.Debug("casandra product store ready")
+	return true
+}
+
 func (cps *cassandraProductStore) StoreRegions(provider, service string, val map[string]string) {
 	cps.set(cps.getKey(cloudinfo.RegionKeyTemplate, provider, service), val)
 }

@@ -170,6 +170,9 @@ func main() {
 	// use the configured store implementation
 	cloudInfoStore := cistore.NewCloudInfoStore(config.Store, cloudInfoLogger)
 	defer cloudInfoStore.Close()
+	if !cloudInfoStore.Ready() {
+		emperror.Panic(errors.New("configured product store not available"))
+	}
 
 	infoers, providers, err := loadInfoers(config, cloudInfoLogger)
 	emperror.Panic(err)
