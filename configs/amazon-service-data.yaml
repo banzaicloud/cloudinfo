@@ -15,12 +15,11 @@ regions:
                 data:
                     -   location: eu-north-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -91,12 +90,11 @@ regions:
                 data:
                     -   location: ap-northeast-2
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -167,12 +165,11 @@ regions:
                 data:
                     -   location: sa-east-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -243,12 +240,11 @@ regions:
                 data:
                     -   location: us-west-2
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -319,12 +315,11 @@ regions:
                 data:
                     -   location: eu-central-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -395,12 +390,11 @@ regions:
                 data:
                     -   location: ca-central-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -471,12 +465,11 @@ regions:
                 data:
                     -   location: ap-south-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -547,12 +540,11 @@ regions:
                 data:
                     -   location: us-west-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -623,12 +615,11 @@ regions:
                 data:
                     -   location: ap-southeast-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -699,12 +690,11 @@ regions:
                 data:
                     -   location: eu-west-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -775,12 +765,11 @@ regions:
                 data:
                     -   location: us-east-2
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -851,12 +840,11 @@ regions:
                 data:
                     -   location: us-east-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -927,12 +915,11 @@ regions:
                 data:
                     -   location: ap-northeast-1
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -1003,12 +990,11 @@ regions:
                 data:
                     -   location: eu-west-2
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -1079,12 +1065,11 @@ regions:
                 data:
                     -   location: ap-southeast-2
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
@@ -1155,12 +1140,11 @@ regions:
                 data:
                     -   location: eu-west-3
                         versions:
-                            - 1.14.10
-                            - 1.15.11
-                            - 1.16.9
-                            - 1.17.5
-                            - 1.18.2
-                        default: 1.17.5
+                            - 1.15.12
+                            - 1.16.11
+                            - 1.17.7
+                            - 1.18.4
+                        default: 1.17.7
             vms:
                 strategy: include
                 data:
