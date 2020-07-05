@@ -180,7 +180,7 @@ workflows:
                     name: Build docker image
                     deploy: false
                     image: banzaicloud/cloudinfo
-                    tag: $CIRCLE_BRANCH
+                    tag: ${CIRCLE_BRANCH//\//_}
                     filters:
                         branches:
                             ignore: master
