@@ -31,6 +31,23 @@ type redisProductStore struct {
 	log  cloudinfo.Logger
 }
 
+func (rps *redisProductStore) Ready() bool {
+	conn := rps.pool.Get()
+	defer conn.Close()
+
+	reply, err := conn.Do("PING")
+	if err != nil {
+		rps.log.Error("failure checking redis ready", map[string]interface{}{"error": err})
+		return false
+	}
+	if reply != "PONG" {
+		rps.log.Error("redis PING returned unexpected value")
+		return false
+	}
+	rps.log.Debug("redis product store ready")
+	return true
+}
+
 func (rps *redisProductStore) DeleteRegions(provider, service string) {
 	rps.delete(rps.getKey(cloudinfo.RegionKeyTemplate, provider, service))
 }

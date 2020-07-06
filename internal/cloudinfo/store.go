@@ -48,6 +48,8 @@ const (
 
 // Storage operations for cloud information
 type CloudInfoStore interface {
+	Ready() bool
+
 	StoreRegions(provider, service string, val map[string]string)
 	GetRegions(provider, service string) (map[string]string, bool)
 	DeleteRegions(provider, service string)

@@ -34,6 +34,10 @@ type cacheProductStore struct {
 	log        cloudinfo.Logger
 }
 
+func (cis *cacheProductStore) Ready() bool {
+	return true
+}
+
 func (cis *cacheProductStore) DeleteRegions(provider, service string) {
 	cis.Delete(cis.getKey(cloudinfo.RegionKeyTemplate, provider, service))
 }
