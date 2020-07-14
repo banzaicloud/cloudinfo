@@ -313,7 +313,7 @@ func getMapForKey(key string, srcMap map[string]interface{}) (map[string]interfa
 
 // GetRegion gets the api specific region representation based on the provided id
 func (e *Ec2Infoer) GetRegion(id string) *endpoints.Region {
-	awsp := endpoints.AwsPartition()
+	awsp := endpoints.AwsUsGovPartition()
 	for _, r := range awsp.Regions() {
 		if r.ID() == id {
 			return &r
@@ -364,7 +364,7 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 	logger.Debug("getting regions")
 
 	regionIdMap := make(map[string]string)
-	for key, region := range endpoints.AwsPartition().Regions() {
+	for key, region := range endpoints.AwsUsGovPartition().Regions() {
 		regionIdMap[key] = region.Description()
 	}
 
@@ -372,7 +372,10 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 	case svcEks:
 		eksRegionIdMap := make(map[string]string)
 
-		eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
+		eksRegionIdMap[endpoints.UsGovWest1RegionID] = "AWS GovCloud (US-Gov-West)"
+		eksRegionIdMap[endpoints.UsGovEast1RegionID] = "AWS GovCloud (US-Gov-East)"
+
+		/*eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
 		eksRegionIdMap[endpoints.UsEast2RegionID] = "US East (Ohio)"
 		eksRegionIdMap[endpoints.UsWest2RegionID] = "US West (Oregon)"
 		eksRegionIdMap[endpoints.EuWest1RegionID] = "EU (Ireland)"
@@ -386,7 +389,7 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 		eksRegionIdMap[endpoints.ApSoutheast2RegionID] = "Asia Pacific (Sydney)"
 		eksRegionIdMap[endpoints.ApSouth1RegionID] = "Asia Pacific (Mumbai)"
 		eksRegionIdMap[endpoints.ApEast1RegionID] = "Asia Pacific (Hong Kong)"
-		eksRegionIdMap[endpoints.MeSouth1RegionID] = "Middle East (Bahrain)"
+		eksRegionIdMap[endpoints.MeSouth1RegionID] = "Middle East (Bahrain)"*/
 
 		return eksRegionIdMap, nil
 	case "_eks":
