@@ -61,7 +61,7 @@ type Ec2Describer interface {
 
 // NewAmazonInfoer builds an infoer instance based on the provided configuration
 func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error) {
-	const defaultPricingRegion = "us-east-1"
+	const defaultPricingRegion = "us-gov-west-1"
 
 	providers := []credentials.Provider{
 		&credentials.StaticProvider{Value: credentials.Value{
