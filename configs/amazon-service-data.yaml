@@ -79,7 +79,7 @@ regions:
                     -   type: p3.8xlarge
                     -   type: p3.16xlarge
 
-    -   name: AWS GovCloud (US)
+    -   name: AWS GovCloud (US-West)
         id: us-gov-west-1
         data:
             zones:
