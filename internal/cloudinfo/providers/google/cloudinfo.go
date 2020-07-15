@@ -391,7 +391,13 @@ func (g *GceInfoer) GetProducts(vms []types.VMInfo, service, regionId string) ([
 	}
 
 	switch service {
-	case svcGke, "compute":
+	case svcGke:
+		vmList = append(vmList, types.VMInfo{
+			Type:          "GKE Control Plane",
+			OnDemandPrice: 0.1,
+		})
+		return vmList, nil
+	case "compute":
 		return vmList, nil
 	default:
 		return nil, errors.Wrap(errors.New(service), "invalid service")
