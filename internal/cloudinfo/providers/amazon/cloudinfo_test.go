@@ -177,8 +177,8 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 			id:             "eu-west-3",
 			pricingService: &testStruct{},
 			check: func(region *endpoints.Region) {
-				assert.Equal(t, region.Description(), "EU (Paris)")
-				assert.Equal(t, region.ID(), "eu-west-3")
+				assert.Equal(t, "Europe (Paris)", region.Description())
+				assert.Equal(t, "eu-west-3", region.ID())
 			},
 		},
 		{
