@@ -61,7 +61,28 @@ type Ec2Describer interface {
 
 // NewAmazonInfoer builds an infoer instance based on the provided configuration
 func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error) {
-	const defaultPricingRegion = "us-gov-west-1"
+	const defaultPricingRegion = "us-east-1"
+
+	pricingProviders := []credentials.Provider{
+		&credentials.StaticProvider{Value: credentials.Value{
+			AccessKeyID:     config.PricingAccessKey,
+			SecretAccessKey: config.PricingSecretKey,
+		}},
+		&credentials.EnvProvider{},
+		&credentials.SharedCredentialsProvider{
+			Filename: config.SharedCredentialsFile,
+			Profile:  config.Profile,
+		},
+	}
+
+	pricingSession, err := session.NewSession(&aws.Config{
+		Credentials: credentials.NewChainCredentials(pricingProviders),
+		Region:      aws.String(defaultPricingRegion),
+	})
+	if err != nil {
+		logger.Error("failed to create AWS session")
+		return nil, err
+	}
 
 	providers := []credentials.Provider{
 		&credentials.StaticProvider{Value: credentials.Value{
@@ -101,7 +122,7 @@ func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error)
 	}
 
 	return &Ec2Infoer{
-		pricingSvc: NewPricingSource(s),
+		pricingSvc: NewPricingSource(pricingSession),
 		prometheus: promApi,
 		promQuery:  config.PrometheusQuery,
 		ec2Describer: func(region string) Ec2Describer {

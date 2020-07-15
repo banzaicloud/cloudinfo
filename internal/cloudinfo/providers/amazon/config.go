@@ -20,6 +20,9 @@ type Config struct {
 	AccessKey string
 	SecretKey string
 
+	PricingAccessKey string
+	PricingSecretKey string
+
 	// Shared credentials
 	SharedCredentialsFile string
 	Profile               string
