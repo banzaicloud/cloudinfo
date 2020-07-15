@@ -393,8 +393,8 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 	case svcEks:
 		eksRegionIdMap := make(map[string]string)
 
-		eksRegionIdMap[endpoints.UsGovWest1RegionID] = "AWS GovCloud (US-Gov-West)"
-		eksRegionIdMap[endpoints.UsGovEast1RegionID] = "AWS GovCloud (US-Gov-East)"
+		eksRegionIdMap[endpoints.UsGovEast1RegionID] = "AWS GovCloud (US-East)"
+		eksRegionIdMap[endpoints.UsGovWest1RegionID] = "AWS GovCloud (US)"
 
 		/*eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
 		eksRegionIdMap[endpoints.UsEast2RegionID] = "US East (Ohio)"

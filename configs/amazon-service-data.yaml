@@ -3,8 +3,8 @@ name: pke
 provider: amazon
 source: compute
 regions:
-    -   name: AWS GovCloud (US-Gov-West)
-        id: us-gov-west-1
+    -   name: AWS GovCloud (US-East)
+        id: us-gov-east-1
         data:
             zones:
                 strategy: exclude
@@ -13,7 +13,7 @@ regions:
             versions:
                 strategy: exact
                 data:
-                    -   location: us-gov-west-1
+                    -   location: us-gov-east-1
                         versions:
                             - 1.15.12
                             - 1.16.11
@@ -78,8 +78,9 @@ regions:
                     -   type: p3.2xlarge
                     -   type: p3.8xlarge
                     -   type: p3.16xlarge
-    -   name: AWS GovCloud (US-Gov-East)
-        id: us-gov-east-1
+
+    -   name: AWS GovCloud (US)
+        id: us-gov-west-1
         data:
             zones:
                 strategy: exclude
@@ -88,7 +89,7 @@ regions:
             versions:
                 strategy: exact
                 data:
-                    -   location: us-gov-east-1
+                    -   location: us-gov-west-1
                         versions:
                             - 1.15.12
                             - 1.16.11
