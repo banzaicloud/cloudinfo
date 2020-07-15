@@ -136,7 +136,6 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 	ctx, _ = sm.tracer.StartWithTags(ctx, "scrape-region-info", map[string]interface{}{"provider": sm.provider})
 	defer sm.tracer.EndSpan(ctx)
 
-	var lastScrapeError error = nil
 	for _, service := range services {
 		sm.log.Info("start to scrape service region information", map[string]interface{}{"service": service.ServiceName()})
 
@@ -162,36 +161,24 @@ func (sm *scrapingManager) scrapeServiceRegionInfo(ctx context.Context, services
 		for regionId := range regions {
 			start := time.Now()
 			if err = sm.scrapeServiceRegionZones(ctx, service.ServiceName(), regionId); err != nil {
-				lastScrapeError = errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
-				sm.log.WithFields(map[string]interface{}{"error": lastScrapeError, "region": regionId}).
-					Error("failed to scrape zones for region")
-				continue
+				return errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionProducts(ctx, service.ServiceName(), regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
-				lastScrapeError = errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
-				sm.log.WithFields(map[string]interface{}{"error": lastScrapeError, "region": regionId}).
-					Error("failed to scrape products for region")
-				continue
+				return errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionImages(ctx, service.ServiceName(), regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
-				lastScrapeError = errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
-				sm.log.WithFields(map[string]interface{}{"error": lastScrapeError, "region": regionId}).
-					Error("failed to scrape images for region")
-				continue
+				return errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			if err = sm.scrapeServiceRegionVersions(ctx, service.ServiceName(), regionId); err != nil {
 				sm.metrics.ReportScrapeFailure(sm.provider, service.ServiceName(), regionId)
-				lastScrapeError = errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
-				sm.log.WithFields(map[string]interface{}{"error": lastScrapeError, "region": regionId}).
-					Error("failed to scrape images for region")
-				continue
+				return errors.WithDetails(err, "provider", sm.provider, "service", service.ServiceName(), "region", regionId)
 			}
 			sm.metrics.ReportScrapeRegionCompleted(sm.provider, service.ServiceName(), regionId, start)
 		}
 	}
-	return lastScrapeError
+	return nil
 }
 
 func (sm *scrapingManager) updateStatus(ctx context.Context) {
