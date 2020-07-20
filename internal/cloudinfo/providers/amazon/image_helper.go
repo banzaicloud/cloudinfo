@@ -66,7 +66,15 @@ func getPKEDescribeImagesInput() *ec2.DescribeImagesInput {
 				Name:   aws.String(fmt.Sprintf("tag:%s", tagPKEVersion)),
 				Values: []*string{aws.String("*")},
 			},
+			{
+				Name:   aws.String("is-public"),
+				Values: []*string{aws.String("true")},
+			},
 		},
+		Owners: aws.StringSlice([]string{
+			"161831738826", // banzaicloud
+			"self",         // account used for cloudinfo scraping
+		}),
 	}
 	return &describeImagesInput
 }
