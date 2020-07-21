@@ -208,9 +208,10 @@ func getContinent(region string) string {
 		return types.ContinentAustralia
 	case checkContinent(region, []string{"cn-", "ap-", "me-", "asia", "japan", "india", "korea"}),
 		strings.HasPrefix(region, "sgp"),
-		strings.HasPrefix(region, "blr"):
+		strings.HasPrefix(region, "blr"),
+		strings.HasPrefix(region, "uae"):
 		return types.ContinentAsia
-	case checkContinent(region, []string{"eu", "uk", "france"}),
+	case checkContinent(region, []string{"eu", "uk", "france", "switzerland", "germany", "norway"}),
 		strings.HasPrefix(region, "ams"),
 		strings.HasPrefix(region, "lon"),
 		strings.HasPrefix(region, "fra"):
@@ -222,7 +223,7 @@ func getContinent(region string) string {
 		return types.ContinentNorthAmerica
 	case checkContinent(region, []string{"southamerica", "brazil", "sa-"}):
 		return types.ContinentSouthAmerica
-	case checkContinent(region, []string{"africa"}):
+	case checkContinent(region, []string{"africa", "af-"}):
 		return types.ContinentAfrica
 	default:
 		return "unknown"
