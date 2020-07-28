@@ -453,7 +453,7 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 			}
 
 			latestOnly, _ := strconv.ParseBool(queryParams.LatestOnly)
-			if latestOnly {
+			if latestOnly && len(filteredImages) > 0 {
 				var latestImage = types.Image{}
 				for _, filteredImage := range filteredImages {
 					if filteredImage.CreationDate.After(latestImage.CreationDate) {
