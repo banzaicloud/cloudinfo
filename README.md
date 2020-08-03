@@ -55,6 +55,21 @@ Usage of Banzai Cloud Cloudinfo Service:
       --dump-config                       Dump configuration to the console (and exit)
 ```
 
+Create a permanent developer configuration:
+
+```bash
+cp config.toml.dist config.toml
+```
+
+Running `cloudinfo` requires the `web/` project to be built (requires `Node.js` to be installed):
+
+```bash
+cd web/
+npm run build-prod
+cd ..
+build/cloudinfo
+```
+
 ## Cloud credentials
 
 The cloudinfo service is querying the cloud provider APIs, so it needs credentials to access these.
