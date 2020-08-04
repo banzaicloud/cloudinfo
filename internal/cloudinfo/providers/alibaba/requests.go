@@ -55,10 +55,15 @@ func (a *AlibabaInfoer) describeInstanceTypesRequest() *requests.CommonRequest {
 }
 
 func (a *AlibabaInfoer) describeZonesRequest(region string) *requests.CommonRequest {
+	domain, _ := endpoints[region]
+	if domain == "" { // Best effort: fallback to the global endpoint
+		domain = "ecs.aliyuncs.com"
+	}
+
 	request := requests.NewCommonRequest()
 	request.Method = "POST"
 	request.ApiName = "DescribeZones"
-	request.Domain = "ecs.aliyuncs.com"
+	request.Domain = domain
 	request.Version = "2014-05-26"
 	request.QueryParams["RegionId"] = region
 
