@@ -14,7 +14,7 @@ require (
 	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
 	github.com/Azure/go-autorest/autorest/to v0.3.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.2.0 // indirect
-	github.com/aliyun/alibaba-cloud-sdk-go v1.61.357
+	github.com/aliyun/alibaba-cloud-sdk-go v1.61.380
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.33.19
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20190121125239-fa3b20bd0ba9
