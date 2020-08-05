@@ -14,17 +14,81 @@
 
 package amazon
 
+import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+)
+
 // Config represents configuration for obtaining cloud information from Amazon.
 type Config struct {
-	// Static credentials
-	AccessKey string
-	SecretKey string
+	Credentials `mapstructure:",squash"`
 
-	// Shared credentials
-	SharedCredentialsFile string
-	Profile               string
+	Pricing PricingConfig
 
 	// Prometheus settings
 	PrometheusAddress string
 	PrometheusQuery   string
+}
+
+// PricingConfig represents configuration for obtaining pricing information from Amazon.
+type PricingConfig struct {
+	Region string
+
+	Credentials `mapstructure:",squash"`
+}
+
+func (c Config) GetPricingCredentials() Credentials {
+	creds := c.Pricing.Credentials
+
+	if creds.AccessKey == "" {
+		creds.AccessKey = c.AccessKey
+	}
+
+	if creds.SecretKey == "" {
+		creds.SecretKey = c.SecretKey
+	}
+
+	if creds.SessionToken == "" {
+		creds.SessionToken = c.SessionToken
+	}
+
+	if creds.SharedCredentialsFile == "" {
+		creds.SharedCredentialsFile = c.SharedCredentialsFile
+	}
+
+	if creds.Profile == "" {
+		creds.Profile = c.Profile
+	}
+
+	return creds
+}
+
+// Credentials used for creating an AWS Session.
+type Credentials struct {
+	// Static credentials
+	AccessKey    string
+	SecretKey    string
+	SessionToken string
+
+	// Shared credentials
+	SharedCredentialsFile string
+	Profile               string
+}
+
+func configFromCredentials(creds Credentials) *aws.Config {
+	providers := []credentials.Provider{
+		&credentials.StaticProvider{Value: credentials.Value{
+			AccessKeyID:     creds.AccessKey,
+			SecretAccessKey: creds.SecretKey,
+			SessionToken:    creds.SessionToken,
+		}},
+		&credentials.SharedCredentialsProvider{
+			Filename: creds.SharedCredentialsFile,
+			Profile:  creds.Profile,
+		},
+	}
+
+	return &aws.Config{
+		Credentials: credentials.NewChainCredentials(providers),
+	}
 }

@@ -42,7 +42,7 @@ enabled = false
 # secretKey = ""
 
 # Shared credentials
-# sharedCredentialsFile = ""
+# sharedCredentialsFile = ""
 # profile = ""
 
 # http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter.
@@ -51,6 +51,22 @@ prometheusAddress = ""
 
 # advanced configuration: change the query used to query spot price info from Prometheus.
 prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])"
+
+# Amazon pricing API credentials (optional)
+# Falls back to the primary credentials.
+[provider.amazon.pricing]
+
+# See available regions in the documentation:
+# https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/using-pelong.html
+# region = "us-east-1"
+
+# Static credentials
+# accessKey = ""
+# secretKey = ""
+
+# Shared credentials
+# sharedCredentialsFile = ""
+# profile = ""
 
 [provider.google]
 enabled = false
