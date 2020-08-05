@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -48,6 +49,7 @@ type Ec2Infoer struct {
 	prometheus   v1.API
 	promQuery    string
 	ec2Describer func(region string) Ec2Describer
+	partition    endpoints.Partition
 	log          cloudinfo.Logger
 }
 
@@ -68,6 +70,11 @@ func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error)
 	esess, err := session.NewSession(configFromCredentials(config.Credentials))
 	if err != nil {
 		return nil, errors.Wrap(err, "creating ec2 aws session")
+	}
+
+	partition, ok := endpoints.PartitionForRegion(endpoints.DefaultPartitions(), config.Region)
+	if !ok {
+		return nil, errors.NewWithDetails("find aws partition: could not find partition for region", "region", config.Region)
 	}
 
 	var promApi v1.API
@@ -93,7 +100,8 @@ func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error)
 		ec2Describer: func(region string) Ec2Describer {
 			return ec2.New(esess, aws.NewConfig().WithRegion(region))
 		},
-		log: logger,
+		partition: partition,
+		log:       logger,
 	}, nil
 }
 
@@ -299,8 +307,7 @@ func getMapForKey(key string, srcMap map[string]interface{}) (map[string]interfa
 
 // GetRegion gets the api specific region representation based on the provided id
 func (e *Ec2Infoer) GetRegion(id string) *endpoints.Region {
-	awsp := endpoints.AwsPartition()
-	for _, r := range awsp.Regions() {
+	for _, r := range e.partition.Regions() {
 		if r.ID() == id {
 			return &r
 		}
@@ -357,32 +364,23 @@ func (e *Ec2Infoer) GetRegions(service string) (map[string]string, error) {
 	logger := log.WithFields(e.log, map[string]interface{}{"service": service})
 	logger.Debug("getting regions")
 
-	regionIdMap := make(map[string]string)
-	for key, region := range endpoints.AwsPartition().Regions() {
+	regions := e.partition.Regions()
+	regionIdMap := make(map[string]string, len(regions))
+
+	for key, region := range regions {
 		regionIdMap[key] = region.Description()
 	}
 
 	switch service {
 	case svcEks:
-		eksRegionIdMap := make(map[string]string)
+		regions := e.partition.Services()[eks.EndpointsID].Regions()
+		regionIdMap := make(map[string]string, len(regions))
 
-		eksRegionIdMap[endpoints.UsEast1RegionID] = "US East (N. Virginia)"
-		eksRegionIdMap[endpoints.UsEast2RegionID] = "US East (Ohio)"
-		eksRegionIdMap[endpoints.UsWest2RegionID] = "US West (Oregon)"
-		eksRegionIdMap[endpoints.EuWest1RegionID] = "EU (Ireland)"
-		eksRegionIdMap[endpoints.EuWest2RegionID] = "EU (London)"
-		eksRegionIdMap[endpoints.EuWest3RegionID] = "EU (Paris)"
-		eksRegionIdMap[endpoints.EuNorth1RegionID] = "EU (Stockholm)"
-		eksRegionIdMap[endpoints.EuCentral1RegionID] = "EU (Frankfurt)"
-		eksRegionIdMap[endpoints.ApNortheast1RegionID] = "Asia Pacific (Tokyo)"
-		eksRegionIdMap[endpoints.ApNortheast2RegionID] = "Asia Pacific (Seoul)"
-		eksRegionIdMap[endpoints.ApSoutheast1RegionID] = "Asia Pacific (Singapore)"
-		eksRegionIdMap[endpoints.ApSoutheast2RegionID] = "Asia Pacific (Sydney)"
-		eksRegionIdMap[endpoints.ApSouth1RegionID] = "Asia Pacific (Mumbai)"
-		eksRegionIdMap[endpoints.ApEast1RegionID] = "Asia Pacific (Hong Kong)"
-		eksRegionIdMap[endpoints.MeSouth1RegionID] = "Middle East (Bahrain)"
+		for key, region := range e.partition.Regions() {
+			regionIdMap[key] = region.Description()
+		}
 
-		return eksRegionIdMap, nil
+		return regionIdMap, nil
 	case "_eks":
 		input := &ec2.DescribeImagesInput{
 			Filters: []*ec2.Filter{

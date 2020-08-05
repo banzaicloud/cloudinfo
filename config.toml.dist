@@ -37,6 +37,10 @@ interval = "24h"
 [provider.amazon]
 enabled = false
 
+# See available regions in the documentation:
+# https://aws.amazon.com/about-aws/global-infrastructure/regions_az
+# region = "us-east-1"
+
 # Static credentials
 # accessKey = ""
 # secretKey = ""

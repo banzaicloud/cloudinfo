@@ -251,7 +251,7 @@ func loadInfoers(config configuration, logger cloudinfo.Logger) (map[string]clou
 
 		infoer, err := amazon.NewAmazonInfoer(config.Provider.Amazon.Config, logger)
 		if err != nil {
-			return nil, nil, emperror.With(err, "provider", Amazon)
+			return nil, nil, errors.WithDetails(err, "provider", Amazon)
 		}
 
 		infoers[Amazon] = infoer

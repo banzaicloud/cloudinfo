@@ -131,11 +131,26 @@ func (sl *storeCloudInfoLoader) Load() {
 
 // loadRegions loads regions in the cloud info store
 func (sl *storeCloudInfoLoader) LoadRegions() {
-	sl.log.Debug("loading region data...")
+	// add method context to the logger
+	log := sl.log.WithFields(map[string]interface{}{"provider": sl.serviceData.Provider, "service": sl.serviceData.Name})
+	log.Debug("loading regions...")
+
+	storedRegions, ok := sl.store.GetRegions(sl.serviceData.Provider, sl.serviceData.Source)
+	if !ok {
+		log.Warn("source service regions not yet cached", map[string]interface{}{"source": sl.serviceData.Source})
+		return
+	}
 
 	regionMap := make(map[string]string)
 	for _, region := range sl.serviceData.Regions {
-		regionMap[region.Id] = region.Name
+		regionName, ok := storedRegions[region.Id]
+		if !ok {
+			log.Warn("source region does not exist, skipping", map[string]interface{}{"region": region.Id})
+
+			continue
+		}
+
+		regionMap[region.Id] = regionName
 
 		sl.LoadZones(sl.serviceData.Provider, sl.serviceData.Name, region)
 
@@ -147,11 +162,11 @@ func (sl *storeCloudInfoLoader) LoadRegions() {
 	}
 
 	sl.store.StoreRegions(sl.serviceData.Provider, sl.serviceData.Name, regionMap)
-	sl.log.Debug("regions loaded")
+	log.Debug("loading regions... DONE.")
 
 	// set the status
 	sl.store.StoreStatus(sl.serviceData.Provider, strconv.Itoa(int(time.Now().UnixNano()/1e6)))
-	sl.log.Debug("status updated")
+	log.Debug("status updated")
 }
 
 func (sl *storeCloudInfoLoader) LoadZones(provider string, service string, region Region) {
