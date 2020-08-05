@@ -44,10 +44,9 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vektah/gqlparser v1.1.2
-	go.opencensus.io v0.22.2
+	go.opencensus.io v0.22.4
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/tools v0.0.0-20200308013534-11ec41452d41 // indirect
-	google.golang.org/api v0.13.0
+	google.golang.org/api v0.30.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	logur.dev/adapter/logrus v0.5.0
 	logur.dev/logur v0.16.2

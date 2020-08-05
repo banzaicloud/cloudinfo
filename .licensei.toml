@@ -35,4 +35,5 @@ ignored = [
     "go.uber.org/atomic",
     "go.uber.org/multierr",
     "emperror.dev/errors",
+    "google.golang.org/protobuf",
 ]
