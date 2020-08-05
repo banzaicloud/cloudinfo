@@ -31,7 +31,7 @@ require (
 	github.com/markbates/pkger v0.17.0
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/moogar0880/problems v0.1.1
-	github.com/oracle/oci-go-sdk v12.5.0+incompatible
+	github.com/oracle/oci-go-sdk v23.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.3.0
 	github.com/prometheus/common v0.10.0
