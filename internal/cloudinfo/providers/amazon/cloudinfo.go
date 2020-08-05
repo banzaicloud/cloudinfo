@@ -324,8 +324,16 @@ func (e *Ec2Infoer) GetRegion(id string) *endpoints.Region {
 
 // newAttributeValuesInput assembles a GetProductsInput instance for querying the provider
 func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInput {
-	return &pricing.GetProductsInput{
+	location := e.GetRegion(regionId).Description()
 
+	// This is a temporary fix for the pricing API still using "EU" in the location instead of "Europe"
+	// Reported in: https://github.com/banzaicloud/cloudinfo/issues/365
+	// If the pricing API continues using "EU", we should probably find a better place for this.
+	if strings.HasPrefix(location, "Europe") {
+		location = fmt.Sprintf("EU %s", location[7:])
+	}
+
+	return &pricing.GetProductsInput{
 		ServiceCode: aws.String("AmazonEC2"),
 		Filters: []*pricing.Filter{
 			{
@@ -336,7 +344,7 @@ func (e *Ec2Infoer) newGetProductsInput(regionId string) *pricing.GetProductsInp
 			{
 				Type:  aws.String(pricing.FilterTypeTermMatch),
 				Field: aws.String("location"),
-				Value: aws.String(e.GetRegion(regionId).Description()),
+				Value: aws.String(location),
 			},
 			{
 				Type:  aws.String(pricing.FilterTypeTermMatch),
