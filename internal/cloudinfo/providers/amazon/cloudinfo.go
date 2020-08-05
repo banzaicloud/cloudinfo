@@ -23,7 +23,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -61,27 +60,14 @@ type Ec2Describer interface {
 
 // NewAmazonInfoer builds an infoer instance based on the provided configuration
 func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error) {
-	const defaultPricingRegion = "us-east-1"
-
-	providers := []credentials.Provider{
-		&credentials.StaticProvider{Value: credentials.Value{
-			AccessKeyID:     config.AccessKey,
-			SecretAccessKey: config.SecretKey,
-		}},
-		&credentials.EnvProvider{},
-		&credentials.SharedCredentialsProvider{
-			Filename: config.SharedCredentialsFile,
-			Profile:  config.Profile,
-		},
+	psess, err := session.NewSession(configFromCredentials(config.GetPricingCredentials()).WithRegion(config.Pricing.Region))
+	if err != nil {
+		return nil, errors.Wrap(err, "creating pricing aws session")
 	}
 
-	s, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewChainCredentials(providers),
-		Region:      aws.String(defaultPricingRegion),
-	})
+	esess, err := session.NewSession(configFromCredentials(config.Credentials))
 	if err != nil {
-		logger.Error("failed to create AWS session")
-		return nil, err
+		return nil, errors.Wrap(err, "creating ec2 aws session")
 	}
 
 	var promApi v1.API
@@ -101,11 +87,11 @@ func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error)
 	}
 
 	return &Ec2Infoer{
-		pricingSvc: NewPricingSource(s),
+		pricingSvc: NewPricingSource(psess),
 		prometheus: promApi,
 		promQuery:  config.PrometheusQuery,
 		ec2Describer: func(region string) Ec2Describer {
-			return ec2.New(s, s.Config.WithRegion(region))
+			return ec2.New(esess, aws.NewConfig().WithRegion(region))
 		},
 		log: logger,
 	}, nil

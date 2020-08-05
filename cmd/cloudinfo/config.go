@@ -270,10 +270,19 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	p.Bool("provider-amazon", false, "enable amazon provider")
 	_ = v.BindPFlag("provider.amazon.enabled", p.Lookup("provider-amazon"))
 
+	const defaultAmazonPricingRegion = "us-east-1"
+
 	_ = v.BindEnv("provider.amazon.accessKey", "AWS_ACCESS_KEY_ID")
 	_ = v.BindEnv("provider.amazon.secretKey", "AWS_SECRET_ACCESS_KEY")
+	_ = v.BindEnv("provider.amazon.sessionToken", "AWS_SESSION_TOKEN")
 	_ = v.BindEnv("provider.amazon.sharedCredentialsFile")
-	_ = v.BindEnv("provider.amazon.profile")
+	_ = v.BindEnv("provider.amazon.profile", "AWS_PROFILE")
+	v.SetDefault("provider.amazon.pricing.region", defaultAmazonPricingRegion)
+	_ = v.BindEnv("provider.amazon.pricing.accessKey")
+	_ = v.BindEnv("provider.amazon.pricing.secretKey")
+	_ = v.BindEnv("provider.amazon.pricing.sessionToken")
+	_ = v.BindEnv("provider.amazon.pricing.sharedCredentialsFile")
+	_ = v.BindEnv("provider.amazon.pricing.profile")
 	v.SetDefault("provider.amazon.prometheusAddress", "")
 	v.SetDefault("provider.amazon.prometheusQuery", "avg_over_time(aws_spot_current_price{region=\"%s\", product_description=\"Linux/UNIX\"}[1w])")
 
