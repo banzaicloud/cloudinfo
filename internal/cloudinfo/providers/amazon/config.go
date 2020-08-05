@@ -23,6 +23,8 @@ import (
 type Config struct {
 	Credentials `mapstructure:",squash"`
 
+	Region string
+
 	Pricing PricingConfig
 
 	// Prometheus settings

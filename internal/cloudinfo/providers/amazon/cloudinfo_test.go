@@ -135,32 +135,38 @@ func (dps *testStruct) DescribeSpotPriceHistoryPages(input *ec2.DescribeSpotPric
 
 func TestNewEc2Infoer(t *testing.T) {
 	tests := []struct {
-		name  string
-		prom  string
-		check func(info *Ec2Infoer, err error)
+		name   string
+		config Config
+		check  func(info *Ec2Infoer, err error)
 	}{
 		{
-			name: "create Ec2Infoer - Prometheus API address is not set",
-			prom: "",
+			name:   "create Ec2Infoer - Prometheus API address is not set",
+			config: Config{Region: "us-east-1"},
 			check: func(info *Ec2Infoer, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				assert.NotNil(t, info, "the Ec2Infoer should not be nil")
 			},
 		},
 		{
-			name: "create Ec2Infoer - Prometheus API address is set",
-			prom: "PromAPIAddress",
+			name:   "create Ec2Infoer - Prometheus API address is set",
+			config: Config{PrometheusAddress: "PromAPIAddress", Region: "us-east-1"},
 			check: func(info *Ec2Infoer, err error) {
 				assert.Nil(t, err, "the error should be nil")
 				assert.NotNil(t, info, "the Ec2Infoer should not be nil")
+			},
+		},
+		{
+			name:   "create Ec2Infoer - invalid region",
+			config: Config{Region: "invalid"},
+			check: func(info *Ec2Infoer, err error) {
+				assert.Error(t, err)
+				assert.EqualError(t, err, "find aws partition: could not find partition for region")
 			},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := Config{PrometheusAddress: test.prom}
-
-			test.check(NewAmazonInfoer(c, cloudinfoadapter.NewLogger(&logur.TestLogger{})))
+			test.check(NewAmazonInfoer(test.config, cloudinfoadapter.NewLogger(&logur.TestLogger{})))
 		})
 	}
 }
@@ -192,7 +198,7 @@ func TestEc2Infoer_GetRegion(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
+			cloudInfoer, err := NewAmazonInfoer(Config{Region: "us-east-1"}, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -234,7 +240,7 @@ func TestEc2Infoer_getCurrentSpotPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			cloudInfoer, err := NewAmazonInfoer(Config{}, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
+			cloudInfoer, err := NewAmazonInfoer(Config{Region: "us-east-1"}, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
 			}
@@ -278,7 +284,7 @@ func TestEc2Infoer_GetCurrentPrices(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := Config{PrometheusAddress: "PromAPIAddress"}
+			c := Config{PrometheusAddress: "PromAPIAddress", Region: "us-east-1"}
 			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
@@ -324,7 +330,7 @@ func TestEc2Infoer_GetZones(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := Config{PrometheusAddress: "PromAPIAddress"}
+			c := Config{PrometheusAddress: "PromAPIAddress", Region: "us-east-1"}
 			cloudInfoer, err := NewAmazonInfoer(c, cloudinfoadapter.NewLogger(&logur.TestLogger{}))
 			if err != nil {
 				t.Fatalf("failed to create cloudinfoer; [%s]", err.Error())
