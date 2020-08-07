@@ -20,6 +20,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 )
@@ -71,6 +72,13 @@ func (a *AlibabaInfoer) describeZonesRequest(region string) *requests.CommonRequ
 	request.Domain = domain
 	request.Version = "2014-05-26"
 	request.QueryParams["RegionId"] = region
+
+	return request
+}
+
+func (a *AlibabaInfoer) describeZonesRequest2(region string) *ecs.DescribeZonesRequest {
+	request := ecs.CreateDescribeZonesRequest()
+	request.RegionId = region
 
 	return request
 }

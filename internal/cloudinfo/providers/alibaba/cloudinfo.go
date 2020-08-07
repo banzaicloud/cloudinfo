@@ -33,8 +33,9 @@ import (
 
 // AlibabaInfoer encapsulates the data and operations needed to access external Alibaba resources
 type AlibabaInfoer struct {
-	client CommonDescriber
-	log    cloudinfo.Logger
+	client    CommonDescriber
+	ecsClient *ecs.Client
+	log       cloudinfo.Logger
 }
 
 const svcAck = "ack"
@@ -56,9 +57,25 @@ func NewAlibabaInfoer(config Config, logger cloudinfo.Logger) (*AlibabaInfoer, e
 	client.GetConfig().WithDebug(true)
 	client.GetConfig().WithMaxRetryTime(10)
 
+	ecsClient, err := ecs.NewClientWithAccessKey(
+		config.Region,
+		config.AccessKey,
+		config.SecretKey,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// ecsClient.GetConfig().WithAutoRetry(true)
+	ecsClient.GetConfig().WithGoRoutinePoolSize(100)
+	ecsClient.GetConfig().WithEnableAsync(true)
+	ecsClient.GetConfig().WithDebug(true)
+	ecsClient.GetConfig().WithMaxRetryTime(10)
+
 	return &AlibabaInfoer{
-		client: client,
-		log:    logger,
+		client:    client,
+		ecsClient: ecsClient,
+		log:       logger,
 	}, nil
 }
 
@@ -111,19 +128,20 @@ func (a *AlibabaInfoer) getCurrentSpotPrices(region string) (map[string]types.Sp
 }
 
 func (a *AlibabaInfoer) getZones(region string) ([]ecs.Zone, error) {
-	describeZones, err := a.client.ProcessCommonRequest(a.describeZonesRequest(region))
+	// describeZones, err := a.client.ProcessCommonRequest(a.describeZonesRequest(region))
+	describeZones, err := a.ecsClient.DescribeZones(a.describeZonesRequest2(region))
 	if err != nil {
 		return nil, emperror.Wrap(err, "DescribeZones API call problem")
 	}
 
-	response := &ecs.DescribeZonesResponse{}
+	// response := &ecs.DescribeZonesResponse{}
 
-	err = json.Unmarshal(describeZones.BaseResponse.GetHttpContentBytes(), response)
-	if err != nil {
+	// err = json.Unmarshal(describeZones.BaseResponse.GetHttpContentBytes(), response)
+	/*if err != nil {
 		return nil, err
-	}
+	}*/
 
-	return response.Zones.Zone, nil
+	return describeZones.Zones.Zone, nil
 }
 
 func (a *AlibabaInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
