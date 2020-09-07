@@ -34,8 +34,7 @@
               "src/theme/tooltip.scss",
               "src/theme/styles.scss"
             ],
-            "scripts": [],
-            "es5BrowserSupport": true
+            "scripts": []
           },
           "configurations": {
             "production": {
