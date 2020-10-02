@@ -8,32 +8,14 @@ approved = [
 
 ignored = [
     "github.com/aliyun/aliyun-oss-go-sdk",
-    "github.com/ghodss/yaml",
-    "github.com/gogo/protobuf",
+    "github.com/ghodss/yaml", # MIT
+    "sigs.k8s.io/yaml", # MIT
+    "github.com/gogo/protobuf", # Google
     "github.com/golang/protobuf",
-    "github.com/stretchr/testify",
-    "github.com/jmespath/go-jmespath",
-    "github.com/magiconair/properties",
-    "github.com/pmezard/go-difflib",
-    "github.com/shopspring/decimal",
-    "github.com/globalsign/mgo",
+    "google.golang.org/protobuf",
 
     "github.com/davecgh/go-spew", # ISC license
     "github.com/howeyc/gopass", # ISC license
     "github.com/oracle/oci-go-sdk", # UPL-1.0
 
-    "git.apache.org/thrift.git",
-    "go.opencensus.io",
-    "google.golang.org/api",
-    "google.golang.org/grpc",
-    "google.golang.org/genproto",
-    "contrib.go.opencensus.io/exporter/ocagent",
-    "cloud.google.com/go",
-    "contrib.go.opencensus.io/exporter/jaeger",
-    "contrib.go.opencensus.io/exporter/prometheus",
-    "sigs.k8s.io/yaml",
-    "go.uber.org/atomic",
-    "go.uber.org/multierr",
-    "emperror.dev/errors",
-    "google.golang.org/protobuf",
 ]
