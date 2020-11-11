@@ -48,7 +48,6 @@ require (
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	logur.dev/adapter/logrus v0.5.0
 	logur.dev/logur v0.17.0
-	sigs.k8s.io/controller-runtime v0.5.2 // indirect
 )
 
 replace (
