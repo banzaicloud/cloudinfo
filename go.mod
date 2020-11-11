@@ -5,8 +5,8 @@ go 1.14
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	emperror.dev/emperror v0.32.0
-	emperror.dev/errors v0.7.0
+	emperror.dev/emperror v0.33.0
+	emperror.dev/errors v0.8.0
 	emperror.dev/handler/logur v0.4.0
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Azure/azure-sdk-for-go v45.0.0+incompatible
@@ -33,10 +33,10 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/common v0.11.1
-	github.com/sagikazarmark/viperx v0.5.0
+	github.com/sagikazarmark/viperx v0.8.0
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
@@ -47,7 +47,8 @@ require (
 	google.golang.org/api v0.30.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	logur.dev/adapter/logrus v0.5.0
-	logur.dev/logur v0.16.2
+	logur.dev/logur v0.17.0
+	sigs.k8s.io/controller-runtime v0.5.2 // indirect
 )
 
 replace (
