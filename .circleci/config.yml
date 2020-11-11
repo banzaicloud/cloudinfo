@@ -20,6 +20,9 @@ executors:
                 environment:
                     GOFLAGS: -mod=readonly
 
+helm-repositories: &helm_repositories
+    - run: helm repo add stable2 https://charts.helm.sh/stable
+
 jobs:
     static-checks:
         executor: go
@@ -213,6 +216,7 @@ workflows:
         jobs:
             -   helm/lint-chart:
                     chart-path: charts/cloudinfo
+                    add-extra-repositories: *helm_repositories
                     filters:
                         tags:
                             ignore: /.*/
@@ -220,6 +224,7 @@ workflows:
             -   helm/publish-chart:
                     context: helm
                     chart-path: charts/cloudinfo
+                    add-extra-repositories: *helm_repositories
                     filters:
                         branches:
                             ignore: /.*/
