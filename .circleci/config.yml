@@ -215,7 +215,6 @@ workflows:
     helm-chart:
         jobs:
             -   helm/lint-chart:
-                    chart-path: charts/cloudinfo
                     add-extra-repositories: *helm_repositories
                     filters:
                         tags:
@@ -223,7 +222,6 @@ workflows:
 
             -   helm/publish-chart:
                     context: helm
-                    chart-path: charts/cloudinfo
                     add-extra-repositories: *helm_repositories
                     filters:
                         branches:
