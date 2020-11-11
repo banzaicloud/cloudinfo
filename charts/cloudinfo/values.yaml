@@ -4,16 +4,16 @@ fullnameOverride: ""
 serviceAccountName: ""
 
 image:
-  repository: banzaicloud/cloudinfo
-  tag: 0.12.1
+  repository: ghcr.io/banzaicloud/cloudinfo
+  tag: 0.17.0
   pullPolicy: IfNotPresent
 
 frontend:
   replicaCount: 1
 
   image: {}
-#    repository: banzaicloud/cloudinfo
-#    tag: 0.9.14
+#    repository: ghcr.io/banzaicloud/cloudinfo
+#    tag: 0.17.0
 #    pullPolicy: IfNotPresent
 #
   deployment:
@@ -59,8 +59,8 @@ scraper:
   replicaCount: 1
 
   image: {}
-  #    repository: banzaicloud/cloudinfo
-  #    tag: 0.9.14
+  #    repository: ghcr.io/banzaicloud/cloudinfo
+  #    tag: 0.17.0
   #    pullPolicy: IfNotPresent
   #
 
