@@ -7,7 +7,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	emperror.dev/emperror v0.33.0
 	emperror.dev/errors v0.8.0
-	emperror.dev/handler/logur v0.4.0
+	emperror.dev/handler/logur v0.5.0
 	github.com/99designs/gqlgen v0.8.3
 	github.com/Azure/azure-sdk-for-go v45.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.2
