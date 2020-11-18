@@ -5,7 +5,7 @@ serviceAccountName: ""
 
 image:
   repository: ghcr.io/banzaicloud/cloudinfo
-  tag: 0.17.0
+  tag: 0.17.1
   pullPolicy: IfNotPresent
 
 frontend:
@@ -13,7 +13,7 @@ frontend:
 
   image: {}
 #    repository: ghcr.io/banzaicloud/cloudinfo
-#    tag: 0.17.0
+#    tag: 0.17.1
 #    pullPolicy: IfNotPresent
 #
   deployment:
@@ -60,7 +60,7 @@ scraper:
 
   image: {}
   #    repository: ghcr.io/banzaicloud/cloudinfo
-  #    tag: 0.17.0
+  #    tag: 0.17.1
   #    pullPolicy: IfNotPresent
   #
 
