@@ -147,6 +147,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
         return PROVIDERS.azure.name;
       }
 
+      case PROVIDERS.oracle.provider: {
+        return PROVIDERS.oracle.name;
+      }
+
       case PROVIDERS.digitalocean.provider: {
         return PROVIDERS.digitalocean.name;
       }
