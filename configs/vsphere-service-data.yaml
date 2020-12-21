@@ -15,10 +15,10 @@ regions:
                     -   location: default
                         versions:
                             - 1.16.15
-                            - 1.17.12
-                            - 1.18.9
-                            - 1.19.2
-                        default: 1.18.9
+                            - 1.17.16
+                            - 1.18.14
+                            - 1.19.6
+                        default: 1.18.14
             vms:
                 strategy: exact
                 data:
