@@ -11,15 +11,6 @@ The Banzai Cloud Cloudinfo application is a standalone project in the [Pipeline]
 While AWS, Google Cloud, Azure, AliBaba or Oracle all provide some kind of APIs to query instance type attributes and product pricing information, these APIs are often responding with partly inconsistent data, or the responses are very cumbersome to parse.
 The Cloudinfo service uses these cloud provider APIs to asynchronously fetch and parse instance type attributes and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
 
-See the UI in action here: [https://banzaicloud.com/cloudinfo/](https://banzaicloud.com/cloudinfo/)
-
-Check out the developer beta if you would like to try out the Pipeline platform:
- <p align="center">
-   <a href="https://try.pipeline.banzai.cloud">
-   <img src="https://camo.githubusercontent.com/a487fb3128bcd1ef9fc1bf97ead8d6d6a442049a/68747470733a2f2f62616e7a6169636c6f75642e636f6d2f696d672f7472795f706970656c696e655f627574746f6e2e737667">
-   </a>
- </p>
-
 ## Quick start
 
 Building the project is as simple as running a go build command. The result is a statically linked executable binary.
