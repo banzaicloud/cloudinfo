@@ -78,19 +78,30 @@ type Credentials struct {
 }
 
 func configFromCredentials(creds Credentials) *aws.Config {
-	providers := []credentials.Provider{
-		&credentials.StaticProvider{Value: credentials.Value{
+	providers := []credentials.Provider{}
+
+	if creds.SecretKey != "" || creds.SessionToken != "" {
+		providers = append(providers, &credentials.StaticProvider{Value: credentials.Value{
 			AccessKeyID:     creds.AccessKey,
 			SecretAccessKey: creds.SecretKey,
 			SessionToken:    creds.SessionToken,
-		}},
-		&credentials.SharedCredentialsProvider{
-			Filename: creds.SharedCredentialsFile,
-			Profile:  creds.Profile,
-		},
+		}})
 	}
 
-	return &aws.Config{
-		Credentials: credentials.NewChainCredentials(providers),
+	if creds.SharedCredentialsFile != "" {
+		providers = append(providers, &credentials.SharedCredentialsProvider{
+			Filename: creds.SharedCredentialsFile,
+			Profile:  creds.Profile,
+		})
 	}
+
+	if len(providers) > 0 {
+		return &aws.Config{
+			Credentials: credentials.NewChainCredentials(providers),
+		}
+	}
+
+	// With no configured credentials use implicit access to attempt to auto-configure (e.g. from
+	// pod identity or EC2 identity)
+	return &aws.Config{}
 }
