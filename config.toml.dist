@@ -49,6 +49,9 @@ enabled = false
 # sharedCredentialsFile = ""
 # profile = ""
 
+# IAM Role ARN to assume
+# assumeRoleARN = ""
+
 # http address of a Prometheus instance that has AWS spot price metrics via banzaicloud/spot-price-exporter.
 # If empty, the cloudinfo app will use current spot prices queried directly from the AWS API.
 prometheusAddress = ""
@@ -71,6 +74,9 @@ prometheusQuery = "avg_over_time(aws_spot_current_price{region=\"%s\", product_d
 # Shared credentials
 # sharedCredentialsFile = ""
 # profile = ""
+
+# IAM Role ARN to assume
+# assumeRoleARN = ""
 
 [provider.google]
 enabled = false

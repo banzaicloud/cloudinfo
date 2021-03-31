@@ -15,8 +15,12 @@
 package amazon
 
 import (
+	"reflect"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 // Config represents configuration for obtaining cloud information from Amazon.
@@ -40,29 +44,11 @@ type PricingConfig struct {
 }
 
 func (c Config) GetPricingCredentials() Credentials {
-	creds := c.Pricing.Credentials
-
-	if creds.AccessKey == "" {
-		creds.AccessKey = c.AccessKey
+	if reflect.DeepEqual(c.Pricing.Credentials, Credentials{}) {
+		return c.Credentials
 	}
 
-	if creds.SecretKey == "" {
-		creds.SecretKey = c.SecretKey
-	}
-
-	if creds.SessionToken == "" {
-		creds.SessionToken = c.SessionToken
-	}
-
-	if creds.SharedCredentialsFile == "" {
-		creds.SharedCredentialsFile = c.SharedCredentialsFile
-	}
-
-	if creds.Profile == "" {
-		creds.Profile = c.Profile
-	}
-
-	return creds
+	return c.Pricing.Credentials
 }
 
 // Credentials used for creating an AWS Session.
@@ -75,12 +61,15 @@ type Credentials struct {
 	// Shared credentials
 	SharedCredentialsFile string
 	Profile               string
+
+	// IAM role ARN to assume
+	AssumeRoleARN string
 }
 
 func configFromCredentials(creds Credentials) *aws.Config {
-	providers := []credentials.Provider{}
+	var providers []credentials.Provider
 
-	if creds.SecretKey != "" || creds.SessionToken != "" {
+	if creds.AccessKey != "" && creds.SecretKey != "" {
 		providers = append(providers, &credentials.StaticProvider{Value: credentials.Value{
 			AccessKeyID:     creds.AccessKey,
 			SecretAccessKey: creds.SecretKey,
@@ -95,13 +84,17 @@ func configFromCredentials(creds Credentials) *aws.Config {
 		})
 	}
 
+	awsConfig := &aws.Config{}
 	if len(providers) > 0 {
+		awsConfig.Credentials = credentials.NewChainCredentials(providers)
+	}
+
+	if creds.AssumeRoleARN != "" {
+		sess := session.Must(session.NewSession(awsConfig))
 		return &aws.Config{
-			Credentials: credentials.NewChainCredentials(providers),
+			Credentials: stscreds.NewCredentials(sess, creds.AssumeRoleARN),
 		}
 	}
 
-	// With no configured credentials use implicit access to attempt to auto-configure (e.g. from
-	// pod identity or EC2 identity)
-	return &aws.Config{}
+	return awsConfig
 }
