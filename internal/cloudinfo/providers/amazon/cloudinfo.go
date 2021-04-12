@@ -62,12 +62,22 @@ type Ec2Describer interface {
 
 // NewAmazonInfoer builds an infoer instance based on the provided configuration
 func NewAmazonInfoer(config Config, logger cloudinfo.Logger) (*Ec2Infoer, error) {
-	psess, err := session.NewSession(configFromCredentials(config.GetPricingCredentials()).WithRegion(config.Pricing.Region))
+	pconfig, err := configFromCredentials(config.GetPricingCredentials())
+	if err != nil {
+		return nil, errors.Wrap(err, "creating pricing aws config")
+	}
+
+	psess, err := session.NewSession(pconfig.WithRegion(config.Pricing.Region))
 	if err != nil {
 		return nil, errors.Wrap(err, "creating pricing aws session")
 	}
 
-	esess, err := session.NewSession(configFromCredentials(config.Credentials))
+	econfig, err := configFromCredentials(config.Credentials)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating ec2 aws config")
+	}
+
+	esess, err := session.NewSession(econfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating ec2 aws session")
 	}

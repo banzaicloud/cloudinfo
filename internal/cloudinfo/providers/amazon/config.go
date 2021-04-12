@@ -17,6 +17,8 @@ package amazon
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 // Config represents configuration for obtaining cloud information from Amazon.
@@ -62,6 +64,10 @@ func (c Config) GetPricingCredentials() Credentials {
 		creds.Profile = c.Profile
 	}
 
+	if creds.AssumeRoleARN == "" {
+		creds.AssumeRoleARN = c.AssumeRoleARN
+	}
+
 	return creds
 }
 
@@ -75,22 +81,44 @@ type Credentials struct {
 	// Shared credentials
 	SharedCredentialsFile string
 	Profile               string
+
+	// IAM role ARN to assume
+	AssumeRoleARN string
 }
 
-func configFromCredentials(creds Credentials) *aws.Config {
-	providers := []credentials.Provider{
-		&credentials.StaticProvider{Value: credentials.Value{
+func configFromCredentials(creds Credentials) (*aws.Config, error) {
+	var providers []credentials.Provider
+
+	if creds.AccessKey != "" && creds.SecretKey != "" {
+		providers = append(providers, &credentials.StaticProvider{Value: credentials.Value{
 			AccessKeyID:     creds.AccessKey,
 			SecretAccessKey: creds.SecretKey,
 			SessionToken:    creds.SessionToken,
-		}},
-		&credentials.SharedCredentialsProvider{
-			Filename: creds.SharedCredentialsFile,
-			Profile:  creds.Profile,
-		},
+		}})
 	}
 
-	return &aws.Config{
-		Credentials: credentials.NewChainCredentials(providers),
+	if creds.SharedCredentialsFile != "" {
+		providers = append(providers, &credentials.SharedCredentialsProvider{
+			Filename: creds.SharedCredentialsFile,
+			Profile:  creds.Profile,
+		})
 	}
+
+	awsConfig := &aws.Config{}
+	if len(providers) > 0 {
+		awsConfig.Credentials = credentials.NewChainCredentials(providers)
+	}
+
+	if creds.AssumeRoleARN != "" {
+		sess, err := session.NewSession(awsConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		return &aws.Config{
+			Credentials: stscreds.NewCredentials(sess, creds.AssumeRoleARN),
+		}, nil
+	}
+
+	return awsConfig, nil
 }
