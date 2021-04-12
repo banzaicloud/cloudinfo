@@ -66,7 +66,7 @@ type Credentials struct {
 	AssumeRoleARN string
 }
 
-func configFromCredentials(creds Credentials) *aws.Config {
+func configFromCredentials(creds Credentials) (*aws.Config, error) {
 	var providers []credentials.Provider
 
 	if creds.AccessKey != "" && creds.SecretKey != "" {
@@ -90,11 +90,15 @@ func configFromCredentials(creds Credentials) *aws.Config {
 	}
 
 	if creds.AssumeRoleARN != "" {
-		sess := session.Must(session.NewSession(awsConfig))
+		sess, err := session.NewSession(awsConfig)
+		if err != nil {
+			return nil, err
+		}
+
 		return &aws.Config{
 			Credentials: stscreds.NewCredentials(sess, creds.AssumeRoleARN),
-		}
+		}, nil
 	}
 
-	return awsConfig
+	return awsConfig, nil
 }
