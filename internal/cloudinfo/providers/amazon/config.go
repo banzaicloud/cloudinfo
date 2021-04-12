@@ -15,8 +15,6 @@
 package amazon
 
 import (
-	"reflect"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -44,11 +42,33 @@ type PricingConfig struct {
 }
 
 func (c Config) GetPricingCredentials() Credentials {
-	if reflect.DeepEqual(c.Pricing.Credentials, Credentials{}) {
-		return c.Credentials
+	creds := c.Pricing.Credentials
+
+	if creds.AccessKey == "" {
+		creds.AccessKey = c.AccessKey
 	}
 
-	return c.Pricing.Credentials
+	if creds.SecretKey == "" {
+		creds.SecretKey = c.SecretKey
+	}
+
+	if creds.SessionToken == "" {
+		creds.SessionToken = c.SessionToken
+	}
+
+	if creds.SharedCredentialsFile == "" {
+		creds.SharedCredentialsFile = c.SharedCredentialsFile
+	}
+
+	if creds.Profile == "" {
+		creds.Profile = c.Profile
+	}
+
+	if creds.AssumeRoleARN == "" {
+		creds.AssumeRoleARN = c.AssumeRoleARN
+	}
+
+	return creds
 }
 
 // Credentials used for creating an AWS Session.
