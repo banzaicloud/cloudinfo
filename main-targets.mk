@@ -150,17 +150,11 @@ help:
 var-%: ; @echo $($*)
 varexport-%: ; @echo $*=$($*)
 
-bin/gobin: bin/gobin-${GOBIN_VERSION}
-	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
-bin/gobin-${GOBIN_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-
 bin/gqlgen: bin/gqlgen-${GQLGEN_VERSION}
 	@ln -sf gqlgen-${GQLGEN_VERSION} bin/gqlgen
-bin/gqlgen-${GQLGEN_VERSION}: bin/gobin
+bin/gqlgen-${GQLGEN_VERSION}:
 	@mkdir -p bin
-	GOBIN=bin/ bin/gobin github.com/99designs/gqlgen@v${GQLGEN_VERSION}
+	GOBIN=$$PWD/bin go install github.com/99designs/gqlgen@v${GQLGEN_VERSION}
 	@mv bin/gqlgen bin/gqlgen-${GQLGEN_VERSION}
 
 .PHONY: graphql

@@ -34,6 +34,7 @@ func MakeGraphQLHandler(
 	regionEndpoints RegionEndpoints,
 	errorHandler cloudinfo.ErrorHandler,
 ) http.Handler {
+	// nolint: staticcheck
 	return handler.GraphQL(graphql.NewExecutableSchema(graphql.Config{
 		Resolvers: &resolver{
 			endpoints:         endpoints,
