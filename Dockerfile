@@ -13,11 +13,11 @@ RUN npm run build-prod
 
 
 # Build image
-FROM golang:1.14-alpine3.11 AS builder
+FROM golang:1.16-alpine3.13 AS builder
 
 ENV GOFLAGS="-mod=readonly"
 
-RUN apk add --update --no-cache ca-certificates make git curl mercurial bzr
+RUN apk add --update --no-cache ca-certificates make git curl mercurial
 
 RUN mkdir -p /workspace
 WORKDIR /workspace
@@ -46,7 +46,7 @@ RUN set -xe && \
 
 
 # Final image
-FROM alpine:3.12
+FROM alpine:3.13.5
 
 RUN apk add --update --no-cache ca-certificates tzdata bash curl
 
