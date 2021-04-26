@@ -10,6 +10,7 @@ model:
     package: graphql
 
 struct_tag: json
+omit_slice_element_pointers: true
 
 models:
     Provider:
