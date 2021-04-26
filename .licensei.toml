@@ -18,4 +18,8 @@ ignored = [
     "github.com/howeyc/gopass", # ISC license
     "github.com/oracle/oci-go-sdk", # UPL-1.0
     "gopkg.in/square/go-jose.v2", # Apache 2.0
+    "github.com/alecthomas/template", # BSD-3
+    "github.com/alecthomas/units", # MIT
+    "gopkg.in/alecthomas/kingpin.v2", # MIT
+    "github.com/prometheus/statsd_exporter", # Apache 2.0
 ]
