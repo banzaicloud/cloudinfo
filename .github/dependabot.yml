@@ -2,7 +2,7 @@ version: 2
 
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directory: "/web"
     labels:
       - "dependencies"
     schedule:
