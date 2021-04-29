@@ -5,7 +5,7 @@ WORKDIR /web
 
 COPY web/package.json web/package-lock.json /web/
 
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY web/ /web/
 

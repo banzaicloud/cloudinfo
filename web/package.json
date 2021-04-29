@@ -7,7 +7,7 @@
     "start-with-proxy": "node --max_old_space_size=4096 ./node_modules/@angular/cli/bin/ng serve --configuration=proxy --proxy-config=proxy.conf.json",
     "build": "ng build",
     "test": "ng test",
-    "build-prod": "ng build --configuration=production --base-href=/ && cp web.go ./dist/web/web.go",
+    "build-prod": "ng build --configuration=production --base-href=/ && cp web.go.tpl ./dist/web/web.go",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
