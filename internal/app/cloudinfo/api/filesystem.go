@@ -15,33 +15,34 @@
 package api
 
 import (
+	"io/fs"
 	"net/http"
-	"path/filepath"
 	"strings"
 
-	"github.com/markbates/pkger"
+	"github.com/gin-contrib/static"
 )
 
-type pkgerFileSystem struct {
-	dir pkger.Dir
+func fileSystem(fsys fs.FS) static.ServeFileSystem {
+	return staticFileSystem{
+		httpfsys: http.FS(fsys),
+		fsys:     fsys,
+	}
 }
 
-func (fs pkgerFileSystem) Open(name string) (http.File, error) {
-	return fs.dir.Open(name)
+type staticFileSystem struct {
+	httpfsys http.FileSystem
+	fsys     fs.FS
 }
 
-func (fs pkgerFileSystem) Exists(prefix string, filePath string) bool {
+func (f staticFileSystem) Open(name string) (http.File, error) {
+	return f.httpfsys.Open(name)
+}
+
+func (f staticFileSystem) Exists(prefix string, filePath string) bool {
 	if p := strings.TrimPrefix(filePath, prefix); len(p) < len(filePath) {
-		if p == "index.html" {
-			return false
-		}
+		_, err := fs.Stat(f.fsys, strings.TrimLeft(p, "/"))
 
-		stat, err := pkger.Stat(filepath.Join(string(fs.dir), p))
-		if err != nil {
-			return false
-		}
-
-		return !stat.IsDir()
+		return err == nil
 	}
 
 	return false

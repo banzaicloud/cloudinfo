@@ -26,7 +26,6 @@ require (
 	github.com/gocql/gocql v0.0.0-20210425135552-909f2a77f46e
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible
-	github.com/markbates/pkger v0.17.1
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/moogar0880/problems v0.1.1
 	github.com/oracle/oci-go-sdk v24.3.0+incompatible

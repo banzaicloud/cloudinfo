@@ -3,6 +3,7 @@ package web
 import "embed"
 
 // nolint: gochecknoglobals
+//go:embed *
 //go:embed **/*
 var files embed.FS
 

@@ -26,13 +26,13 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/markbates/pkger"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/metrics"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/web/dist/web"
 )
 
 // RouteHandler configures the REST API routes in the gin router
@@ -67,13 +67,13 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string) {
 	router.Use(log.Middleware())
 	router.Use(cors.New(corsConfig))
 
-	dir := pkger.Dir("/web/dist/web")
-	router.Use(static.Serve(basePath, pkgerFileSystem{dir}))
+	webFiles := web.Files()
+	router.Use(static.Serve(basePath, fileSystem(webFiles)))
 
 	base := router.Group(basePath)
 
 	{
-		indexFile, err := dir.Open("/index.html")
+		indexFile, err := webFiles.Open("index.html")
 		emperror.Panic(errors.WrapIf(err, "open index.html"))
 
 		indexContent, err := ioutil.ReadAll(indexFile)
