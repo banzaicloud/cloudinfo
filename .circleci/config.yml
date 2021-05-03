@@ -88,7 +88,7 @@ jobs:
     integration-tests:
         executor: go
         docker:
-            -   image: circleci/golang:1.13
+            -   image: circleci/golang:1.16
                 environment:
                     GOFLAGS: -mod=readonly
             -   image: redis:5.0

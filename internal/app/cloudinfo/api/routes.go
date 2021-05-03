@@ -32,7 +32,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
-	"github.com/banzaicloud/cloudinfo/web/dist/web"
+	"github.com/banzaicloud/cloudinfo/web"
 )
 
 // RouteHandler configures the REST API routes in the gin router
