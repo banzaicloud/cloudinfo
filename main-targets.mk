@@ -36,7 +36,7 @@ config.toml:
 	sed 's/production/development/g; s/debug = false/debug = true/g; s/shutdownTimeout = "5s"/shutdownTimeout = "0s"/g; s/format = "json"/format = "logfmt"/g; s/level = "info"/level = "trace"/g; s/address = ":/address = "127.0.0.1:/g' config.toml.dist > config.toml
 
 .PHONY: build
-build: ## Build a binary
+build: web-go ## Build a binary
 ifeq (${VERBOSE}, 1)
 	go env
 endif
@@ -80,6 +80,7 @@ bin/gotestsum-${GOTESTSUM_VERSION}:
 TEST_PKGS ?= ./...
 TEST_REPORT_NAME ?= results.xml
 .PHONY: test
+test: web-go
 test: TEST_REPORT ?= main
 test: TEST_FORMAT ?= short
 test: SHELL = /bin/bash
@@ -107,6 +108,7 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 	@mv bin/golangci-lint $@
 
 .PHONY: lint
+lint: web-go
 lint: bin/golangci-lint ## Run linter
 	bin/golangci-lint run
 
@@ -122,11 +124,13 @@ bin/licensei-${LICENSEI_VERSION}:
 	@mv bin/licensei $@
 
 .PHONY: license-check
+license-check: web-go
 license-check: bin/licensei ## Run license check
 	bin/licensei check
 	./scripts/check-header.sh
 
 .PHONY: license-cache
+license-cache: web-go
 license-cache: bin/licensei ## Generate license cache
 	bin/licensei cache
 
@@ -154,3 +158,12 @@ bin/gqlgen-${GQLGEN_VERSION}:
 graphql: bin/gqlgen ## Generate GraphQL code
 	bin/gqlgen
 
+web-go: web/dist/web/index.html web/dist/web/assets/index.html
+
+web/dist/web/index.html:
+	@mkdir -p web/dist/web
+	@touch web/dist/web/index.html
+
+web/dist/web/assets/index.html:
+	@mkdir -p web/dist/web/assets
+	@touch web/dist/web/assets/index.html
