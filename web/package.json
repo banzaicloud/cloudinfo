@@ -13,7 +13,7 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^11.0.0",
+    "@angular/animations": "^11.2.13",
     "@angular/cdk": "^11.0.0",
     "@angular/common": "~11.0.0",
     "@angular/compiler": "~11.0.0",
@@ -31,9 +31,9 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.1100.1",
-    "@angular/cli": "~11.2.11",
+    "@angular/cli": "~11.2.12",
     "@angular/compiler-cli": "~11.0.0",
-    "@types/jasmine": "~3.6.11",
+    "@types/jasmine": "~3.7.0",
     "@types/node": "^15.0.2",
     "codelyzer": "^6.0.2",
     "jasmine-core": "~3.7.1",
