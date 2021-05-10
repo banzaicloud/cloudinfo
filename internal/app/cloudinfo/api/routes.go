@@ -16,6 +16,7 @@ package api
 
 import (
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -67,7 +68,7 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string) {
 	router.Use(log.Middleware())
 	router.Use(cors.New(corsConfig))
 
-	webFiles := web.Files()
+	webFiles, _ := fs.Sub(web.Files(), "dist/web")
 	router.Use(static.Serve(basePath, fileSystem(webFiles)))
 
 	base := router.Group(basePath)
