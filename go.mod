@@ -41,8 +41,8 @@ require (
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
-	golang.org/x/oauth2 v0.0.0-20210427180440-81ed05c6b58c
-	google.golang.org/api v0.46.0
+	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
+	google.golang.org/api v0.47.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	logur.dev/adapter/logrus v0.5.0
 	logur.dev/logur v0.17.0
