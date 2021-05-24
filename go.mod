@@ -21,7 +21,7 @@ require (
 	github.com/digitalocean/godo v1.61.0
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
 	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
-	github.com/gin-gonic/gin v1.4.0
+	github.com/gin-gonic/gin v1.7.2
 	github.com/go-kit/kit v0.10.0
 	github.com/gocql/gocql v0.0.0-20210425135552-909f2a77f46e
 	github.com/gofrs/uuid v4.0.0+incompatible
@@ -38,7 +38,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
-	github.com/ugorji/go v1.1.7 // indirect
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
