@@ -19,8 +19,8 @@ require (
 	github.com/aws/aws-sdk-go v1.38.51
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
 	github.com/digitalocean/godo v1.61.0
-	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
-	github.com/gin-contrib/static v0.0.0-20181225054800-cf5e10bbd933
+	github.com/gin-contrib/cors v1.3.1
+	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/validator/v10 v10.4.1
