@@ -9,7 +9,7 @@ require (
 	emperror.dev/errors v0.8.0
 	emperror.dev/handler/logur v0.5.0
 	github.com/99designs/gqlgen v0.13.0
-	github.com/Azure/azure-sdk-for-go v53.4.0+incompatible
+	github.com/Azure/azure-sdk-for-go v55.1.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.19
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.7
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
@@ -24,7 +24,7 @@ require (
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/validator/v10 v10.6.1
-	github.com/gocql/gocql v0.0.0-20210425135552-909f2a77f46e
+	github.com/gocql/gocql v0.0.0-20210515062232-b7ef815b4556
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/mitchellh/mapstructure v1.4.1
@@ -32,7 +32,7 @@ require (
 	github.com/oracle/oci-go-sdk v24.3.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.10.0
-	github.com/prometheus/common v0.25.0
+	github.com/prometheus/common v0.26.0
 	github.com/sagikazarmark/viperx v0.8.0
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
