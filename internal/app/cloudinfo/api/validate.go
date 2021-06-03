@@ -15,11 +15,9 @@
 package api
 
 import (
-	"reflect"
-
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin/binding"
-	"gopkg.in/go-playground/validator.v8"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
@@ -50,7 +48,11 @@ func ConfigureValidator(providers []string, ci types.CloudInfo, logger cloudinfo
 
 // regionValidator validates the `region` path parameter
 func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
-	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return func(fl validator.FieldLevel) bool {
+		currentStruct, _, _, ok := fl.GetStructFieldOK2()
+		if !ok {
+			return false
+		}
 		regionPathParams, ok := currentStruct.Interface().(GetRegionPathParams)
 		if !ok {
 			return false
@@ -75,8 +77,11 @@ func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fun
 
 // serviceValidator validates the `service` path parameter
 func serviceValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
-	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value,
-		fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return func(fl validator.FieldLevel) bool {
+		currentStruct, _, _, ok := fl.GetStructFieldOK2()
+		if !ok {
+			return false
+		}
 		servicesPathParams, ok := currentStruct.Interface().(GetServicesPathParams)
 		if !ok {
 			return false
@@ -101,9 +106,9 @@ func serviceValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fu
 
 // providerValidator validates the `provider` path parameter
 func providerValidator(providers []string) validator.Func {
-	return func(v *validator.Validate, topStruct reflect.Value, currentStruct reflect.Value, field reflect.Value, fieldtype reflect.Type, fieldKind reflect.Kind, param string) bool {
+	return func(fl validator.FieldLevel) bool {
 		for _, p := range providers {
-			if field.String() == p {
+			if fl.Field().String() == p {
 				return true
 			}
 		}

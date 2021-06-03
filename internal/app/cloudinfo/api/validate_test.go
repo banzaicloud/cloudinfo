@@ -17,8 +17,8 @@ package api
 import (
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/go-playground/validator.v8"
 )
 
 func TestGetProviderPathParamsValidation(t *testing.T) {
@@ -51,8 +51,8 @@ func TestGetProviderPathParamsValidation(t *testing.T) {
 	}
 
 	// setup the validator
-	config := &validator.Config{TagName: "binding"}
-	v := validator.New(config)
+	v := validator.New()
+	v.SetTagName("binding")
 	if err := v.RegisterValidation("provider", providerValidator([]string{"test-provider-1", "test-provider-2"})); err != nil {
 		t.Fatal("failed to register provider validator")
 	}
