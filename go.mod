@@ -9,16 +9,16 @@ require (
 	emperror.dev/errors v0.8.0
 	emperror.dev/handler/logur v0.5.0
 	github.com/99designs/gqlgen v0.13.0
-	github.com/Azure/azure-sdk-for-go v55.1.0+incompatible
+	github.com/Azure/azure-sdk-for-go v55.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.19
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.7
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
 	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1124
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
-	github.com/aws/aws-sdk-go v1.38.55
+	github.com/aws/aws-sdk-go v1.38.58
 	github.com/banzaicloud/go-gin-prometheus v0.1.0
-	github.com/digitalocean/godo v1.61.0
+	github.com/digitalocean/godo v1.62.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.7.2
@@ -42,7 +42,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
-	google.golang.org/api v0.47.0
+	google.golang.org/api v0.48.0
 	logur.dev/adapter/logrus v0.5.0
 	logur.dev/logur v0.17.0
 )
