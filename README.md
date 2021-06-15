@@ -1,5 +1,7 @@
 
-[![CircleCI](https://circleci.com/gh/banzaicloud/cloudinfo/tree/master.svg?style=shield)](https://circleci.com/gh/banzaicloud/cloudinfo/tree/master)
+[![CI](https://github.com/banzaicloud/cloudinfo/actions/workflows/ci.yaml/badge.svg)](https://github.com/banzaicloud/cloudinfo/actions/workflows/ci.yaml)
+[![Docker](https://github.com/banzaicloud/cloudinfo/actions/workflows/docker.yaml/badge.svg)](https://github.com/banzaicloud/cloudinfo/actions/workflows/docker.yaml)
+[![Helm chart](https://github.com/banzaicloud/cloudinfo/actions/workflows/helm_chart.yaml/badge.svg)](https://github.com/banzaicloud/cloudinfo/actions/workflows/helm_chart.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/banzaicloud/cloudinfo)](https://goreportcard.com/report/github.com/banzaicloud/cloudinfo)
 ![license](http://img.shields.io/badge/license-Apache%20v2-orange.svg)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1651/badge)](https://bestpractices.coreinfrastructure.org/projects/1651)

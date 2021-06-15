@@ -15,7 +15,9 @@
 package cistore
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"logur.dev/logur"
@@ -34,6 +36,22 @@ func testCassandraStore(t *testing.T) {
 		},
 		cloudinfoadapter.NewLogger(&logur.TestLogger{}),
 	)
+
+	ctx, cancelFunction := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunction()
+loop:
+	for {
+		select {
+		case <-ctx.Done():
+			t.Fatalf("waiting for Cassandra product store to become ready failed, err: %s", ctx.Err().Error())
+		default:
+			if cps.Ready() {
+				break loop
+			} else {
+				time.Sleep(time.Second)
+			}
+		}
+	}
 
 	// insert an entry
 	cps.StoreStatus("amazon", "status")
