@@ -49,9 +49,9 @@ jobs:
           path: .licensei.cache
           key: licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}-${{ hashFiles('go.sum') }}
           restore-keys: |
-            - licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}
-            - licensei-v1-master
-            - licensei-v1
+            licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}
+            licensei-v1-master
+            licensei-v1
 
       - name: Download license information for dependencies
         env:
