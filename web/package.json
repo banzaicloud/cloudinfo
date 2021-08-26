@@ -21,7 +21,7 @@
     "@angular/forms": "~12.2.1",
     "@angular/material": "^12.2.1",
     "@angular/platform-browser": "~12.2.1",
-    "@angular/platform-browser-dynamic": "~12.2.1",
+    "@angular/platform-browser-dynamic": "~12.2.3",
     "@angular/router": "~12.2.1",
     "ngx-clipboard": "^14.0.1",
     "rxjs": "~6.6.7",
