@@ -13,7 +13,7 @@ RUN npm run build-prod
 
 
 # Build image
-FROM golang:1.16-alpine3.13 AS builder
+FROM golang:1.17.2-alpine3.13 AS builder
 
 ENV GOFLAGS="-mod=readonly"
 
