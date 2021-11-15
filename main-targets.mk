@@ -59,7 +59,12 @@ docker: ## Build a Docker image
 	docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
 ifeq (${DOCKER_LATEST}, 1)
 	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} gcr.io/${GCR_PROJECT_ID}/${DOCKER_IMAGE}:${DOCKER_TAG}
 endif
+
+.PHONY: docker-push
+docker-push: ## Push Docker image to GCR
+	docker push gcr.io/${GCR_PROJECT_ID}/${DOCKER_IMAGE}:${DOCKER_TAG}
 
 .PHONY: docker-debug
 docker-debug: ## Build a Docker image with remote debugging capabilities
@@ -115,6 +120,10 @@ lint: bin/golangci-lint ## Run linter
 .PHONY: fix
 fix: bin/golangci-lint ## Fix lint violations
 	bin/golangci-lint run --fix
+
+.PHONY: fmt
+fmt: ## Fix go fmt
+	@gofmt -s -w ${GOFILES_NOVENDOR}
 
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
