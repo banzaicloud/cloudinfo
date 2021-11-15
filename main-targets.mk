@@ -121,6 +121,10 @@ lint: bin/golangci-lint ## Run linter
 fix: bin/golangci-lint ## Fix lint violations
 	bin/golangci-lint run --fix
 
+.PHONY: fmt
+fmt: ## Fix go fmt
+	@gofmt -s -w ${GOFILES_NOVENDOR}
+
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
 bin/licensei-${LICENSEI_VERSION}:

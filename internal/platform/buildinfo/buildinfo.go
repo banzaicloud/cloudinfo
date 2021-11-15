@@ -36,7 +36,7 @@ func New(version string, commitHash string, buildDate string, branch string) Bui
 		Version:    version,
 		CommitHash: commitHash,
 		BuildDate:  buildDate,
-		Branch: 	branch,
+		Branch:     branch,
 		GoVersion:  runtime.Version(),
 		Os:         runtime.GOOS,
 		Arch:       runtime.GOARCH,
