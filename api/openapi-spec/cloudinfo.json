@@ -651,6 +651,10 @@
           "format": "double",
           "x-go-name": "OnDemandPrice"
         },
+        "series": {
+          "type": "string",
+          "x-go-name": "Series"
+        },
         "spotPrice": {
           "type": "array",
           "items": {
@@ -796,6 +800,79 @@
         }
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
+    "VMInfo": {
+      "description": "VMInfo representation of a virtual machine",
+      "type": "object",
+      "properties": {
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "x-go-name": "Attributes"
+        },
+        "category": {
+          "type": "string",
+          "x-go-name": "Category"
+        },
+        "cpusPerVm": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Cpus"
+        },
+        "currentGen": {
+          "description": "CurrentGen signals whether the instance type generation is the current one. Only applies for amazon",
+          "type": "boolean",
+          "x-go-name": "CurrentGen"
+        },
+        "gpusPerVm": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Gpus"
+        },
+        "memPerVm": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "Mem"
+        },
+        "ntwPerf": {
+          "type": "string",
+          "x-go-name": "NtwPerf"
+        },
+        "ntwPerfCategory": {
+          "type": "string",
+          "x-go-name": "NtwPerfCat"
+        },
+        "onDemandPrice": {
+          "type": "number",
+          "format": "double",
+          "x-go-name": "OnDemandPrice"
+        },
+        "series": {
+          "type": "string",
+          "x-go-name": "Series"
+        },
+        "spotPrice": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ZonePrice"
+          },
+          "x-go-name": "SpotPrice"
+        },
+        "type": {
+          "type": "string",
+          "x-go-name": "Type"
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Zones"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
     },
     "VersionsResponse": {
       "description": "VersionsResponse holds the list of available versions",

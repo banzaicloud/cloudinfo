@@ -12,7 +12,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.0.1
+  version: 0.6.0
 paths:
   /continents:
     get:
@@ -82,8 +82,8 @@ paths:
                 $ref: "#/components/schemas/ServicesResponse"
   "/providers/{provider}/services/{service}":
     get:
-      description: Provides service details for the given service on the provider in the
-        given region
+      description: Provides service details for the given service on the provider in
+        the given region
       tags:
         - service
       operationId: getService
@@ -360,8 +360,8 @@ components:
         type: string
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetRegionResp:
-      description: GetRegionResp holds the detailed description of a specific region of a
-        cloud provider
+      description: GetRegionResp holds the detailed description of a specific region
+        of a cloud provider
       type: object
       properties:
         id:
@@ -464,6 +464,9 @@ components:
           type: number
           format: double
           x-go-name: OnDemandPrice
+        series:
+          type: string
+          x-go-name: Series
         spotPrice:
           type: array
           items:
@@ -571,6 +574,62 @@ components:
             $ref: "#/components/schemas/Service"
           x-go-name: Services
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    VMInfo:
+      description: VMInfo representation of a virtual machine
+      type: object
+      properties:
+        attributes:
+          type: object
+          additionalProperties:
+            type: string
+          x-go-name: Attributes
+        category:
+          type: string
+          x-go-name: Category
+        cpusPerVm:
+          type: number
+          format: double
+          x-go-name: Cpus
+        currentGen:
+          description: CurrentGen signals whether the instance type generation is the
+            current one. Only applies for amazon
+          type: boolean
+          x-go-name: CurrentGen
+        gpusPerVm:
+          type: number
+          format: double
+          x-go-name: Gpus
+        memPerVm:
+          type: number
+          format: double
+          x-go-name: Mem
+        ntwPerf:
+          type: string
+          x-go-name: NtwPerf
+        ntwPerfCategory:
+          type: string
+          x-go-name: NtwPerfCat
+        onDemandPrice:
+          type: number
+          format: double
+          x-go-name: OnDemandPrice
+        series:
+          type: string
+          x-go-name: Series
+        spotPrice:
+          type: array
+          items:
+            $ref: "#/components/schemas/ZonePrice"
+          x-go-name: SpotPrice
+        type:
+          type: string
+          x-go-name: Type
+        zones:
+          type: array
+          items:
+            type: string
+          x-go-name: Zones
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
     VersionsResponse:
       description: VersionsResponse holds the list of available versions
       type: array

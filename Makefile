@@ -35,7 +35,7 @@ LICENSEI_VERSION = 0.3.1
 OPENAPI_GENERATOR_VERSION = v4.1.3
 
 GOLANG_VERSION = 1.14
-SWAGGER_VERSION = 0.21.0
+SWAGGER_VERSION = 0.27.0
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
@@ -54,9 +54,9 @@ endif
 
 bin/swagger: bin/swagger-${SWAGGER_VERSION}
 	@ln -sf swagger-${SWAGGER_VERSION} bin/swagger
-bin/swagger-${SWAGGER_VERSION}: bin/gobin
+bin/swagger-${SWAGGER_VERSION}:
 	@mkdir -p bin
-	GOBIN=bin/ bin/gobin github.com/go-swagger/go-swagger/cmd/swagger@v${SWAGGER_VERSION}
+	GOBIN=$$PWD/bin go install github.com/go-swagger/go-swagger/cmd/swagger@v${SWAGGER_VERSION}
 	@mv bin/swagger bin/swagger-${SWAGGER_VERSION}
 
 .PHONY: swagger
