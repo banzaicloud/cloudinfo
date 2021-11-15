@@ -6,13 +6,15 @@ OS = $(shell uname | tr A-Z a-z)
 BUILD_PACKAGE ?= ./cmd/cloudinfo
 BINARY_NAME ?= cloudinfo
 DOCKER_IMAGE = banzaicloud/cloudinfo
+GCR_PROJECT_ID ?= platform-205701
 
 # Build variables
 BUILD_DIR ?= build
-VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
+VERSION ?= $(shell git symbolic-ref -q --short HEAD | sed 's/[^a-zA-Z0-9]/-/g')
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
+BRANCH ?= $(shell git symbolic-ref -q --short HEAD)
+LDFLAGS := -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE} -X main.branch=${BRANCH}
 export CGO_ENABLED ?= 0
 ifeq (${VERBOSE}, 1)
 ifeq ($(filter -v,${GOARGS}),)

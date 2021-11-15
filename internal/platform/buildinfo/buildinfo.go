@@ -23,6 +23,7 @@ type BuildInfo struct {
 	Version    string `json:"version"`
 	CommitHash string `json:"commit_hash"`
 	BuildDate  string `json:"build_date"`
+	Branch     string `json:"branch"`
 	GoVersion  string `json:"go_version"`
 	Os         string `json:"os"`
 	Arch       string `json:"arch"`
@@ -30,11 +31,12 @@ type BuildInfo struct {
 }
 
 // New returns all available build information.
-func New(version string, commitHash string, buildDate string) BuildInfo {
+func New(version string, commitHash string, buildDate string, branch string) BuildInfo {
 	return BuildInfo{
 		Version:    version,
 		CommitHash: commitHash,
 		BuildDate:  buildDate,
+		Branch: 	branch,
 		GoVersion:  runtime.Version(),
 		Os:         runtime.GOOS,
 		Arch:       runtime.GOARCH,
@@ -48,6 +50,7 @@ func (bi BuildInfo) Fields() map[string]interface{} {
 		"version":     bi.Version,
 		"commit_hash": bi.CommitHash,
 		"build_date":  bi.BuildDate,
+		"branch":      bi.Branch,
 		"go_version":  bi.GoVersion,
 		"os":          bi.Os,
 		"arch":        bi.Arch,

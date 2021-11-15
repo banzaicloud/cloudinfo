@@ -66,6 +66,7 @@ var (
 	version    string
 	commitHash string
 	buildDate  string
+	branch     string
 )
 
 func main() {
@@ -79,7 +80,7 @@ func main() {
 	_ = p.Parse(os.Args[1:])
 
 	if v, _ := p.GetBool("version"); v {
-		fmt.Printf("%s version %s (%s) built on %s\n", friendlyAppName, version, commitHash, buildDate)
+		fmt.Printf("%s version %s (%s) built on %s at %s\n", friendlyAppName, version, commitHash, branch, buildDate)
 
 		os.Exit(0)
 	}
@@ -150,7 +151,7 @@ func main() {
 	errorHandler := errorhandler.New(logger)
 	defer emperror.HandleRecover(errorHandler)
 
-	buildInfo := buildinfo.New(version, commitHash, buildDate)
+	buildInfo := buildinfo.New(version, commitHash, buildDate, branch)
 
 	logger.Info("starting application", buildInfo.Fields())
 
