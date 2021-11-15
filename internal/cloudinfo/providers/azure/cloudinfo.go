@@ -388,6 +388,7 @@ func (a *AzureInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) 
 
 					virtualMachines = append(virtualMachines, types.VMInfo{
 						Category:   category,
+						Series:     a.mapSeries(*sku.Family),
 						Type:       *sku.Name,
 						Mem:        memory,
 						Cpus:       cpu,

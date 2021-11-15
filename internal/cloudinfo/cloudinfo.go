@@ -152,6 +152,38 @@ func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]typ
 	return details, nil
 }
 
+func (cpi *cloudInfo) GetSeriesDetails(provider, service, region string) (map[string]map[string][]string, []types.SeriesDetails, error) {
+	vms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
+	if !ok {
+		cpi.log.Debug("VMs Information not yet cached")
+		return nil, nil, errors.NewWithDetails("VMs Information not yet cached", "provider", provider, "service", service, "region", region)
+	}
+
+	categorySeriesMap := map[string]map[string][]string{}
+	for _, vm := range vms {
+		if _, ok := categorySeriesMap[vm.Category]; !ok {
+			categorySeriesMap[vm.Category] = map[string][]string{}
+		}
+		if _, ok := categorySeriesMap[vm.Category][vm.Series]; !ok {
+			categorySeriesMap[vm.Category][vm.Series] = make([]string, 0)
+		}
+		categorySeriesMap[vm.Category][vm.Series] = append(categorySeriesMap[vm.Category][vm.Series], vm.Type)
+	}
+
+	var seriesDetails []types.SeriesDetails
+	for category, seriesMap := range categorySeriesMap {
+		for series, instanceTypeList := range seriesMap {
+			seriesDetails = append(seriesDetails, types.SeriesDetails{
+				Series:        series,
+				Category:      category,
+				InstanceTypes: instanceTypeList,
+			})
+		}
+	}
+
+	return categorySeriesMap, seriesDetails, nil
+}
+
 // GetStatus retrieves status form the given provider
 func (cpi *cloudInfo) GetStatus(provider string) (string, error) {
 	if cachedStatus, ok := cpi.cloudInfoStore.GetStatus(provider); ok {

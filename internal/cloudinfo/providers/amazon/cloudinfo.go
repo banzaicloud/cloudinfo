@@ -193,6 +193,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 		gpus, _ := strconv.ParseFloat(gpu, 64)
 		vm := types.VMInfo{
 			Category:      instanceFamily,
+			Series:        e.mapSeries(instanceType),
 			Type:          instanceType,
 			OnDemandPrice: onDemandPrice,
 			Cpus:          cpus,

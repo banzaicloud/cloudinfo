@@ -343,6 +343,7 @@ func (g *GceInfoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 				}
 				vmsMap[mt.Name] = types.VMInfo{
 					Category:   g.getCategory(mt.Name),
+					Series:     g.mapSeries(mt.Name),
 					Type:       mt.Name,
 					Cpus:       float64(mt.GuestCpus),
 					Mem:        float64(mt.MemoryMb) / 1024,

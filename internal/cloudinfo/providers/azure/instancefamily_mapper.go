@@ -27,19 +27,26 @@ import (
 var (
 	categoryMap = map[string][]string{
 		types.CategoryGeneral: {"Dv2", "Av2", "Dv3", "DSv2", "DSv3", "BS", "DS", "D", "A0_A7", "A", "A8_A11", "DCS"},
-		types.CategoryCompute: {"H", "FSv2", "FS", "", "HCS", "HBS"},
-		types.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3", "PBS", "MSv2"},
+		types.CategoryCompute: {"H", "FSv2", "FS", "F", "", "HCS", "HBS"},
+		types.CategoryMemory:  {"Ev3", "ESv3", "MS", "G", "GS", "EIv3", "EISv3", "PBS", "MSv2", "MDSv2", "EDSv4", "ESv4"},
 		types.CategoryStorage: {"LS", "LSv2"},
-		types.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2", "NVSv3"},
+		types.CategoryGpu:     {"NC", "NV", "NCSv3", "NCSv2", "NDS", "NVSv2", "NVSv3", "ND"},
+	}
+
+	customMap = map[string]string{
+		"MDSMediumMemoryv2":  "MDSv2",
+		"MIDSMediumMemoryv2": "MDSv2",
+		"MISMediumMemoryv2":  "MSv2",
+		"MSMediumMemoryv2":   "MSv2",
+		"NDASv4_A100":        "ND",
+		"XEIDSv4":            "EDSv4",
+		"XEISv4":             "ESv4",
 	}
 )
 
 // mapCategory maps the family of the azure instance to category
 func (a *AzureInfoer) mapCategory(name string) (string, error) {
-	family := strings.TrimRight(name, "Family")
-	family = strings.TrimLeft(family, "standard") // nolint: staticcheck
-	family = strings.TrimRight(family, "Promo")   // nolint: staticcheck
-	family = strings.TrimLeft(family, "basic")
+	family := GetFamily(name)
 
 	for category, strVals := range categoryMap {
 		if cloudinfo.Contains(strVals, family) {
@@ -47,4 +54,25 @@ func (a *AzureInfoer) mapCategory(name string) (string, error) {
 		}
 	}
 	return "", emperror.Wrap(errors.New(family), "could not determine the category")
+}
+
+// mapSeries get instance series associated with the instanceType
+func (a *AzureInfoer) mapSeries(name string) string {
+	return GetFamily(name)
+}
+
+func GetFamily(name string) string {
+	family := strings.TrimRight(name, "Family")
+	family = strings.TrimLeft(family, "standard") // nolint: staticcheck
+	family = strings.TrimLeft(family, "Standard") // nolint: staticcheck
+	family = strings.TrimRight(family, "Promo")   // nolint: staticcheck
+	family = strings.TrimLeft(family, "basic")
+
+	for _, key := range customMap {
+		if key == family {
+			return customMap[family]
+		}
+	}
+
+	return family
 }

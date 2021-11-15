@@ -60,6 +60,7 @@ type InstanceType struct {
 	Gpu             float64
 	NetworkCategory NetworkCategory
 	Category        InstanceTypeCategory
+	Series          string
 }
 
 // InstanceTypeQuery represents the input parameters if an instance type query.
@@ -413,5 +414,6 @@ func transform(details types.ProductDetails, region string, zone string) Instanc
 		Gpu:             details.Gpus,
 		NetworkCategory: NetworkCategory(strings.ToUpper(details.NtwPerfCat)),
 		Category:        instanceTypeCategoryReverseMap[details.Category],
+		Series:          details.Series,
 	}
 }

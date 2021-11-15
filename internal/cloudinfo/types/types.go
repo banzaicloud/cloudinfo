@@ -48,6 +48,8 @@ type CloudInfo interface {
 
 	GetProductDetails(provider, service, region string) ([]ProductDetails, error)
 
+	GetSeriesDetails(provider, service, region string) (map[string]map[string][]string, []SeriesDetails, error)
+
 	GetServiceImages(provider, service, region string) ([]Image, error)
 
 	GetVersions(provider, service, region string) ([]LocationVersion, error)
@@ -130,6 +132,12 @@ type ProductDetails struct {
 
 	// Burst this is derived for now
 	Burst bool `json:"burst,omitempty"`
+}
+
+type SeriesDetails struct {
+	Series        string   `json:"series"`
+	Category      string   `json:"category"`
+	InstanceTypes []string `json:"instanceTypes"`
 }
 
 // ProductDetailSource product details related set of operations
@@ -235,6 +243,7 @@ type Price struct {
 // VMInfo representation of a virtual machine
 type VMInfo struct {
 	Category      string            `json:"category"`
+	Series        string            `json:"series"`
 	Type          string            `json:"type"`
 	OnDemandPrice float64           `json:"onDemandPrice"`
 	SpotPrice     []ZonePrice       `json:"spotPrice"`

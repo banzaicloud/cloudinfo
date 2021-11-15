@@ -73,6 +73,12 @@ type ProductDetailsResponse struct {
 	ScrapingTime string `json:"scrapingTime"`
 }
 
+type SeriesDetailsResponse struct {
+	CategoryDetails map[string]map[string][]string `json:"categoryDetails"`
+	SeriesDetails   []types.SeriesDetails          `json:"seriesDetails"`
+	ScrapingTime    string                         `json:"scrapingTime"`
+}
+
 // RegionsResponse holds the list of available regions of a cloud provider
 // swagger:model RegionsResponse
 type RegionsResponse []types.Region

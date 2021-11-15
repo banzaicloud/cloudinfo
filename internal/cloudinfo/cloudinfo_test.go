@@ -48,6 +48,23 @@ func (dcis *DummyCloudInfoStore) GetRegions(provider, service string) (map[strin
 	}
 }
 
+func (dcis *DummyCloudInfoStore) GetVm(provider, service, region string) ([]types.VMInfo, bool) {
+	switch dcis.TcId {
+	case notCached:
+		return nil, false
+	default:
+		return []types.VMInfo{
+				{Category: types.CategoryGeneral, Series: "series0", Type: "instanceType00"},
+				{Category: types.CategoryCompute, Series: "series1", Type: "instanceType10"},
+				{Category: types.CategoryCompute, Series: "series1", Type: "instanceType11"},
+				{Category: types.CategoryMemory, Series: "series2", Type: "instanceType20"},
+				{Category: types.CategoryMemory, Series: "series2", Type: "instanceType21"},
+				{Category: types.CategoryMemory, Series: "series2", Type: "instanceType22"},
+			},
+			true
+	}
+}
+
 func (dcis *DummyCloudInfoStore) GetZones(provider, service, region string) ([]string, bool) {
 	switch dcis.TcId {
 	case notCached:
@@ -189,6 +206,55 @@ func TestCachingCloudInfo_GetRegions(t *testing.T) {
 			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
 			info.cloudInfoStore = test.ciStore
 			test.checker(info.GetRegions("dummyProvider", "dummyService"))
+		})
+	}
+}
+
+func TestCloudInfo_GetSeries(t *testing.T) {
+	tests := []struct {
+		name    string
+		ciStore CloudInfoStore
+		checker func(categorySeriesMap map[string]map[string][]string, seriesDetails []types.SeriesDetails, err error)
+	}{
+		{
+			name:    "successfully retrieved the series",
+			ciStore: &DummyCloudInfoStore{},
+			checker: func(categorySeriesMap map[string]map[string][]string, seriesDetails []types.SeriesDetails, err error) {
+				assert.Nil(t, err, "the error should be nil")
+
+				assert.Equal(t, categorySeriesMap, map[string]map[string][]string{
+					types.CategoryGeneral: {
+						"series0": []string{"instanceType00"},
+					},
+					types.CategoryCompute: {
+						"series1": []string{"instanceType10", "instanceType11"},
+					},
+					types.CategoryMemory: {
+						"series2": []string{"instanceType20", "instanceType21", "instanceType22"},
+					},
+				})
+
+				assert.ElementsMatch(t, seriesDetails, []types.SeriesDetails{
+					{Series: "series0", Category: types.CategoryGeneral, InstanceTypes: []string{"instanceType00"}},
+					{Series: "series1", Category: types.CategoryCompute, InstanceTypes: []string{"instanceType10", "instanceType11"}},
+					{Series: "series2", Category: types.CategoryMemory, InstanceTypes: []string{"instanceType20", "instanceType21", "instanceType22"}},
+				})
+			},
+		},
+		{
+			name:    "failed to retrieve series",
+			ciStore: &DummyCloudInfoStore{TcId: notCached},
+			checker: func(categorySeriesMap map[string]map[string][]string, seriesDetails []types.SeriesDetails, err error) {
+				assert.Nil(t, seriesDetails, "the seriesDetails should be nil")
+				assert.EqualError(t, err, "VMs Information not yet cached")
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			info, _ := NewCloudInfo([]string{}, &DummyCloudInfoStore{}, cloudinfoLogger)
+			info.cloudInfoStore = test.ciStore
+			test.checker(info.GetSeriesDetails("dummyProvider", "dummyService", "dummyRegion"))
 		})
 	}
 }

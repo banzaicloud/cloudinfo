@@ -390,6 +390,42 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 	}
 }
 
+func (r *RouteHandler) getSeries() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetRegionPathParams{}
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
+			return
+		}
+
+		logger := log.WithFieldsForHandlers(c, r.log,
+			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service, "region": pathParams.Region})
+		logger.Info("getting instance series details")
+
+		scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
+		if err != nil {
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve status",
+				"provider", pathParams.Provider))
+			return
+		}
+		categorySeriesMap, seriesDetails, err := r.prod.GetSeriesDetails(pathParams.Provider, pathParams.Service, pathParams.Region)
+		if err != nil {
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err,
+				"failed to retrieve instance series details",
+				"provider", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region))
+			return
+		}
+
+		logger.Debug("successfully retrieved instance series details")
+		c.JSON(http.StatusOK, SeriesDetailsResponse{categorySeriesMap, seriesDetails, scrapingTime})
+	}
+}
+
 // swagger:route GET /providers/{provider}/services/{service}/regions/{region}/images images getImages
 //
 // Provides a list of available images on a given provider in a specific region for a service.
