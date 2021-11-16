@@ -13,6 +13,12 @@ The Banzai Cloud Cloudinfo application is a standalone project in the [Pipeline]
 While AWS, Google Cloud, Azure, AliBaba or Oracle all provide some kind of APIs to query instance type attributes and product pricing information, these APIs are often responding with partly inconsistent data, or the responses are very cumbersome to parse.
 The Cloudinfo service uses these cloud provider APIs to asynchronously fetch and parse instance type attributes and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
 
+## Release Process
+1. `git tag 0.18.0 -a` # create a local tag on master branch
+2. `git push origin 0.18.0` # push the tag information to github
+3. `make docker docker-push` # build docker image locally and push to GCR
+4. Create a new release page with `0.18.0`, it will automatically create changeset.
+
 ## Quick start
 
 Building the project is as simple as running a go build command. The result is a statically linked executable binary.

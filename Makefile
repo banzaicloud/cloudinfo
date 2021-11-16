@@ -10,7 +10,12 @@ GCR_PROJECT_ID ?= platform-205701
 
 # Build variables
 BUILD_DIR ?= build
-VERSION ?= $(shell git symbolic-ref -q --short HEAD | sed 's/[^a-zA-Z0-9]/-/g')
+
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null)
+ifeq (${VERSION},)
+	VERSION := $(shell git symbolic-ref -q --short HEAD | sed 's/[^a-zA-Z0-9]/-/g')
+endif
+
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 BRANCH ?= $(shell git symbolic-ref -q --short HEAD)
