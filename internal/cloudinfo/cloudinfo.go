@@ -152,6 +152,33 @@ func (cpi *cloudInfo) GetProductDetails(provider, service, region string) ([]typ
 	return details, nil
 }
 
+// GetProductDetail retrieves product details form the given provider, region and product type
+func (cpi *cloudInfo) GetProductDetail(provider, service, region string, product string) (types.ProductDetails, error) {
+	vms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
+	if !ok {
+		cpi.log.Debug("VMs not yet cached")
+		return types.ProductDetails{}, errors.NewWithDetails("VMs not yet cached", "provider", provider, "service", service, "region", region, "product", product)
+	}
+
+	for _, vm := range vms {
+		if vm.Type != product {
+			continue
+		}
+		pd := types.NewProductDetails(vm)
+		cachedVal, ok := cpi.cloudInfoStore.GetPrice(provider, region, vm.Type)
+		if !ok {
+			cpi.log.Debug("price info not yet cached", map[string]interface{}{"instanceType": vm.Type})
+		}
+
+		for zone, price := range cachedVal.SpotPrice {
+			pd.SpotPrice = append(pd.SpotPrice, *types.NewZonePrice(zone, price))
+		}
+		return *pd, nil
+	}
+
+	return types.ProductDetails{}, errors.NewWithDetails("price for this VM is not available", "provider", provider, "service", service, "region", region, "product", product)
+}
+
 func (cpi *cloudInfo) GetSeriesDetails(provider, service, region string) (map[string]map[string][]string, []types.SeriesDetails, error) {
 	vms, ok := cpi.cloudInfoStore.GetVm(provider, service, region)
 	if !ok {

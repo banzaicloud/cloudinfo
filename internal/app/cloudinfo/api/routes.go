@@ -116,6 +116,7 @@ func (r *RouteHandler) ConfigureRoutes(router *gin.Engine, basePath string) {
 		providerGroup.GET("/:provider/services/:service/regions/:region/images", r.getImages())
 		providerGroup.GET("/:provider/services/:service/regions/:region/versions", r.getVersions())
 		providerGroup.GET("/:provider/services/:service/regions/:region/products", r.getProducts())
+		providerGroup.GET("/:provider/services/:service/regions/:region/product/:product", r.getProductDetail())
 		providerGroup.GET("/:provider/services/:service/regions/:region/series", r.getSeries())
 	}
 

@@ -43,6 +43,11 @@ func ConfigureValidator(providers []string, ci types.CloudInfo, logger cloudinfo
 		return errors.Wrap(err, "could not register region validator")
 	}
 
+	// register validator for the product parameter in the request path
+	if err := v.RegisterValidation("product", productValidator(ci, logger)); err != nil {
+		return errors.Wrap(err, "could not register product validator")
+	}
+
 	return nil
 }
 
@@ -72,6 +77,14 @@ func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fun
 			}
 		}
 		return false
+	}
+}
+
+// productValidator validates the `product` path parameter
+func productValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		// TODO(UTSAV): validate if VM is present in the list of VMs
+		return true
 	}
 }
 

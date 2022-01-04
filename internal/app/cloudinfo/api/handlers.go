@@ -390,6 +390,42 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 	}
 }
 
+func (r *RouteHandler) getProductDetail() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pathParams := GetProductPathParams{}
+		if err := mapstructure.Decode(getPathParamMap(c), &pathParams); err != nil {
+			r.errorResponder.Respond(c, errors.WithDetails(err, "validation"))
+			return
+		}
+
+		if ve := ValidatePathData(pathParams); ve != nil {
+			r.errorResponder.Respond(c, errors.WithDetails(ve, "validation"))
+			return
+		}
+
+		logger := log.WithFieldsForHandlers(c, r.log,
+			map[string]interface{}{"provider": pathParams.Provider, "service": pathParams.Service, "region": pathParams.Region})
+		logger.Info("getting product details")
+
+		scrapingTime, err := r.prod.GetStatus(pathParams.Provider)
+		if err != nil {
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err, "failed to retrieve status",
+				"provider", pathParams.Provider))
+			return
+		}
+		detail, err := r.prod.GetProductDetail(pathParams.Provider, pathParams.Service, pathParams.Region, pathParams.Product)
+		if err != nil {
+			r.errorResponder.Respond(c, errors.WrapIfWithDetails(err,
+				"failed to retrieve product details",
+				"provider", pathParams.Provider, "service", pathParams.Service, "region", pathParams.Region, "product", pathParams.Product))
+			return
+		}
+
+		logger.Debug("successfully retrieved product details")
+		c.JSON(http.StatusOK, ProductDetailResponse{detail, scrapingTime})
+	}
+}
+
 func (r *RouteHandler) getSeries() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}

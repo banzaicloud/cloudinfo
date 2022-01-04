@@ -48,6 +48,8 @@ type CloudInfo interface {
 
 	GetProductDetails(provider, service, region string) ([]ProductDetails, error)
 
+	GetProductDetail(provider, service, region string, product string) (ProductDetails, error)
+
 	GetSeriesDetails(provider, service, region string) (map[string]map[string][]string, []SeriesDetails, error)
 
 	GetServiceImages(provider, service, region string) ([]Image, error)

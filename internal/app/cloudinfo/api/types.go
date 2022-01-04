@@ -41,6 +41,14 @@ type GetRegionPathParams struct {
 	Region string `binding:"required,region" json:"region"`
 }
 
+// GetProductPathParams is a placeholder for the product/vm related route path parameters
+// swagger:parameters GetProductPathParams getProductDetail
+type GetProductPathParams struct {
+	GetRegionPathParams `binding:"required" mapstructure:",squash"`
+	// in:path
+	Product string `binding:"required,product" json:"product"`
+}
+
 // GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
 // swagger:parameters getAttrValues
 type GetAttributeValuesPathParams struct {
@@ -62,6 +70,15 @@ type GetImagesQueryParams struct {
 	PkeVersion string `json:"pkeVersion,omitempty"`
 	// in:query
 	LatestOnly string `json:"latestOnly"`
+}
+
+// ProductDetailResponse Api object to be mapped to product info response
+// swagger:model ProductDetailResponse
+type ProductDetailResponse struct {
+	// Product represents a product for a given provider (VMs with attributes and process)
+	Product types.ProductDetails `json:"product"`
+	// ScrapingTime represents scraping time for a given provider in milliseconds
+	ScrapingTime string `json:"scrapingTime"`
 }
 
 // ProductDetailsResponse Api object to be mapped to product info response

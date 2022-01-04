@@ -12,7 +12,7 @@ info:
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 0.6.0
+  version: 0.7.0
 paths:
   /continents:
     get:
@@ -421,6 +421,18 @@ components:
             type: string
           x-go-name: Versions
       x-go-package: github.com/banzaicloud/cloudinfo/internal/cloudinfo/types
+    ProductDetailResponse:
+      description: ProductDetailResponse Api object to be mapped to product info response
+      type: object
+      properties:
+        product:
+          $ref: "#/components/schemas/ProductDetails"
+        scrapingTime:
+          description: ScrapingTime represents scraping time for a given provider in
+            milliseconds
+          type: string
+          x-go-name: ScrapingTime
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     ProductDetails:
       description: ProductDetails extended view of the virtual machine details
       type: object
