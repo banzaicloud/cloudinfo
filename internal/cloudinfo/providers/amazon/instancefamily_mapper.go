@@ -20,14 +20,14 @@ import (
 
 // mapSeries get instance series associated with the instanceType
 func (e *Ec2Infoer) mapSeries(instanceType string) string {
-	series := strings.Split(instanceType, ".")
+	seriesParts := strings.Split(instanceType, ".")
 
-	if len(series) != 2 {
-		e.log.Warn("error parsing instance series from instanceType", map[string]interface{}{"instanceType": instanceType})
-
-		// return instanceType itself when there is a parsing error, to speedup debugging
-		return instanceType
+	if len(seriesParts) == 2 {
+		return seriesParts[0]
 	}
 
-	return series[0]
+	e.log.Warn("error parsing instance series from instanceType", map[string]interface{}{"instanceType": instanceType})
+
+	// return instanceType itself when there is a parsing error, to speedup debugging
+	return instanceType
 }
