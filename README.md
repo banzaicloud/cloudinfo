@@ -23,6 +23,11 @@ The Cloudinfo service uses these cloud provider APIs to asynchronously fetch and
 3. `make docker docker-push` # build docker image locally and push to GCR
 4. Create a new release page with `0.18.0`, it will automatically create changeset.
 
+
+## Update swagger specs
+1. `make bin/swagger` # Make sure swagger executable is present
+2. `make swagger` # to update swagger specs present in `api/openapi-spec/cloudinfo.*`
+
 ## Quick start
 
 Building the project is as simple as running a go build command. The result is a statically linked executable binary.

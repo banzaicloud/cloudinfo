@@ -15,7 +15,7 @@
       "name": "Apache 2.0",
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "version": "0.7.0"
+    "version": "0.8.0"
   },
   "basePath": "/api/v1",
   "paths": {
@@ -414,6 +414,105 @@
         }
       }
     },
+    "/providers/{provider}/services/{service}/regions/{region}/products/{product}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "products"
+        ],
+        "summary": "Provides pricing detail for a single machine types on a given provider in a specific region.",
+        "operationId": "getProductDetail",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Region",
+            "name": "region",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Product",
+            "name": "product",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProductDetailResponse",
+            "schema": {
+              "$ref": "#/definitions/ProductDetailResponse"
+            }
+          }
+        }
+      }
+    },
+    "/providers/{provider}/services/{service}/regions/{region}/series": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "http"
+        ],
+        "tags": [
+          "series"
+        ],
+        "summary": "Provides a list of available series/families on a given provider in a specific region.",
+        "operationId": "getSeries",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Service",
+            "name": "service",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Region",
+            "name": "region",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SeriesDetailsResponse",
+            "schema": {
+              "$ref": "#/definitions/SeriesDetailsResponse"
+            }
+          }
+        }
+      }
+    },
     "/providers/{provider}/services/{service}/regions/{region}/versions": {
       "get": {
         "produces": [
@@ -773,6 +872,58 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/Region"
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
+    },
+    "SeriesDetails": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "x-go-name": "Category"
+        },
+        "instanceTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "InstanceTypes"
+        },
+        "series": {
+          "type": "string",
+          "x-go-name": "Series"
+        }
+      },
+      "x-go-package": "github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
+    },
+    "SeriesDetailsResponse": {
+      "description": "SeriesDetailsResponse Api object to be mapped to series/families available for a cloud provider in a particular region",
+      "type": "object",
+      "properties": {
+        "categoryDetails": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "x-go-name": "CategoryDetails"
+        },
+        "scrapingTime": {
+          "type": "string",
+          "x-go-name": "ScrapingTime"
+        },
+        "seriesDetails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SeriesDetails"
+          },
+          "x-go-name": "SeriesDetails"
+        }
       },
       "x-go-package": "github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api"
     },

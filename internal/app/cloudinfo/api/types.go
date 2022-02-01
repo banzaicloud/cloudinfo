@@ -34,7 +34,7 @@ type GetServicesPathParams struct {
 }
 
 // GetRegionPathParams is a placeholder for the regions related route path parameters
-// swagger:parameters getRegion getImages getProducts getVersions
+// swagger:parameters GetRegionPathParams getRegion getImages getProducts getVersions getSeries
 type GetRegionPathParams struct {
 	GetServicesPathParams `binding:"required" mapstructure:",squash"`
 	// in:path
@@ -90,6 +90,8 @@ type ProductDetailsResponse struct {
 	ScrapingTime string `json:"scrapingTime"`
 }
 
+// SeriesDetailsResponse Api object to be mapped to series/families available for a cloud provider in a particular region
+// swagger:model SeriesDetailsResponse
 type SeriesDetailsResponse struct {
 	CategoryDetails map[string]map[string][]string `json:"categoryDetails"`
 	SeriesDetails   []types.SeriesDetails          `json:"seriesDetails"`

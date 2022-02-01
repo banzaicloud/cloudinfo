@@ -66,7 +66,7 @@ bin/swagger-${SWAGGER_VERSION}:
 
 .PHONY: swagger
 swagger: bin/swagger
-	bin/swagger generate spec -m -o $(SWAGGER_PI_TMP_FILE)
+	bin/swagger generate spec -m -w ./cmd/cloudinfo -o $(SWAGGER_PI_TMP_FILE)
 	swagger2openapi -y $(SWAGGER_PI_TMP_FILE) > $(SWAGGER_PI_FILE)
 
 define generate_openapi_client

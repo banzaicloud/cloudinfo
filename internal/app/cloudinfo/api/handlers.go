@@ -390,6 +390,19 @@ func (r *RouteHandler) getProducts() gin.HandlerFunc {
 	}
 }
 
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/products/{product} products getProductDetail
+//
+// Provides pricing detail for a single machine types on a given provider in a specific region.
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: ProductDetailResponse
 func (r *RouteHandler) getProductDetail() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetProductPathParams{}
@@ -426,6 +439,19 @@ func (r *RouteHandler) getProductDetail() gin.HandlerFunc {
 	}
 }
 
+// swagger:route GET /providers/{provider}/services/{service}/regions/{region}/series series getSeries
+//
+// Provides a list of available series/families on a given provider in a specific region.
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: http
+//
+//     Security:
+//
+//     Responses:
+//       200: SeriesDetailsResponse
 func (r *RouteHandler) getSeries() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		pathParams := GetRegionPathParams{}
