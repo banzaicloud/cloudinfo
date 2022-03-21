@@ -29,7 +29,7 @@ jobs:
 
       - name: Cache Go module dependencies
         id: cache-go-module-dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
@@ -44,7 +44,7 @@ jobs:
 
       - name: Cache licenses
         id: cache-licenses
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .licensei.cache
           key: licensei-v1-${{ steps.set-git-refname.outputs.git_refname }}-${{ hashFiles('go.sum') }}
@@ -89,7 +89,7 @@ jobs:
 
       - name: Cache Go module dependencies
         id: cache-go-module-dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
@@ -116,7 +116,7 @@ jobs:
 
       - name: Restore Go module dependencies cache
         id: cache-go-module-dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
@@ -143,7 +143,7 @@ jobs:
 
       - name: Restore Go module dependencies cache
         id: cache-go-module-dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: go-mod-cache-${{ runner.os }}-${{ env.GO_VERSION }}-${{ hashFiles('go.sum') }}
