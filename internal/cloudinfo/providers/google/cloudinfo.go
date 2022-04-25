@@ -198,41 +198,43 @@ func (g *GceInfoer) Initialize() (map[string]map[string]types.Price, error) {
 		}
 		zonesInRegions[r] = zones
 
-		err = g.computeSvc.MachineTypes.List(g.projectId, zones[0]).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
-			region := r
-			price := pricePerRegion[region]
-			for _, mt := range allMts.Items {
-				if !cloudinfo.Contains(unsupportedInstanceTypes, mt.Name) {
-					if allPrices[region] == nil {
-						allPrices[region] = make(map[string]types.Price)
-					}
-					prices := allPrices[region][mt.Name]
-
-					if mt.Name == "f1-micro" || mt.Name == "g1-small" {
-						prices.OnDemandPrice = price[mt.Name]["OnDemand"]
-					} else {
-						prices.OnDemandPrice = price[types.CPU]["OnDemand"]*float64(mt.GuestCpus) + price[types.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
-					}
-					spotPrice := make(types.SpotPriceInfo)
-					for _, z := range zonesInRegions[region] {
-						if mt.Name == "f1-micro" || mt.Name == "g1-small" {
-							spotPrice[z] = price[mt.Name]["Preemptible"]
-							metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
-						} else {
-							spotPrice[z] = price[types.CPU]["Preemptible"]*float64(mt.GuestCpus) + price[types.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+		for _, zone := range zones {
+			err = g.computeSvc.MachineTypes.List(g.projectId, zone).Pages(context.TODO(), func(allMts *compute.MachineTypeList) error {
+				region := r
+				price := pricePerRegion[region]
+				for _, mt := range allMts.Items {
+					if !cloudinfo.Contains(unsupportedInstanceTypes, mt.Name) {
+						if allPrices[zone] == nil {
+							allPrices[zone] = make(map[string]types.Price)
 						}
+						prices := allPrices[zone][mt.Name]
 
-						metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+						if mt.Name == "f1-micro" || mt.Name == "g1-small" {
+							prices.OnDemandPrice = price[mt.Name]["OnDemand"]
+						} else {
+							prices.OnDemandPrice = price[types.CPU]["OnDemand"]*float64(mt.GuestCpus) + price[types.Memory]["OnDemand"]*float64(mt.MemoryMb)/1024
+						}
+						spotPrice := make(types.SpotPriceInfo)
+						for _, z := range zonesInRegions[region] {
+							if mt.Name == "f1-micro" || mt.Name == "g1-small" {
+								spotPrice[z] = price[mt.Name]["Preemptible"]
+								metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+							} else {
+								spotPrice[z] = price[types.CPU]["Preemptible"]*float64(mt.GuestCpus) + price[types.Memory]["Preemptible"]*float64(mt.MemoryMb)/1024
+							}
+
+							metrics.ReportGoogleSpotPrice(region, z, mt.Name, spotPrice[z])
+						}
+						prices.SpotPrice = spotPrice
+
+						allPrices[zone][mt.Name] = prices
 					}
-					prices.SpotPrice = spotPrice
-
-					allPrices[region][mt.Name] = prices
 				}
+				return nil
+			})
+			if err != nil {
+				return nil, err
 			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
 		}
 	}
 

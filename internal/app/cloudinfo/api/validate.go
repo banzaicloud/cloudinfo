@@ -15,6 +15,8 @@
 package api
 
 import (
+	"strings"
+
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -67,7 +69,8 @@ func regionValidator(cpi types.CloudInfo, logger cloudinfo.Logger) validator.Fun
 		}
 
 		for reg := range regions {
-			if reg == regionPathParams.Region {
+			// contains covers validation of zones for google (zone == region + prefix, for ex. us-central1-b)
+			if reg == regionPathParams.Region || strings.Contains(regionPathParams.Region, reg) {
 				return true
 			}
 		}
