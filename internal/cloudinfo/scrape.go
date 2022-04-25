@@ -33,7 +33,7 @@ import (
 )
 
 type VMInfoList struct {
-	products []types.VMInfo `json:"products"`
+	Products []types.VMInfo `json:"products"`
 }
 
 // scrapingManager manages data renewal for a given provider
@@ -301,12 +301,13 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 		}
 
 		vmsList := VMInfoList{
-			products: vmsInZone,
+			Products: vmsInZone,
 		}
-		jsonString, err := json.Marshal(vmsList)
+
+		jsonString, err := json.MarshalIndent(vmsList, "", "\t")
 		fmt.Println(err)
 
-		fileName := fmt.Sprintf("%s.json", zone)
+		fileName := fmt.Sprintf("generated/%s.json", zone)
 		f, err := os.Create(fileName)
 
 		if err != nil {
