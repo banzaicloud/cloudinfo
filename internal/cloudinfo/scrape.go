@@ -16,7 +16,9 @@ package cloudinfo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -29,6 +31,10 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
 )
+
+type VMInfoList struct {
+	products []types.VMInfo `json:"products"`
+}
 
 // scrapingManager manages data renewal for a given provider
 // retrieves data from the cloud provider and stores it in the store
@@ -271,19 +277,52 @@ func (sm *scrapingManager) updateVirtualMachines(service, region string) error {
 		return errors.NewWithDetails("VMs not yet cached", "provider", sm.provider, "service", service, "region", region)
 	}
 
-	virtualMachines := make([]types.VMInfo, 0, len(vms))
-	for _, vm := range vms {
-		prices, found := sm.store.GetPrice(sm.provider, region, vm.Type)
+	fmt.Println("-------------------")
 
-		if found {
-			if prices.OnDemandPrice > 0 {
-				vm.OnDemandPrice = prices.OnDemandPrice
+	zones, _ := sm.store.GetZones(sm.provider, service, region)
+	fmt.Println(zones)
+
+	virtualMachines := make([]types.VMInfo, 0, len(vms))
+	for _, zone := range zones {
+		var vmsInZone []types.VMInfo
+		for _, vm := range vms {
+			prices, found := sm.store.GetPrice(sm.provider, zone, vm.Type)
+
+			if found {
+				if prices.OnDemandPrice > 0 {
+					vm.OnDemandPrice = prices.OnDemandPrice
+				}
+			}
+
+			if vm.OnDemandPrice != 0 {
+				virtualMachines = append(virtualMachines, vm)
+				vmsInZone = append(vmsInZone, vm)
 			}
 		}
 
-		if vm.OnDemandPrice != 0 {
-			virtualMachines = append(virtualMachines, vm)
+		vmsList := VMInfoList{
+			products: vmsInZone,
 		}
+		jsonString, err := json.Marshal(vmsList)
+		fmt.Println(err)
+
+		fileName := fmt.Sprintf("%s.json", zone)
+		f, err := os.Create(fileName)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		defer f.Close()
+
+		_, err2 := f.Write(jsonString)
+
+		if err2 != nil {
+			fmt.Println(err2)
+		}
+
+		fmt.Println("done")
+
 	}
 
 	sm.store.DeleteVm(sm.provider, service, region)
