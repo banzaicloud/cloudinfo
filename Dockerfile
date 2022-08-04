@@ -8,7 +8,6 @@ COPY web/package.json web/package-lock.json /web/
 RUN npm install --legacy-peer-deps
 
 COPY web/ /web/
-
 RUN npm run build-prod
 
 
@@ -46,15 +45,17 @@ RUN set -xe && \
 
 
 # Final image
-FROM alpine:3.14.0
+# FROM alpine:3.14.0
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6-854
+USER root
 
-RUN apk add --update --no-cache ca-certificates tzdata bash curl
+# RUN apk add --update --no-cache ca-certificates tzdata bash curl
 
 SHELL ["/bin/bash", "-c"]
 
 # set up nsswitch.conf for Go's "netgo" implementation
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
-RUN test ! -e /etc/nsswitch.conf && echo 'hosts: files dns' > /etc/nsswitch.conf
+# RUN test ! -e /etc/nsswitch.conf && echo 'hosts: files dns' > /etc/nsswitch.conf
 
 ARG BUILD_TARGET
 
