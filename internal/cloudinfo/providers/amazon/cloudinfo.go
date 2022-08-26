@@ -553,7 +553,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 	serviceImages := make([]types.Image, 0)
 	switch service {
 	case svcEks:
-		for _, k8sVersion := range []string{"1.19", "1.20", "1.21", "1.22"} {
+		for _, k8sVersion := range []string{"1.19", "1.20", "1.21", "1.22", "1.23"} {
 			gpuImages, err := e.ec2Describer(region).DescribeImages(getEKSDescribeImagesInput(k8sVersion, true))
 			if err != nil {
 				return nil, err
@@ -617,7 +617,7 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]types.ProductD
 func (e *Ec2Infoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.19.15", "1.20.7", "1.21.5", "1.22.6"}, "1.21.5")}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.19.16", "1.20.15", "1.21.13", "1.22.10", "1.23.7"}, "1.22.10")}, nil
 	default:
 		return []types.LocationVersion{}, nil
 	}
