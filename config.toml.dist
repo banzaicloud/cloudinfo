@@ -126,6 +126,12 @@ enabled = false
 
 # accessToken = ""
 
+[distribution.pke.amazon]
+enabled = true
+
+[distribution.pke.azure]
+enabled = true
+
 [management]
 enabled = true
 address = ":8001"

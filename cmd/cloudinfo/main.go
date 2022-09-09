@@ -17,11 +17,11 @@
 // The product info application uses the cloud provider APIs to asynchronously fetch and parse instance type attributes
 // and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
 //
-//     Schemes: http, https
-//     BasePath: /api/v1
-//     Version: 0.0.1
-//     License: Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
-//     Contact: Banzai Cloud<info@banzaicloud.com>
+//	Schemes: http, https
+//	BasePath: /api/v1
+//	Version: 0.0.1
+//	License: Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+//	Contact: Banzai Cloud<info@banzaicloud.com>
 //
 // swagger:meta
 package main
@@ -182,7 +182,7 @@ func main() {
 	eventBus := messaging.NewDefaultEventBus(errorHandler)
 
 	serviceManager := loader.NewDefaultServiceManager(config.ServiceLoader, cloudInfoStore, cloudInfoLogger, eventBus)
-	serviceManager.ConfigureServices(providers)
+	serviceManager.ConfigureServices(providers, config.Distribution)
 
 	serviceManager.LoadServiceInformation(providers)
 

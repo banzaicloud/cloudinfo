@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/cistore"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/loader"
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/management"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/distribution"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/alibaba"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/amazon"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/providers/azure"
@@ -170,6 +171,8 @@ type configuration struct {
 			Enabled bool
 		}
 	}
+
+	Distribution distribution.Config
 
 	Management management.Config
 
@@ -336,6 +339,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlag("provider.digitalocean.enabled", p.Lookup("provider-digitalocean"))
 
 	_ = v.BindEnv("provider.digitalocean.accessToken", "DIGITALOCEAN_ACCESS_TOKEN")
+
+	// Distribution
+	v.SetDefault("distribution.pke.amazon.enabled", true)
+	v.SetDefault("distribution.pke.azure.enabled", true)
 
 	// Management
 	v.SetDefault("management.enabled", true)

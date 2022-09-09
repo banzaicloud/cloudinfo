@@ -20,13 +20,14 @@ import (
 
 	"github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/messaging"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo"
+	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/distribution"
 	"github.com/banzaicloud/cloudinfo/internal/cloudinfo/types"
 )
 
 // ServiceManager abstracts the operations related to cloud info services
 type ServiceManager interface {
 	// ConfigureServices parses the service configuration file and registers supported services
-	ConfigureServices(providers []string)
+	ConfigureServices(providers []string, distributionConfig distribution.Config)
 
 	// LoadServiceInformation triggers importing cloud information based on the available service information
 	LoadServiceInformation(providers []string)
@@ -64,7 +65,7 @@ func (sm *defaultServiceManager) LoadServiceInformation(providers []string) {
 	sm.log.Info("cloud information imported.")
 }
 
-func (sm *defaultServiceManager) ConfigureServices(providers []string) {
+func (sm *defaultServiceManager) ConfigureServices(providers []string, distributionConfig distribution.Config) {
 	for provider, providerServices := range sm.services {
 		if !cloudinfo.Contains(providers, provider) {
 			sm.log.Debug("provider not enabled", map[string]interface{}{"provider": provider})
@@ -73,6 +74,14 @@ func (sm *defaultServiceManager) ConfigureServices(providers []string) {
 
 		services := make([]types.Service, 0, len(providerServices))
 		for _, psvc := range providerServices {
+			if provider == "amazon" && !distributionConfig.Pke.Amazon.Enabled && psvc.Name == "pke" {
+				sm.log.Debug("service not enabled", map[string]interface{}{"provider": provider, "service": psvc.Name})
+				continue
+			}
+			if provider == "azure" && !distributionConfig.Pke.Azure.Enabled && psvc.Name == "pke" {
+				sm.log.Debug("service not enabled", map[string]interface{}{"provider": provider, "service": psvc.Name})
+				continue
+			}
 			services = append(services, types.Service{Service: psvc.Name, IsStatic: psvc.IsStatic})
 		}
 		sm.log.Debug("initialized provider services", map[string]interface{}{"provider": provider, "services #": len(services)})
