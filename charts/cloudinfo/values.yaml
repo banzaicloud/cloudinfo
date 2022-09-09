@@ -126,6 +126,13 @@ providers:
   #   clientSecret: ""
   #   tenantId: ""
 
+distribution:
+  pke:
+    amazon:
+      enabled: true
+    azure:
+      enabled: true
+
 store:
   redis:
     enabled: false
