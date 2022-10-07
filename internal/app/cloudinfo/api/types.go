@@ -55,6 +55,8 @@ type GetImagesQueryParams struct {
 	// in:query
 	Gpu string `json:"gpu"`
 	// in:query
+	Cr string `json:"cr"`
+	// in:query
 	Version string `json:"version"`
 	// in:query
 	Os string `json:"os,omitempty"`

@@ -439,11 +439,17 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 				if queryParams.Version != "" && queryParams.Version != image.Version {
 					continue
 				}
-				if queryParams.Gpu != "" && !image.GpuAvailable {
+				if queryParams.Gpu == "true" && !image.GpuAvailable {
+					continue
+				}
+				if queryParams.Gpu == "false" && image.GpuAvailable {
 					continue
 				}
 				// todo possibly add filtering by all tags (generic)
 				if queryParams.Os != "" && queryParams.Os != image.Tags["os-type"] {
+					continue
+				}
+				if queryParams.Cr != "" && queryParams.Cr != image.Tags["cr"] {
 					continue
 				}
 				if queryParams.PkeVersion != "" && queryParams.PkeVersion != image.Tags["pke-version"] {
