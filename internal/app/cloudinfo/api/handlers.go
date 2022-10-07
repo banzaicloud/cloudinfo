@@ -449,6 +449,9 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 				if queryParams.Os != "" && queryParams.Os != image.Tags["os-type"] {
 					continue
 				}
+				if queryParams.Cr != "" && queryParams.Cr != image.Tags["cr"] {
+					continue
+				}
 				if queryParams.PkeVersion != "" && queryParams.PkeVersion != image.Tags["pke-version"] {
 					continue
 				}
