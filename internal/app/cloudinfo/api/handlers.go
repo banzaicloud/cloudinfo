@@ -439,7 +439,10 @@ func (r *RouteHandler) getImages() gin.HandlerFunc {
 				if queryParams.Version != "" && queryParams.Version != image.Version {
 					continue
 				}
-				if queryParams.Gpu != "" && !image.GpuAvailable {
+				if queryParams.Gpu == "true" && !image.GpuAvailable {
+					continue
+				}
+				if queryParams.Gpu == "false" && image.GpuAvailable {
 					continue
 				}
 				// todo possibly add filtering by all tags (generic)
