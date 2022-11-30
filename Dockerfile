@@ -1,5 +1,5 @@
 # UI build image
-FROM node:16.5.0 as frontend
+FROM node:19.2.0 as frontend
 
 WORKDIR /web
 
