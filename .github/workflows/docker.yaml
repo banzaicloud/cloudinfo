@@ -43,7 +43,7 @@ jobs:
           done
 
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "tags=$(IFS=,; echo \"${TAGS[*]}\")" >> $GITHUB_OUTPUT
+          IFS=, ; echo "tags=${TAGS[*]}" >> $GITHUB_OUTPUT
           echo "commit_hash=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
           echo "build_date=$(git show -s --format=%cI)" >> $GITHUB_OUTPUT
 
