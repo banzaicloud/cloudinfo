@@ -22,4 +22,5 @@ ignored = [
     "github.com/alecthomas/units", # MIT
     "gopkg.in/alecthomas/kingpin.v2", # MIT
     "github.com/prometheus/statsd_exporter", # Apache 2.0
+    "github.com/form3tech-oss/jwt-go", # MIT
 ]
