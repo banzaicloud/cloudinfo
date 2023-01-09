@@ -173,7 +173,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 			missingAttributes[instanceType] = append(missingAttributes[instanceType], "networkPerformance")
 		}
 
-		var currGen = true
+		currGen := true
 		if currentGenStr, err := pd.getDataForKey("currentGeneration"); err == nil {
 			if strings.ToLower(currentGenStr) == "no" {
 				currGen = false
@@ -219,7 +219,7 @@ func (e *Ec2Infoer) GetVirtualMachines(region string) ([]types.VMInfo, error) {
 // GetProducts retrieves the available virtual machines based on the arguments provided
 // Delegates to the underlying PricingSource instance and performs transformations
 func (e *Ec2Infoer) GetProducts(vms []types.VMInfo, service, regionId string) ([]types.VMInfo, error) {
-	var vmList = vms
+	vmList := vms
 	if len(vmList) == 0 {
 		var err error
 		vmList, err = e.GetVirtualMachines(regionId)
@@ -266,6 +266,7 @@ func newPriceData(prData aws.JSONValue) (*priceData, error) {
 
 	return &pd, nil
 }
+
 func (pd *priceData) getDataForKey(attr string) (string, error) {
 	if value, ok := pd.attrMap[attr].(string); ok {
 		return value, nil
@@ -553,7 +554,7 @@ func (e *Ec2Infoer) GetServiceImages(service, region string) ([]types.Image, err
 	serviceImages := make([]types.Image, 0)
 	switch service {
 	case svcEks:
-		for _, k8sVersion := range []string{"1.19", "1.20", "1.21", "1.22", "1.23"} {
+		for _, k8sVersion := range []string{"1.21", "1.22", "1.23", "1.24"} {
 			gpuImages, err := e.ec2Describer(region).DescribeImages(getEKSDescribeImagesInput(k8sVersion, true))
 			if err != nil {
 				return nil, err
@@ -617,7 +618,7 @@ func (e *Ec2Infoer) GetServiceProducts(region, service string) ([]types.ProductD
 func (e *Ec2Infoer) GetVersions(service, region string) ([]types.LocationVersion, error) {
 	switch service {
 	case svcEks:
-		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.19.16", "1.20.15", "1.21.13", "1.22.10", "1.23.7"}, "1.22.10")}, nil
+		return []types.LocationVersion{types.NewLocationVersion(region, []string{"1.21.14", "1.22.15", "1.23.13", "1.24.7"}, "1.23.13")}, nil
 	default:
 		return []types.LocationVersion{}, nil
 	}
@@ -635,7 +636,7 @@ func getImageCreateDate(image *ec2.Image) (time.Time, error) {
 // getLatestImage iterates through the image list and returns the one with the latest CreationDate
 func getLatestImage(images []*ec2.Image) (*ec2.Image, error) {
 	var latestImage *ec2.Image
-	var latestImageCreationDate = time.Time{}
+	latestImageCreationDate := time.Time{}
 
 	for _, image := range images {
 		imgCreateDate, err := getImageCreateDate(image)
