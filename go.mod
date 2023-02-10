@@ -21,9 +21,9 @@ require (
 	github.com/digitalocean/godo v1.62.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/static v0.0.1
-	github.com/gin-gonic/gin v1.7.2
+	github.com/gin-gonic/gin v1.8.2
 	github.com/go-kit/kit v0.10.0
-	github.com/go-playground/validator/v10 v10.6.1
+	github.com/go-playground/validator/v10 v10.11.1
 	github.com/gocql/gocql v0.0.0-20210515062232-b7ef815b4556
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gomodule/redigo v2.0.0+incompatible
@@ -38,7 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.1
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
