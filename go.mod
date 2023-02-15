@@ -31,7 +31,7 @@ require (
 	github.com/moogar0880/problems v0.1.1
 	github.com/oracle/oci-go-sdk v24.3.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/prometheus/common v0.26.0
 	github.com/sagikazarmark/viperx v0.8.0
 	github.com/shopspring/decimal v1.2.0 // indirect
