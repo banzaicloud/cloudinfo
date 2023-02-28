@@ -19,6 +19,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"strconv"
 	"strings"
 
 	"emperror.dev/emperror"
@@ -67,11 +69,44 @@ type GceInfoer struct {
 	log          cloudinfo.Logger
 }
 
+var ErrEnvVarEmpty = errors.New("getenv: environment variable empty")
+
+func getenvStr(key string) (string, error) {
+	v := os.Getenv(key)
+	if v == "" {
+		return v, ErrEnvVarEmpty
+	}
+	return v, nil
+}
+
+func getenvBool(key string) (bool, error) {
+	s, err := getenvStr(key)
+	if err != nil {
+		return false, err
+	}
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		return false, err
+	}
+	return v, nil
+}
+
 // NewGoogleInfoer creates a new instance of the Google infoer.
 func NewGoogleInfoer(config Config, logger cloudinfo.Logger) (*GceInfoer, error) {
-	clientOpts := []option.ClientOption{
-		option.WithCredentialsFile(config.CredentialsFile),
-		option.WithScopes(compute.ComputeReadonlyScope, container.CloudPlatformScope),
+	// Workload identity support for cloudinfo
+	useWorkloadIdentity, _ := getenvBool("USE_WORKLOAD_IDENTITY")
+	var clientOpts []option.ClientOption
+	if !useWorkloadIdentity {
+		logger.Info("WI: using Older way with json key")
+		clientOpts = []option.ClientOption{
+			option.WithCredentialsFile(config.CredentialsFile),
+			option.WithScopes(compute.ComputeReadonlyScope, container.CloudPlatformScope),
+		}
+	} else {
+		logger.Info("WI: using Google ADC")
+		clientOpts = []option.ClientOption{
+			option.WithScopes(compute.ComputeReadonlyScope, container.CloudPlatformScope),
+		}
 	}
 
 	if config.Credentials != "" {
