@@ -56,7 +56,7 @@ build-debug: ## Build all binaries with remote debugging capabilities
 
 .PHONY: docker
 docker: ## Build a Docker image
-	docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+	docker build --platform=linux/amd64 -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
 ifeq (${DOCKER_LATEST}, 1)
 	docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
 endif
