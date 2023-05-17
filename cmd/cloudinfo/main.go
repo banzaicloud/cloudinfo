@@ -17,11 +17,11 @@
 // The product info application uses the cloud provider APIs to asynchronously fetch and parse instance type attributes
 // and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
 //
-//     Schemes: http, https
-//     BasePath: /api/v1
-//     Version: 0.0.1
-//     License: Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
-//     Contact: Banzai Cloud<info@banzaicloud.com>
+//	Schemes: http, https
+//	BasePath: /api/v1
+//	Version: 0.0.1
+//	License: Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
+//	Contact: Banzai Cloud<info@banzaicloud.com>
 //
 // swagger:meta
 package main
@@ -58,6 +58,7 @@ import (
 	"github.com/banzaicloud/cloudinfo/internal/platform/buildinfo"
 	"github.com/banzaicloud/cloudinfo/internal/platform/errorhandler"
 	"github.com/banzaicloud/cloudinfo/internal/platform/log"
+	"github.com/banzaicloud/cloudinfo/internal/platform/profiler"
 )
 
 // Provisioned by ldflags
@@ -164,6 +165,16 @@ func main() {
 
 		tracing.SetupTracing(config.Jaeger.Config, emperror.NoopHandler{})
 		tracer = tracing.NewTracer()
+	}
+
+	if config.Profiling.Enabled {
+		logger.Info("profiling is enabled.", map[string]interface{}{
+			"service_name": config.Profiling.ServiceName,
+		})
+		err := profiler.StartProfiling(config.Profiling.ServiceName)
+		if err != nil {
+			logger.Error(err.Error())
+		}
 	}
 
 	cloudInfoLogger := cloudinfoadapter.NewLogger(logger)

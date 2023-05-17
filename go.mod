@@ -3,6 +3,7 @@ module github.com/banzaicloud/cloudinfo
 go 1.16
 
 require (
+	cloud.google.com/go/profiler v0.3.1
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	contrib.go.opencensus.io/exporter/prometheus v0.3.0
 	emperror.dev/emperror v0.33.0
@@ -41,8 +42,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/vektah/gqlparser/v2 v2.2.0
 	go.opencensus.io v0.23.0
-	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
-	google.golang.org/api v0.49.0
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
+	google.golang.org/api v0.102.0
 	logur.dev/adapter/logrus v0.5.0
 	logur.dev/logur v0.17.0
 )
